@@ -16,7 +16,7 @@
  * * added "GETLASTLOGINTIME" command (for moderators)
  * * fixed bug with clients behind same NAT not getting local IPs in certain cases
  * * added simple UDP server to help with NAT traversing (see NATHelpServer.java)
- * * added UDPSOURCEPORT command (used with NAT traversing)      
+ * * added UDPSOURCEPORT, CLIENTPORT and HOSTPORT commands (used with NAT traversing)      
  * *** 0.191 ***
  * * fixed bug with server allowing clients to have several battles open at the same time
  * *** 0.19 ***
@@ -204,15 +204,11 @@
  * * PONG
  * Sent by server to client who sent a PING command.
  * 
- * * TASSERVER version uid udpport
+ * * TASSERVER version udpport
  * Sent by server. This is the first message that client receives upon connecting to the server.
  * "version" is server's version (client should check if it supports this server version
  * before attempting to login. If it does not support it, it should send REQUESTUPDATEFILE
  * command).
- * "uid" is an unique ID assigned to the client. Client must know his UID when using server's
- * NAT Help Server to figure out his public UDP source port (since client tries to figure
- * out his UDP source port before logging in and UID is the only way to differentiate clients
- * before they are logged in, since they don't have an username assigned yet).
  * "udpport" is server's UDP port where "NAT Help Server" is running. This is the port to
  * which clients should send their UDP packets when trying to figure out their public
  * UDP source port. This is used with some NAT traversal techniques (e.g. "hole punching"
@@ -293,6 +289,14 @@
  * Sent by server to battle's host notifying him about another client's UDP source port.
  * Host needs to know public UDP source ports of all players in his battle in order
  * for "hole punching" technique to work.
+ * 
+ * * HOSTPORT port
+ * Sent by server to all clients participating in the battle (except for the host) notifying
+ * them about the new host port. This message will only be sent right before host starts a game,
+ * if this battle is being hosted using "hole punching" NAT traversal technique. When client
+ * receives this message, he should replace battle's host port with this new port, so that when
+ * game actually starts, he will connect to this new port rather than the port which host selected
+ * when he initialy started the battle.
  * 
  * * SERVERMSG {message}
  * This is a message sent by server.
@@ -1331,12 +1335,6 @@ public class TASServer {
 		return null;	
 	}
 	
-	private static Client getClientByUID(int UID) {
-		for (int i = 0; i < clients.size(); i++)
-			if (((Client)clients.get(i)).UID == UID) return (Client)clients.get(i);
-		return null;	
-	}	
-
 	private static int getAccountIndex(String username) {
 		for (int i = 0; i < accounts.size(); i++)
 			if (((Account)accounts.get(i)).user.equals(username)) return i;
@@ -2253,9 +2251,15 @@ public class TASServer {
 			if (Misc.getInGameFromStatus(client.status) != tmp2) {
 				// user changed his in-game status.
 				if (tmp2 == 0) { // client just entered game
-					if ((client.battleID != -1) && (getBattle(client.battleID).clients.size() > 0))
+					Battle bat = getBattle(client.battleID);
+					if ((bat != null) && (bat.clients.size() > 0))
 							client.inGameTime = System.currentTimeMillis();
 					else client.inGameTime = 0; // we won't update clients who play by themselves (or with bots), since some try to exploit the system by leaving computer alone in-battle for hours to increase their ranks
+					// check if client is a battle host using "hole punching" technique:
+					if ((bat != null) && (bat.founder == client) && (bat.natType == 1)) {
+						// tell clients to replace battle port with founder's public UDP source port:
+						bat.sendToAllExceptFounder("HOSTPORT " + client.UDPSourcePort);
+					}
 				} else { // back from game
 					if (client.inGameTime != 0) { // we won't update clients who play by themselves (or with bots), since some try to exploit the system by leaving computer alone in-battle for hours to increase their ranks 
 						int diff = new Long((System.currentTimeMillis() - client.inGameTime) / 60000).intValue(); // in minutes
@@ -2922,10 +2926,11 @@ public class TASServer {
 		}
 		
 		// start server:
-		if (!startServer(port)) closeServerAndExit();
-
 		helpUDPsrvr = new NATHelpServer(NAT_TRAVERSAL_PORT);
 		helpUDPsrvr.start();
+
+		if (!startServer(port)) closeServerAndExit();
+
 		
 		// block while we wait for a client to connect
 	    running = true;
@@ -2981,18 +2986,11 @@ public class TASServer {
 	            InetAddress address = packet.getAddress();
 	            int p = packet.getPort();
 	            String data = new String(packet.getData(), packet.getOffset(), packet.getLength());
-	            int uid; 
-	            try {
-	            	uid = Integer.parseInt(data);
-	            } catch(Exception e) {
-	            	System.out.println("$ERROR: Malformed UDP packet received from " + address.getHostAddress() + "! Skipping ...");
-	            	continue;
-	            }
-	            Client client = getClientByUID(uid);
+	            if (DEBUG > 1) System.out.println("*** UDP packet received from " + address.getHostAddress() + " from port " + p);
+	            Client client = getClient(data);
 	            if (client == null) continue;
 	            client.UDPSourcePort = p;
 	            client.sendLine("UDPSOURCEPORT " + p);
-	            if (DEBUG > 1) System.out.println("*** UDP packet received from " + address.getHostAddress() + " from port " + p);
 		    }
 		    
 		    // sleep a bit
