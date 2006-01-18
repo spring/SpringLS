@@ -17,11 +17,8 @@
 import java.nio.channels.*;
 
 public class Client {
-	static int UIDCounter = 0; // each time we assign an UID to a client, we increase this counter
-	
 	public boolean alive = false;
 	
-	public int UID; // unique client ID. We need this to differentiate clients even before they are logged in (once they are logged in we differentiate them by their usernames)
 	public Account account;
 	public String IP;
 	public String localIP; // client's local IP which has to be send with LOGIN command (server can't figure out his local IP himself ofcourse) 
@@ -42,8 +39,6 @@ public class Client {
 	public long timeOfLastReceive; // time (System.currentTimeMillis()) when we last heard from client (last data received)
 	
 	public Client(SocketChannel sockChan) {
-		UID = Client.UIDCounter++;
-		
 		alive = true;
 		
 		account = new Account("", "", Account.NIL_ACCESS, 0, "?", 0); // no info on user/pass, zero access
@@ -92,7 +87,7 @@ public class Client {
 	}
 
 	public void sendWelcomeMessage() {
-		sendLine("TASServer " + TASServer.VERSION + " " + UID + " " + TASServer.NAT_TRAVERSAL_PORT);
+		sendLine("TASServer " + TASServer.VERSION + " " + TASServer.NAT_TRAVERSAL_PORT);
 	}
 	
 	/* should only be called by TASServer.killClient() method! */
