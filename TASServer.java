@@ -6,7 +6,7 @@
  * 
  * 
  * ---- CHANGELOG ----
- * *** next ***
+ * *** 0.195 ***
  * * fixed RING command not working for battle hosts
  * *** 0.194 ***
  * * integrated ploticus graphics generator and a simple web server to give access to server's
@@ -282,6 +282,7 @@
  * options:
  * bit0 - should file be opened once it is downloaded
  * bit1 - should program be closed once file is downloaded
+ * bit2 - is this file "mandatory" (e.g. patch - if user doesn't accept it, it must disconnect from the server)
  * 
  * * UDPSOURCEPORT port
  * Sent by server as a response to client's UDP packet (used with "hole punching" NAT traversal
@@ -1864,19 +1865,21 @@ public class TASServer {
 				killClient(client);
 				return false;
 			} else if (version.equals("0.18")) {
-				client.sendLine("OFFERFILE 3 *	http://taspring.clan-sy.com/dl/taspring_0.67b2_patch.exe	This is a 0.67b1->0.67b2 patch. It will update Spring and lobby client. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
+				client.sendLine("OFFERFILE 7 *	http://taspring.clan-sy.com/dl/taspring_0.67b2_patch.exe	This is a 0.67b1->0.67b2 patch. It will update Spring and lobby client. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
 			} else if (version.equals("0.181")) {
-				client.sendLine("OFFERFILE 3 *	http://taspring.clan-sy.com/dl/taspring_0.67b2_patch.exe	This is a 0.67b1->0.67b2 patch. It will update Spring and lobby client. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
+				client.sendLine("OFFERFILE 7 *	http://taspring.clan-sy.com/dl/taspring_0.67b2_patch.exe	This is a 0.67b1->0.67b2 patch. It will update Spring and lobby client. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
 			} else if (version.equals("0.182")) {
-				client.sendLine("OFFERFILE 3 *	http://taspring.clan-sy.com/dl/taspring_0.67b2_patch.exe	This is a 0.67b1->0.67b2 patch. It will update Spring and lobby client. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
+				client.sendLine("OFFERFILE 7 *	http://taspring.clan-sy.com/dl/taspring_0.67b2_patch.exe	This is a 0.67b1->0.67b2 patch. It will update Spring and lobby client. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
 			} else if (version.equals("0.19")) {
-				client.sendLine("OFFERFILE 3 *	http://taspring.clan-sy.com/dl/taspring_0.67b3_patch.exe	This is a 0.67b2->0.67b3 patch which fixes bug with AIs not being loaded correctly. It will update Spring and lobby client. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
+				client.sendLine("OFFERFILE 7 *	http://taspring.clan-sy.com/dl/taspring_0.67b3_patch.exe	This is a 0.67b2->0.67b3 patch which fixes bug with AIs not being loaded correctly. It will update Spring and lobby client. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
 			} else if (version.equals("0.191")) {
-				client.sendLine("OFFERFILE 3 *	http://spring.clan-sy.com/dl/patch_0191_0194.exe	This is a TASClient 0.194 patch which fixes several issues with previous version. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
+				client.sendLine("OFFERFILE 7 *	http://spring.clan-sy.com/dl/LobbyUpdate_0191_0195.exe	This is a TASClient 0.195 patch which fixes some serious issue with last update. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
 			} else if (version.equals("0.192")) {
-				client.sendLine("OFFERFILE 3 *	http://spring.clan-sy.com/dl/patch_0192_0194.exe	This is a TASClient 0.194 patch which fixes several issues with previous version. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
+				client.sendLine("OFFERFILE 7 *	http://spring.clan-sy.com/dl/LobbyUpdate_0192_0195.exe	This is a TASClient 0.195 patch which fixes some serious issue with last update. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
 			} else if (version.equals("0.193")) {
-				client.sendLine("OFFERFILE 3 *	http://spring.clan-sy.com/dl/patch_0193_0194.exe	This is a TASClient 0.194 patch which fixes several issues with previous version. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
+				client.sendLine("OFFERFILE 7 *	http://spring.clan-sy.com/dl/LobbyUpdate_0193_0195.exe	This is a TASClient 0.195 patch which fixes some serious issue with last update. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
+			} else if (version.equals("0.194")) {
+				client.sendLine("OFFERFILE 7 *	http://spring.clan-sy.com/dl/LobbyUpdate_0194_0195.exe	This is a TASClient 0.195 patch which fixes some serious issue with last update. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
 			} else { // unknown client version
 				client.sendLine("SERVERMSGBOX No update available for your version of lobby. See official spring web site to get the latest lobby client!");
 				killClient(client);
