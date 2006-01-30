@@ -27,7 +27,7 @@ Moderator commands:
 ---------------------------------------------------------------------
 Administrator commands:
 
-(this commands must be put in $local window WITHOUT "/" prefix)
+(these commands must be put in $local window WITHOUT "/" prefix)
 
 removeaccount <username>
 stopserver
