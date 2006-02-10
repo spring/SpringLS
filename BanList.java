@@ -105,8 +105,12 @@ public class BanList {
 	}	
 	
 	public boolean banned(String IP) {
+		return getIndex(IP) != -1;
+	}
+
+	public int getIndex(String IP) {
 		String[] sp1 = IP.split("\\.");
-		if (sp1.length != 4) return false;
+		if (sp1.length != 4) return -1;
 		
 		for (int i = 0; i < this.size(); i++)
 		{
@@ -117,9 +121,9 @@ public class BanList {
 			if (!sp2[1].equals("*")) if (!sp2[1].equals(sp1[1])) continue;
 			if (!sp2[2].equals("*")) if (!sp2[2].equals(sp1[2])) continue;
 			if (!sp2[3].equals("*")) if (!sp2[3].equals(sp1[3])) continue;
-			return true;
+			return i;
 		}
-		return false;
+		return -1;
 	}
 
 	
