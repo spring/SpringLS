@@ -6,6 +6,9 @@
  * 
  * 
  * ---- CHANGELOG ----
+ * *** next ***
+ * * added CHANGEPASSWORD command
+ * * GETINGAMETIME now also accepts no argument (to return your own in-game time) 
  * *** 0.195 ***
  * * fixed RING command not working for battle hosts
  * *** 0.194 ***
@@ -233,6 +236,9 @@
  * 
  * * RENAMEACCOUNT newUsername
  * Will rename current account which is being used by the user to newUsername.
+ * 
+ * * CHANGEPASSWORD oldPassword newPassword
+ * Will change password of client's account (which he is currently using)
  * 
  * * LOGIN username password cpu localIP {application name and version}
  * Sent by client when he is trying to log on the server. Server may respond with ACCEPTED
@@ -1612,16 +1618,25 @@ public class TASServer {
 			client.sendLine("SERVERMSG " + targetClient.account.user + "'s IP is " + targetClient.IP);
 		}
 		else if (commands[0].equals("GETINGAMETIME")) {
-			if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) return false;
-			if (commands.length != 2) return false;
-		
-			Account acc = findAccount(commands[1]);
-			if (acc == null) {
-				client.sendLine("SERVERMSG " + "GETINGAMETIME failed: user " + commands[1] + " not found!");	
-				return false;
-			}
+			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
 			
-			client.sendLine("SERVERMSG " + acc.user + "'s in-game time is " + acc.getInGameTime() + " minutes.");
+			if (commands.length == 1) {
+				client.sendLine("SERVERMSG " + "Your in-game time is " + client.account.getInGameTime() + " minutes.");
+			} else {
+				if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) {
+					client.sendLine("SERVERMSG You have no access to see other player's in-game time!");
+					return false;
+				} 
+				
+				if (commands.length != 2) return false;
+				Account acc = findAccount(commands[1]);
+				if (acc == null) {
+					client.sendLine("SERVERMSG " + "GETINGAMETIME failed: user " + commands[1] + " not found!");	
+					return false;
+				}
+					
+				client.sendLine("SERVERMSG " + acc.user + "'s in-game time is " + acc.getInGameTime() + " minutes.");
+			}
 		}
 		else if (commands[0].equals("FORCECLOSEBATTLE")) {
 			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
@@ -1918,7 +1933,9 @@ public class TASServer {
 					return false;
 				}
 				if (banList.banned(client.IP)) {
-					client.sendLine("DENIED You are banned from this server! Contact server administrator.");
+					String reason = banList.getReason(banList.getIndex(client.IP));
+					if (reason.equals("")) reason = "[not given]";
+					client.sendLine("DENIED You are banned from this server! (Reason: " + reason + "). Please contact server administrator.");
 					return false;
 				}
 				if ((!acc.getAgreement())  && (!client.account.getAgreement()) && (!agreement.equals(""))) {
@@ -2016,6 +2033,34 @@ public class TASServer {
 			removeAccount(client.account.user);
 			writeAccountsInfo(); // let's save new accounts info to disk
 			sendToAllAdministrators("SERVERMSG [broadcast to all admins]: User <" + client.account.user + "> has just renamed his account to <" + commands[1] + ">");
+		}
+		else if (commands[0].equals("CHANGEPASSWORD")) {
+			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
+			
+			if (commands.length != 3) {
+				client.sendLine("SERVERMSG Bad CHANGEPASSWORD command - too many or too few parameters");
+				return false;
+			}
+			
+			if (LAN_MODE) {
+				client.sendLine("SERVERMSG CHANGEPASSWORD failed: You cannot change your password while server is running in LAN mode!");
+				return false;
+			}
+			
+			if (!(commands[1].equals(client.account.pass))) {
+				client.sendLine("SERVERMSG CHANGEPASSWORD failed: Old password is incorrect!");
+				return false;
+			}
+			
+			if (!(Misc.isValidPass(commands[2]))) {
+				client.sendLine("SERVERMSG CHANGEPASSWORD failed: Illegal password");
+				return false;
+			}
+			
+			client.account.pass = commands[2];
+
+			writeAccountsInfo(); // let's save new accounts info to disk
+			client.sendLine("SERVERMSG Your password has been successfully updated!");
 		}
 		else if (commands[0].equals("JOIN")) {
 
