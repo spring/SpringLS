@@ -8,7 +8,8 @@
  * ---- CHANGELOG ----
  * *** next ***
  * * added CHANGEPASSWORD command
- * * GETINGAMETIME now also accepts no argument (to return your own in-game time) 
+ * * GETINGAMETIME now also accepts no argument (to return your own in-game time)
+ * * CHANNELTOPIC command now includes author and time 
  * *** 0.195 ***
  * * fixed RING command not working for battle hosts
  * *** 0.194 ***
@@ -343,8 +344,9 @@
  * as a third argument to this command! Reason may be composed of several words seperated by a
  * space character.
  * 
- * * CHANNELTOPIC channame {topic}
+ * * CHANNELTOPIC channame author changedtime {topic}
  * Sent by server to client who just joined the channel, if some topic is set for this channel.
+ * "changedtime" is time in milliseconds since Jan 1, 1970 (UTC). Divide by 1000 to get unix time.
  * 
  * * CHANNELTOPIC channame {topic}
  * Sent by privileged user who is trying to change channel's topic. Use * as topic if you wish
@@ -1168,7 +1170,7 @@ public class TASServer {
 		}
 			
 		// send the topic:
-		if (chan.isTopicSet()) client.sendLine("CHANNELTOPIC " + chan.name + " " + chan.getTopic());
+		if (chan.isTopicSet()) client.sendLine("CHANNELTOPIC " + chan.name + " " + chan.getTopicAuthor() + " " + chan.getTopicChangedTime() + " " + chan.getTopic());
 		
 		return true;
 	}
@@ -2097,13 +2099,13 @@ public class TASServer {
 			Channel chan = getChannel(commands[1]);
 			if (chan == null) return false;
 			
-			if (!chan.setTopic(Misc.makeSentence(commands, 2))) {
+			if (!chan.setTopic(Misc.makeSentence(commands, 2), client.account.user)) {
 				client.sendLine("SERVERMSG You've just disabled the topic for channel #" + chan.name);
-				chan.broadcast("<" + client.account.user + "> has just changed topic for #" + chan.name);
+				chan.broadcast("<" + client.account.user + "> has just disabled topic for #" + chan.name);
 			} else {
 				client.sendLine("SERVERMSG You've just changed the topic for channel #" + chan.name);				
 				chan.broadcast("<" + client.account.user + "> has just changed topic for #" + chan.name);
-				chan.sendLineToClients("CHANNELTOPIC " + chan.name + " " + chan.getTopic());
+				chan.sendLineToClients("CHANNELTOPIC " + chan.name + " " + chan.getTopicAuthor() + " " + chan.getTopicChangedTime() + " " + chan.getTopic());
 			}
 		}
 		else if (commands[0].equals("SAY")) {

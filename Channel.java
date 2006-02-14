@@ -17,12 +17,15 @@ import java.util.Vector;
 public class Channel {
 	public String name;
 	private String topic;
+	private String topicAuthor;
+	private long topicChangedTime; // time when topic was last changed (in ms since Jan 1, 1970 UTC)
 	public Vector clients; // clients connected to this channel
 	public MuteList muteList = new MuteList(this); // contains a list of Strings (usernames) who are muted (not allowed to talk in the channel)
 	
 	public Channel(String channelName) {
 		name = new String(channelName);
 		topic = "";
+		topicAuthor = "";
 		clients = new Vector();
 	}
 	
@@ -30,13 +33,25 @@ public class Channel {
 		return topic;
 	}
 	
-	public boolean setTopic(String newTopic) {
+	public String getTopicAuthor() {
+		return topicAuthor;
+	}
+	
+	public long getTopicChangedTime() {
+		return topicChangedTime;
+	}
+	
+	public boolean setTopic(String newTopic, String author) {
 		if (newTopic.trim().equals("*")) {
 			topic = "";
+			topicAuthor = author;
+			topicChangedTime = System.currentTimeMillis();
 			return false;
 		}
 		topic = newTopic.trim();
-		if (TASServer.DEBUG > 1) System.out.println("* Topic for #" + name + " changed to '" + topic + "'");
+		topicAuthor = author;
+		topicChangedTime = System.currentTimeMillis();
+		if (TASServer.DEBUG > 1) System.out.println("* Topic for #" + name + " changed to '" + topic + "' (set by <" + author + ">)");
 		return true;
 	}
 	
