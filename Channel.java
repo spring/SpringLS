@@ -82,6 +82,9 @@ public class Channel {
 	
 	/* sends s to all clients in this channel */
 	public void sendLineToClients(String s) {
+		if (name.toUpperCase().equals("MAIN")) if (TASServer.LOG_MAIN_CHANNEL) {
+			TASServer.writeMainChanLog(s);
+		}
 		for (int i = 0; i < clients.size(); i++)
 			((Client)clients.get(i)).sendLine(s);
 	}
