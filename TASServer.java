@@ -9,7 +9,11 @@
  * *** next ***
  * * added CHANGEPASSWORD command
  * * GETINGAMETIME now also accepts no argument (to return your own in-game time)
- * * CHANNELTOPIC command now includes author and time 
+ * * CHANNELTOPIC command now includes author name and time
+ * * added -LOGMAIN switch 
+ * * added GETLASTIP command, FINDIP is available to privileged users as well now
+ * * fixed bug with /me being available even after being muted
+ * * CHANNELMESSAGE command now available to moderators as well
  * *** 0.195 ***
  * * fixed RING command not working for battle hosts
  * *** 0.194 ***
@@ -686,6 +690,8 @@ public class TASServer {
 	static String STATISTICS_FOLDER = "./stats/";
 	static long saveStatisticsInterval = 1000 * 60 * 20; // in milliseconds
 	static long lastStatisticsUpdate = System.currentTimeMillis(); // time (System.currentTimeMillis()) when we last updated statistics
+	static boolean LOG_MAIN_CHANNEL = false; // if true, server will keep a log of all conversations from channel #main (in file "MainChanLog.log")
+	static PrintStream mainChanLog;
 	
     private static final int BYTE_BUFFER_SIZE = 256; // the size doesn't really matter. Server will work with any size (tested it with BUFFER_LENGTH=1), but too small buffer may impact the performance.
     private static final int SEND_BUFFER_SIZE = 65536 * 2; // socket's send buffer size
@@ -719,6 +725,17 @@ public class TASServer {
 	 * redundant entries. */
 	 
 	static NATHelpServer helpUDPsrvr;
+	
+	public static void writeMainChanLog(String text) {
+		if (!LOG_MAIN_CHANNEL) return;
+		
+		try {
+			mainChanLog.println(Misc.easyDateFormat("<HH:mm:ss> ") + text);
+		} catch (Exception e) {
+			TASServer.LOG_MAIN_CHANNEL = false;
+			System.out.println("$ERROR: Unable to write main channel log file (MainChanLog.log)");
+		}		
+	}
 	
 	/* reads MOTD from disk (if file is found) */
 	private static void readMOTD()
@@ -855,6 +872,11 @@ public class TASServer {
 	public static void closeServerAndExit() {
 		System.out.println("Server stopped.");
 		if (helpUDPsrvr != null) helpUDPsrvr.stopServer();
+		if (LOG_MAIN_CHANNEL) try {
+			mainChanLog.close();
+		} catch(Exception e) {
+			// nevermind
+		}
 		running = false;
 		System.exit(0);
 	}
@@ -1573,7 +1595,7 @@ public class TASServer {
 			client.sendLine("SERVERMSG " + commands[1] + "'s account index: " + index);
 		}
 		else if (commands[0].equals("FINDIP")) {
-			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
+			if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) return false;
 			if (commands.length != 2) return false;
 			
 			boolean found = false;
@@ -1585,6 +1607,19 @@ public class TASServer {
 				
 			if (!found) client.sendLine("SERVERMSG No client is using IP: " + commands[1]);
 		}
+		else if (commands[0].equals("GETLASTIP")) {
+			if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) return false;
+			if (commands.length != 2) return false;
+			
+			Account acc = getAccount(commands[1]);
+			if (acc == null) {
+				client.sendLine("SERVERMSG User " + commands[1] + " not found!");
+				return false;
+			}
+			
+			boolean online = isUserAlreadyLoggedIn(acc); 
+			client.sendLine("SERVERMSG " + commands[1] + "'s last IP was " + acc.lastIP + " (" + (online ? "online)" : "offline)"));
+		}		
 		else if (commands[0].equals("GETACCOUNTINFO")) {
 			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
 			if (commands.length != 2) return false;
@@ -1768,7 +1803,7 @@ public class TASServer {
 			}
 		}
 		else if (commands[0].equals("CHANNELMESSAGE")) {
-			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
+			if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) return false;
 			if (commands.length < 3) return false;
 
 			Channel chan = getChannel(commands[1]);
@@ -2129,6 +2164,11 @@ public class TASServer {
 			
 			Channel chan = getChannel(commands[1]);
 			if (chan == null) return false;
+
+			if (chan.muteList.isMuted(client.account.user)) {
+				client.sendLine("SERVERMSG Message dropped. You are not allowed to talk in #" + chan.name + "! Please contact one of the moderators.");
+				return false;
+			}
 			
 			String s = Misc.makeSentence(commands, 2);
 			chan.sendLineToClients("SAIDEX " + chan.name + " " + client.account.user + " " + s);
@@ -2928,6 +2968,9 @@ public class TASServer {
 						NAT_TRAVERSAL_PORT = p;
 						i++; // we must skip port number parameter in the next iteration
 					}
+					else if (s.equals("LOGMAIN")) {
+						LOG_MAIN_CHANNEL = true;
+					}
 					else throw new IOException();
 				} else throw new IOException();
 			
@@ -2953,6 +2996,9 @@ public class TASServer {
 			System.out.println("  Server will use this port with some NAT traversal techniques. If command is omitted,\n" +
 							   "  default port will be used.");
 			System.out.println("");
+			System.out.println("-LOGMAIN");
+			System.out.println("  Server will log all conversations from channel #main to MainChanLog.log");
+			System.out.println("");
 						
 			closeServerAndExit();
 		}
@@ -2969,6 +3015,17 @@ public class TASServer {
 		
 		if (RECORD_STATISTICS) {
 			// any special initialization required?
+		}
+		
+		if (LOG_MAIN_CHANNEL) {
+			try {
+				mainChanLog = new PrintStream(new BufferedOutputStream(new FileOutputStream("MainChanLog.log", true)));
+				writeMainChanLog("Log started on " + Misc.easyDateFormat("dd/MM/yy"));
+			} catch (Exception e) {
+				LOG_MAIN_CHANNEL = false;
+				System.out.println("$ERROR: Unable to open main channel log file (MainChanLog.log)");
+				e.printStackTrace();
+			}
 		}
 		
 		readMOTD();
