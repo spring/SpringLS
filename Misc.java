@@ -65,7 +65,7 @@ public class Misc {
 	public static boolean isValidPass(String pass) {
 		if (pass.length() < 2) return false;
 		if (pass.length() > 30) return false; // md5-base64 encoded passwords require 24 chars
-		// we have to allow a bit wider range of possible chars as base64 can produc chars such as +, = and /
+		// we have to allow a bit wider range of possible chars as base64 can produce chars such as +, = and /
 		for (int i = 0; i < pass.length(); i++) if ((pass.charAt(i) < 43) || (pass.charAt(i) > 122)) return false;
 		return true;
 	}

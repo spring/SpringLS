@@ -13,6 +13,8 @@ Moderator commands:
 /banlist
   lists all banned IPs.
 /topic <channel> {new topic}
+/chanmsg <channel> {message}
+  will display a message in the channel.
 /ring <username>
   plays a "ring" sound on user's client program.
 /ip <username>
@@ -23,6 +25,10 @@ Moderator commands:
 /mutelist <channel>
 /lastlogin <username>
   will return user's last login date/time
+/findip <ipaddress>
+  will return a list of online clients that are using this IP
+/lastip <username>
+  will return last IP address used by the user (or current one if still online)
  
 ---------------------------------------------------------------------
 Administrator commands:
@@ -58,8 +64,6 @@ getaccountcount
 findaccount <username>
   will return account's index from accounts array. You need this index with some commands like
   "getaccountinfo".
-findip <IP>
-  will return a list of all clients currently logged in that use this IP.
 getaccountinfo <account_id>
   will return some account info. You can get account_id using "findaccount" command.
 forgemsg <username> <msg>
