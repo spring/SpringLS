@@ -669,7 +669,7 @@ import java.nio.charset.*;
 
 public class TASServer {
 	
-	static final String VERSION = "0.20";
+	static final String VERSION = "0.21";
 	static byte DEBUG = 1; // 0 - no verbose, 1 - normal verbose, 2 - extensive verbose
 	static String MOTD = "Enjoy your stay :-)";
 	static String agreement = ""; // agreement which is sent to user open first login. User must send CONFIRMAGREEMENT command to confirm the agreement before server allows him to log in. See LOGIN command implementation for more details.
@@ -1934,6 +1934,8 @@ public class TASServer {
 			} else if (version.equals("0.194")) {
 				client.sendLine("OFFERFILE 7 *	http://spring.clan-sy.com/dl/LobbyUpdate_0194_0195.exe	This is a TASClient 0.195 patch which fixes some serious issue with last update. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
 */				
+			} else if (version.equals("0.20")) {
+				client.sendLine("OFFERFILE 7 *	http://taspring.clan-sy.com/dl/taspring_0.70b2_patch.exe	This is a 0.70b1->0.70b2 patch. It will update Spring and lobby client. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
 			} else { // unknown client version
 				client.sendLine("SERVERMSGBOX No update available for your version of lobby. See official spring web site to get the latest lobby client!");
 				killClient(client);
