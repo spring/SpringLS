@@ -685,6 +685,7 @@ public class TASServer {
 	static boolean redirect = false; // if true, server is redirection clients to new IP
 	static String redirectToIP = ""; // new IP to which clients are redirected if (redirected==true)
 	static long saveAccountInfoInterval = 1000 * 60 * 60; // in milliseconds
+	static long lastSaveAccountsTime = System.currentTimeMillis(); // time when we last saved accounts info to disk
 	static boolean RECORD_STATISTICS = false; // if true, statistics are saved to disk on regular intervals
 	static String PLOTICUS_FULLPATH = "./ploticus/bin/pl"; // see http://ploticus.sourceforge.net/ for more info on ploticus
 	static String STATISTICS_FOLDER = "./stats/";
@@ -806,6 +807,8 @@ public class TASServer {
 	
 	private static boolean writeAccountsInfo()
 	{
+		lastSaveAccountsTime = System.currentTimeMillis();
+		
 		try {
 			PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(ACCOUNTS_INFO_FILEPATH)));			
 
@@ -3106,6 +3109,12 @@ public class TASServer {
 	            if (client == null) continue;
 	            client.UDPSourcePort = p;
 	            client.sendLine("UDPSOURCEPORT " + p);
+		    }
+		    
+		    // save accounts info to disk on regular intervals:
+		    if ((!LAN_MODE) && (System.currentTimeMillis() - lastSaveAccountsTime > saveAccountInfoInterval)) {
+		    	writeAccountsInfo();
+		    	// note: lastSaveAccountsTime will get updated in writeAccountsInfo() method!
 		    }
 		    
 		    // sleep a bit
