@@ -13,6 +13,9 @@
  */
 
 import java.util.*;
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.text.*;
 
 public class Misc {
@@ -146,4 +149,15 @@ public class Misc {
 	   while (!isSorted);
 	}	
 	
+	/* fname is file name withouth path ("./logs" path is automatically added) */
+	public static boolean outputLog(String fname, String text) {
+		try {
+			PrintStream out = new PrintStream(new BufferedOutputStream(new FileOutputStream("./logs/" + fname, true)));
+			out.println(text);
+			out.close();
+		} catch (Exception e) {
+			return false;
+		}
+		return true;
+	}	
 }

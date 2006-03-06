@@ -3,6 +3,12 @@
  *
  * TODO To change the template for this generated file go to
  * Window - Preferences - Java - Code Style - Code Templates
+ * 
+ * 
+ * *** LINKS ****
+ * * http://java.sun.com/docs/books/tutorial/extra/regex/test_harness.html
+ *   (how to use regex in java to match a pattern)
+ * 
  */
 
 /**
@@ -27,8 +33,8 @@ import org.xml.sax.SAXParseException;
 
 import org.w3c.dom.*;
 
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
+import java.util.regex.*;
 
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.Transformer;
@@ -46,14 +52,18 @@ public class ChanServ {
 
 	static final String VERSION = "0.1";
 	static final String CONFIG_FILENAME = "settings.xml";
-	static final String SERVER_ADDRESS = "taspringmaster.clan-sy.com";
-	static final int SERVER_PORT = 8200;
+	static final boolean DEBUG = false;
 	static Document config; 
+	static String serverAddress = "";
+	static int serverPort;
 	static String username = "";
 	static String password = "";
 	static Socket socket = null;
     static PrintWriter sockout = null;
     static BufferedReader sockin = null;
+    
+    static Vector/*String*/ clients = new Vector();
+    static Vector/*Channel*/ channels = new Vector();
 	
     public static void closeAndExit() {
     	closeAndExit(0);
@@ -77,11 +87,13 @@ public class ChanServ {
            Node node;
            
            //node = (Node)xpath.evaluate("config/account/username", config, XPathConstants.NODE);
+           serverAddress = (String)xpath.evaluate("config/account/serveraddress/text()", config, XPathConstants.STRING);
+           serverPort = Integer.parseInt((String)xpath.evaluate("config/account/serverport/text()", config, XPathConstants.STRING));
            username = (String)xpath.evaluate("config/account/username/text()", config, XPathConstants.STRING);
            password = (String)xpath.evaluate("config/account/password/text()", config, XPathConstants.STRING);
            
-           node = (Node)xpath.evaluate("config/account/username", config, XPathConstants.NODE);
-           node.setTextContent("to je kr en username!");
+           //node = (Node)xpath.evaluate("config/account/username", config, XPathConstants.NODE);
+           //node.setTextContent("this is a test!");
            
            Log.log("Config file read.");
         } catch (SAXException sxe) {
@@ -115,7 +127,7 @@ public class ChanServ {
 	
 	public static void saveConfig(String fname) {
 		try {
-			config.normalize();
+			config.normalize(); //*** is this needed?
 	        DOMSource source = new DOMSource(config);
 	        StreamResult result = new StreamResult(new FileOutputStream(fname));
 
@@ -131,29 +143,29 @@ public class ChanServ {
 	}
 	
 	public static void sendLine(String s) {
-		Log.log("Client: \"" + s + "\"");
+		if (DEBUG) Log.log("Client: \"" + s + "\"");
 		sockout.println(s);
 	}
 	
 	private static boolean tryToConnect() {
         try {
-        	Log.log("Connecting to " + SERVER_ADDRESS + ":" + SERVER_PORT + " ...");
-            socket = new Socket(SERVER_ADDRESS, SERVER_PORT);
+        	Log.log("Connecting to " + serverAddress + ":" + serverPort + " ...");
+            socket = new Socket(serverAddress, serverPort);
             sockout = new PrintWriter(socket.getOutputStream(), true);
             sockin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         } catch (UnknownHostException e) {
-            Log.error("Unknown host error: " + SERVER_ADDRESS);
+            Log.error("Unknown host error: " + serverAddress);
             closeAndExit(1);
         } catch (IOException e) {
-            System.err.println("Couldn't get I/O for the connection to: " + SERVER_ADDRESS);
+            System.err.println("Couldn't get I/O for the connection to: " + serverAddress);
             closeAndExit(1);
         }
 		
-        Log.log("Now connected to " + SERVER_ADDRESS);
+        Log.log("Now connected to " + serverAddress);
         return true;
 	}
 	
-	public static void serverLoop() {
+	public static void messageLoop() {
 		String line;
         while (true) {
         	try {
@@ -163,7 +175,7 @@ public class ChanServ {
         		break;
         	}
         	if (line == null) break;
-            Log.log("Server: \"" + line + "\"");
+            if (DEBUG) Log.log("Server: \"" + line + "\"");
             
             // parse command and respond to it:
             execRemoteCommand(line);
@@ -194,19 +206,60 @@ public class ChanServ {
 			// not done yet. Should respond with CONFIRMAGREEMENT and then resend LOGIN command.
 			Log.log("Server is requesting agreement confirmation. Cancelling ...");
 			closeAndExit();
+		} else if (commands[0].equals("ADDUSER")) {
+			clients.add(commands[1]);
+		} else if (commands[0].equals("REMOVEUSER")) {
+			if (!clients.remove(commands[1])) Log.error("Error in REMOVEUSER - cannot remove user (user does not exist)");
+		} else if (commands[0].equals("JOIN")) {
+			channels.add(new Channel(commands[1]));
+		} else if (commands[0].equals("CHANNELTOPIC")) {
+			Channel chan = getChannel(commands[1]);
+			chan.topic = Misc.makeSentence(commands, 4);
+		} else if (commands[0].equals("SAID")) {
+			Channel chan = getChannel(commands[1]);
+			String user = commands[2];
+			String msg = Misc.makeSentence(commands, 3);
+			
+			Misc.outputLog(chan.logFileName, Misc.easyDateFormat("[HH:mm:ss]") + " <" + user + "> " + msg);
 		}
+
 			
 		return true;
 	}
 	
+	/* channel - true if command was issued in the channel (and not in private chat) */
+	public static void processUserCommand(String command, String user, boolean channel) {
+		
+	}
+	
+    /* returns null if channel is not found */
+	public static Channel getChannel(String name) {
+		for (int i = 0; i < channels.size(); i++)
+			if (((Channel)channels.get(i)).name.equals(name)) return ((Channel)channels.get(i));
+		return null;
+	}
+	
 	public static void main(String[] args) {
+
+		// check if "./logs" folder exists, of not then create it:
+		File file = new File("./logs");
+		if (!file.exists()) {
+			if (!file.mkdir()) {
+				Log.error("unable to create ./logs folder! Exiting ...");
+				closeAndExit(1);
+			} else {
+				Log.log("Folder ./logs has been created");
+			}
+		}
+		
 		loadConfig(CONFIG_FILENAME);
+		saveConfig(CONFIG_FILENAME); //*** debug
 		tryToConnect();
 		
 		new Timer().schedule(new KeepAliveTask(),
                 1000,        //initial delay
                 15*1000);  //subsequent rate
 		
-		serverLoop();
+		messageLoop();
 	}
 }

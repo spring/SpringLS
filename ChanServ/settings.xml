@@ -1,10 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?><config>
   <account>
-    <username>to je kr en username!</username>
+    <serveraddress>taspringmaster.clan-sy.com</serveraddress>
+    <serverport>8200</serverport>
+    <username>test</username>
     <password>CY9rzUYh03PK3k6DJie09g==</password>
   </account>
 
   <channels>
+    <static>
+      <channel>main</channel>
+    </static>
+    <registered>
+      <channel topic="-test- (kako se escapa narekovaje v xml vrednostih atributov?)">
+        slo
+        <operator name="Betalord"/>
+        <operator name="test"/>
+        <operator name="test2"/>
+        <operator name="test3"/>
+      </channel>
+    </registered>
   </channels>
 
 </config>
