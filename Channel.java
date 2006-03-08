@@ -19,6 +19,7 @@ public class Channel {
 	private String topic;
 	private String topicAuthor;
 	private long topicChangedTime; // time when topic was last changed (in ms since Jan 1, 1970 UTC)
+	private String key = ""; // if key is "" then this channel is not locked (anyone can join). Otherwise, user must supply correct key to join it. 
 	public Vector clients; // clients connected to this channel
 	public MuteList muteList = new MuteList(this); // contains a list of Strings (usernames) who are muted (not allowed to talk in the channel)
 	
@@ -87,5 +88,17 @@ public class Channel {
 		}
 		for (int i = 0; i < clients.size(); i++)
 			((Client)clients.get(i)).sendLine(s);
+	}
+	
+	public boolean isLocked() {
+		return !(key.equals("*"));
+	}
+	
+	public void setKey(String key) {
+		this.key = key;
+	}
+	
+	public String getKey() {
+		return key;
 	}
 }

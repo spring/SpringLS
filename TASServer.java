@@ -6,6 +6,9 @@
  * 
  * 
  * ---- CHANGELOG ----
+ * *** 0.22 ***
+ * * added SETCHANNELKEY command, also modified JOIN command to accept extra
+ *   argument for locked channels
  * *** 0.20 ***
  * * added CHANGEPASSWORD command
  * * GETINGAMETIME now also accepts no argument (to return your own in-game time)
@@ -206,13 +209,16 @@
  * 
  * List of commands:
  * 
- * * PING
+ * * PING [key]
  * Sent by client to server. Client should send this command on every few seconds to maintain
  * constant connection to server. Server will assume timeout occured if it does not hear from
  * client for more than x seconds.
+ * [key] parameter is optional - if used, server will respond with a "PONG key" command
+ * so that the client will be able to calculate lag between server and himself.
  * 
- * * PONG
- * Sent by server to client who sent a PING command.
+ * * PONG [key]
+ * Sent by server to client who sent a PING command. "key" parameter will only be
+ * added if PING command had it.
  * 
  * * TASSERVER version udpport
  * Sent by server. This is the first message that client receives upon connecting to the server.
@@ -332,9 +338,12 @@
  * remove this user from his clients list which he must maintain while he is connected
  * to the server.
  *
+ * * JOIN channame [key]
+ * Sent by client trying to join the channel. If channel is locked, then client must
+ * supply a correct key to join the channel.
+ *  
  * * JOIN channame
- * - Sent by client trying to join the channel.
- * - Sent by server to a client who has successfully joined a channel.
+ * Sent by server to a client who has successfully joined a channel.
  * 
  * * CHANNELS
  * Sent by client when requesting channels list
@@ -1149,7 +1158,9 @@ public class TASServer {
 	
 	/* joins a clients to a channel with chanName name. If channel with that name
 	 * does not exist, it is created. Method returns channel as a result. If client is
-	 * already in the channel, it returns null as a result. */
+	 * already in the channel, it returns null as a result. This method does not check
+	 * for correct key if channel is locked, caller of this method should do that
+	 * before calling it. */
 	private static Channel joinChannel(String chanName, Client client) {
 		Channel chan = getChannel(chanName);
 		if (chan == null) {
@@ -1421,7 +1432,8 @@ public class TASServer {
 		if (commands[0].equals("PING")) {
 			//***if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
 		
-			client.sendLine("PONG");
+			if (commands.length > 1) client.sendLine("PONG " + Misc.makeSentence(commands, 1));
+			else client.sendLine("PONG");
 		}
 		if (commands[0].equals("REGISTER")) {
 			if (commands.length != 3) {
@@ -1900,6 +1912,31 @@ public class TASServer {
 			
      		client.sendLine("SERVERMSG <" + acc.user + ">'s last login was on " + Misc.easyDateFormat(acc.lastLogin, "d MMM yyyy HH:mm:ss z"));
 		}
+		else if (commands[0].equals("SETCHANNELKEY")) {
+			if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) return false;
+			if (commands.length != 3) {
+				client.sendLine("SERVERMSG Bad arguments (command SETCHANNELKEY)");
+				return false;
+			}
+			
+			Channel chan = getChannel(commands[1]);
+			if (chan == null) {
+				client.sendLine("SERVERMSG Error: Channel does not exist: " + commands[1]);
+				return false;
+			}
+			
+			if (commands[2].equals("*")) {
+				chan.setKey("");
+				chan.broadcast("<" + client.account.user + "> has just unlocked #" + chan.name);
+			} else {
+				if (!Misc.isValidName(commands[2])) {
+					client.sendLine("SERVERMSG Error: Invalid key: " + commands[2]);
+					return false;
+				}
+				chan.setKey(commands[2]);
+				chan.broadcast("<" + client.account.user + "> has just locked #" + chan.name + " with private key");
+			}
+		}
 		else if (commands[0].equals("CHANNELS")) {
 			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
 			
@@ -2107,16 +2144,24 @@ public class TASServer {
 			client.sendLine("SERVERMSG Your password has been successfully updated!");
 		}
 		else if (commands[0].equals("JOIN")) {
-
 			if (commands.length < 2) return false;
 			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
-			
+
 			if (!Misc.isValidName(commands[1])) {
 				client.sendLine("JOINFAILED " + commands[1] + " Bad channel name!");
 				return false;
 			}
+
+			// check if key is correct (if channel is locked):
+			Channel chan = getChannel(commands[1]);
+			if ((chan != null) && (chan.isLocked())) {
+				if (!Misc.makeSentence(commands, 2).equals(chan.getKey())) {
+					client.sendLine("JOINFAILED " + commands[1] + " Wrong key (this channel is locked)!");
+					return false;
+				}
+			}
 			
-			Channel chan = joinChannel(commands[1], client);
+			chan = joinChannel(commands[1], client);
 			if (chan == null) {
 				client.sendLine("JOINFAILED " + commands[1] + " Already in the channel!");
 				return false;
@@ -2139,7 +2184,10 @@ public class TASServer {
 			if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) return false;
 			
 			Channel chan = getChannel(commands[1]);
-			if (chan == null) return false;
+			if (chan == null) {
+				client.sendLine("SERVERMSG Error: Channel does not exist: " + commands[1]);
+				return false;
+			}
 			
 			if (!chan.setTopic(Misc.makeSentence(commands, 2), client.account.user)) {
 				client.sendLine("SERVERMSG You've just disabled the topic for channel #" + chan.name);
