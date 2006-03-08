@@ -86,3 +86,6 @@ longtimetodate <time>
   will convert long time to human readable date format (long time is time in milliseconds
   since the standard base time known as "the epoch", namely January 1, 1970, 00:00:00 GMT).
   Used for debugging purposes.
+setchannelkey <channel> <key>
+  will lock the channel with key or unlock it if key is "*". This command is available
+  to moderators as well.
