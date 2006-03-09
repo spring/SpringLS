@@ -5,9 +5,22 @@
  * Window - Preferences - Java - Code Style - Code Templates
  * 
  * 
+ * *** CHECK: ***
+ * - is org.w3c.dom.Document thread-safe? (I save it in timer, could create problems
+ * if it is not)
+ * 
+ * 
  * *** LINKS ****
  * * http://java.sun.com/docs/books/tutorial/extra/regex/test_harness.html
  *   (how to use regex in java to match a pattern)
+ *   
+ * *** NOTES ***
+ * * ChanServ MUST use account with admin privileges (not just moderator privileges)
+ *   or else it won't be able to join locked channels and won't work correct!
+ * * Use Vector for thread-safe list (ArrayList and similar classes aren't thread-safe!)    
+ * 
+ * *** COMMANDS ***
+ * * REGISTER <channame> <founder>
  * 
  */
 
@@ -35,6 +48,7 @@ import org.w3c.dom.*;
 
 import java.util.*;
 import java.util.regex.*;
+import java.util.concurrent.*;
 
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.Transformer;
@@ -44,7 +58,17 @@ import javax.xml.transform.stream.StreamResult;
 
 class KeepAliveTask extends TimerTask {
 	public void run() {
-		ChanServ.sendLine("PING");
+		try {
+			ChanServ.configLock.acquire();
+
+			ChanServ.sendLine("PING");
+			// also save config on regular intervals:
+			ChanServ.saveConfig(ChanServ.CONFIG_FILENAME);
+		} catch (InterruptedException e) {
+			return ;
+		} finally {
+			ChanServ.configLock.release();
+		}
 	}
 }
 
@@ -52,7 +76,7 @@ public class ChanServ {
 
 	static final String VERSION = "0.1";
 	static final String CONFIG_FILENAME = "settings.xml";
-	static final boolean DEBUG = false;
+	static final boolean DEBUG = true;
 	static Document config; 
 	static String serverAddress = "";
 	static int serverPort;
@@ -62,7 +86,9 @@ public class ChanServ {
     static PrintWriter sockout = null;
     static BufferedReader sockin = null;
     
-    static Vector/*String*/ clients = new Vector();
+    static Semaphore configLock = new Semaphore(1, true); // we use it when there is a danger of config object being used by main and TaskTimer threads simultaneously
+    
+    static Vector/*Client*/ clients = new Vector();
     static Vector/*Channel*/ channels = new Vector();
 	
     public static void closeAndExit() {
@@ -94,7 +120,42 @@ public class ChanServ {
            
            //node = (Node)xpath.evaluate("config/account/username", config, XPathConstants.NODE);
            //node.setTextContent("this is a test!");
+
+           // load static channel list:
+           node = (Node)xpath.evaluate("config/channels/static", config, XPathConstants.NODE);
+           if (node == null) {
+           		Log.error("Bad XML document. Path config/channels/static does not exist. Exiting ...");
+				closeAndExit(1);
+           }
+           node = node.getFirstChild();
+           while (node != null) {
+           	if (node.getNodeType() == Node.ELEMENT_NODE) {
+           		channels.add(new Channel(((Element)node).getAttribute("name")));
+			}
+			node = node.getNextSibling();
+           }
            
+           // load registered channel list:
+           Channel chan;
+           node = (Node)xpath.evaluate("config/channels/registered", config, XPathConstants.NODE);
+           if (node == null) {
+			Log.error("Bad XML document. Path config/channels/registered does not exist. Exiting ...");
+			closeAndExit(1);
+           }
+           node = node.getFirstChild();
+			while (node != null) {
+				if (node.getNodeType() == Node.ELEMENT_NODE) {
+					chan = new Channel(((Element)node).getAttribute("name"));
+					chan.isStatic = false;
+					chan.topic = ((Element)node).getAttribute("topic");
+					chan.key = ((Element)node).getAttribute("key");
+					chan.founder = ((Element)node).getAttribute("founder");
+	           		channels.add(chan);
+				}
+				node = node.getNextSibling();
+			}
+
+          
            Log.log("Config file read.");
         } catch (SAXException sxe) {
         	// Error generated during parsing
@@ -117,6 +178,10 @@ public class ChanServ {
         	Log.error("I/O error while accessing " + fname);
         	closeAndExit(1);
         	//ioe.printStackTrace();
+        } catch (XPathExpressionException e) {
+        	Log.error("Error: XPath expression exception - XML document is malformed.");
+    		e.printStackTrace();
+    		closeAndExit(1);
         } catch (Exception e) {
         	Log.error("Unknown exception while reading config file: " + fname);
         	closeAndExit(1);
@@ -127,6 +192,86 @@ public class ChanServ {
 	
 	public static void saveConfig(String fname) {
 		try {
+	        XPath xpath = XPathFactory.newInstance().newXPath();
+	        Node root;
+	        Node node;
+	        Node temp;
+	        Element elem;
+	        Text text; // text node
+	        Channel chan;
+	        
+	        try {
+				// remove all static channels from config and replace it with current static channel list:
+	        	
+				root = (Node)xpath.evaluate("config/channels/static", config, XPathConstants.NODE);
+				if (root == null) {
+					Log.error("Bad XML document. Path config/channels/static does not exist. Exiting ...");
+					closeAndExit(1);
+				}
+				
+				// delete all channels:
+				root.getChildNodes();
+				node = root.getFirstChild();
+				while (node != null) {
+					//if (node.getNodeType() == Node.ELEMENT_NODE) {
+						temp = node;
+						node = node.getNextSibling();
+						root.removeChild(temp);
+					//}
+				}
+				
+				// add new channels:
+				for (int i = 0; i < channels.size(); i++) {
+					chan = (Channel)channels.get(i);
+					if (!chan.isStatic) continue;
+					root.appendChild(config.createTextNode(Misc.EOL + Misc.enumSpaces(6)));
+					elem = config.createElement("channel");
+					elem.setAttribute("name", chan.name);
+					//elem.setTextContent(chan.name);
+					root.appendChild(elem);
+				}
+				root.appendChild(config.createTextNode(Misc.EOL + Misc.enumSpaces(4)));
+				
+				// remove all registered channels from config and replace it with current registered channel list:
+				
+				root = (Node)xpath.evaluate("config/channels/registered", config, XPathConstants.NODE);
+				if (root == null) {
+					Log.error("Bad XML document. Path config/channels/registered does not exist. Exiting ...");
+					closeAndExit(1);
+				}
+				
+				// delete all channels:
+				root.getChildNodes();
+				node = root.getFirstChild();
+				while (node != null) {
+					temp = node;
+					node = node.getNextSibling();
+					root.removeChild(temp);
+				}
+				
+				// add new channels:
+				for (int i = 0; i < channels.size(); i++) {
+					chan = (Channel)channels.get(i);
+					if (chan.isStatic) continue;
+					root.appendChild(config.createTextNode(Misc.EOL + Misc.enumSpaces(6)));
+					elem = config.createElement("channel");
+					elem.setAttribute("name", chan.name);
+					elem.setAttribute("topic", chan.topic);
+					elem.setAttribute("key", chan.key);
+					elem.setAttribute("founder", chan.founder);
+					root.appendChild(elem);
+				}
+				root.appendChild(config.createTextNode(Misc.EOL + Misc.enumSpaces(4)));
+				
+			} catch (XPathExpressionException e) {
+				e.printStackTrace();
+				closeAndExit(1);
+			}
+			
+
+			
+			
+			// ok save it now:
 			config.normalize(); //*** is this needed?
 	        DOMSource source = new DOMSource(config);
 	        StreamResult result = new StreamResult(new FileOutputStream(fname));
@@ -157,7 +302,7 @@ public class ChanServ {
             Log.error("Unknown host error: " + serverAddress);
             closeAndExit(1);
         } catch (IOException e) {
-            System.err.println("Couldn't get I/O for the connection to: " + serverAddress);
+            Log.error("Couldn't get I/O for the connection to: " + serverAddress);
             closeAndExit(1);
         }
 		
@@ -178,7 +323,15 @@ public class ChanServ {
             if (DEBUG) Log.log("Server: \"" + line + "\"");
             
             // parse command and respond to it:
-            execRemoteCommand(line);
+    		try {
+    			configLock.acquire();
+                execRemoteCommand(line);
+    		} catch (InterruptedException e) {
+    			//return ;
+    		} finally {
+    			configLock.release();	
+    		}
+
         }
 
         try {
@@ -199,6 +352,9 @@ public class ChanServ {
 			sendLine("LOGIN " + username + " " + password + " 0 * ChanServ " + VERSION);
 		} else if (commands[0].equals("ACCEPTED")) {
 			Log.log("Login accepted.");
+			// join registered and static channels:
+			for (int i = 0; i < channels.size(); i++)
+				sendLine("JOIN " + ((Channel)channels.get(i)).name);
 		} else if (commands[0].equals("DENIED")) {
 			Log.log("Login denied. Reason: " + Misc.makeSentence(commands, 1));
 			closeAndExit();
@@ -207,29 +363,147 @@ public class ChanServ {
 			Log.log("Server is requesting agreement confirmation. Cancelling ...");
 			closeAndExit();
 		} else if (commands[0].equals("ADDUSER")) {
-			clients.add(commands[1]);
+			clients.add(new Client(commands[1]));
 		} else if (commands[0].equals("REMOVEUSER")) {
-			if (!clients.remove(commands[1])) Log.error("Error in REMOVEUSER - cannot remove user (user does not exist)");
+			for (int i = 0; i < clients.size(); i++) if (((Client)clients.get(i)).name.equals(commands[1])) {
+				clients.remove(i);
+				break;
+			}
+		} else if (commands[0].equals("CLIENTSTATUS")) {
+			for (int i = 0; i < clients.size(); i++) if (((Client)clients.get(i)).name.equals(commands[1])) {
+				((Client)clients.get(i)).setStatus(Integer.parseInt(commands[2]));
+				break;
+			}
 		} else if (commands[0].equals("JOIN")) {
+			Log.log("Joined #" + commands[1]);
+			Channel chan = getChannel(commands[1]);
+			chan.joined = true;
+			// put "logging started" header in the log file:
+			Misc.outputLog(chan.logFileName, "");
+			Misc.outputLog(chan.logFileName, "Log started on " + Misc.easyDateFormat("dd/MM/yy"));
+			// set topic, lock channel, ... :
+			if (!chan.isStatic) {
+				if (!chan.key.equals(""))
+					sendLine("SETCHANNELKEY " + chan.name + " " + chan.key);
+				if (chan.topic.equals(""))
+					sendLine("CHANNELTOPIC " + chan.name + " *");
+				else
+					sendLine("CHANNELTOPIC " + chan.name + " " + chan.topic);
+			}
+		} else if (commands[0].equals("JOINFAILED")) {
 			channels.add(new Channel(commands[1]));
+			Log.log("Failed to join #" + commands[1] + ". Reason: " + Misc.makeSentence(commands, 2));
 		} else if (commands[0].equals("CHANNELTOPIC")) {
 			Channel chan = getChannel(commands[1]);
 			chan.topic = Misc.makeSentence(commands, 4);
+			Misc.outputLog(chan.logFileName, Misc.easyDateFormat("[HH:mm:ss]") + " * Channel topic is '" + chan.topic + "' set by " + commands[2]);
 		} else if (commands[0].equals("SAID")) {
 			Channel chan = getChannel(commands[1]);
 			String user = commands[2];
 			String msg = Misc.makeSentence(commands, 3);
 			
 			Misc.outputLog(chan.logFileName, Misc.easyDateFormat("[HH:mm:ss]") + " <" + user + "> " + msg);
+			if (msg.charAt(0) == '!') processUserCommand(msg.substring(1, msg.length()), getClient(user), true);
+		} else if (commands[0].equals("SAIDPRIVATE")) {
+			
+			String user = commands[1];
+			String msg = Misc.makeSentence(commands, 2);
+			
+			Misc.outputLog(user + ".log", Misc.easyDateFormat("[HH:mm:ss]") + " <" + user + "> " + msg);
+			if (msg.charAt(0) == '!') processUserCommand(msg.substring(1, msg.length()), getClient(user), false);
 		}
+
 
 			
 		return true;
 	}
 	
 	/* channel - true if command was issued in the channel (and not in private chat) */
-	public static void processUserCommand(String command, String user, boolean channel) {
+	public static void processUserCommand(String command, Client client, boolean channel) {
+		if (command.trim().equals("")) return ;
+		String[] params = command.split(" ");
+		params[0] = params[0].toUpperCase(); // params[0] is the base command
+
+		if (params[0].equals("REGISTER")) {
+			if (!client.isModerator()) {
+				sendPrivateMsg(client, "Insufficient access to execute " + params[0] + " command!");
+				return ;
+			}
+			
+			if (params.length != 3) {
+				sendPrivateMsg(client, "Error: Invalid params!");
+				return ;
+			}
+			
+			if (params[1].charAt(0) != '#') {
+				sendPrivateMsg(client, "Error: Bad channel name (forgot #?)");
+				return ;
+			}
+			
+			String chanName = params[1].substring(1, params[1].length());
+
+			for (int i = 0; i < channels.size(); i++) {
+				if (((Channel)channels.get(i)).name.equals(chanName)) {
+					if (((Channel)channels.get(i)).isStatic)
+						sendPrivateMsg(client, "Error: channel #" + chanName + " is a static channel (cannot register it)!");
+					else
+						sendPrivateMsg(client, "Error: channel #" + chanName + " is already registered!");	
+					return ;
+				}
+			}
+			
+			// ok register the channel now:
+			Channel chan = new Channel(chanName);
+			channels.add(chan);
+			chan.founder = params[2];
+			chan.isStatic = false;
+			sendLine("JOIN " + chan.name);
+			sendPrivateMsg(client, "Channel #" + chanName + " successfully registered to " + params[2]);	
+		} else if (params[0].equals("UNREGISTER")) {
+			if (params.length != 3) {
+				sendPrivateMsg(client, "Error: Invalid params!");
+				return ;
+			}
+			
+			if (params[1].charAt(0) != '#') {
+				sendPrivateMsg(client, "Error: Bad channel name (forgot #?)");
+				return ;
+			}
+			
+			String chanName = params[1].substring(1, params[1].length());
+			Channel chan = getChannel(chanName);
+			if ((chan == null) || (chan.isStatic)) {
+				sendPrivateMsg(client, "Channel #" + chanName + " is not registered!");
+				return ;
+			}
+			
+			if (!(client.isModerator() || client.name.equals(chan.founder))) {
+				sendPrivateMsg(client, "Insufficient access to execute " + params[0] + " command!");
+				return ;
+			}
+			
+			// ok unregister the channel now:
+			channels.remove(chan);
+			sendLine("CHANNELMESSAGE " + chan.name + " " + "This channel has just been unregistered from <" + username + "> by <" + client.name + ">");
+			sendLine("LEAVE " + chan.name);
+			sendPrivateMsg(client, "Channel #" + chanName + " successfully unregistered!");	
+		} 
+
 		
+	}
+	
+	public static void sendPrivateMsg(Client client, String msg) {
+		sendLine("SAYPRIVATE " + client.name + " " + msg);
+	}
+	
+	public static Client getClient(String username) {
+		for (int i = 0; i < clients.size(); i++) {
+			if (((Client)clients.get(i)).name.equals(username)) {
+				return ((Client)clients.get(i)); 
+			}
+		}
+		
+		return null;
 	}
 	
     /* returns null if channel is not found */
@@ -241,7 +515,7 @@ public class ChanServ {
 	
 	public static void main(String[] args) {
 
-		// check if "./logs" folder exists, of not then create it:
+		// check if "./logs" folder exists, if not then create it:
 		File file = new File("./logs");
 		if (!file.exists()) {
 			if (!file.mkdir()) {

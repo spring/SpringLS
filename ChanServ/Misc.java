@@ -19,7 +19,7 @@ import java.io.PrintStream;
 import java.text.*;
 
 public class Misc {
- 	static public final byte EOL = 13;
+ 	static public final String EOL = "\n";
  	static private String hex = "0123456789ABCDEF"; 
 	
 	public static String easyDateFormat (String format) {
@@ -160,4 +160,10 @@ public class Misc {
 		}
 		return true;
 	}	
+	
+	public static String enumSpaces(int len) {
+		String result = "";
+		for (int i = 0; i < len; i++) result = result + " ";
+		return result;
+	}
 }
