@@ -340,7 +340,8 @@
  *
  * * JOIN channame [key]
  * Sent by client trying to join the channel. If channel is locked, then client must
- * supply a correct key to join the channel.
+ * supply a correct key to join the channel (clients with access >= Account.ADMIN_ACCESS
+ * can join locked channels withouth supplying the key - needed for ChanServ bot).
  *  
  * * JOIN channame
  * Sent by server to a client who has successfully joined a channel.
@@ -534,9 +535,9 @@
  * b1 = away status (0 - normal, 1 - away) 
  * b2-b4 = rank (see Account class implementation for description of rank) - client is not 
  *         allowed to change rank bits himself (only server may set them).
- * b5 = access status (tells us whether this client is a server moderator or not).        
- * 		Client must check founder's status to see if battle is "in game") - client is not
- * 		allowed to change this bit himself (only server may set them). 
+ * b5 = access status (tells us whether this client is a server moderator or not) - client is not
+ * 		allowed to change this bit himself (only server may set them).
+ * Client must check founder's status to see if battle is "in game". 
  * 
  * * CLIENTSTATUS username status
  * Sent by server to all registered clients indicating that client's status changed.
@@ -1926,6 +1927,10 @@ public class TASServer {
 			}
 			
 			if (commands[2].equals("*")) {
+				if (chan.getKey().equals("")) {
+					client.sendLine("SERVERMSG Error: Unable to unlock channel - channel is not locked!");
+					return false;
+				}
 				chan.setKey("");
 				chan.broadcast("<" + client.account.user + "> has just unlocked #" + chan.name);
 			} else {
@@ -2154,7 +2159,7 @@ public class TASServer {
 
 			// check if key is correct (if channel is locked):
 			Channel chan = getChannel(commands[1]);
-			if ((chan != null) && (chan.isLocked())) {
+			if ((chan != null) && (chan.isLocked()) && (client.account.accessLevel() < Account.ADMIN_ACCESS /* we will allow admins to join locked channels */)) {
 				if (!Misc.makeSentence(commands, 2).equals(chan.getKey())) {
 					client.sendLine("JOINFAILED " + commands[1] + " Wrong key (this channel is locked)!");
 					return false;
