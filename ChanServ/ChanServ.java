@@ -4,11 +4,8 @@
  * TODO To change the template for this generated file go to
  * Window - Preferences - Java - Code Style - Code Templates
  * 
- * 
- * *** CHECK: ***
- * - is org.w3c.dom.Document thread-safe? (I save it in timer, could create problems
- * if it is not)
- * 
+ *
+ * For the list of commands, see commands.html!
  * 
  * *** LINKS ****
  * * http://java.sun.com/docs/books/tutorial/extra/regex/test_harness.html
@@ -21,6 +18,9 @@
  * 
  * *** COMMANDS ***
  * * REGISTER <channame> <founder>
+ * 
+ * *** TODO QUICK NOTES ***
+ * * diff between synchronized(object) {...} and using a Semaphore... ?
  * 
  */
 
@@ -76,7 +76,7 @@ public class ChanServ {
 
 	static final String VERSION = "0.1";
 	static final String CONFIG_FILENAME = "settings.xml";
-	static final boolean DEBUG = true;
+	static final boolean DEBUG = false;
 	static Document config; 
 	static String serverAddress = "";
 	static int serverPort;
@@ -110,7 +110,7 @@ public class ChanServ {
            config = builder.parse(new File(fname));
            
            XPath xpath = XPathFactory.newInstance().newXPath();
-           Node node;
+           Node node, node2;
            
            //node = (Node)xpath.evaluate("config/account/username", config, XPathConstants.NODE);
            serverAddress = (String)xpath.evaluate("config/account/serveraddress/text()", config, XPathConstants.STRING);
@@ -145,12 +145,23 @@ public class ChanServ {
            node = node.getFirstChild();
 			while (node != null) {
 				if (node.getNodeType() == Node.ELEMENT_NODE) {
+					// this is "channel" element
 					chan = new Channel(((Element)node).getAttribute("name"));
 					chan.isStatic = false;
 					chan.topic = ((Element)node).getAttribute("topic");
 					chan.key = ((Element)node).getAttribute("key");
 					chan.founder = ((Element)node).getAttribute("founder");
 	           		channels.add(chan);
+	           		// load this channel's operator list:
+	           		node2 = node.getFirstChild();
+	           		while (node2 != null) {
+	           			if (node2.getNodeType() == Node.ELEMENT_NODE) {
+		           			// this is "operator" element
+	           				chan.addOperator(((Element)node2).getAttribute("name"));
+	           				//***Log.debug("OPERATOR: " + ((Element)node2).getAttribute("name") + "  (chan " + ((Element)node).getAttribute("name") + ")");
+	           			}
+	           			node2 = node2.getNextSibling();
+	           		}
 				}
 				node = node.getNextSibling();
 			}
@@ -196,7 +207,7 @@ public class ChanServ {
 	        Node root;
 	        Node node;
 	        Node temp;
-	        Element elem;
+	        Element elem, elem2;
 	        Text text; // text node
 	        Channel chan;
 	        
@@ -259,6 +270,20 @@ public class ChanServ {
 					elem.setAttribute("topic", chan.topic);
 					elem.setAttribute("key", chan.key);
 					elem.setAttribute("founder", chan.founder);
+
+					// write operator list:
+					if (chan.getOperatorList().size() > 0) {
+						elem.appendChild(config.createTextNode(Misc.EOL + Misc.enumSpaces(8)));
+						for (int j = 0; j < chan.getOperatorList().size(); j++) {
+							elem2 = config.createElement("operator");
+							elem2.setAttribute("name", (String)chan.getOperatorList().get(j));
+							elem.appendChild(elem2);
+							if (j != chan.getOperatorList().size()-1)
+								elem.appendChild(config.createTextNode(Misc.EOL + Misc.enumSpaces(8)));
+						}
+						elem.appendChild(config.createTextNode(Misc.EOL + Misc.enumSpaces(6)));
+					}
+					
 					root.appendChild(elem);
 				}
 				root.appendChild(config.createTextNode(Misc.EOL + Misc.enumSpaces(4)));
@@ -267,9 +292,6 @@ public class ChanServ {
 				e.printStackTrace();
 				closeAndExit(1);
 			}
-			
-
-			
 			
 			// ok save it now:
 			config.normalize(); //*** is this needed?
@@ -487,9 +509,70 @@ public class ChanServ {
 			sendLine("CHANNELMESSAGE " + chan.name + " " + "This channel has just been unregistered from <" + username + "> by <" + client.name + ">");
 			sendLine("LEAVE " + chan.name);
 			sendPrivateMsg(client, "Channel #" + chanName + " successfully unregistered!");	
+		} else if (params[0].equals("OP")) {
+			if (params.length != 3) {
+				sendPrivateMsg(client, "Error: Invalid params!");
+				return ;
+			}
+			
+			if (params[1].charAt(0) != '#') {
+				sendPrivateMsg(client, "Error: Bad channel name (forgot #?)");
+				return ;
+			}
+			
+			String chanName = params[1].substring(1, params[1].length());
+			Channel chan = getChannel(chanName);
+			if ((chan == null) || (chan.isStatic)) {
+				sendPrivateMsg(client, "Channel #" + chanName + " is not registered!");
+				return ;
+			}
+			
+			if (!(client.isModerator() || client.name.equals(chan.founder))) {
+				sendPrivateMsg(client, "Insufficient access to execute " + params[0] + " command!");
+				return ;
+			}
+			
+			if (chan.getOperatorList().indexOf(params[2]) != -1) {
+				sendPrivateMsg(client, "Error: User is already in this channel's operator list!");
+				return ;
+			}
+			
+			// ok add user to channel's operator list:
+			chan.getOperatorList().add(params[2]);
+			sendLine("CHANNELMESSAGE " + chan.name + " <" + params[2] + "> has just been added to this channel's operator list by <" + client.name + ">");
+		} else if (params[0].equals("DEOP")) {
+			if (params.length != 3) {
+				sendPrivateMsg(client, "Error: Invalid params!");
+				return ;
+			}
+			
+			if (params[1].charAt(0) != '#') {
+				sendPrivateMsg(client, "Error: Bad channel name (forgot #?)");
+				return ;
+			}
+			
+			String chanName = params[1].substring(1, params[1].length());
+			Channel chan = getChannel(chanName);
+			if ((chan == null) || (chan.isStatic)) {
+				sendPrivateMsg(client, "Channel #" + chanName + " is not registered!");
+				return ;
+			}
+			
+			if (!(client.isModerator() || client.name.equals(chan.founder))) {
+				sendPrivateMsg(client, "Insufficient access to execute " + params[0] + " command!");
+				return ;
+			}
+			
+			if (chan.getOperatorList().indexOf(params[2]) == -1) {
+				sendPrivateMsg(client, "Error: User is not in this channel's operator list!");
+				return ;
+			}
+			
+			// ok remove user from channel's operator list:
+			chan.getOperatorList().remove(params[2]);
+			sendLine("CHANNELMESSAGE " + chan.name + " <" + params[2] + "> has just been removed from this channel's operator list by <" + client.name + ">");
 		} 
-
-		
+ 
 	}
 	
 	public static void sendPrivateMsg(Client client, String msg) {

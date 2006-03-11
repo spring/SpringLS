@@ -26,7 +26,7 @@ public class Channel {
 	public boolean isStatic = true; // if true, then this channel is a static one and not registered one (we can't register this channel at all)
 	public String key = ""; // if "" then no key is set (channel is unlocked)
 	public String founder; // username of the founder of this channel. Founder is the "owner" of the channel, he can assign operators etc.
-	Vector/*String*/ operators = new Vector();
+	private Vector/*String*/ operators = new Vector();
 	
 	public Channel(String name) {
 		this.name = name;
@@ -34,7 +34,7 @@ public class Channel {
 	}
 	
 	public boolean isOperator(String name) {
-		return (!(operators.indexOf(name) == -1));
+		return (operators.indexOf(name) != -1);
 	}
 	
 	public boolean addOperator(String name) {

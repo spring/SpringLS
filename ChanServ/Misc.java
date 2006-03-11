@@ -163,7 +163,7 @@ public class Misc {
 	
 	public static String enumSpaces(int len) {
 		String result = "";
-		for (int i = 0; i < len; i++) result = result + " ";
+		for (int i = 0; i < len; i++) result += " ";
 		return result;
 	}
 }
