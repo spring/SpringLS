@@ -16,7 +16,7 @@ import java.util.Vector;
 
 public class Channel {
 	public String name;
-	private String topic;
+	private String topic; // "" represents no topic (topic is disabled for this channel)
 	private String topicAuthor;
 	private long topicChangedTime; // time when topic was last changed (in ms since Jan 1, 1970 UTC)
 	private String key = ""; // if key is "" then this channel is not locked (anyone can join). Otherwise, user must supply correct key to join it. 
