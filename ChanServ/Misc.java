@@ -166,4 +166,23 @@ public class Misc {
 		for (int i = 0; i < len; i++) result += " ";
 		return result;
 	}
+	
+	/* returns false if char is not an allowed character in the name of a channel, username, ... */
+	public static boolean isValidChar(char c) {
+		if (
+		   ((c >= 48) && (c <= 57))  || // numbers
+		   ((c >= 65) && (c <= 90))  || // capital letters
+		   ((c >= 97) && (c <= 122)) || // letters
+		   (c == 95) || // underscore
+		   (c == 91) || // left bracket "["
+		   (c == 93)    // right bracket "]"
+		   ) return true; else return false;
+	}
+	
+	/* returns false if name (of a channel, username, ...) is invalid */
+	public static boolean isValidName(String name) {
+		for (int i = 0; i < name.length(); i++) if (!isValidChar(name.charAt(i))) return false;
+		return true;
+	}
+	
 }

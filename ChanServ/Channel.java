@@ -27,6 +27,7 @@ public class Channel {
 	public String key = ""; // if "" then no key is set (channel is unlocked)
 	public String founder; // username of the founder of this channel. Founder is the "owner" of the channel, he can assign operators etc.
 	private Vector/*String*/ operators = new Vector();
+	public Vector/*String*/ clients = new Vector();
 	
 	public Channel(String name) {
 		this.name = name;

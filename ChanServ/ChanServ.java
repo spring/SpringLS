@@ -21,6 +21,8 @@
  * 
  * *** TODO QUICK NOTES ***
  * * diff between synchronized(object) {...} and using a Semaphore... ?
+ * * currently the "channel" parameter is not used in processUserCommand()
+ *   (channel name should be passed as well to make it useful) 
  * 
  */
 
@@ -400,6 +402,7 @@ public class ChanServ {
 			Log.log("Joined #" + commands[1]);
 			Channel chan = getChannel(commands[1]);
 			chan.joined = true;
+			chan.clients.clear();
 			// put "logging started" header in the log file:
 			Misc.outputLog(chan.logFileName, "");
 			Misc.outputLog(chan.logFileName, "Log started on " + Misc.easyDateFormat("dd/MM/yy"));
@@ -412,6 +415,15 @@ public class ChanServ {
 				else
 					sendLine("CHANNELTOPIC " + chan.name + " " + chan.topic);
 			}
+		} else if (commands[0].equals("CLIENTS")) { 
+			Channel chan = getChannel(commands[1]);
+			for (int i = 2; i < commands.length; i++) {
+				chan.clients.add(commands[i]);
+			}
+		} else if (commands[0].equals("JOINED")) { 
+			getChannel(commands[1]).clients.add(commands[2]);
+		} else if (commands[0].equals("LEFT")) { 
+			getChannel(commands[1]).clients.remove(commands[2]);
 		} else if (commands[0].equals("JOINFAILED")) {
 			channels.add(new Channel(commands[1]));
 			Log.log("Failed to join #" + commands[1] + ". Reason: " + Misc.makeSentence(commands, 2));
@@ -446,9 +458,14 @@ public class ChanServ {
 		String[] params = command.split(" ");
 		params[0] = params[0].toUpperCase(); // params[0] is the base command
 
-		if (params[0].equals("REGISTER")) {
+		if (params[0].equals("HELP")) {
+			sendPrivateMsg(client, "Hello, " + client.name + "!");
+			sendPrivateMsg(client, "I am an automated channel service bot,");
+			sendPrivateMsg(client, "for the full list of commands, see taspring.clan-sy.com/dl/ChanServCommands.html");
+			sendPrivateMsg(client, "If you want to go ahead and register a new channel, please contact one of the server moderators!");
+		} else if (params[0].equals("REGISTER")) {
 			if (!client.isModerator()) {
-				sendPrivateMsg(client, "Insufficient access to execute " + params[0] + " command!");
+				sendPrivateMsg(client, "Sorry, you'll have to contact one of the server moderators to register a channel for you!");
 				return ;
 			}
 			
@@ -571,6 +588,138 @@ public class ChanServ {
 			// ok remove user from channel's operator list:
 			chan.getOperatorList().remove(params[2]);
 			sendLine("CHANNELMESSAGE " + chan.name + " <" + params[2] + "> has just been removed from this channel's operator list by <" + client.name + ">");
+		} else if (params[0].equals("TOPIC")) {
+			
+			if (params.length < 2) {
+				sendPrivateMsg(client, "Error: Invalid params!");
+				return ;
+			}
+			
+			if (params[1].charAt(0) != '#') {
+				sendPrivateMsg(client, "Error: Bad channel name (forgot #?)");
+				return ;
+			}
+			
+			String topic;
+			if (params.length == 2) topic = "*";
+			else topic = Misc.makeSentence(params, 2);
+			if (topic.trim().equals("")) topic = "*";
+			
+			String chanName = params[1].substring(1, params[1].length());
+			Channel chan = getChannel(chanName);
+			if ((chan == null) || (chan.isStatic)) {
+				sendPrivateMsg(client, "Channel #" + chanName + " is not registered!");
+				return ;
+			}
+			
+			if (!(client.isModerator() || client.name.equals(chan.founder) || chan.isOperator(client.name))) {
+				sendPrivateMsg(client, "Insufficient access to execute " + params[0] + " command!");
+				return ;
+			}
+			
+			// ok set the topic:
+			sendLine("CHANNELTOPIC " + chan.name + " " + topic);
+		} else if (params[0].equals("LOCK")) {
+			
+			if (params.length != 3) {
+				sendPrivateMsg(client, "Error: Invalid params!");
+				return ;
+			}
+			
+			if (params[1].charAt(0) != '#') {
+				sendPrivateMsg(client, "Error: Bad channel name (forgot #?)");
+				return ;
+			}
+			
+			String chanName = params[1].substring(1, params[1].length());
+			Channel chan = getChannel(chanName);
+			if ((chan == null) || (chan.isStatic)) {
+				sendPrivateMsg(client, "Channel #" + chanName + " is not registered!");
+				return ;
+			}
+			
+			if (!(client.isModerator() || client.name.equals(chan.founder) || chan.isOperator(client.name))) {
+				sendPrivateMsg(client, "Insufficient access to execute " + params[0] + " command!");
+				return ;
+			}
+			
+			if (!Misc.isValidName(params[2])) {
+				sendPrivateMsg(client, "Error: key contains some invalid characters!");
+				return ;
+			}
+			
+			// ok lock the channel:
+			sendLine("SETCHANNELKEY " + chan.name + " " + params[2]);
+			if (params[2].equals("*")) chan.key = ""; 
+			else chan.key = params[2];
+		} else if (params[0].equals("UNLOCK")) {
+			
+			if (params.length != 2) {
+				sendPrivateMsg(client, "Error: Invalid params!");
+				return ;
+			}
+			
+			if (params[1].charAt(0) != '#') {
+				sendPrivateMsg(client, "Error: Bad channel name (forgot #?)");
+				return ;
+			}
+			
+			String chanName = params[1].substring(1, params[1].length());
+			Channel chan = getChannel(chanName);
+			if ((chan == null) || (chan.isStatic)) {
+				sendPrivateMsg(client, "Channel #" + chanName + " is not registered!");
+				return ;
+			}
+			
+			if (!(client.isModerator() || client.name.equals(chan.founder) || chan.isOperator(client.name))) {
+				sendPrivateMsg(client, "Insufficient access to execute " + params[0] + " command!");
+				return ;
+			}
+			
+			// ok unlock the channel:
+			sendLine("SETCHANNELKEY " + chan.name + " *");
+			chan.key = "";
+		} else if (params[0].equals("KICK")) {
+			
+			if (params.length < 3) {
+				sendPrivateMsg(client, "Error: Invalid params!");
+				return ;
+			}
+			
+			if (params[1].charAt(0) != '#') {
+				sendPrivateMsg(client, "Error: Bad channel name (forgot #?)");
+				return ;
+			}
+			
+			String chanName = params[1].substring(1, params[1].length());
+			Channel chan = getChannel(chanName);
+			if ((chan == null) || (chan.isStatic)) {
+				sendPrivateMsg(client, "Channel #" + chanName + " is not registered!");
+				return ;
+			}
+
+			if (!(client.isModerator() || client.name.equals(chan.founder) || chan.isOperator(client.name))) {
+				sendPrivateMsg(client, "Insufficient access to execute " + params[0] + " command!");
+				return ;
+			}
+			
+			String target = params[2];
+			if (chan.clients.indexOf(target) == -1) {
+				sendPrivateMsg(client, "Error: <" + target + "> not found in #" + chanName + "!");
+				return ;
+			}
+			
+			if (target.equals(username)) {
+				// not funny!
+				sendPrivateMsg(client, "You are not allowed to issue this command!");
+				return ;
+			}
+			
+			String reason = "";
+			if (params.length > 3) reason = " " + Misc.makeSentence(params, 3);
+			
+			// ok kick the user:
+			sendLine("FORCELEAVECHANNEL " + chan.name + " " + target + reason);
 		} 
  
 	}

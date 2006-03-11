@@ -1,0 +1,76 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html; charset=ISO-8859-1"
+ http-equiv="content-type">
+  <title>ChanServ command list</title>
+</head>
+<body>
+
+  <table border="3" cellpadding="2" cellspacing="0">
+    <tbody>
+      <tr>
+        <th>Command syntax</th>
+        <th>Access level</th>
+        <th>Description</th>
+      </tr>
+      <tr>
+        <td>REGISTER &lt;channame&gt; &lt;founder&gt;</td>
+        <td>Server moderator</td>
+        <td>Will register channel &lt;channame&gt; to user &lt;founder&gt;</td>
+      </tr>
+      <tr>
+        <td>UNREGISTER &lt;channame&gt;</td>
+        <td>Channel founder</td>
+        <td>Will unregister the channel (ChanServ will no longer monitor this channel)</td>
+      </tr>
+      <tr>
+        <td>OP &lt;channame&gt; &lt;username&gt;</td>
+        <td>Channel founder</td>
+        <td>Adds &lt;username&gt; to channel's operator list</td>
+      </tr>
+      <tr>
+        <td>DEOP &lt;channame&gt; &lt;username&gt;</td>
+        <td>Channel founder</td>
+        <td>Removes &lt;username&gt; from channel's operator list</td>
+      </tr>
+      <tr>
+        <td>TOPIC &lt;channame&gt; &#123;topic&#125;</td>
+        <td>Channel operator</td>
+        <td>Sets the topic for channel &lt;channame&gt; (use no argument for topic to disable it)</td>
+      </tr>
+      <tr>
+        <td>LOCK &lt;channame&gt; &lt;key&gt;</td>
+        <td>Channel operator</td>
+        <td>Locks the channel with &lt;key&gt; (only users who supply the correct key can join the channel)</td>
+      </tr>
+      <tr>
+        <td>UNLOCK &lt;channame&gt;</td>
+        <td>Channel operator</td>
+        <td>Will unlock previously locked channel</td>
+      </tr>
+      <tr>
+        <td>KICK &lt;channame&gt; &lt;username&gt; &#91;&#123;reason&#125;&#93;</td>
+        <td>Channel operator</td>
+        <td>Will kick &lt;username&gt; from the channel (reason is optional parameter)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>Notes:</p>
+  <ul>
+  <li>[] - optional parameters, {} - sentence (one or more words separated by spaces)
+  <li>Each command must be prefixed with "!" character (see examples)
+  <li>"Access level" tells you the minimum access type that you need to issue the command. Possible access types are (from highest to lowest): Server moderator, Channel founder, Channel operator, Normal user
+  <li>Channel founder is a user who has full control over the channel. He can assign channel operators and unregister the channel, as well as act as a channel operator.
+  </ul>
+  
+  <p>Examples:</p>
+  <ul>
+  <li>set topic for #main: !topic #main This is a new topic
+  <li>disable topic for #main: !topic #main
+  <li>add someone to #main's operator list: !op #main someone
+  </ul>
+
+</body>
+</html>
