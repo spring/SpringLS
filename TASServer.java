@@ -11,6 +11,8 @@
  *   argument for locked channels
  * * added FORCELEAVECHANNEL command  
  * * LEFT command now contains (optional) "reason" parameter
+ * * replaced CHANNELS command with CHANNEL and ENDOFCHANNELS commands (see
+ *   protocol description)
  * *** 0.20 ***
  * * added CHANGEPASSWORD command
  * * GETINGAMETIME now also accepts no argument (to return your own in-game time)
@@ -351,9 +353,15 @@
  * * CHANNELS
  * Sent by client when requesting channels list
  * 
- * * CHANNELS {channels}
- * Sent by server when sending channels list to client. This command is very similar to
- * CLIENTS command (in structure), so see notes for CLIENTS command too!
+ * * CHANNEL channame usercount [{topic}]
+ * Sent by server to client who requested channel list (a series of these commands
+ * will be sent to user, one for each open channel). Topic parameter may be omited 
+ * if topic is not set for the channel. A series of CHANNEL commands is ended
+ * by ENDOFCHANNELS command.
+ * 
+ * * ENDOFCHANNELS
+ * Sent by server to client who previously requested the channel list, after a
+ * series of CHANNEL commands (one for each channel).
  * 
  * * JOINFAILED channame {reason}
  * Sent by server if joining a channel failed for some reason. Server MUST provide a reason
@@ -1225,27 +1233,16 @@ public class TASServer {
 		return true;
 	}
 	
-	/* sends a list of all opened channels to client */
-	private static boolean sendChannelListToClient(Client client) {
-		if (channels.size() == 0) return true; // nothing to send
+	/* sends a list of all open channels to client */
+	private static void sendChannelListToClient(Client client) {
+		if (channels.size() == 0) return ; // nothing to send
 		
-		String s = "CHANNELS";
-		int c = 0;
-		
-		for (int j = 0; j < channels.size(); j++) {
-			s = s.concat(" " + ((Channel)channels.get(j)).name);
-			c++;
-			if (c > 10) { // 10 is the maximum number of users in a single line
-				client.sendLine(s);
-				s = "CHANNELS ";
-				c = 0;
-			}
+		Channel chan;
+		for (int i = 0; i < channels.size(); i++) {
+			chan = (Channel)channels.get(i);
+			client.sendLine("CHANNEL " + chan.name + " " + chan.clients.size() + (chan.isTopicSet() ? " " + chan.getTopic() : ""));
 		}
-		if (c > 0) {
-			client.sendLine(s);
-		}
-			
-		return true;
+		client.sendLine("ENDOFCHANNELS");
 	}
 	
 	private static void sendToAllRegisteredUsers(String s) {
