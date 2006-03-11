@@ -9,6 +9,8 @@
  * *** 0.22 ***
  * * added SETCHANNELKEY command, also modified JOIN command to accept extra
  *   argument for locked channels
+ * * added FORCELEAVECHANNEL command  
+ * * LEFT command now contains (optional) "reason" parameter
  * *** 0.20 ***
  * * added CHANGEPASSWORD command
  * * GETINGAMETIME now also accepts no argument (to return your own in-game time)
@@ -384,11 +386,21 @@
  * Sent by client when he is trying to leave a channel. When client is disconnected, he is
  * automatically removed from all channels.
  * 
- * * LEFT channame username
- * Sent by server to all clients in a channel when some client left a channel.
+ * * LEFT channame username [{reason}]
+ * Sent by server to all clients in a channel when some client left this channel.
  * WARNING: Server does not send this command to a client that has just left a channel,
  * because there is no need to (client who has left the channel knows that he left,
- * it was he who told us that that)!
+ * it was he who told us that that)! Client that was kicked from the channel is
+ * notified about it via FORCELEAVECHANNEL command.
+ *
+ * * FORCELEAVECHANNEL channame username [{reason}] 
+ * Sent by client (moderator) requsting <username> to be removed from the channel.
+ * User will be notified with FORCELEAVECHANNEL command.
+ * 
+ * * FORCELEAVECHANNEL channame username [{reason}]
+ * Sent by server to user who has just been kicked from the channel #channame
+ * by <username>. (lobby client should now internally close/detach from the channel
+ * as he was removed from the clients list of #channame on the server side)
  * 
  * * CHANNELMESSAGE channame message
  * Sent by server to all clients in a channel. Used to broadcast messages
@@ -1008,7 +1020,7 @@ public class TASServer {
 					System.out.println("WARNING: Flooding detected from " + client.IP + " (" + client.account.user + ")");
 					sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Flooding has been detected from " + client.IP + " (" + client.account.user + "). User's IP has been auto-banned.");
 					banList.add(client.IP, "Auto-ban for flooding.");
-					killClient(client);
+					killClient(client, "Disconnected due to excessive flooding");
 					continue;
 				}
 
@@ -1044,13 +1056,13 @@ public class TASServer {
 		} catch(IOException ioe) {
 			System.out.println("exception during select(): possibly due to force disconnect. Killing the client ...");
 			try {
-				if (client != null) killClient(client);				
+				if (client != null) killClient(client, "Quit: connection lost");				
 			} catch (Exception e) {
 			}
 		} catch(Exception e) {
 			System.out.println("exception in readIncomingMessages(): killing the client ... (" + e.toString() + ")");
 			try {
-				if (client != null) killClient(client);		
+				if (client != null) killClient(client, "Quit: connection lost");		
 				e.printStackTrace(); //*** DEBUG
 			} catch (Exception ex) {
 			}
@@ -1175,13 +1187,14 @@ public class TASServer {
 	}
 	
 	/* removes user from a channel and sends messages to all other clients in a channel.
-	 * If this was the last client in the channel, then channel is removed from channels list. */
-	private static boolean leaveChannelAndNotifyAll(Channel chan, Client client) {
+	 * If this was the last client in the channel, then channel is removed from channels list. 
+	 * "reason" may be left blank ("") if no reason is to be specified. */
+	private static boolean leaveChannelAndNotifyAll(Channel chan, Client client, String reason) {
 		boolean result = chan.removeClient(client);
 		
 		if (result) {
 			if (chan.clients.size() == 0) channels.remove(chan); // since channel is empty there is no point in keeping it in a channels list. If we would keep it, the channels list would grow larger and larger in time. We don't want that!
-			else for (int i = 0; i < chan.clients.size(); i++) ((Client)chan.clients.get(i)).sendLine("LEFT " + chan.name + " " + client.account.user);
+			else for (int i = 0; i < chan.clients.size(); i++) ((Client)chan.clients.get(i)).sendLine("LEFT " + chan.name + " " + client.account.user + (reason.equals("") ? "" : " " + reason));
 		} 
 		
 		return result;
@@ -1499,7 +1512,7 @@ public class TASServer {
 				}
 			}
 			target.sendLine("SERVERMSG You've been kicked from server by <" + client.account.user + ">" + reason);
-			killClient(target);
+			killClient(target, "Quit: kicked from the server");
 		}
 		else if (commands[0].equals("REMOVEACCOUNT")) {
 			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
@@ -1942,6 +1955,36 @@ public class TASServer {
 				chan.broadcast("<" + client.account.user + "> has just locked #" + chan.name + " with private key");
 			}
 		}
+		else if (commands[0].equals("FORCELEAVECHANNEL")) {
+			if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) return false;
+			if (commands.length < 3) {
+				client.sendLine("SERVERMSG Bad arguments (command FORCELEAVECHANNEL)");
+				return false;
+			}
+			
+			Channel chan = getChannel(commands[1]);
+			if (chan == null) {
+				client.sendLine("SERVERMSG Error: Channel does not exist: " + commands[1]);
+				return false;
+			}
+			
+			Client target = getClient(commands[2]);
+			if (target == null) {
+				client.sendLine("SERVERMSG Error: <" + commands[2] + "> not found!");
+				return false;
+			}
+			
+			if (!chan.isClientInThisChannel(target)) {
+				client.sendLine("SERVERMSG Error: <" + commands[2] + "> is not in the channel #" + chan.name + "!");
+				return false;
+			}
+			
+			String reason = "";
+			if (commands.length > 3) reason = " " + Misc.makeSentence(commands, 3);
+			chan.broadcast("<" + client.account.user + "> has kicked <" + target.account.user + "> from the channel" + (reason.equals("") ? "" : " (reason:" + reason + ")"));
+			target.sendLine("FORCELEAVECHANNEL " + chan.name + " " + client.account.user + reason);
+			leaveChannelAndNotifyAll(chan, target, "kicked from channel");
+		}
 		else if (commands[0].equals("CHANNELS")) {
 			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
 			
@@ -2115,7 +2158,7 @@ public class TASServer {
 			acc = new Account(commands[1], client.account.pass, client.account.access, System.currentTimeMillis(), client.IP, client.account.registrationDate);
 			accounts.add(acc);
 			client.sendLine("SERVERMSG Your account has been renamed. Reconnect with new account (you will now be automatically disconnected)!");
-			killClient(client);
+			killClient(client, "Quit: renaming account");
 			removeAccount(client.account.user);
 			writeAccountsInfo(); // let's save new accounts info to disk
 			sendToAllAdministrators("SERVERMSG [broadcast to all admins]: User <" + client.account.user + "> has just renamed his account to <" + commands[1] + ">");
@@ -2182,7 +2225,7 @@ public class TASServer {
 			Channel chan = getChannel(commands[1]);
 			if (chan == null) return false;
 			
-			leaveChannelAndNotifyAll(chan, client);
+			leaveChannelAndNotifyAll(chan, client, "");
 		}
 		else if (commands[0].equals("CHANNELTOPIC")) {
 			if (commands.length < 3) return false;
@@ -2828,13 +2871,13 @@ public class TASServer {
 				bottom = Integer.parseInt(commands[5]);
 			} catch (NumberFormatException e) {
 				client.sendLine("SERVERMSG Serious error: inconsistent data (" + commands[0] + " command). You will now be disconnected ...");
-				killClient(client);
+				killClient(client, "Quit: inconsistent data");
 				return false; 
 			}
 			
 			if (bat.startRects[allyno].enabled) {
 				client.sendLine("SERVERMSG Serious error: inconsistent data (" + commands[0] + " command). You will now be disconnected ...");
-				killClient(client);
+				killClient(client, "Quit: inconsistent data");
 				return false; 
 			}
 			
@@ -2865,13 +2908,13 @@ public class TASServer {
 				allyno = Integer.parseInt(commands[1]);
 			} catch (NumberFormatException e) {
 				client.sendLine("SERVERMSG Serious error: inconsistent data (" + commands[0] + " command). You will now be disconnected ...");
-				killClient(client);
+				killClient(client, "Quit: inconsistent data");
 				return false; 
 			}
 			
 			if (!bat.startRects[allyno].enabled) {
 				client.sendLine("SERVERMSG Serious error: inconsistent data (" + commands[0] + " command). You will now be disconnected ...");
-				killClient(client);
+				killClient(client, "Quit: inconsistent data");
 				return false; 
 			}
 			
@@ -2929,16 +2972,24 @@ public class TASServer {
 		
 	}
 	
+	/* see the other killClient() method! */
+	public static boolean killClient(Client client) {
+		return killClient(client, "");
+	}
+	
 	/* this method disconnects and removes client from clients Vector. 
 	 * Also cleans up after him (channels, battles) and notifies other
-	 * users of his departure */
-	public static boolean killClient(Client client) {
+	 * users of his departure. "reason" is used with LEFT command to
+	 * notify other users on same channel of this client's departure
+	 * reason (it may be left blank ("") to give no reason). */
+	public static boolean killClient(Client client, String reason) {
 		int index = clients.indexOf(client);
 		if (index == -1) return false;
 		if (!client.alive) return false;
 		client.disconnect();
 		clients.remove(index);
 		client.alive = false;
+		if (reason.trim().equals("")) reason = "Quit";
 		
 		
 		/* We have to remove client from all channels. This is O(n*m) (n - number of channels,
@@ -2951,7 +3002,7 @@ public class TASServer {
 		int pos = 0;
 		while (pos < channels.size())
 		{
-			leaveChannelAndNotifyAll((Channel)channels.get(pos), client);
+			leaveChannelAndNotifyAll((Channel)channels.get(pos), client, reason);
 			if (channels.size() < lastSize) {
 				lastSize = channels.size();
 			} else pos++;
@@ -3126,7 +3177,7 @@ public class TASServer {
 		    	for (int i = 0; i < clients.size(); i++) {
 		    		if (now - ((Client)clients.get(i)).timeOfLastReceive > TIMEOUT_LENGTH) {
 		    			System.out.println("Timeout detected from " + ((Client)clients.get(i)).account.user + " (" + ((Client)clients.get(i)).IP + "). Killing client ...");
-		    			killClient((Client)clients.get(i));		
+		    			killClient((Client)clients.get(i), "Quit: timeout");		
 		    			i--;
 		    		}
 		    	}
@@ -3134,7 +3185,7 @@ public class TASServer {
 		    
 		    // kill all clients on killList():
 		    for (; killList.size() > 0;) {
-		    	killClient((Client)killList.get(0));
+		    	killClient((Client)killList.get(0), "Quit: undefined connection error");
 		    	killList.remove(0);
 		    }
 		    
