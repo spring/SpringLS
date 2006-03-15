@@ -13,6 +13,7 @@
  * * LEFT command now contains (optional) "reason" parameter
  * * replaced CHANNELS command with CHANNEL and ENDOFCHANNELS commands (see
  *   protocol description)
+ * * limited maximum length of chat messages  
  * *** 0.20 ***
  * * added CHANGEPASSWORD command
  * * GETINGAMETIME now also accepts no argument (to return your own in-game time)
@@ -699,7 +700,7 @@ import java.nio.charset.*;
 
 public class TASServer {
 	
-	static final String VERSION = "0.21";
+	static final String VERSION = "0.22";
 	static byte DEBUG = 1; // 0 - no verbose, 1 - normal verbose, 2 - extensive verbose
 	static String MOTD = "Enjoy your stay :-)";
 	static String agreement = ""; // agreement which is sent to user open first login. User must send CONFIRMAGREEMENT command to confirm the agreement before server allows him to log in. See LOGIN command implementation for more details.
@@ -732,6 +733,7 @@ public class TASServer {
     private static final int recvRecordPeriod = 10; // in seconds. Length of period of time for which we keep record of bytes received from client. Used with anti-flood protection.
     private static final int maxBytesAlert = 20000; // maximum number of bytes received in the last recvRecordPeriod seconds from a single client before we raise "flood alert". Used with anti-flood protection.
     private static long lastFloodCheckedTime = System.currentTimeMillis(); // time (in same format as System.currentTimeMillis) when we last updated it. Used with anti-flood protection.
+    private static long maxChatMessageLength = 1024; // used with basic anti-flood protection. Any chat messages (channel or private chat messages) longer than this are considered flooding. Used with following commands: SAY, SAYEX, SAYPRIVATE, SAYBATTLE, SAYBATTLEEX
     
     private static long lastTimeoutCheck = System.currentTimeMillis(); // time (System.currentTimeMillis()) when we last checked for timeouts from clients
     
@@ -2018,9 +2020,9 @@ public class TASServer {
 				client.sendLine("OFFERFILE 7 *	http://spring.clan-sy.com/dl/LobbyUpdate_0193_0195.exe	This is a TASClient 0.195 patch which fixes some serious issue with last update. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
 			} else if (version.equals("0.194")) {
 				client.sendLine("OFFERFILE 7 *	http://spring.clan-sy.com/dl/LobbyUpdate_0194_0195.exe	This is a TASClient 0.195 patch which fixes some serious issue with last update. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
-*/				
 			} else if (version.equals("0.20")) {
 				client.sendLine("OFFERFILE 7 *	http://taspring.clan-sy.com/dl/taspring_0.70b2_patch.exe	This is a 0.70b1->0.70b2 patch. It will update Spring and lobby client. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
+*/				
 			} else { // unknown client version
 				client.sendLine("SERVERMSGBOX No update available for your version of lobby. See official spring web site to get the latest lobby client!");
 				killClient(client);
@@ -2256,6 +2258,13 @@ public class TASServer {
 			}
 			
 			String s = Misc.makeSentence(commands, 2);
+			// check for flooding:			
+			if ((s.length() > maxChatMessageLength) && (client.account.accessLevel() < Account.ADMIN_ACCESS)) {
+				System.out.println("WARNING: Flooding detected from " + client.IP + " (" + client.account.user + ")");
+				sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Flooding has been detected from " + client.IP + " (" + client.account.user + ") - exceeded maximum chat msg length. User's IP has been auto-banned.");
+				banList.add(client.IP, "Auto-ban for flooding - exceeded maximum chat message length.");
+				killClient(client, "Disconnected due to excessive flooding");
+			}
 			chan.sendLineToClients("SAID " + chan.name + " " + client.account.user + " " + s);
 		}
 		else if (commands[0].equals("SAYEX")) {
@@ -2271,6 +2280,14 @@ public class TASServer {
 			}
 			
 			String s = Misc.makeSentence(commands, 2);
+			// check for flooding:			
+			if ((s.length() > maxChatMessageLength) && (client.account.accessLevel() < Account.ADMIN_ACCESS)) {
+				System.out.println("WARNING: Flooding detected from " + client.IP + " (" + client.account.user + ")");
+				sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Flooding has been detected from " + client.IP + " (" + client.account.user + ") - exceeded maximum chat msg length. User's IP has been auto-banned.");
+				banList.add(client.IP, "Auto-ban for flooding - exceeded maximum chat message length.");
+				killClient(client, "Disconnected due to excessive flooding");
+			}
+			
 			chan.sendLineToClients("SAIDEX " + chan.name + " " + client.account.user + " " + s);
 		}
 		else if (commands[0].equals("SAYPRIVATE")) {
@@ -2281,6 +2298,14 @@ public class TASServer {
 			if (i == -1) return false;
 			
 			String s = Misc.makeSentence(commands, 2);
+			// check for flooding:
+			if ((s.length() > maxChatMessageLength) && (client.account.accessLevel() < Account.ADMIN_ACCESS)) {
+				System.out.println("WARNING: Flooding detected from " + client.IP + " (" + client.account.user + ")");
+				sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Flooding has been detected from " + client.IP + " (" + client.account.user + ") - exceeded maximum chat msg length. User's IP has been auto-banned.");
+				banList.add(client.IP, "Auto-ban for flooding - exceeded maximum chat message length.");
+				killClient(client, "Disconnected due to excessive flooding");
+			}
+
 			((Client)clients.get(i)).sendLine("SAIDPRIVATE " + client.account.user + " " + s);
 			client.sendLine(command); // echo the command. See protocol description!
 		}
@@ -2473,7 +2498,16 @@ public class TASServer {
 			Battle bat = getBattle(client.battleID);
 			if (bat == null) return false;
 			
-			bat.sendToAllClients("SAIDBATTLE " + client.account.user + " " + Misc.makeSentence(commands, 1));
+			String s = Misc.makeSentence(commands, 1); 
+			// check for flooding:			
+			if ((s.length() > maxChatMessageLength) && (client.account.accessLevel() < Account.ADMIN_ACCESS)) {
+				System.out.println("WARNING: Flooding detected from " + client.IP + " (" + client.account.user + ")");
+				sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Flooding has been detected from " + client.IP + " (" + client.account.user + ") - exceeded maximum chat msg length. User's IP has been auto-banned.");
+				banList.add(client.IP, "Auto-ban for flooding - exceeded maximum chat message length.");
+				killClient(client, "Disconnected due to excessive flooding");
+			}				
+			
+			bat.sendToAllClients("SAIDBATTLE " + client.account.user + " " + s);
 		}
 		else if (commands[0].equals("SAYBATTLEEX")) {
 			if (commands.length < 2) return false;
@@ -2482,8 +2516,17 @@ public class TASServer {
 			if (client.battleID == -1) return false;
 			Battle bat = getBattle(client.battleID);
 			if (bat == null) return false;
+
+			String s = Misc.makeSentence(commands, 1);
+			// check for flooding:			
+			if ((s.length() > maxChatMessageLength) && (client.account.accessLevel() < Account.ADMIN_ACCESS)) {
+				System.out.println("WARNING: Flooding detected from " + client.IP + " (" + client.account.user + ")");
+				sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Flooding has been detected from " + client.IP + " (" + client.account.user + ") - exceeded maximum chat msg length. User's IP has been auto-banned.");
+				banList.add(client.IP, "Auto-ban for flooding - exceeded maximum chat message length.");
+				killClient(client, "Disconnected due to excessive flooding");
+			}				
 			
-			bat.sendToAllClients("SAIDBATTLEEX " + client.account.user + " " + Misc.makeSentence(commands, 1));
+			bat.sendToAllClients("SAIDBATTLEEX " + client.account.user + " " + s);
 		}
 		else if (commands[0].equals("UPDATEBATTLEINFO")) {
 			if (commands.length < 4) return false;
@@ -3127,7 +3170,7 @@ public class TASServer {
 		
 		if (LOG_MAIN_CHANNEL) {
 			try {
-				mainChanLog = new PrintStream(new BufferedOutputStream(new FileOutputStream("MainChanLog.log", true)));
+				mainChanLog = new PrintStream(new BufferedOutputStream(new FileOutputStream("MainChanLog.log", true)), true);
 				writeMainChanLog("Log started on " + Misc.easyDateFormat("dd/MM/yy"));
 			} catch (Exception e) {
 				LOG_MAIN_CHANNEL = false;
