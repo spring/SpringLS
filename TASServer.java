@@ -1026,7 +1026,7 @@ public class TASServer {
 				client.dataOverLastTimePeriod += nbytes;
 				
 				// basic anti-flood protection:
-				if (client.dataOverLastTimePeriod > TASServer.maxBytesAlert) {
+				if ((client.dataOverLastTimePeriod > TASServer.maxBytesAlert) && (client.account.accessLevel() < Account.ADMIN_ACCESS)) {
 					System.out.println("WARNING: Flooding detected from " + client.IP + " (" + client.account.user + ")");
 					sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Flooding has been detected from " + client.IP + " (" + client.account.user + "). User's IP has been auto-banned.");
 					banList.add(client.IP, "Auto-ban for flooding.");
@@ -2260,10 +2260,10 @@ public class TASServer {
 			String s = Misc.makeSentence(commands, 2);
 			// check for flooding:			
 			if ((s.length() > maxChatMessageLength) && (client.account.accessLevel() < Account.ADMIN_ACCESS)) {
-				System.out.println("WARNING: Flooding detected from " + client.IP + " (" + client.account.user + ")");
-				sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Flooding has been detected from " + client.IP + " (" + client.account.user + ") - exceeded maximum chat msg length. User's IP has been auto-banned.");
-				banList.add(client.IP, "Auto-ban for flooding - exceeded maximum chat message length.");
-				killClient(client, "Disconnected due to excessive flooding");
+				System.out.println("WARNING: Flooding detected from " + client.IP + " (" + client.account.user + ") [exceeded max. chat message size]");
+				client.sendLine("SERVERMSG Flooding detected - you have exceeded maximum allowed chat message size (" + maxChatMessageLength + " bytes). Your message has been ignored.");
+				sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Flooding has been detected from " + client.IP + " (" + client.account.user + ") - exceeded maximum chat message size. Ignoring ...");
+				return false;
 			}
 			chan.sendLineToClients("SAID " + chan.name + " " + client.account.user + " " + s);
 		}
@@ -2282,10 +2282,10 @@ public class TASServer {
 			String s = Misc.makeSentence(commands, 2);
 			// check for flooding:			
 			if ((s.length() > maxChatMessageLength) && (client.account.accessLevel() < Account.ADMIN_ACCESS)) {
-				System.out.println("WARNING: Flooding detected from " + client.IP + " (" + client.account.user + ")");
-				sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Flooding has been detected from " + client.IP + " (" + client.account.user + ") - exceeded maximum chat msg length. User's IP has been auto-banned.");
-				banList.add(client.IP, "Auto-ban for flooding - exceeded maximum chat message length.");
-				killClient(client, "Disconnected due to excessive flooding");
+				System.out.println("WARNING: Flooding detected from " + client.IP + " (" + client.account.user + ") [exceeded max. chat message size]");
+				client.sendLine("SERVERMSG Flooding detected - you have exceeded maximum allowed chat message size (" + maxChatMessageLength + " bytes). Your message has been ignored.");
+				sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Flooding has been detected from " + client.IP + " (" + client.account.user + ") - exceeded maximum chat message size. Ignoring ...");
+				return false;
 			}
 			
 			chan.sendLineToClients("SAIDEX " + chan.name + " " + client.account.user + " " + s);
@@ -2300,10 +2300,10 @@ public class TASServer {
 			String s = Misc.makeSentence(commands, 2);
 			// check for flooding:
 			if ((s.length() > maxChatMessageLength) && (client.account.accessLevel() < Account.ADMIN_ACCESS)) {
-				System.out.println("WARNING: Flooding detected from " + client.IP + " (" + client.account.user + ")");
-				sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Flooding has been detected from " + client.IP + " (" + client.account.user + ") - exceeded maximum chat msg length. User's IP has been auto-banned.");
-				banList.add(client.IP, "Auto-ban for flooding - exceeded maximum chat message length.");
-				killClient(client, "Disconnected due to excessive flooding");
+				System.out.println("WARNING: Flooding detected from " + client.IP + " (" + client.account.user + ") [exceeded max. chat message size]");
+				client.sendLine("SERVERMSG Flooding detected - you have exceeded maximum allowed chat message size (" + maxChatMessageLength + " bytes). Your message has been ignored.");
+				sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Flooding has been detected from " + client.IP + " (" + client.account.user + ") - exceeded maximum chat message size. Ignoring ...");
+				return false;
 			}
 
 			((Client)clients.get(i)).sendLine("SAIDPRIVATE " + client.account.user + " " + s);
@@ -2501,10 +2501,10 @@ public class TASServer {
 			String s = Misc.makeSentence(commands, 1); 
 			// check for flooding:			
 			if ((s.length() > maxChatMessageLength) && (client.account.accessLevel() < Account.ADMIN_ACCESS)) {
-				System.out.println("WARNING: Flooding detected from " + client.IP + " (" + client.account.user + ")");
-				sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Flooding has been detected from " + client.IP + " (" + client.account.user + ") - exceeded maximum chat msg length. User's IP has been auto-banned.");
-				banList.add(client.IP, "Auto-ban for flooding - exceeded maximum chat message length.");
-				killClient(client, "Disconnected due to excessive flooding");
+				System.out.println("WARNING: Flooding detected from " + client.IP + " (" + client.account.user + ") [exceeded max. chat message size]");
+				client.sendLine("SERVERMSG Flooding detected - you have exceeded maximum allowed chat message size (" + maxChatMessageLength + " bytes). Your message has been ignored.");
+				sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Flooding has been detected from " + client.IP + " (" + client.account.user + ") - exceeded maximum chat message size. Ignoring ...");
+				return false;
 			}				
 			
 			bat.sendToAllClients("SAIDBATTLE " + client.account.user + " " + s);
@@ -2520,10 +2520,10 @@ public class TASServer {
 			String s = Misc.makeSentence(commands, 1);
 			// check for flooding:			
 			if ((s.length() > maxChatMessageLength) && (client.account.accessLevel() < Account.ADMIN_ACCESS)) {
-				System.out.println("WARNING: Flooding detected from " + client.IP + " (" + client.account.user + ")");
-				sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Flooding has been detected from " + client.IP + " (" + client.account.user + ") - exceeded maximum chat msg length. User's IP has been auto-banned.");
-				banList.add(client.IP, "Auto-ban for flooding - exceeded maximum chat message length.");
-				killClient(client, "Disconnected due to excessive flooding");
+				System.out.println("WARNING: Flooding detected from " + client.IP + " (" + client.account.user + ") [exceeded max. chat message size]");
+				client.sendLine("SERVERMSG Flooding detected - you have exceeded maximum allowed chat message size (" + maxChatMessageLength + " bytes). Your message has been ignored.");
+				sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Flooding has been detected from " + client.IP + " (" + client.account.user + ") - exceeded maximum chat message size. Ignoring ...");
+				return false;
 			}				
 			
 			bat.sendToAllClients("SAIDBATTLEEX " + client.account.user + " " + s);
