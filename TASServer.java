@@ -1431,6 +1431,24 @@ public class TASServer {
 		client.sendLine("AGREEMENTEND");
 	}	
 	
+	/* returns -1 if unsuccessful */
+	public static int saveStatisticsToDisk() {
+		long taken;
+    	try {
+	    	lastStatisticsUpdate = System.currentTimeMillis();
+	    	taken = Statistics.autoUpdateStatisticsFile();
+			if (taken == -1) return -1;
+	    	Statistics.createAggregateFile(); // to simplify parsing
+	    	Statistics.generatePloticusImages();
+	    	System.out.println("*** Statistics saved to disk. Time taken: " + taken + " ms.");
+    	} catch (Exception e) {
+    		System.out.println("*** Error while saving statistics... Stack trace:");
+    		e.printStackTrace();
+    		return -1;
+    	}
+    	return new Long(taken).intValue();
+	}
+	
 	/* add "synchronized" if more than 1 thread is going to call it at the same time! */
 	public static boolean tryToExecCommand(String command, Client client) {
 		if (command.trim().equals("")) return false;
@@ -1889,15 +1907,11 @@ public class TASServer {
 			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
 			if (commands.length != 1) return false;
 
-			long taken = Statistics.autoUpdateStatisticsFile();
-			if (taken == -1) {
-				client.sendLine("SERVERMSG Unable to update statistics to disk!");
-				return false;
-			}
-			Statistics.createAggregateFile(); // to simplify parsing
-			Statistics.generatePloticusImages();
-			
-     		client.sendLine("SERVERMSG Statistics have been updated. Time taken to calculate: " + taken + " ms.");
+			int taken = saveStatisticsToDisk(); 
+			if (taken == -1)
+				client.sendLine("SERVERMSG Unable to update statistics!");
+			else 
+				client.sendLine("SERVERMSG Statistics have been updated. Time taken to calculate: " + taken + " ms.");
 		}
 		else if (commands[0].equals("LONGTIMETODATE")) {
 			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
@@ -3230,17 +3244,8 @@ public class TASServer {
 		    }
 		    
 		    // update statistics:
-		    if ((RECORD_STATISTICS) && (System.currentTimeMillis() - lastStatisticsUpdate > saveStatisticsInterval)) 
-		    	try {
-			    	lastStatisticsUpdate = System.currentTimeMillis();
-			    	long taken = Statistics.autoUpdateStatisticsFile();
-			    	Statistics.createAggregateFile(); // to simplify parsing
-			    	Statistics.generatePloticusImages();
-			    	System.out.println("*** Statistics saved to disk. Time taken: " + taken + " ms.");
-		    	} catch (Exception e) {
-		    		System.out.println("*** Error while saving statistics... Stack trace:");
-		    		e.printStackTrace();
-		    	}
+		    if ((RECORD_STATISTICS) && (System.currentTimeMillis() - lastStatisticsUpdate > saveStatisticsInterval))
+		    	saveStatisticsToDisk();
 		    	
 		    // check UDP server for any new packets:
 		    while (NATHelpServer.msgList.size() > 0) {
