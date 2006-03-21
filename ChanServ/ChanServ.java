@@ -16,9 +16,6 @@
  *   or else it won't be able to join locked channels and won't work correct!
  * * Use Vector for thread-safe list (ArrayList and similar classes aren't thread-safe!)    
  * 
- * *** COMMANDS ***
- * * REGISTER <channame> <founder>
- * 
  * *** TODO QUICK NOTES ***
  * * diff between synchronized(object) {...} and using a Semaphore... ?
  * * currently the "channel" parameter is not used in processUserCommand()
@@ -525,7 +522,68 @@ public class ChanServ {
 			channels.remove(chan);
 			sendLine("CHANNELMESSAGE " + chan.name + " " + "This channel has just been unregistered from <" + username + "> by <" + client.name + ">");
 			sendLine("LEAVE " + chan.name);
-			sendPrivateMsg(client, "Channel #" + chanName + " successfully unregistered!");	
+			sendPrivateMsg(client, "Channel #" + chanName + " successfully unregistered!");
+		} else if (params[0].equals("ADDSTATIC")) {
+			if (!client.isModerator()) {
+				sendPrivateMsg(client, "Insufficient access to execute " + params[0] + " command!");
+				return ;
+			}
+			
+			if (params.length != 2) {
+				sendPrivateMsg(client, "Error: Invalid params!");
+				return ;
+			}
+			
+			if (params[1].charAt(0) != '#') {
+				sendPrivateMsg(client, "Error: Bad channel name (forgot #?)");
+				return ;
+			}
+			
+			String chanName = params[1].substring(1, params[1].length());
+
+			for (int i = 0; i < channels.size(); i++) {
+				if (((Channel)channels.get(i)).name.equals(chanName)) {
+					if (((Channel)channels.get(i)).isStatic)
+						sendPrivateMsg(client, "Error: channel #" + chanName + " is already static!");
+					else
+						sendPrivateMsg(client, "Error: channel #" + chanName + " is already registered! (unregister it first and then add it to static list)");	
+					return ;
+				}
+			}
+			
+			// ok add the channel to static list:
+			Channel chan = new Channel(chanName);
+			channels.add(chan);
+			chan.isStatic = true;
+			sendLine("JOIN " + chan.name);
+			sendPrivateMsg(client, "Channel #" + chanName + " successfully added to static list.");
+		} else if (params[0].equals("REMOVESTATIC")) {
+			if (params.length != 2) {
+				sendPrivateMsg(client, "Error: Invalid params!");
+				return ;
+			}
+			
+			if (params[1].charAt(0) != '#') {
+				sendPrivateMsg(client, "Error: Bad channel name (forgot #?)");
+				return ;
+			}
+			
+			String chanName = params[1].substring(1, params[1].length());
+			Channel chan = getChannel(chanName);
+			if ((chan == null) || (!chan.isStatic)) {
+				sendPrivateMsg(client, "Channel #" + chanName + " is not in the static channel list!");
+				return ;
+			}
+			
+			if (!(client.isModerator() || client.name.equals(chan.founder))) {
+				sendPrivateMsg(client, "Insufficient access to execute " + params[0] + " command!");
+				return ;
+			}
+			
+			// ok remove the channel from static channel list now:
+			channels.remove(chan);
+			sendLine("LEAVE " + chan.name);
+			sendPrivateMsg(client, "Channel #" + chanName + " successfully removed from static channel list!");
 		} else if (params[0].equals("OP")) {
 			if (params.length != 3) {
 				sendPrivateMsg(client, "Error: Invalid params!");
