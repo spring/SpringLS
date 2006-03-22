@@ -302,7 +302,7 @@ public class ChanServ {
 
 	        transformer.transform(source, result);
 	        
-	        Log.log("Config file saved to " + fname);
+	        if (DEBUG) Log.log("Config file saved to " + fname);
 		} catch (Exception e) {
 			Log.error("Unable to save config file to " + fname + "! Ignoring ...");
 		}
@@ -417,10 +417,17 @@ public class ChanServ {
 			for (int i = 2; i < commands.length; i++) {
 				chan.clients.add(commands[i]);
 			}
-		} else if (commands[0].equals("JOINED")) { 
-			getChannel(commands[1]).clients.add(commands[2]);
+		} else if (commands[0].equals("JOINED")) {
+			Channel chan = getChannel(commands[1]);
+			chan.clients.add(commands[2]);
+			Misc.outputLog(chan.logFileName, Misc.easyDateFormat("[HH:mm:ss]") + " * " + commands[2] + " has joined " + "#" + chan.name);
 		} else if (commands[0].equals("LEFT")) { 
-			getChannel(commands[1]).clients.remove(commands[2]);
+			Channel chan = getChannel(commands[1]);
+			chan.clients.remove(commands[2]);
+			String out = Misc.easyDateFormat("[HH:mm:ss]") + " * " + commands[2] + " has left " + "#" + chan.name;
+			if (commands.length > 3)
+				out = out + " (" + Misc.makeSentence(commands, 3) + ")";
+			Misc.outputLog(chan.logFileName, out);
 		} else if (commands[0].equals("JOINFAILED")) {
 			channels.add(new Channel(commands[1]));
 			Log.log("Failed to join #" + commands[1] + ". Reason: " + Misc.makeSentence(commands, 2));
@@ -435,13 +442,28 @@ public class ChanServ {
 			
 			Misc.outputLog(chan.logFileName, Misc.easyDateFormat("[HH:mm:ss]") + " <" + user + "> " + msg);
 			if (msg.charAt(0) == '!') processUserCommand(msg.substring(1, msg.length()), getClient(user), true);
+		} else if (commands[0].equals("SAIDEX")) {
+			Channel chan = getChannel(commands[1]);
+			String user = commands[2];
+			String msg = Misc.makeSentence(commands, 3);
+			Misc.outputLog(chan.logFileName, Misc.easyDateFormat("[HH:mm:ss]") + " * " + user + " " + msg);
 		} else if (commands[0].equals("SAIDPRIVATE")) {
 			
 			String user = commands[1];
 			String msg = Misc.makeSentence(commands, 2);
 			
-			Misc.outputLog(user + ".log", Misc.easyDateFormat("[HH:mm:ss]") + " <" + user + "> " + msg);
+			Misc.outputLog(user + ".log", Misc.easyDateFormat("[dd/MM/yy HH:mm:ss]") + " <" + user + "> " + msg);
 			if (msg.charAt(0) == '!') processUserCommand(msg.substring(1, msg.length()), getClient(user), false);
+		} else if (commands[0].equals("SERVERMSG")) {
+			Log.log("Message from server: " + Misc.makeSentence(commands, 1));
+		} else if (commands[0].equals("SERVERMSGBOX")) {
+			Log.log("MsgBox from server: " + Misc.makeSentence(commands, 1));
+		} else if (commands[0].equals("CHANNELMESSAGE")) {
+			Channel chan = getChannel(commands[1]);
+			String out = Misc.easyDateFormat("[HH:mm:ss]") + " * Channel message: " + Misc.makeSentence(commands, 2);
+			Misc.outputLog(chan.logFileName, out);
+		} else if (commands[0].equals("BROADCAST")) {
+			Log.log("*** Broadcast from server: " + Misc.makeSentence(commands, 1));
 		}
 
 
@@ -458,7 +480,7 @@ public class ChanServ {
 		if (params[0].equals("HELP")) {
 			sendPrivateMsg(client, "Hello, " + client.name + "!");
 			sendPrivateMsg(client, "I am an automated channel service bot,");
-			sendPrivateMsg(client, "for the full list of commands, see taspring.clan-sy.com/dl/ChanServCommands.html");
+			sendPrivateMsg(client, "for the full list of commands, see http://taspring.clan-sy.com/dl/ChanServCommands.html");
 			sendPrivateMsg(client, "If you want to go ahead and register a new channel, please contact one of the server moderators!");
 		} else if (params[0].equals("REGISTER")) {
 			if (!client.isModerator()) {
@@ -784,6 +806,7 @@ public class ChanServ {
 	
 	public static void sendPrivateMsg(Client client, String msg) {
 		sendLine("SAYPRIVATE " + client.name + " " + msg);
+		Misc.outputLog(client.name + ".log", Misc.easyDateFormat("[dd/MM/yy HH:mm:ss]") + " <" + username + "> " + msg);
 	}
 	
 	public static Client getClient(String username) {
@@ -805,6 +828,9 @@ public class ChanServ {
 	
 	public static void main(String[] args) {
 
+		Log.externalLogFileName = "$main.log";
+		Log.useExternalLogging = true;
+
 		// check if "./logs" folder exists, if not then create it:
 		File file = new File("./logs");
 		if (!file.exists()) {
@@ -815,6 +841,9 @@ public class ChanServ {
 				Log.log("Folder ./logs has been created");
 			}
 		}
+
+		Log.log("ChanServ started on " + Misc.easyDateFormat("dd/MM/yy"));
+		Log.log("");
 		
 		loadConfig(CONFIG_FILENAME);
 		saveConfig(CONFIG_FILENAME); //*** debug

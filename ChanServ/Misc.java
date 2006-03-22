@@ -149,11 +149,18 @@ public class Misc {
 	   while (!isSorted);
 	}	
 	
-	/* fname is file name withouth path ("./logs" path is automatically added) */
 	public static boolean outputLog(String fname, String text) {
+		return outputLog(fname, text, true);
+	}
+	
+	/* fname is file name withouth path ("./logs" path is automatically added) */
+	public static boolean outputLog(String fname, String text, boolean newLine) {
 		try {
 			PrintStream out = new PrintStream(new BufferedOutputStream(new FileOutputStream("./logs/" + fname, true)));
-			out.println(text);
+			if (newLine)
+				out.println(text);
+			else
+				out.print(text);
 			out.close();
 		} catch (Exception e) {
 			return false;
