@@ -18,7 +18,7 @@ Moderator commands:
 /ring <username>
   plays a "ring" sound on user's client program.
 /ip <username>
-  returns user's IP. NOTE: This command will not be available until 0.183.
+  returns user's IP address.
 /mute <channel> <username> [minutes]
   will mute user for specified time or for indefinit time if "minutes" are not specified.
 /unmute <channel> <username>
@@ -26,7 +26,7 @@ Moderator commands:
 /lastlogin <username>
   will return user's last login date/time
 /findip <ipaddress>
-  will return a list of online clients that are using this IP
+  will return a list of clients that are currently using this IP or were recently using it.
 /lastip <username>
   will return last IP address used by the user (or current one if still online)
  

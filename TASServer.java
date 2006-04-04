@@ -703,7 +703,7 @@ public class TASServer {
 	static final String VERSION = "0.22";
 	static byte DEBUG = 1; // 0 - no verbose, 1 - normal verbose, 2 - extensive verbose
 	static String MOTD = "Enjoy your stay :-)";
-	static String agreement = ""; // agreement which is sent to user open first login. User must send CONFIRMAGREEMENT command to confirm the agreement before server allows him to log in. See LOGIN command implementation for more details.
+	static String agreement = ""; // agreement which is sent to user upon first login. User must send CONFIRMAGREEMENT command to confirm the agreement before server allows him to log in. See LOGIN command implementation for more details.
 	static long upTime;
 	static final String MOTD_FILENAME = "motd.txt";
 	static final String AGREEMENT_FILENAME = "agreement.rtf";
@@ -754,7 +754,7 @@ public class TASServer {
 	/* killList is used when we want to kill a client but not immediately (within a loop, for example).
 	 * Client on the list will get killed after main loop reaches its end. Server
 	 * will empty the list in its main loop, so if the same client is added to the
-	 * list more than once in the same lopp, server will kill it only once and remove 
+	 * list more than once in the same loop, server will kill it only once and remove 
 	 * redundant entries. */
 	 
 	static NATHelpServer helpUDPsrvr;
@@ -1645,13 +1645,23 @@ public class TASServer {
 			if (commands.length != 2) return false;
 			
 			boolean found = false;
+			String IP = commands[1];
 			for (int i = 0; i < clients.size(); i++)
-				if (((Client)clients.get(i)).IP.equals(commands[1])) {
+				if (((Client)clients.get(i)).IP.equals(IP)) {
 					found = true;
-					client.sendLine("SERVERMSG " + commands[1] + " is bound to: "+ ((Client)clients.get(i)).account.user);
+					client.sendLine("SERVERMSG " + IP + " is bound to: "+ ((Client)clients.get(i)).account.user);
 				}
 				
-			if (!found) client.sendLine("SERVERMSG No client is using IP: " + commands[1]);
+			// now let's check if this IP matches any recently used IP:
+			for (int i = 0; i < accounts.size(); i++) {
+				if (((Account)accounts.get(i)).lastIP.equals(IP))
+					if (getClient(((Account)accounts.get(i)).user) == null) { // user is offline
+						found = true;
+						client.sendLine("SERVERMSG " + IP + " was recently bound to: "+ ((Account)accounts.get(i)).user + " (offline)");
+					}
+			}
+				
+			if (!found) client.sendLine("SERVERMSG No client is/was recently using IP: " + IP); //*** perhaps add an explanation like "(note that server only keeps track of last used IP addresses)" ?
 		}
 		else if (commands[0].equals("GETLASTIP")) {
 			if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) return false;
