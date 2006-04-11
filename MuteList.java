@@ -86,4 +86,14 @@ public class MuteList {
 		else return (((Long)mutedUntil.get(index)).longValue() - System.currentTimeMillis()) / 1000; 
 	}
 	
+	public boolean rename(String oldUsername, String newUsername) {
+		for (int i = 0; i < usernames.size(); i++) {
+			if (((String)usernames.get(i)).equals(oldUsername)) {
+				usernames.setElementAt(new String(newUsername), i);
+				return true;
+			}
+		}
+		return false;
+	}
+	
 }

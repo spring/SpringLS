@@ -6,6 +6,8 @@
  * 
  * 
  * ---- CHANGELOG ----
+ * *** next ***
+ * * channel mute list now gets updated when user renames his account
  * *** 0.22 ***
  * * added SETCHANNELKEY command, also modified JOIN command to accept extra
  *   argument for locked channels
@@ -1529,7 +1531,7 @@ public class TASServer {
 				}
 			}
 			target.sendLine("SERVERMSG You've been kicked from server by <" + client.account.user + ">" + reason);
-			killClient(target, "Quit: kicked from the server");
+			killClient(target, "Quit: kicked from server");
 		}
 		else if (commands[0].equals("REMOVEACCOUNT")) {
 			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
@@ -2178,6 +2180,11 @@ public class TASServer {
 				return false;
 			}			
 
+			// make sure all mutes are accordingly adjusted to new username:
+			for (int i = 0; i < channels.size(); i++) {
+				((Channel)channels.get(i)).muteList.rename(client.account.user, commands[1]);
+			}
+			
 			acc = new Account(commands[1], client.account.pass, client.account.access, System.currentTimeMillis(), client.IP, client.account.registrationDate);
 			accounts.add(acc);
 			client.sendLine("SERVERMSG Your account has been renamed. Reconnect with new account (you will now be automatically disconnected)!");
