@@ -19,3 +19,34 @@ ports 8200 (TCP) and 8201 (UDP).
 
 You will also need java runtime, you can get it here (1.5.0 version):
 http://java.sun.com/j2se/1.5.0/download.jsp
+
+---------------------------------------------------------------------------
+
+Command line arguments:
+
+
+-PORT [number]
+  Server will host on port [number]. If command is omitted,
+  default port will be used.
+
+-LAN
+  Server will run in LAN mode, meaning any user can login as
+  long as he uses unique username (password is ignored).
+  Note: Server will accept users from outside the local network too.
+
+-DEBUG [number]
+  Use 0 for no verbose, 1 for normal and 2 for extensive verbose.
+
+-STATISTICS
+  Server will create and save statistics on disk on predefined intervals.
+
+-NATPORT [number]
+  Server will use this port with some NAT traversal techniques. If command is omitted,
+  default port will be used.
+
+-LOGMAIN
+  Server will log all conversations from channel #main to MainChanLog.log
+
+
+Example of usage (main lobby server uses these settings):
+java TASServer -DEBUG 1 -natport 8201 -logmain -port 8200 | tee ./logs/TASServer.log

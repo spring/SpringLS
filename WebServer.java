@@ -402,6 +402,7 @@ outerloop:
         setSuffix(".h", "text/plain");
         setSuffix(".pl", "text/plain");
         setSuffix(".txt", "text/plain");
+        setSuffix(".log", "text/plain");
         setSuffix(".java", "text/plain");
     }
 
