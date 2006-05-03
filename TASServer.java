@@ -1950,7 +1950,11 @@ public class TASServer {
 				return false;
 			}
 			
-     		client.sendLine("SERVERMSG <" + acc.user + ">'s last login was on " + Misc.easyDateFormat(acc.lastLogin, "d MMM yyyy HH:mm:ss z"));
+			if (getClient(acc.user) == null) {
+				client.sendLine("SERVERMSG <" + acc.user + ">'s last login was on " + Misc.easyDateFormat(acc.lastLogin, "d MMM yyyy HH:mm:ss z"));
+			} else {
+				client.sendLine("SERVERMSG <" + acc.user + "> is currently online");
+			}
 		}
 		else if (commands[0].equals("SETCHANNELKEY")) {
 			if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) return false;
