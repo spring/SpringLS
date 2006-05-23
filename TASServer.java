@@ -6,6 +6,8 @@
  * 
  * 
  * ---- CHANGELOG ----
+ * *** 0.25 ***
+ * * added -LANADMIN switch
  * *** 0.23 ***
  * * channel mute list now gets updated when user renames his account
  * *** 0.22 ***
@@ -245,6 +247,7 @@
  * * REGISTER username password
  * Sent by client who hasn't logged in yet. If server is in LAN mode, this command will
  * be ignored.
+ * <password> should be sent in encoded form (MD5 hash in base-64 form).
  * 
  * * REGISTRATIONDENIED {reason}
  * Sent by server to client who just sent REGISTER command, if registration has been refused.
@@ -271,6 +274,7 @@
  * send the agreement to client upon receiving LOGIN command (LOGIN command
  * will be ignored - client should resend LOGIN command once user has agreed to
  * the agreement or disconnect from the server if user has rejected the agreement).
+ * <password> should be sent in encoded form (MD5 hash in base-64 form).
  * 
  * * ACCEPTED username
  * Sent by server to the client if login was successful.
@@ -726,6 +730,8 @@ public class TASServer {
 	static long lastStatisticsUpdate = System.currentTimeMillis(); // time (System.currentTimeMillis()) when we last updated statistics
 	static boolean LOG_MAIN_CHANNEL = false; // if true, server will keep a log of all conversations from channel #main (in file "MainChanLog.log")
 	static PrintStream mainChanLog;
+	static String LanAdminUsername = "admin"; // default lan admin account. Can be overwritten with -LANADMIN switch. Used only when server is running in lan mode!
+	static String LanAdminPassword = Misc.encodePassword("admin"); 
 	
     private static final int BYTE_BUFFER_SIZE = 256; // the size doesn't really matter. Server will work with any size (tested it with BUFFER_LENGTH=1), but too small buffer may impact the performance.
     private static final int SEND_BUFFER_SIZE = 65536 * 2; // socket's send buffer size
@@ -2118,7 +2124,7 @@ public class TASServer {
 					client.sendLine("DENIED Player with same name already logged in");
 					return false;
 				}
-				if (commands[1].equals("admin")) acc = new Account(commands[1], commands[2], Account.ADMIN_ACCESS, 0, "?", 0); 
+				if ((commands[1].equals(LanAdminUsername)) && (commands[2].equals(LanAdminPassword))) acc = new Account(commands[1], commands[2], Account.ADMIN_ACCESS, 0, "?", 0); 
 				else acc = new Account(commands[1], commands[2], Account.NORMAL_ACCESS, 0, "?", 0);
 				accounts.add(acc);
 				client.account = acc;
@@ -3166,6 +3172,14 @@ public class TASServer {
 					else if (s.equals("LOGMAIN")) {
 						LOG_MAIN_CHANNEL = true;
 					}
+					else if (s.equals("LANADMIN")) {
+						LanAdminUsername = args[i+1];
+						LanAdminPassword = Misc.encodePassword(args[i+2]);
+						
+						if (!Misc.isValidName(LanAdminUsername)) throw new Exception();
+						if (!Misc.isValidPass(LanAdminPassword)) throw new Exception();
+						i += 2; // we must skip username and password parameters in next iteration
+					}
 					else throw new IOException();
 				} else throw new IOException();
 			
@@ -3193,6 +3207,10 @@ public class TASServer {
 			System.out.println("");
 			System.out.println("-LOGMAIN");
 			System.out.println("  Server will log all conversations from channel #main to MainChanLog.log");
+			System.out.println("");
+			System.out.println("-LANADMIN [username] [password]");
+			System.out.println("  Will override default lan admin account. Use this account to set up your lan server\n");
+			System.out.println("  at runtime.");
 			System.out.println("");
 						
 			closeServerAndExit();

@@ -17,6 +17,7 @@
 import java.util.*;
 import java.text.*;
 import java.net.*;
+import java.security.*;
 
 public class Misc {
  	static public final byte EOL = 13;
@@ -221,6 +222,49 @@ public class Misc {
 	   }
 	   while (!isSorted);
 	}	
+	
+	public static String getHashText(String plainText, String algorithm) throws NoSuchAlgorithmException {
+		MessageDigest mdAlgorithm = MessageDigest.getInstance(algorithm);
+
+	    mdAlgorithm.update(plainText.getBytes());
+
+	    byte[] digest = mdAlgorithm.digest();
+	    StringBuffer hexString = new StringBuffer();
+
+	    for (int i = 0; i < digest.length; i++) {
+	    	plainText = Integer.toHexString(0xFF & digest[i]);
+
+	        if (plainText.length() < 2) {
+	            plainText = "0" + plainText;
+	        }
+
+	        hexString.append(plainText);
+	    }
+
+	    return hexString.toString();
+	}
+	
+	public static byte[] getMD5(String plainText) throws NoSuchAlgorithmException
+	{
+	    MessageDigest mdAlgorithm = MessageDigest.getInstance("md5");
+
+	    mdAlgorithm.update(plainText.getBytes());
+
+	    byte[] digest = mdAlgorithm.digest();
+	    return digest;
+	}
+	
+	// this method encodes plain-text password to md5 hashed one in base-64 form:
+	public static String encodePassword(String plainPassword) {
+		try {
+			return new sun.misc.BASE64Encoder().encode(getMD5(plainPassword));	
+		} catch (Exception e) {
+			// this should not happen!
+			System.out.println("WARNING: Serious error occured: " + e.getMessage());
+			TASServer.closeServerAndExit();
+			return "";
+		}
+	}
 	
 	/* various methods dealing with battleStatus: */
 	
