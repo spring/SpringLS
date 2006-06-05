@@ -1942,7 +1942,7 @@ public class TASServer {
 			client.sendLine("REQUESTBATTLESTATUS"); //***** could this be causing problems?
 		}		
 		else if (commands[0].equals("MYBATTLESTATUS")) {
-			if (commands.length != 2) return false;
+			if (commands.length != 3) return false;
 			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
 			
 			if (client.battleID == -1) return false;
@@ -1968,19 +1968,19 @@ public class TASServer {
 			if (bat.founder != client)
 				if ((Misc.getTeamNoFromBattleStatus(bat.founder.battleStatus) == Misc.getTeamNoFromBattleStatus(client.battleStatus)) && (Misc.getModeFromBattleStatus(bat.founder.battleStatus) != 0)) {
 					client.battleStatus = Misc.setAllyNoOfBattleStatus(client.battleStatus, Misc.getAllyNoFromBattleStatus(bat.founder.battleStatus));
-					client.battleStatus = Misc.setTeamColorOfBattleStatus(client.battleStatus, Misc.getTeamColorFromBattleStatus(bat.founder.battleStatus));
+					client.teamColor = bat.founder.teamColor;
 				} 
 			for (int i = 0; i < bat.clients.size(); i++)
 				if (((Client)bat.clients.get(i)) != client)
 					if ((Misc.getTeamNoFromBattleStatus(((Client)bat.clients.get(i)).battleStatus) == Misc.getTeamNoFromBattleStatus(client.battleStatus)) && (Misc.getModeFromBattleStatus(((Client)bat.clients.get(i)).battleStatus) != 0)) {
 						client.battleStatus = Misc.setAllyNoOfBattleStatus(client.battleStatus, Misc.getAllyNoFromBattleStatus(((Client)bat.clients.get(i)).battleStatus));
-						client.battleStatus = Misc.setTeamColorOfBattleStatus(client.battleStatus, Misc.getTeamColorFromBattleStatus(((Client)bat.clients.get(i)).battleStatus));
+						client.teamColor = ((Client)bat.clients.get(i)).teamColor;
 						break;
 					}
 			for (int i = 0; i < bat.bots.size(); i++)
 				if (Misc.getTeamNoFromBattleStatus(((Bot)bat.bots.get(i)).battleStatus) == Misc.getTeamNoFromBattleStatus(client.battleStatus)) {
 					client.battleStatus = Misc.setAllyNoOfBattleStatus(client.battleStatus, Misc.getAllyNoFromBattleStatus(((Bot)bat.bots.get(i)).battleStatus));
-					client.battleStatus = Misc.setTeamColorOfBattleStatus(client.battleStatus, Misc.getTeamColorFromBattleStatus(((Bot)bat.bots.get(i)).battleStatus));
+					client.teamColor = ((Bot)bat.bots.get(i)).teamColor;
 					break;
 				}
 					
@@ -2239,7 +2239,6 @@ public class TASServer {
 			} catch (NumberFormatException e) {
 				return false; 
 			}
-			if ((value < 0) || (value > 9)) return false;
 			
 			int tmp = getIndexOfClient(commands[1]); 
 			if (tmp == -1) return false;
@@ -2247,11 +2246,11 @@ public class TASServer {
 			
 			if (!bat.isClientInBattle(targetClient)) return false;
 			
-			targetClient.battleStatus = Misc.setTeamColorOfBattleStatus(targetClient.battleStatus, value);
+			targetClient.teamColor = value;
 			bat.notifyClientsOfBattleStatus(targetClient); 
 		}		
 		else if (commands[0].equals("ADDBOT")) {
-			if (commands.length < 4) return false;
+			if (commands.length < 5) return false;
 			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
 			
 			if (client.battleID == -1) return false;
@@ -2269,6 +2268,13 @@ public class TASServer {
 				return false; 
 			}
 			
+			int teamColor;
+			try {
+				teamColor = Integer.parseInt(commands[3]); 
+			} catch (NumberFormatException e) {
+				return false; 
+			}
+			
 			if (!Misc.isValidName(commands[1])) {
 				client.sendLine("SERVERMSGBOX Bad bot name. Try another!");
 				return false;
@@ -2279,10 +2285,10 @@ public class TASServer {
 				return false;
 			}
 
-			Bot bot = new Bot(commands[1], client.account.user, Misc.makeSentence(commands, 3), value);
+			Bot bot = new Bot(commands[1], client.account.user, Misc.makeSentence(commands, 4), value, teamColor);
 			bat.bots.add(bot);
 			
-			bat.sendToAllClients("ADDBOT " + bat.ID + " " + bot.name + " " + client.account.user + " " + bot.battleStatus + " " + bot.AIDll);
+			bat.sendToAllClients("ADDBOT " + bat.ID + " " + bot.name + " " + client.account.user + " " + bot.battleStatus + " " + bot.teamColor + " " + bot.AIDll);
 			
 		}
 		else if (commands[0].equals("REMOVEBOT")) {
@@ -2306,7 +2312,7 @@ public class TASServer {
 			bat.sendToAllClients("REMOVEBOT " + bat.ID + " " + bot.name);
 		}
 		else if (commands[0].equals("UPDATEBOT")) {
-			if (commands.length != 3) return false;
+			if (commands.length != 4) return false;
 			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
 			
 			if (client.battleID == -1) return false;
@@ -2328,15 +2334,23 @@ public class TASServer {
 			} catch (NumberFormatException e) {
 				return false; 
 			}
+
+			int teamColor;
+			try {
+				teamColor = Integer.parseInt(commands[3]); 
+			} catch (NumberFormatException e) {
+				return false; 
+			}
 			
 			// only bot owner and battle host are allowed to update bot: 
 			if (!((client.account.user.equals(bot.ownerName)) || (client.account.user.equals(bat.founder.account.user)))) return false; 
 					
 			bot.battleStatus = value;
+			bot.teamColor = teamColor;
 
 			//*** add: force ally and color number if someone else is using his team number already 
 			
-			bat.sendToAllClients("UPDATEBOT " + bat.ID + " " + bot.name + " " + bot.battleStatus);
+			bat.sendToAllClients("UPDATEBOT " + bat.ID + " " + bot.name + " " + bot.battleStatus + " " + bot.teamColor);
 		}
 		else if (commands[0].equals("DISABLEUNITS")) {
 			if (commands.length < 2) return false;

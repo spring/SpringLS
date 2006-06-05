@@ -288,10 +288,6 @@ public class Misc {
 		return (battleStatus & 0x3F800) >> 11;
 	}	
 	
-	public static int getTeamColorFromBattleStatus(int battleStatus) {
-		return (battleStatus & 0x3C0000) >> 18;
-	}
-	
 	public static int getSyncFromBattleStatus(int battleStatus) {
 		return (battleStatus & 0xC00000) >> 22;
 	}
@@ -318,10 +314,6 @@ public class Misc {
 
 	public static int setHandicapOfBattleStatus(int battleStatus, int handicap) {
 		return (battleStatus & 0xFFFC07FF) | (handicap << 11);
-	}
-	
-	public static int setTeamColorOfBattleStatus(int battleStatus, int color) {
-		return (battleStatus & 0xFFC3FFFF) | (color << 18);
 	}
 	
 	public static int setSyncOfBattleStatus(int battleStatus, int sync) {

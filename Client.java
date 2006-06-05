@@ -25,6 +25,7 @@ public class Client {
 	public int UDPSourcePort; // client's public UDP source port used with some NAT traversal techniques (e.g. "hole punching")
 	public int status; // see MYSTATUS command for actual values of status
 	public int battleStatus; // see MYBATTLESTATUS command for actual values of battleStatus
+	public int teamColor; // see MYBATTLESTATUS for info on this one
 	public int battleID; // battle ID in which client is participating. Must be -1 if not participating in any battle.
 	
 	public SocketChannel sockChan;
@@ -59,6 +60,7 @@ public class Client {
 		status = 0;
 		country = IP2Country.getCountryCode(Misc.IP2Long(IP));
 		battleStatus = 0;
+		teamColor = 0;
 		inGameTime = 0;
 	    battleID = -1;
 	    cpu = 0;

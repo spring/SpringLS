@@ -149,14 +149,14 @@ public class Battle {
 	public void notifyOfBattleStatuses(Client client) {
 		for (int i = 0; i < this.clients.size(); i++) 
 			if ((Client)this.clients.get(i) == client) continue;
-			else client.sendLine("CLIENTBATTLESTATUS " + ((Client)this.clients.get(i)).account.user + " " + ((Client)this.clients.get(i)).battleStatus);
-		if (founder != client) client.sendLine("CLIENTBATTLESTATUS " + founder.account.user + " " + founder.battleStatus);
+			else client.sendLine("CLIENTBATTLESTATUS " + ((Client)this.clients.get(i)).account.user + " " + ((Client)this.clients.get(i)).battleStatus + " " + ((Client)this.clients.get(i)).teamColor);
+		if (founder != client) client.sendLine("CLIENTBATTLESTATUS " + founder.account.user + " " + founder.battleStatus + " " + founder.teamColor);
 	}
 	
 	/* notifies all clients in the battle (including the client) about new battle status
 	 * of the client. */
 	public void notifyClientsOfBattleStatus(Client client) {
-		sendToAllClients("CLIENTBATTLESTATUS " + client.account.user + " " + client.battleStatus);
+		sendToAllClients("CLIENTBATTLESTATUS " + client.account.user + " " + client.battleStatus + " " + client.teamColor);
 	}
 	
 	/* sends String s to all clients participating in this battle */
@@ -272,7 +272,7 @@ public class Battle {
 	
 	public void sendBotListToClient(Client client) {
 		for (int i = 0; i < bots.size(); i++)
-			client.sendLine("ADDBOT " + ID + " " + ((Bot)bots.get(i)).name + " " + ((Bot)bots.get(i)).ownerName + " " + ((Bot)bots.get(i)).battleStatus + " " + ((Bot)bots.get(i)).AIDll);
+			client.sendLine("ADDBOT " + ID + " " + ((Bot)bots.get(i)).name + " " + ((Bot)bots.get(i)).ownerName + " " + ((Bot)bots.get(i)).battleStatus + " " + ((Bot)bots.get(i)).teamColor + " " + ((Bot)bots.get(i)).AIDll);
 	}
 	
 	public void sendStartRectsListToClient(Client client) {
