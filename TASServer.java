@@ -8,6 +8,7 @@
  * ---- CHANGELOG ----
  * *** 0.25 ***
  * * added -LANADMIN switch
+ * * modified protocol to support arbitrary colors (RGB format)
  * *** 0.23 ***
  * * channel mute list now gets updated when user renames his account
  * *** 0.22 ***
@@ -192,7 +193,7 @@ import java.nio.charset.*;
 
 public class TASServer {
 	
-	static final String VERSION = "0.24";
+	static final String VERSION = "0.25";
 	static byte DEBUG = 1; // 0 - no verbose, 1 - normal verbose, 2 - extensive verbose
 	static String MOTD = "Enjoy your stay :-)";
 	static String agreement = ""; // agreement which is sent to user upon first login. User must send CONFIRMAGREEMENT command to confirm the agreement before server allows him to log in. See LOGIN command implementation for more details.
@@ -1949,6 +1950,14 @@ public class TASServer {
 
 			Battle bat = getBattle(client.battleID);
 			if (bat == null) return false;
+			
+			int newTeamColor;
+			try {
+				newTeamColor = Integer.parseInt(commands[2]);
+			} catch (NumberFormatException e) {
+				return false; 
+			}
+			client.teamColor = newTeamColor;
 			
 			int newStatus;
 			try {
