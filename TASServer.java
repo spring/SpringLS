@@ -1930,7 +1930,6 @@ public class TASServer {
 			client.battleStatus = 0; // reset client's battle status
 			client.battleID = bat.ID;
 
-			String ip;
 			boolean local;
 			for (int i = 0; i < clients.size(); i++) {
 				if (((Client)clients.get(i)).account.accessLevel() < Account.NORMAL_ACCESS) continue;
@@ -1940,7 +1939,7 @@ public class TASServer {
 			}
 			
 			client.sendLine("OPENBATTLE " + bat.ID); // notify client that he successfully opened a new battle
-			client.sendLine("REQUESTBATTLESTATUS"); //***** could this be causing problems?
+			client.sendLine("REQUESTBATTLESTATUS");
 		}		
 		else if (commands[0].equals("MYBATTLESTATUS")) {
 			if (commands.length != 3) return false;
