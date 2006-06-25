@@ -460,8 +460,10 @@ public class ChanServ {
 			Log.log("MsgBox from server: " + Misc.makeSentence(commands, 1));
 		} else if (commands[0].equals("CHANNELMESSAGE")) {
 			Channel chan = getChannel(commands[1]);
-			String out = Misc.easyDateFormat("[HH:mm:ss]") + " * Channel message: " + Misc.makeSentence(commands, 2);
-			Misc.outputLog(chan.logFileName, out);
+			if (chan != null) {
+				String out = Misc.easyDateFormat("[HH:mm:ss]") + " * Channel message: " + Misc.makeSentence(commands, 2);
+				Misc.outputLog(chan.logFileName, out);
+			}
 		} else if (commands[0].equals("BROADCAST")) {
 			Log.log("*** Broadcast from server: " + Misc.makeSentence(commands, 1));
 		}
@@ -518,7 +520,7 @@ public class ChanServ {
 			sendLine("JOIN " + chan.name);
 			sendPrivateMsg(client, "Channel #" + chanName + " successfully registered to " + params[2]);	
 		} else if (params[0].equals("UNREGISTER")) {
-			if (params.length != 3) {
+			if (params.length != 2) {
 				sendPrivateMsg(client, "Error: Invalid params!");
 				return ;
 			}
