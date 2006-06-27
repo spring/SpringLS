@@ -64,6 +64,7 @@ class KeepAliveTask extends TimerTask {
 			// also save config on regular intervals:
 			ChanServ.saveConfig(ChanServ.CONFIG_FILENAME);
 		} catch (InterruptedException e) {
+			ChanServ.forceDisconnect();
 			return ;
 		} finally {
 			ChanServ.configLock.release();
@@ -84,6 +85,7 @@ public class ChanServ {
 	static Socket socket = null;
     static PrintWriter sockout = null;
     static BufferedReader sockin = null;
+    static Timer timer; // keep alive timer
     
     static Semaphore configLock = new Semaphore(1, true); // we use it when there is a danger of config object being used by main and TaskTimer threads simultaneously
     
@@ -97,6 +99,14 @@ public class ChanServ {
 	public static void closeAndExit(int returncode) {
 		Log.log("Program stopped.");
 		System.exit(returncode);
+	}
+	
+	public static void forceDisconnect() {
+		try {
+			socket.close();
+		} catch (IOException e) {
+			//
+		}
 	}
 	
 	private static void loadConfig(String fname)
@@ -321,10 +331,10 @@ public class ChanServ {
             sockin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         } catch (UnknownHostException e) {
             Log.error("Unknown host error: " + serverAddress);
-            closeAndExit(1);
+            return false;
         } catch (IOException e) {
             Log.error("Couldn't get I/O for the connection to: " + serverAddress);
-            closeAndExit(1);
+            return false;
         }
 		
         Log.log("Now connected to " + serverAddress);
@@ -362,6 +372,7 @@ public class ChanServ {
         } catch (IOException e) {
         	// do nothing
         }
+        Log.log("Connection with server closed.");
 	}
 	
 	public static boolean execRemoteCommand(String command) {
@@ -468,8 +479,8 @@ public class ChanServ {
 			Log.log("*** Broadcast from server: " + Misc.makeSentence(commands, 1));
 		}
 
-
-			
+		
+		
 		return true;
 	}
 	
@@ -828,6 +839,21 @@ public class ChanServ {
 		return null;
 	}
 	
+	public static void startKeepAliveTimer() {
+		timer = new Timer();
+		timer.schedule(new KeepAliveTask(),
+                1000,        //initial delay
+                15*1000);  //subsequent rate
+	}
+
+	public static void stopKeepAliveTimer() {
+		try {
+			timer.cancel();
+		} catch (Exception e) {
+			//
+		}
+	}
+	
 	public static void main(String[] args) {
 
 		Log.externalLogFileName = "$main.log";
@@ -849,12 +875,27 @@ public class ChanServ {
 		
 		loadConfig(CONFIG_FILENAME);
 		saveConfig(CONFIG_FILENAME); //*** debug
-		tryToConnect();
 		
-		new Timer().schedule(new KeepAliveTask(),
-                1000,        //initial delay
-                15*1000);  //subsequent rate
+		if (!tryToConnect())
+			closeAndExit(1);
+		else {
+			startKeepAliveTimer();
+			messageLoop();
+		}
+		stopKeepAliveTimer();
 		
-		messageLoop();
+		// we are out of the main loop (due to an error, for example), lets reconnect:
+		while (true) {
+	    	try {
+	    		Thread.sleep(10000); // wait for 10 secs before trying to reconnect
+	    	} catch (InterruptedException e) {
+	    	}			
+
+	    	Log.log("Trying to reconnect to the server ...");
+			if (!tryToConnect()) continue;
+			startKeepAliveTimer();
+			messageLoop();
+			stopKeepAliveTimer();
+		}
 	}
 }
