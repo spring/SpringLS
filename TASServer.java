@@ -6,6 +6,8 @@
  * 
  * 
  * ---- CHANGELOG ----
+ * *** next ***
+ * * fixed some charset bug
  * *** 0.25 ***
  * * added -LANADMIN switch
  * * modified protocol to support arbitrary colors (RGB format)
@@ -238,7 +240,7 @@ public class TASServer {
     private static boolean running;
     private static ByteBuffer readBuffer = ByteBuffer.allocateDirect(BYTE_BUFFER_SIZE);
     private static ByteBuffer writeBuffer = ByteBuffer.allocateDirect(BYTE_BUFFER_SIZE);
-    private static CharsetDecoder asciiDecoder = Charset.forName("ISO-8859-1").newDecoder();
+    private static CharsetDecoder asciiDecoder;
     
 	static Vector accounts = new Vector();
 	static Vector clients = new Vector();
@@ -412,11 +414,22 @@ public class TASServer {
 		System.exit(0);
 	}
 	
+	private static boolean changeCharset(String newCharset) throws IllegalCharsetNameException, UnsupportedCharsetException {
+		CharsetDecoder temp;
+		temp = Charset.forName(newCharset).newDecoder(); // this line will throw IllegalCharsetNameException and UnsupportedCharsetException exceptions
+		
+		asciiDecoder = temp;
+	    asciiDecoder.replaceWith("?");
+	    asciiDecoder.onUnmappableCharacter(CodingErrorAction.REPLACE);
+	    asciiDecoder.onMalformedInput(CodingErrorAction.REPLACE);
+		//***asciiDecoder.reset();
+	
+		return true;
+	}
+	
 	private static boolean startServer(int port) {
 		try {
-		    asciiDecoder.replaceWith("?");
-		    asciiDecoder.onUnmappableCharacter(CodingErrorAction.REPLACE);
-		    asciiDecoder.onMalformedInput(CodingErrorAction.REPLACE);
+			changeCharset("ISO-8859-1"); // initializes asciiDecoder
 			
 		    // open a non-blocking server socket channel
 		    sSockChan = ServerSocketChannel.open();
@@ -1386,8 +1399,7 @@ public class TASServer {
 			if (commands.length != 2) return false;
 
 			try {
-				asciiDecoder = Charset.forName(commands[1]).newDecoder();
-				//***asciiDecoder.reset();
+				changeCharset(commands[1]);
 			} catch (IllegalCharsetNameException e) {
 				client.sendLine("SERVERMSG Error: Illegal charset name: " + commands[1]);
 				return false;
@@ -1546,9 +1558,9 @@ public class TASServer {
 				client.sendLine("OFFERFILE 7 *	http://spring.clan-sy.com/dl/LobbyUpdate_0194_0195.exe	This is a TASClient 0.195 patch which fixes some serious issue with last update. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
 			} else if (version.equals("0.20")) {
 				client.sendLine("OFFERFILE 7 *	http://taspring.clan-sy.com/dl/taspring_0.70b2_patch.exe	This is a 0.70b1->0.70b2 patch. It will update Spring and lobby client. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
-*/				
 			} else if (version.equals("0.23")) {
 				client.sendLine("OFFERFILE 7 *	http://taspring.clan-sy.com/dl/LobbyUpdate_023_024.exe	This is a TASClient 0.24 patch which fixes watching replays from the lobby. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
+*/				
 			} else { // unknown client version
 //				client.sendLine("SERVERMSGBOX No update available for your version of lobby. See official spring web site to get the latest lobby client!");
 				client.sendLine("SERVERMSGBOX You are using an outdated Spring and lobby program, check the download section for new updates at the official Spring web site: http://taspring.clan-sy.com");
