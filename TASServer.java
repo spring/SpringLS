@@ -268,21 +268,22 @@ public class TASServer {
 	}
 	
 	/* reads MOTD from disk (if file is found) */
-	private static void readMOTD()
+	private static boolean readMOTD(String fileName)
 	{
 		String newMOTD = ""; 
 		try {
-			BufferedReader in = new BufferedReader(new FileReader(MOTD_FILENAME));
+			BufferedReader in = new BufferedReader(new FileReader(fileName));
 			String line;
             while ((line = in.readLine()) != null) {
             	newMOTD = newMOTD.concat(line + '\n');
 	        }
             in.close();
 		} catch (IOException e) {
-			System.out.println("Couldn't find " + MOTD_FILENAME + ". Using default MOTD");
-			return ;
+			System.out.println("Couldn't find " + fileName + ". Using default MOTD");
+			return false;
 		}
 		MOTD = newMOTD;
+		return true;
 	}
 
 	/* reads agreement from disk (if file is found) */
@@ -1431,6 +1432,17 @@ public class TASServer {
 			else 
 				client.sendLine("SERVERMSG Statistics have been updated. Time taken to calculate: " + taken + " ms.");
 		}
+		else if (commands[0].equals("UPDATEMOTD")) {
+			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
+			if (commands.length != 2) return false;
+			
+			if (!readMOTD(commands[1])) {
+				client.sendLine("SERVERMSG Error: unable to read MOTD from " + commands[1]);
+				return false;
+			} else {
+				client.sendLine("SERVERMSG MOTD has been successfully updated from " + commands[1]);
+			}
+		}		
 		else if (commands[0].equals("LONGTIMETODATE")) {
 			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
 			if (commands.length != 2) return false;
@@ -2761,7 +2773,7 @@ public class TASServer {
 			}
 		}
 		
-		readMOTD();
+		readMOTD(MOTD_FILENAME);
 		upTime = System.currentTimeMillis();
 			if (!IP2Country.initializeAll("Merged2.csv")) {
 			System.out.println("Unable to find <IP2Country> file. Skipping ...");			
