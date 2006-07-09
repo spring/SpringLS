@@ -34,6 +34,10 @@ public class Channel {
 		logFileName = "#" + name + ".log";
 	}
 	
+	public boolean isFounder(String name) {
+		return name.equals(founder);
+	}
+	
 	public boolean isOperator(String name) {
 		return (operators.indexOf(name) != -1);
 	}
@@ -47,6 +51,17 @@ public class Channel {
 	public boolean removeOperator(String name) {
 		if (!isOperator(name)) return false;
 		operators.remove(name);
+		return true;
+	}
+	
+	public void renameFounder(String newFounder) {
+		founder = newFounder;
+	}
+	
+	public boolean renameOperator(String oldOp, String newOp) {
+		int index = operators.indexOf(oldOp);
+		if (index == -1) return false; // operator does not exist!
+		operators.set(index, newOp);
 		return true;
 	}
 	

@@ -375,6 +375,31 @@ public class ChanServ {
         Log.log("Connection with server closed.");
 	}
 	
+	// processes messages that were only sent to server admins. "message" parameter must be a
+	// message string withouth the "[broadcast to all admins]: " part.
+	public static void processAdminBroadcast(String message) {
+		Log.debug("admin broadcast: '" + message + "'");
+
+		// let's check if some channel founder/operator has just renamed his account:
+		if (message.matches("User <[^>]{1,}> has just renamed his account to <[^>]{1,}>")) {
+			String oldNick = message.substring(message.indexOf('<')+1, message.indexOf('>')); 
+			String newNick = message.substring(message.indexOf('<', message.indexOf('>'))+1, message.indexOf('>', message.indexOf('>')+1));
+
+			// lets rename all founder/operator entries for this user:
+			for (int i = 0; i < channels.size(); i++) {
+				Channel chan = (Channel)channels.get(i);
+				if (chan.isFounder(oldNick)) {
+					chan.renameFounder(newNick);
+					Log.log("Founder <" + oldNick + "> of #" + chan.name + " renamed to <" + newNick + ">");
+				}
+				if (chan.isOperator(oldNick)) {
+					chan.renameOperator(oldNick, newNick);
+					Log.log("Operator <" + oldNick + "> of #" + chan.name + " renamed to <" + newNick + ">");
+				}
+			}
+		}
+	}
+	
 	public static boolean execRemoteCommand(String command) {
 		if (command.trim().equals("")) return false;
 		String[] commands = command.split(" ");
@@ -467,6 +492,7 @@ public class ChanServ {
 			if (msg.charAt(0) == '!') processUserCommand(msg.substring(1, msg.length()), getClient(user), false);
 		} else if (commands[0].equals("SERVERMSG")) {
 			Log.log("Message from server: " + Misc.makeSentence(commands, 1));
+			if (Misc.makeSentence(commands, 1).startsWith("[broadcast to all admins]")) processAdminBroadcast(Misc.makeSentence(commands, 1).substring("[broadcast to all admins]: ".length(), Misc.makeSentence(commands, 1).length()));
 		} else if (commands[0].equals("SERVERMSGBOX")) {
 			Log.log("MsgBox from server: " + Misc.makeSentence(commands, 1));
 		} else if (commands[0].equals("CHANNELMESSAGE")) {
@@ -642,13 +668,13 @@ public class ChanServ {
 				return ;
 			}
 			
-			if (chan.getOperatorList().indexOf(params[2]) != -1) {
+			if (chan.isOperator(params[2])) {
 				sendPrivateMsg(client, "Error: User is already in this channel's operator list!");
 				return ;
 			}
 			
 			// ok add user to channel's operator list:
-			chan.getOperatorList().add(params[2]);
+			chan.addOperator(params[2]);
 			sendLine("CHANNELMESSAGE " + chan.name + " <" + params[2] + "> has just been added to this channel's operator list by <" + client.name + ">");
 		} else if (params[0].equals("DEOP")) {
 			if (params.length != 3) {
@@ -673,13 +699,13 @@ public class ChanServ {
 				return ;
 			}
 			
-			if (chan.getOperatorList().indexOf(params[2]) == -1) {
+			if (chan.isOperator(params[2])) {
 				sendPrivateMsg(client, "Error: User is not in this channel's operator list!");
 				return ;
 			}
 			
 			// ok remove user from channel's operator list:
-			chan.getOperatorList().remove(params[2]);
+			chan.removeOperator(params[2]);
 			sendLine("CHANNELMESSAGE " + chan.name + " <" + params[2] + "> has just been removed from this channel's operator list by <" + client.name + ">");
 		} else if (params[0].equals("TOPIC")) {
 			
