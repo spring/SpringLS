@@ -194,6 +194,10 @@ public class Battle {
 		return !password.equals("*");
 	}
 	
+	public boolean inGame() {
+		return Misc.getInGameFromStatus(founder.status) == 1; 
+	}
+	
 	// returns number of spectators in the battle
 	public int spectatorCount() {
 		int count = 0;

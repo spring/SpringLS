@@ -9,6 +9,7 @@
  * *** 0.26 ***
  * * fixed some charset bug
  * * added UPDATEMOTD command
+ * * fixed small bug with JOINBATTLE command not checking if battle is already in-game
  * *** 0.25 ***
  * * added -LANADMIN switch
  * * modified protocol to support arbitrary colors (RGB format)
@@ -1907,6 +1908,11 @@ public class TASServer {
 			
 			if (bat.locked) {
 				client.sendLine("JOINBATTLEFAILED " + "You cannot join locked battles!");
+				return false; 
+			}
+			
+			if (bat.inGame()) {
+				client.sendLine("JOINBATTLEFAILED " + "Battle is already in-game!");
 				return false; 
 			}
 
