@@ -1158,21 +1158,40 @@ public class TASServer {
 			
 			boolean found = false;
 			String IP = commands[1];
+			String[] sp1 = IP.split("\\.");
+			if (sp1.length != 4) {
+				client.sendLine("SERVERMSG Invalid IP address/range: " + IP);
+				return false;
+			}
+			
 			for (int i = 0; i < clients.size(); i++)
-				if (((Client)clients.get(i)).IP.equals(IP)) {
-					found = true;
-					client.sendLine("SERVERMSG " + IP + " is bound to: "+ ((Client)clients.get(i)).account.user);
-				}
+			{
+				String[] sp2 = ((Client)clients.get(i)).IP.split("\\.");
+
+				if (!sp1[0].equals("*")) if (!sp1[0].equals(sp2[0])) continue;
+				if (!sp1[1].equals("*")) if (!sp1[1].equals(sp2[1])) continue;
+				if (!sp1[2].equals("*")) if (!sp1[2].equals(sp2[2])) continue;
+				if (!sp1[3].equals("*")) if (!sp1[3].equals(sp2[3])) continue;
+				
+				found = true;
+				client.sendLine("SERVERMSG " + IP + " is bound to: "+ ((Client)clients.get(i)).account.user);
+			}
 				
 			// now let's check if this IP matches any recently used IP:
 			for (int i = 0; i < accounts.size(); i++) {
-				if (((Account)accounts.get(i)).lastIP.equals(IP))
-					if (getClient(((Account)accounts.get(i)).user) == null) { // user is offline
-						found = true;
-						client.sendLine("SERVERMSG " + IP + " was recently bound to: "+ ((Account)accounts.get(i)).user + " (offline)");
-					}
-			}
-				
+				String[] sp2 = ((Account)accounts.get(i)).lastIP.split("\\.");
+
+				if (!sp1[0].equals("*")) if (!sp1[0].equals(sp2[0])) continue;
+				if (!sp1[1].equals("*")) if (!sp1[1].equals(sp2[1])) continue;
+				if (!sp1[2].equals("*")) if (!sp1[2].equals(sp2[2])) continue;
+				if (!sp1[3].equals("*")) if (!sp1[3].equals(sp2[3])) continue;				
+
+				if (getClient(((Account)accounts.get(i)).user) == null) { // user is offline
+					found = true;
+					client.sendLine("SERVERMSG " + IP + " was recently bound to: "+ ((Account)accounts.get(i)).user + " (offline)");
+				}
+			}			
+
 			if (!found) client.sendLine("SERVERMSG No client is/was recently using IP: " + IP); //*** perhaps add an explanation like "(note that server only keeps track of last used IP addresses)" ?
 		}
 		else if (commands[0].equals("GETLASTIP")) {
