@@ -84,7 +84,16 @@ public class Misc {
 	   int preserveLength = Math.min(oldSize,newSize);
 	   if (preserveLength > 0)
 	      System.arraycopy (oldArray,0,newArray,0,preserveLength);
-	   return newArray; }
+	   return newArray; 
+	}
+	
+	/* this method will insert an element into an array of objects and return it. Rather
+	 * than this approach use Vector class! */
+	public static Object[] insertIntoObjectArray(Object elem, int pos, Object[] array) {
+		Vector vec = new Vector(Arrays.asList(array));
+		vec.add(pos, elem);
+		return vec.toArray(array);
+	}
 	
 	/* sorts an array of integers using simple bubble sort algorithm.
 	 * Copied from http://en.wikisource.org/wiki/Bubble_sort

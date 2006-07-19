@@ -69,4 +69,8 @@ public class Channel {
 		return operators;
 	}
 	
+	public void sendMessage(String msg) {
+		ChanServ.sendLine("SAY " + name + " " + msg);
+	}
+	
 }
