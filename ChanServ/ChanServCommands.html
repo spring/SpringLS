@@ -74,6 +74,21 @@
         <td>Channel operator</td>
         <td>Will kick &lt;username&gt; from the channel (reason is optional parameter)</td>
       </tr>
+      <tr>
+        <td>MUTE /&lt;channame&gt;/ &lt;username&gt; &#91;&lt;duration&gt;&#93;</td>
+        <td>Channel operator</td>
+        <td>Will mute &lt;username&gt; in the channel. Duration is in seconds. If no duration is specified, user is muted for indefinite time (i.e. until he is unmuted)</td>
+      </tr>
+      <tr>
+        <td>UNMUTE /&lt;channame&gt;/ &lt;username&gt;</td>
+        <td>Channel operator</td>
+        <td>Will unmute &lt;username&gt; in the channel.</td>
+      </tr>
+      <tr>
+        <td>MUTELIST /&lt;channame&gt;/</td>
+        <td>Channel operator</td>
+        <td>Will list all usernames that are currently muted in this channel.</td>
+      </tr>
     </tbody>
   </table>
 
@@ -90,7 +105,7 @@
   <li>"Access level" tells you the minimum access type that you need to issue the command. Possible access types are (from highest to lowest): Server moderator, Channel founder, Channel operator, Normal user
   <li>Channel founder is the user who has full control over the channel. He can assign channel operators and unregister the channel, as well as act as a channel operator.
   </ul>
-  
+
   <p>Examples:</p>
   <ul>
   <li>set topic for #main via private message to ChanServ: !topic #main This is a new topic

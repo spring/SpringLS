@@ -91,7 +91,11 @@ public class ChanServ {
     
     static Vector/*Client*/ clients = new Vector();
     static Vector/*Channel*/ channels = new Vector();
-	
+    
+    static Vector/*String*/ lastMuteList = new Vector(); // list of mute entries for a specified channel (see lastMuteListChannel)
+    static String lastMuteListChannel; // name of channel for which we are currently receiving (or we already did receive) mute list from the server
+	static Vector/*MuteListRequest*/ forwardMuteList = new Vector(); // list of current requests for mute lists.
+    
     public static void closeAndExit() {
     	closeAndExit(0);
     }
@@ -503,6 +507,38 @@ public class ChanServ {
 			}
 		} else if (commands[0].equals("BROADCAST")) {
 			Log.log("*** Broadcast from server: " + Misc.makeSentence(commands, 1));
+		} else if (commands[0].equals("MUTELISTBEGIN")) {
+			lastMuteList.clear();
+			lastMuteListChannel = commands[1]; 
+		} else if (commands[0].equals("MUTELIST")) {
+			lastMuteList.add(Misc.makeSentence(commands, 1));
+		} else if (commands[0].equals("MUTELISTEND")) {
+			int i = 0;
+			while (i < forwardMuteList.size()) {
+				MuteListRequest request = (MuteListRequest)forwardMuteList.get(i); 
+				if (!request.chanName.equals(lastMuteListChannel)) {
+					i++;
+					continue;
+				}
+				Client target = getClient(request.sendTo);
+				if (target == null) { // user who made the request has already gone offline!
+					forwardMuteList.remove(i);
+					continue; 
+				}
+				if (System.currentTimeMillis() - request.requestTime > 10000) { // this request has already expired
+					forwardMuteList.remove(i);
+					continue; 
+				}
+				// forward the mute list to the one who requested it:
+				if (lastMuteList.size() == 0) sendMessage(target, getChannel(request.replyToChan), "Mute list for #" + request.chanName + " is empty!");
+				else {
+					sendMessage(target, getChannel(request.replyToChan), "Mute list for #" + request.chanName+ " (" + lastMuteList.size() + " entries):");
+					for (int j = 0; j < lastMuteList.size(); j++) {
+						sendMessage(target, getChannel(request.replyToChan), (String)lastMuteList.get(j));		
+					}
+				}
+				forwardMuteList.remove(i);
+			}
 		}
 
 		
@@ -521,6 +557,46 @@ public class ChanServ {
 			sendMessage(client, channel, "I am an automated channel service bot,");
 			sendMessage(client, channel, "for the full list of commands, see http://taspring.clan-sy.com/dl/ChanServCommands.html");
 			sendMessage(client, channel, "If you want to go ahead and register a new channel, please contact one of the server moderators!");
+		} else if (params[0].equals("INFO")) {
+			// if the command was issued from a channel:
+			if (channel != null) { // insert <channame> parameter so we don't have to handle two different situations for each command
+				params = (String[])Misc.insertIntoObjectArray("#" + channel.name, 1, params);
+			}
+			
+			if (params.length != 2) {
+				sendMessage(client, channel, "Error: Invalid params!");
+				return ;
+			}
+			
+			if (params[1].charAt(0) != '#') {
+				sendMessage(client, channel, "Error: Bad channel name (forgot #?)");
+				return ;
+			}
+			
+			String chanName = params[1].substring(1, params[1].length());
+			Channel chan = getChannel(chanName);
+			if (chan == null) {
+				sendMessage(client, channel, "Channel #" + chanName + " is not registered!");
+				return ;
+			}
+
+			if (chan.isStatic) {
+				sendMessage(client, channel, "Channel #" + chanName + " is registered as a static channel, no further info available!");
+				return ;
+			}
+
+			String respond = "Channel #" + chan.name + " info: Founder is <" + chan.founder + ">, ";
+			Vector ops = chan.getOperatorList();
+			if (ops.size() == 0) respond = respond + "no operators are registered.";
+			else if (ops.size() == 1) respond = respond + "1 registered operator is <" + (String)ops.get(0);
+			else {
+				respond = respond + ops.size() + " registered operators are ";
+				for (int i = 0; i < ops.size()-1; i++)
+					respond = respond + "<" + (String)ops.get(i) + ">, ";
+				respond = respond + "<" + (String)ops.get(ops.size()-1) + ">.";
+			}
+				
+			sendMessage(client, channel, respond);
 		} else if (params[0].equals("REGISTER")) {
 			if (!client.isModerator()) {
 				sendMessage(client, channel, "Sorry, you'll have to contact one of the server moderators to register a channel for you!");
@@ -865,7 +941,90 @@ public class ChanServ {
 			
 			// ok kick the user:
 			sendLine("FORCELEAVECHANNEL " + chan.name + " " + target + reason);
-		} else if (params[0].equals("INFO")) {
+		} else if (params[0].equals("MUTE")) {
+			// if the command was issued from a channel:
+			if (channel != null) { // insert <channame> parameter so we don't have to handle two different situations for each command
+				params = (String[])Misc.insertIntoObjectArray("#" + channel.name, 1, params);
+			}
+			
+			if (params.length < 3) {
+				sendMessage(client, channel, "Error: Invalid params!");
+				return ;
+			}
+			
+			if (params[1].charAt(0) != '#') {
+				sendMessage(client, channel, "Error: Bad channel name (forgot #?)");
+				return ;
+			}
+			
+			String chanName = params[1].substring(1, params[1].length());
+			Channel chan = getChannel(chanName);
+			if ((chan == null) || (chan.isStatic)) {
+				sendMessage(client, channel, "Channel #" + chanName + " is not registered!");
+				return ;
+			}
+
+			if (!(client.isModerator() || client.name.equals(chan.founder) || chan.isOperator(client.name))) {
+				sendMessage(client, channel, "Insufficient access to execute " + params[0] + " command!");
+				return ;
+			}
+			
+			String target = params[2];
+			if (getClient(target) == null) {
+				sendMessage(client, channel, "Error: Invalid username - <" + target + "> does not exist or is not online. Command dropped.");
+				return ;
+			}
+			
+			if (target.equals(username)) {
+				// not funny!
+				sendMessage(client, channel, "You are not allowed to issue this command!");
+				return ;
+			}
+			
+			int duration = 0;
+			if (params.length == 4)
+				try {
+					duration = Integer.parseInt(params[3]); 
+				} catch (Exception e) {
+					sendMessage(client, channel, "Error: <duration> argument should be an integer!");
+					return ;
+				}
+			
+			// ok mute the user:
+			sendLine("MUTE " + chan.name + " " + target + " " + duration);
+		} else if (params[0].equals("UNMUTE")) {
+			// if the command was issued from a channel:
+			if (channel != null) { // insert <channame> parameter so we don't have to handle two different situations for each command
+				params = (String[])Misc.insertIntoObjectArray("#" + channel.name, 1, params);
+			}
+			
+			if (params.length != 3) {
+				sendMessage(client, channel, "Error: Invalid params!");
+				return ;
+			}
+			
+			if (params[1].charAt(0) != '#') {
+				sendMessage(client, channel, "Error: Bad channel name (forgot #?)");
+				return ;
+			}
+			
+			String chanName = params[1].substring(1, params[1].length());
+			Channel chan = getChannel(chanName);
+			if ((chan == null) || (chan.isStatic)) {
+				sendMessage(client, channel, "Channel #" + chanName + " is not registered!");
+				return ;
+			}
+
+			if (!(client.isModerator() || client.name.equals(chan.founder) || chan.isOperator(client.name))) {
+				sendMessage(client, channel, "Insufficient access to execute " + params[0] + " command!");
+				return ;
+			}
+			
+			String target = params[2];
+			
+			// ok try to unmute the user:
+			sendLine("UNMUTE " + chan.name + " " + target);
+		} else if (params[0].equals("MUTELIST")) {
 			// if the command was issued from a channel:
 			if (channel != null) { // insert <channame> parameter so we don't have to handle two different situations for each command
 				params = (String[])Misc.insertIntoObjectArray("#" + channel.name, 1, params);
@@ -883,29 +1042,19 @@ public class ChanServ {
 			
 			String chanName = params[1].substring(1, params[1].length());
 			Channel chan = getChannel(chanName);
-			if (chan == null) {
+			if ((chan == null) || (chan.isStatic)) {
 				sendMessage(client, channel, "Channel #" + chanName + " is not registered!");
 				return ;
 			}
 
-			if (chan.isStatic) {
-				sendMessage(client, channel, "Channel #" + chanName + " is registered as a static channel, no further info available!");
+			if (!(client.isModerator() || client.name.equals(chan.founder) || chan.isOperator(client.name))) {
+				sendMessage(client, channel, "Insufficient access to execute " + params[0] + " command!");
 				return ;
 			}
-
-			String respond = "Channel #" + chan.name + " info: Founder is <" + chan.founder + ">, ";
-			Vector ops = chan.getOperatorList();
-			if (ops.size() == 0) respond = respond + "no operators are registered.";
-			else if (ops.size() == 1) respond = respond + "1 registered operator is <" + (String)ops.get(0);
-			else {
-				respond = respond + ops.size() + " registered operators are ";
-				for (int i = 0; i < ops.size()-1; i++)
-					respond = respond + "<" + (String)ops.get(i) + ">, ";
-				respond = respond + "<" + (String)ops.get(ops.size()-1) + ">.";
-			}
-				
-			sendMessage(client, channel, respond);
-		} 
+			
+			forwardMuteList.add(new MuteListRequest(chanName, client.name, System.currentTimeMillis(), (channel != null) ? channel.name : ""));
+			sendLine("MUTELIST " + chan.name);
+		}
  
 	}
 	
