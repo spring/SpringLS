@@ -10,6 +10,7 @@
  * * fixed some charset bug
  * * added UPDATEMOTD command
  * * fixed small bug with JOINBATTLE command not checking if battle is already in-game
+ * * fixed minor bug with mute entries not expiring on the fly
  * *** 0.25 ***
  * * added -LANADMIN switch
  * * modified protocol to support arbitrary colors (RGB format)
@@ -222,7 +223,9 @@ public class TASServer {
 	static boolean LOG_MAIN_CHANNEL = false; // if true, server will keep a log of all conversations from channel #main (in file "MainChanLog.log")
 	static PrintStream mainChanLog;
 	static String LanAdminUsername = "admin"; // default lan admin account. Can be overwritten with -LANADMIN switch. Used only when server is running in lan mode!
-	static String LanAdminPassword = Misc.encodePassword("admin"); 
+	static String LanAdminPassword = Misc.encodePassword("admin");
+	static long purgeMutesInterval = 1000 * 3; // in miliseconds. On this interval, all channels' mute lists will be checked for expirations and purged accordingly. 
+	static long lastMutesPurgeTime = System.currentTimeMillis(); // time when we last purged mute lists of all channels
 	
     private static final int BYTE_BUFFER_SIZE = 256; // the size doesn't really matter. Server will work with any size (tested it with BUFFER_LENGTH=1), but too small buffer may impact the performance.
     private static final int SEND_BUFFER_SIZE = 65536 * 2; // socket's send buffer size
@@ -2872,6 +2875,14 @@ public class TASServer {
 		    if ((!LAN_MODE) && (System.currentTimeMillis() - lastSaveAccountsTime > saveAccountInfoInterval)) {
 		    	writeAccountsInfo();
 		    	// note: lastSaveAccountsTime will get updated in writeAccountsInfo() method!
+		    }
+
+		    // purge mute lists of all channels on regular intervals:
+		    if (System.currentTimeMillis() - lastMutesPurgeTime > purgeMutesInterval) {
+		    	lastMutesPurgeTime = System.currentTimeMillis();
+		    	for (int i = 0; i < channels.size(); i++) {
+		    		((Channel)channels.get(i)).muteList.clearExpiredOnes();
+		    	}
 		    }
 		    
 		    // sleep a bit

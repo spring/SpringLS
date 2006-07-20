@@ -25,7 +25,8 @@ public class MuteList {
 		this.channel = channel;
 	}
 	
-	private void clearExpiredOnes() {
+	/* will purge expired entries */
+	public void clearExpiredOnes() {
 		// remove any expired records (those with expire time 0 are persistent, we won't remove them):
 		for (int i = 0; i < usernames.size(); i++)
 			if ((((Long)mutedUntil.get(i)).longValue() <= System.currentTimeMillis()) && (((Long)mutedUntil.get(i)).longValue() != 0)) {
