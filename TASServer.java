@@ -11,6 +11,7 @@
  * * added UPDATEMOTD command
  * * fixed small bug with JOINBATTLE command not checking if battle is already in-game
  * * fixed minor bug with mute entries not expiring on the fly
+ * * added MUTELISTSTART, MUTELIST, MUTELISTEND commands
  * *** 0.25 ***
  * * added -LANADMIN switch
  * * modified protocol to support arbitrary colors (RGB format)
@@ -1225,7 +1226,7 @@ public class TASServer {
 			client.sendLine("SERVERMSG " + "Account #" + index + " info: " + ((Account)accounts.get(index)).user + " " + ((Account)accounts.get(index)).pass + " " + ((Account)accounts.get(index)).access);
 		}
 		else if (commands[0].equals("FORGEMSG")) {
-			/* this is a command used only for debugging purposes. It sends the string
+			/* this command is used only for debugging purposes. It sends the string
 			 * to client specified as first argument. */
 			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
 			if (commands.length < 3) return false;
@@ -1234,6 +1235,18 @@ public class TASServer {
 			if (targetClient == null) return false;
 			
 			targetClient.sendLine(Misc.makeSentence(commands, 2));
+		}
+		else if (commands[0].equals("FORGEREVERSEMSG")) {
+			/* this command is used only for debugging purposes. It forces server to process
+			 * string passed to this command as if it were sent by the user specified 
+			 * in this command. */
+			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
+			if (commands.length < 3) return false;
+			
+			Client targetClient = getClient(commands[1]);
+			if (targetClient == null) return false;
+			
+			tryToExecCommand(Misc.makeSentence(commands, 2), targetClient);
 		}
 		else if (commands[0].equals("GETIP")) {
 			if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) return false;
@@ -1369,7 +1382,7 @@ public class TASServer {
 			chan.broadcast("<" + client.account.user + "> has unmuted <" + username + ">");
 		}
 		else if (commands[0].equals("MUTELIST")) {
-			if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) return false;
+			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
 			if (commands.length != 2) {
 				client.sendLine("SERVERMSG MUTELIST failed: Invalid arguments!");
 				return false;
@@ -1381,16 +1394,14 @@ public class TASServer {
 				return false;
 			}
 
-			if (chan.muteList.size() == 0) client.sendLine("SERVERMSG Mute list for channel #" + chan.name + " is empty!");
-			else {
-				client.sendLine("SERVERMSG Mute list for #" + chan.name + " (" + chan.muteList.size() + " entries):");
-				int size = chan.muteList.size(); // we shouldn't call muteList.size() in for loop since it will purge expired records each time and so we could have ArrayOutOfBounds exception
-				for (int i = 0; i < size; i++) 
-					if (chan.muteList.getRemainingSeconds(i) == 0) client.sendLine("SERVERMSG * " + (String)chan.muteList.getUsername(i) + ", indefinite time remaining");
-					else client.sendLine("SERVERMSG * " + (String)chan.muteList.getUsername(i) + ", " + chan.muteList.getRemainingSeconds(i) + " seconds remaining");
+			client.sendLine("MUTELISTBEGIN " + chan.name);
+			
+			int size = chan.muteList.size(); // we mustn't call muteList.size() in for loop since it will purge expired records each time and so we could have ArrayOutOfBounds exception
+			for (int i = 0; i < size; i++) 
+				if (chan.muteList.getRemainingSeconds(i) == 0) client.sendLine("MUTELIST " + (String)chan.muteList.getUsername(i) + ", indefinite time remaining");
+				else client.sendLine("MUTELIST " + (String)chan.muteList.getUsername(i) + ", " + chan.muteList.getRemainingSeconds(i) + " seconds remaining");
 					
-				client.sendLine("SERVERMSG End of mute list for #" + chan.name + ".");
-			}
+			client.sendLine("MUTELISTEND");
 		}
 		else if (commands[0].equals("CHANNELMESSAGE")) {
 			if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) return false;
@@ -1789,7 +1800,7 @@ public class TASServer {
 					return false;
 				}
 			}
-			
+
 			chan = joinChannel(commands[1], client);
 			if (chan == null) {
 				client.sendLine("JOINFAILED " + commands[1] + " Already in the channel!");

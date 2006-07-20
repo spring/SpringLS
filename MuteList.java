@@ -82,6 +82,7 @@ public class MuteList {
 	}
 
 	public long getRemainingSeconds(int index) {
+		// note: you shouldn't call clearExpiredOnes() here! (see "MUTELIST" command to see why)
 		if (index > mutedUntil.size()-1) return -1; 
 		if (((Long)mutedUntil.get(index)).longValue() == 0) return 0;
 		else return (((Long)mutedUntil.get(index)).longValue() - System.currentTimeMillis()) / 1000; 
