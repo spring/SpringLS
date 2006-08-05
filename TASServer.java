@@ -6,6 +6,8 @@
  * 
  * 
  * ---- CHANGELOG ----
+ * *** 0.30 ***
+ * * added MAPGRADES command
  * *** 0.26 ***
  * * fixed some charset bug
  * * added UPDATEMOTD command
@@ -137,6 +139,9 @@
  * * Whenever you use killClient() within a for loop, don't forget to decrease loop
  *   counter as you will skip next client in the list otherwise. (this was the cause
  *   for some of the "ambigious data" errors)  
+ * 
+ * * Note that access to long-s is not guaranteed to be atomic, but you should use synchronization
+ *   anyway if you use multiple threads.
  *   
  * 
  * ---- LINKS ----
@@ -199,7 +204,7 @@ import java.nio.charset.*;
 
 public class TASServer {
 	
-	static final String VERSION = "0.26";
+	static final String VERSION = "0.30";
 	static byte DEBUG = 1; // 0 - no verbose, 1 - normal verbose, 2 - extensive verbose
 	static String MOTD = "Enjoy your stay :-)";
 	static String agreement = ""; // agreement which is sent to user upon first login. User must send CONFIRMAGREEMENT command to confirm the agreement before server allows him to log in. See LOGIN command implementation for more details.
@@ -227,13 +232,14 @@ public class TASServer {
 	static String LanAdminPassword = Misc.encodePassword("admin");
 	static long purgeMutesInterval = 1000 * 3; // in miliseconds. On this interval, all channels' mute lists will be checked for expirations and purged accordingly. 
 	static long lastMutesPurgeTime = System.currentTimeMillis(); // time when we last purged mute lists of all channels
+	static String[] reservedAccountNames = {"TASServer", "Server", "server"}; // accounts with these names cannot be registered (since they may be used internally by the server) 
 	
     private static final int BYTE_BUFFER_SIZE = 256; // the size doesn't really matter. Server will work with any size (tested it with BUFFER_LENGTH=1), but too small buffer may impact the performance.
     private static final int SEND_BUFFER_SIZE = 65536 * 2; // socket's send buffer size
     private static final long CHANNEL_WRITE_SLEEP = 0L;
     private static final long MAIN_LOOP_SLEEP = 10L;
     
-    private static final int recvRecordPeriod = 10; // in seconds. Length of period of time for which we keep record of bytes received from client. Used with anti-flood protection.
+    private static final int recvRecordPeriod = 10; // in seconds. Length of time period for which we keep record of bytes received from client. Used with anti-flood protection.
     private static final int maxBytesAlert = 20000; // maximum number of bytes received in the last recvRecordPeriod seconds from a single client before we raise "flood alert". Used with anti-flood protection.
     private static long lastFloodCheckedTime = System.currentTimeMillis(); // time (in same format as System.currentTimeMillis) when we last updated it. Used with anti-flood protection.
     private static long maxChatMessageLength = 1024; // used with basic anti-flood protection. Any chat messages (channel or private chat messages) longer than this are considered flooding. Used with following commands: SAY, SAYEX, SAYPRIVATE, SAYBATTLE, SAYBATTLEEX
@@ -324,8 +330,14 @@ public class TASServer {
             while ((line = in.readLine()) != null) {
             	if (line.equals("")) continue;
             	tokens = line.split(" ");
-            	if (tokens.length != 6) continue; // this should not happen! If it does, we simply ignore this line.
-            	addAccount(new Account(tokens[0], tokens[1], Integer.parseInt(tokens[2], 2), Long.parseLong(tokens[3]), tokens[4], Long.parseLong(tokens[5])));
+            	MapGradeList mgl;
+            	if (tokens.length > 6) mgl = MapGradeList.createFromString(Misc.makeSentence(tokens, 6));
+            	else mgl = new MapGradeList();
+            	if (mgl == null) {
+            		System.out.println("Error: malformed line in accounts data file: \"" + line + "\"");
+            		continue;
+            	}
+            	addAccount(new Account(tokens[0], tokens[1], Integer.parseInt(tokens[2], 2), Long.parseLong(tokens[3]), tokens[4], Long.parseLong(tokens[5]), mgl));
 	        }
             
             in.close();
@@ -392,6 +404,10 @@ public class TASServer {
 		//for (int i = 0; i < accounts.size(); i++) {
 		//	if (((Account)accounts.get(i)).user.equals(acc.user)) return false;
 		//}
+		
+		// check for reserved names:
+		//for (int i = 0; i < reservedAccountNames.length; i++)
+		//	if (reservedAccountNames[i].equals(acc.user)) return false;
 		
 		accounts.add(acc);
 		return true;
@@ -1019,7 +1035,14 @@ public class TASServer {
 				return false;
 			}
 			
-			acc = new Account(commands[1], commands[2], Account.NORMAL_ACCESS, System.currentTimeMillis(), client.IP, System.currentTimeMillis());
+			// check for reserved names:
+			for (int i = 0; i < reservedAccountNames.length; i++)
+				if (reservedAccountNames[i].equals(commands[1])) {
+					client.sendLine("REGISTRATIONDENIED Invalid account name - you are trying to register a reserved account name");
+					return false;
+				}
+			
+			acc = new Account(commands[1], commands[2], Account.NORMAL_ACCESS, System.currentTimeMillis(), client.IP, System.currentTimeMillis(), new MapGradeList());
 			accounts.add(acc);
 			writeAccountsInfo(); // let's save new accounts info to disk
 			client.sendLine("REGISTRATIONACCEPTED");
@@ -1672,8 +1695,8 @@ public class TASServer {
 					client.sendLine("DENIED Player with same name already logged in");
 					return false;
 				}
-				if ((commands[1].equals(LanAdminUsername)) && (commands[2].equals(LanAdminPassword))) acc = new Account(commands[1], commands[2], Account.ADMIN_ACCESS, 0, "?", 0); 
-				else acc = new Account(commands[1], commands[2], Account.NORMAL_ACCESS, 0, "?", 0);
+				if ((commands[1].equals(LanAdminUsername)) && (commands[2].equals(LanAdminPassword))) acc = new Account(commands[1], commands[2], Account.ADMIN_ACCESS, 0, "?", 0, new MapGradeList()); 
+				else acc = new Account(commands[1], commands[2], Account.NORMAL_ACCESS, 0, "?", 0, new MapGradeList());
 				accounts.add(acc);
 				client.account = acc;
 			}
@@ -1747,7 +1770,7 @@ public class TASServer {
 				((Channel)channels.get(i)).muteList.rename(client.account.user, commands[1]);
 			}
 			
-			acc = new Account(commands[1], client.account.pass, client.account.access, System.currentTimeMillis(), client.IP, client.account.registrationDate);
+			acc = new Account(commands[1], client.account.pass, client.account.access, System.currentTimeMillis(), client.IP, client.account.registrationDate, client.account.mapGrades);
 			accounts.add(acc);
 			client.sendLine("SERVERMSG Your account has been renamed to <" + commands[1] + ">. Reconnect with new account (you will now be automatically disconnected)!");
 			killClient(client, "Quit: renaming account");
@@ -2626,7 +2649,39 @@ public class TASServer {
 			
 			bat.replayScript = bat.tempReplayScript;
 			bat.sendScriptToAllExceptFounder();
-		}				
+		} 				
+		else if (commands[0].equals("MAPGRADES")) {
+			if (commands.length < 2) return false;
+			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
+			
+			if (LAN_MODE) {
+				client.sendLine("SERVERMSGBOX Unable to synchronize map grades - server is running in LAN mode!");
+				return false;
+			}
+			
+			String[] tokens = Misc.makeSentence(commands, 1).split(" ");
+			if (tokens.length % 2 != 0) return false;
+			
+			String respond = "MAPGRADES"; // message that we will send back to the client
+			try {
+				for (int i = 0; i < tokens.length / 2; i++) {
+					String hash = tokens[i*2].toUpperCase();
+					int grade;
+					try {
+						Long.parseLong(hash, 16);
+						grade = Integer.parseInt(tokens[i*2+1]);
+					} catch (NumberFormatException e) {
+						return false;
+					}
+					if ((grade < 0) || (grade > 10)) return false;
+					MapGrading.updateLocalAndGlobalGrade(client, hash, grade);
+					respond += " " + hash + " " + MapGrading.getAvarageMapGrade(hash) + " " + MapGrading.getNumberOfMapVotes(hash); 
+				}
+				client.sendLine(respond);
+			} catch (Exception e) {
+				return false;
+			}
+		} 				
 		else {
 			// unknown command!
 			return false;
@@ -2822,6 +2877,9 @@ public class TASServer {
 		} else {
 			System.out.println("<IP2Country> loaded.");
 		}
+			
+		// construct global map grade list:	
+		MapGrading.reconstructGlobalMapGrades();	
 		
 		// start server:
 		helpUDPsrvr = new NATHelpServer(NAT_TRAVERSAL_PORT);

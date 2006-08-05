@@ -15,6 +15,9 @@
  * TODO To change the template for this generated type comment go to
  * Window - Preferences - Java - Code Style - Code Templates
  */
+
+import java.util.*;
+
 public class Account {
 
 	/*
@@ -34,7 +37,7 @@ public class Account {
 	 * first send him the agreement and wait until he confirms it before allowing
 	 * him to log on the server.
 	 * 
-	 * all other bits are unused ("reserver for future use")
+	 * all other bits are unused ("reserved for future use")
 	 * 
 	 */
 	
@@ -64,8 +67,9 @@ public class Account {
 	public long lastLogin; // time (System.currentTimeMillis()) of the last login
 	public String lastIP; // the most recent IP used to log into this account
 	public long registrationDate; // date when user registered this account. In miliseconds (refers to System.currentTimeMillis()). 0 means registration date is unknown (clients who registered in some early version when this field was not yet implemented).
+	public MapGradeList mapGrades; // list of map grades
 	
-	public Account(String user, String pass, int access, long lastLogin, String lastIP, long registrationDate)
+	public Account(String user, String pass, int access, long lastLogin, String lastIP, long registrationDate, MapGradeList mapGrades)
 	{
 		this.user = user;
 		this.pass = pass;
@@ -73,6 +77,7 @@ public class Account {
 		this.lastLogin = lastLogin;
 		this.lastIP = lastIP;
 		this.registrationDate = registrationDate;
+		this.mapGrades = mapGrades;
 	}
 	
 	public Account(Account acc) {
@@ -82,10 +87,11 @@ public class Account {
 		this.lastLogin = acc.lastLogin;
 		this.lastIP = acc.lastIP;
 		this.registrationDate = acc.registrationDate;
+		this.mapGrades = MapGradeList.createFromString(acc.mapGrades.toString());
 	}
 	
 	public String toString() {
-		return user + " " + pass + " " + Integer.toString(access, 2) + " " + lastLogin + " " + lastIP + " " + registrationDate; 
+		return user + " " + pass + " " + Integer.toString(access, 2) + " " + lastLogin + " " + lastIP + " " + registrationDate + " " + mapGrades.toString(); 
 	}
 	
 	public int accessLevel() {
