@@ -29,6 +29,7 @@ public class MapGrading {
 	static void reconstructGlobalMapGrades() {
 		globalMapGrades.clear();
 		for (int i = 0; i < TASServer.accounts.size(); i++) {
+			if (((Account)TASServer.accounts.get(i)).getRank() < 3) continue ; // accept only grades from players with rank higher than "beginner"
 			MapGradeList grades = ((Account)TASServer.accounts.get(i)).mapGrades;
 			if (grades.size() == 0) continue;
 			for (int j = 0; j < grades.size(); j++) {
@@ -50,7 +51,7 @@ public class MapGrading {
 	}
 	
 	/* where "grade" should be between 1 and 10 */
-	static void addGlobalGrade(String mapHash, int grade) {
+	private static void addGlobalGrade(String mapHash, int grade) {
 		GlobalMapGrade mg = findGlobalMapGrade(mapHash);
 		if (mg == null) {
 			mg = new GlobalMapGrade(mapHash);
@@ -64,6 +65,8 @@ public class MapGrading {
 	static void updateLocalAndGlobalGrade(Client client, String mapHash, int grade) {
 		if (grade == 0) return ; // 0 means user hasn't graded the map yet, so we ignore it
 
+		if (client.account.getRank() < 3) return ; // accept only grades from players with rank higher than "beginner"
+		
 		MapGrade mg = client.account.mapGrades.findMapGrade(mapHash);
 		if (mg == null) { // this is client's first time grading for this map
 			mg = new MapGrade(mapHash, grade);
@@ -89,5 +92,4 @@ public class MapGrading {
 		}		
 	}
 	
-
 }
