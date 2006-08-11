@@ -553,10 +553,11 @@ public class ChanServ {
 		params[0] = params[0].toUpperCase(); // params[0] is the base command
 
 		if (params[0].equals("HELP")) {
-			sendMessage(client, channel, "Hello, " + client.name + "!");
-			sendMessage(client, channel, "I am an automated channel service bot,");
-			sendMessage(client, channel, "for the full list of commands, see http://taspring.clan-sy.com/dl/ChanServCommands.html");
-			sendMessage(client, channel, "If you want to go ahead and register a new channel, please contact one of the server moderators!");
+			// force the message to be sent to private chat rather than to the channel (to avoid unneccessary bloating the channel):
+			sendMessage(client, null, "Hello, " + client.name + "!");
+			sendMessage(client, null, "I am an automated channel service bot,");
+			sendMessage(client, null, "for the full list of commands, see http://taspring.clan-sy.com/dl/ChanServCommands.html");
+			sendMessage(client, null, "If you want to go ahead and register a new channel, please contact one of the server moderators!");
 		} else if (params[0].equals("INFO")) {
 			// if the command was issued from a channel:
 			if (channel != null) { // insert <channame> parameter so we don't have to handle two different situations for each command
@@ -588,7 +589,7 @@ public class ChanServ {
 			String respond = "Channel #" + chan.name + " info: Founder is <" + chan.founder + ">, ";
 			Vector ops = chan.getOperatorList();
 			if (ops.size() == 0) respond = respond + "no operators are registered.";
-			else if (ops.size() == 1) respond = respond + "1 registered operator is <" + (String)ops.get(0);
+			else if (ops.size() == 1) respond = respond + "1 registered operator is <" + (String)ops.get(0) + ">.";
 			else {
 				respond = respond + ops.size() + " registered operators are ";
 				for (int i = 0; i < ops.size()-1; i++)
@@ -658,8 +659,8 @@ public class ChanServ {
 			// ok unregister the channel now:
 			channels.remove(chan);
 			sendLine("CHANNELMESSAGE " + chan.name + " " + "This channel has just been unregistered from <" + username + "> by <" + client.name + ">");
-			sendLine("LEAVE " + chan.name);
 			sendMessage(client, channel, "Channel #" + chanName + " successfully unregistered!");
+			sendLine("LEAVE " + chan.name);
 		} else if (params[0].equals("ADDSTATIC")) {
 			if (!client.isModerator()) {
 				sendMessage(client, channel, "Insufficient access to execute " + params[0] + " command!");
@@ -719,8 +720,8 @@ public class ChanServ {
 			
 			// ok remove the channel from static channel list now:
 			channels.remove(chan);
-			sendLine("LEAVE " + chan.name);
 			sendMessage(client, channel, "Channel #" + chanName + " successfully removed from static channel list!");
+			sendLine("LEAVE " + chan.name);
 		} else if (params[0].equals("OP")) {
 			// if the command was issued from a channel:
 			if (channel != null) { // insert <channame> parameter so we don't have to handle two different situations for each command
@@ -785,8 +786,8 @@ public class ChanServ {
 				return ;
 			}
 			
-			if (chan.isOperator(params[2])) {
-				sendMessage(client, channel, "Error: User is not in this channel's operator list!");
+			if (!chan.isOperator(params[2])) {
+				sendMessage(client, channel, "Error: User <" + params[2] + "> is not in this channel's operator list!");
 				return ;
 			}
 			
@@ -1054,6 +1055,24 @@ public class ChanServ {
 			
 			forwardMuteList.add(new MuteListRequest(chanName, client.name, System.currentTimeMillis(), (channel != null) ? channel.name : ""));
 			sendLine("MUTELIST " + chan.name);
+		} else if (params[0].equals("SHUTDOWN")) {
+			String reason = "restarting ..."; // default reason text
+			
+			if (params.length > 1) {
+				reason = Misc.makeSentence(params, 1);
+			}
+		
+			Channel chan;
+			for (int i = 0; i < channels.size(); i++) {
+				chan = (Channel)channels.get(i);
+				if (chan.isStatic) continue; // skip static channels
+				sendLine("SAYEX " + chan.name + " is quitting. Reason: " + reason);
+			}
+			
+			// stop the program:
+			stopKeepAliveTimer();
+			saveConfig(CONFIG_FILENAME);
+			closeAndExit();
 		}
  
 	}
