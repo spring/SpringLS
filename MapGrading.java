@@ -58,7 +58,6 @@ public class MapGrading {
 			globalMapGrades.add(mg);
 		}
 		mg.avGrade = (mg.avGrade * mg.noVotes + grade) / (++mg.noVotes);
-		System.out.println("grade: " + mg.mapHash);
 	}
 	
 	/* will update client's grade list and also global grade list */
