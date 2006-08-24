@@ -438,6 +438,7 @@ public class ChanServ {
 		} else if (commands[0].equals("JOIN")) {
 			Log.log("Joined #" + commands[1]);
 			Channel chan = getChannel(commands[1]);
+			if (chan == null) return false; // this could happen just after we unregistered the channel (since there is always some lag between us and the server)
 			chan.joined = true;
 			chan.clients.clear();
 			// put "logging started" header in the log file:
@@ -454,15 +455,18 @@ public class ChanServ {
 			}
 		} else if (commands[0].equals("CLIENTS")) { 
 			Channel chan = getChannel(commands[1]);
+			if (chan == null) return false; // this could happen just after we unregistered the channel (since there is always some lag between us and the server)
 			for (int i = 2; i < commands.length; i++) {
 				chan.clients.add(commands[i]);
 			}
 		} else if (commands[0].equals("JOINED")) {
 			Channel chan = getChannel(commands[1]);
+			if (chan == null) return false; // this could happen just after we unregistered the channel (since there is always some lag between us and the server)
 			chan.clients.add(commands[2]);
 			Misc.outputLog(chan.logFileName, Misc.easyDateFormat("[HH:mm:ss]") + " * " + commands[2] + " has joined " + "#" + chan.name);
 		} else if (commands[0].equals("LEFT")) { 
 			Channel chan = getChannel(commands[1]);
+			if (chan == null) return false; // this could happen just after we unregistered the channel (since there is always some lag between us and the server)
 			chan.clients.remove(commands[2]);
 			String out = Misc.easyDateFormat("[HH:mm:ss]") + " * " + commands[2] + " has left " + "#" + chan.name;
 			if (commands.length > 3)
@@ -473,10 +477,12 @@ public class ChanServ {
 			Log.log("Failed to join #" + commands[1] + ". Reason: " + Misc.makeSentence(commands, 2));
 		} else if (commands[0].equals("CHANNELTOPIC")) {
 			Channel chan = getChannel(commands[1]);
+			if (chan == null) return false; // this could happen just after we unregistered the channel (since there is always some lag between us and the server)
 			chan.topic = Misc.makeSentence(commands, 4);
 			Misc.outputLog(chan.logFileName, Misc.easyDateFormat("[HH:mm:ss]") + " * Channel topic is '" + chan.topic + "' set by " + commands[2]);
 		} else if (commands[0].equals("SAID")) {
 			Channel chan = getChannel(commands[1]);
+			if (chan == null) return false; // this could happen just after we unregistered the channel (since there is always some lag between us and the server)
 			String user = commands[2];
 			String msg = Misc.makeSentence(commands, 3);
 			
@@ -484,6 +490,7 @@ public class ChanServ {
 			if (msg.charAt(0) == '!') processUserCommand(msg.substring(1, msg.length()), getClient(user), chan);
 		} else if (commands[0].equals("SAIDEX")) {
 			Channel chan = getChannel(commands[1]);
+			if (chan == null) return false; // this could happen just after we unregistered the channel (since there is always some lag between us and the server)
 			String user = commands[2];
 			String msg = Misc.makeSentence(commands, 3);
 			Misc.outputLog(chan.logFileName, Misc.easyDateFormat("[HH:mm:ss]") + " * " + user + " " + msg);
