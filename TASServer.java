@@ -8,6 +8,7 @@
  * ---- CHANGELOG ----
  * *** 0.30 ***
  * * added MAPGRADES command
+ * * added FORCESPECTATORMODE command
  * *** 0.26 ***
  * * fixed some charset bug
  * * added UPDATEMOTD command
@@ -233,6 +234,8 @@ public class TASServer {
 	static long purgeMutesInterval = 1000 * 3; // in miliseconds. On this interval, all channels' mute lists will be checked for expirations and purged accordingly. 
 	static long lastMutesPurgeTime = System.currentTimeMillis(); // time when we last purged mute lists of all channels
 	static String[] reservedAccountNames = {"TASServer", "Server", "server"}; // accounts with these names cannot be registered (since they may be used internally by the server) 
+	
+	private static int MAX_TEAMS = 16; // max. teams/allies numbers supported by Spring 
 	
     private static final int BYTE_BUFFER_SIZE = 256; // the size doesn't really matter. Server will work with any size (tested it with BUFFER_LENGTH=1), but too small buffer may impact the performance.
     private static final int SEND_BUFFER_SIZE = 65536 * 2; // socket's send buffer size
@@ -2298,12 +2301,10 @@ public class TASServer {
 			} catch (NumberFormatException e) {
 				return false; 
 			}
-			if ((value < 0) || (value > 9)) return false;
+			if ((value < 0) || (value > TASServer.MAX_TEAMS-1)) return false;
 			
-			int tmp = getIndexOfClient(commands[1]); 
-			if (tmp == -1) return false;
-			Client targetClient = (Client)clients.get(tmp);
-			
+			Client targetClient = getClient(commands[1]);
+			if (targetClient == null) return false;
 			if (!bat.isClientInBattle(targetClient)) return false;
 			
 			targetClient.battleStatus = Misc.setTeamNoOfBattleStatus(targetClient.battleStatus, value);
@@ -2324,12 +2325,10 @@ public class TASServer {
 			} catch (NumberFormatException e) {
 				return false; 
 			}
-			if ((value < 0) || (value > 9)) return false;
+			if ((value < 0) || (value > TASServer.MAX_TEAMS-1)) return false;
 			
-			int tmp = getIndexOfClient(commands[1]); 
-			if (tmp == -1) return false;
-			Client targetClient = (Client)clients.get(tmp);
-			
+			Client targetClient = getClient(commands[1]);
+			if (targetClient == null) return false;
 			if (!bat.isClientInBattle(targetClient)) return false;
 			
 			targetClient.battleStatus = Misc.setAllyNoOfBattleStatus(targetClient.battleStatus, value);
@@ -2351,13 +2350,29 @@ public class TASServer {
 				return false; 
 			}
 			
-			int tmp = getIndexOfClient(commands[1]); 
-			if (tmp == -1) return false;
-			Client targetClient = (Client)clients.get(tmp);
-			
+			Client targetClient = getClient(commands[1]);
+			if (targetClient == null) return false;
 			if (!bat.isClientInBattle(targetClient)) return false;
 			
 			targetClient.teamColor = value;
+			bat.notifyClientsOfBattleStatus(targetClient); 
+		}	
+		else if (commands[0].equals("FORCESPECTATORMODE")) {
+			if (commands.length != 2) return false;
+			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
+			
+			if (client.battleID == -1) return false;
+			Battle bat = getBattle(client.battleID);
+			if (bat == null) return false;
+			if (bat.founder != client) return false; // only founder can force spectator mode
+			
+			Client targetClient = getClient(commands[1]);
+			if (targetClient == null) return false;
+			if (!bat.isClientInBattle(targetClient)) return false;
+			
+			if (Misc.getModeFromBattleStatus(targetClient.battleStatus) == 0) return false; // no need to change it, it's already set to spectator mode!
+			
+			targetClient.battleStatus = Misc.setModeOfBattleStatus(targetClient.battleStatus, 0);
 			bat.notifyClientsOfBattleStatus(targetClient); 
 		}		
 		else if (commands[0].equals("ADDBOT")) {
