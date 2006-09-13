@@ -17,6 +17,7 @@ import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.text.*;
+import java.lang.reflect.*;
 
 public class Misc {
  	static public final String EOL = "\n";
@@ -95,6 +96,16 @@ public class Misc {
 		return vec.toArray(array);
 	}
 	
+
+	/* this method will remove an element from an array of objects and return it. Rather
+	 * than this approach use Vector class! */
+	public static Object[] removeFromObjectArray(int index, Object[] array) {
+		Vector vec = new Vector(Arrays.asList(array));
+		vec.remove(index);
+		return vec.toArray((Object[])Array.newInstance(array.getClass().getComponentType(), 0));
+		// note: doing vec.toArray(array) won't work here since array won't shrink but rather set any redundant elements to null!
+	}
+    
 	/* sorts an array of integers using simple bubble sort algorithm.
 	 * Copied from http://en.wikisource.org/wiki/Bubble_sort
 	 * */

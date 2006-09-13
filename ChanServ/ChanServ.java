@@ -18,8 +18,6 @@
  * 
  * *** TODO QUICK NOTES ***
  * * diff between synchronized(object) {...} and using a Semaphore... ?
- * * currently the "channel" parameter is not used in processUserCommand()
- *   (channel name should be passed as well to make it useful) 
  * 
  */
 
@@ -558,6 +556,18 @@ public class ChanServ {
 		if (command.trim().equals("")) return ;
 		String[] params = command.split(" ");
 		params[0] = params[0].toUpperCase(); // params[0] is the base command
+		
+		// remove all empty tokens to avoid any problems while parsing commands later on:
+		{
+			boolean done = false;
+			while (!done) {
+				for (int i = 0; i < params.length; i++)
+					if (params[i].equals("")) {
+						params = (String[])Misc.removeFromObjectArray(i, params);
+						break;
+					} else if (i == params.length-1) done = true;
+			}
+		}
 
 		if (params[0].equals("HELP")) {
 			// force the message to be sent to private chat rather than to the channel (to avoid unneccessary bloating the channel):
