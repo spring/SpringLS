@@ -214,6 +214,7 @@ public class TASServer {
 	static final String AGREEMENT_FILENAME = "agreement.rtf";
 	static final String BAN_LIST_FILENAME = "banlist.txt";
 	static final String ACCOUNTS_INFO_FILEPATH = "accounts.txt";
+	static final String SERVER_NOTIFICATION_FOLDER = "./notifs";  
 	static final int SERVER_PORT = 8200; // default server (TCP) port
 	static int NAT_TRAVERSAL_PORT = 8201; // default UDP port used with some NAT traversal technique. If this port is not forwarded, hole punching technique will not work. 
 	static final int TIMEOUT_LENGTH = 30000; // in milliseconds
@@ -646,7 +647,7 @@ public class TASServer {
 		    	
 		    	if (System.currentTimeMillis() - time > 1000) {
 		    		System.out.println("WARNING: channelWrite() timed out. Ignoring ...");
-					sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Serious problem: channelWrite() timed out.");
+					sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Serious problem: channelWrite() timed out [" + channel.socket().getInetAddress().getHostAddress() + "]");
 		    		return ;
 		    	}
 		    }
@@ -789,7 +790,7 @@ public class TASServer {
 		}
 	}
 	
-	private static void sendToAllAdministrators(String s) {
+	public static void sendToAllAdministrators(String s) {
 		for (int i = 0; i < clients.size(); i++) {
 			if (((Client)clients.get(i)).account.accessLevel() < Account.ADMIN_ACCESS) continue;
 			((Client)clients.get(i)).sendLine(s);
@@ -1606,6 +1607,18 @@ public class TASServer {
 				return false;
 			}
 			client.sendLine("SERVERMSG Process started: \"" + Misc.makeSentence(commands, 1) + "\"");
+		}
+		else if (commands[0].equals("ADDNOTIFICATION")) {
+			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
+			if (commands.length < 2) {
+				client.sendLine("SERVERMSG Error: arguments missing (ADDNOTIFICATION command)");
+				return false;
+			}
+			
+			if (ServerNotifications.addNotification(new ServerNotification(client.account.user, Misc.makeSentence(commands, 1))))
+				client.sendLine("SERVERMSG Notification added.");
+			else
+				client.sendLine("SERVERMSG Error while adding notification! Notification not added.");
 		}
 		else if (commands[0].equals("CHANNELS")) {
 			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
@@ -2885,7 +2898,15 @@ public class TASServer {
 		}
 		
 		if (RECORD_STATISTICS) {
-			// any special initialization required?
+			// create statistics folder if it doesn't exist yet:
+			File file = new File(STATISTICS_FOLDER);
+			if (!file.exists()) {
+				boolean success = (file.mkdir());
+				if (!success) 
+					System.out.println("Error: unable to create folder: " + STATISTICS_FOLDER);
+				else 
+					System.out.println("Created missing folder: " + STATISTICS_FOLDER);
+			}
 		}
 		
 		if (LOG_MAIN_CHANNEL) {
@@ -2896,6 +2917,18 @@ public class TASServer {
 				LOG_MAIN_CHANNEL = false;
 				System.out.println("$ERROR: Unable to open main channel log file (MainChanLog.log)");
 				e.printStackTrace();
+			}
+		}
+		
+		// create notifications folder if it doesn't exist yet:
+		if (!LAN_MODE) {
+			File file = new File(SERVER_NOTIFICATION_FOLDER);
+			if (!file.exists()) {
+				boolean success = (file.mkdir());
+				if (!success) 
+					System.out.println("Error: unable to create folder: " + SERVER_NOTIFICATION_FOLDER);
+				else 
+					System.out.println("Created missing folder: " + SERVER_NOTIFICATION_FOLDER);
 			}
 		}
 		
