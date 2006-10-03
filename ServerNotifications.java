@@ -18,6 +18,7 @@ public class ServerNotifications {
 	public static final String NOTIFICATION_SYSTEM_VERSION = "1.0"; // this will also get saved with notifications just in case format of notification files change in the future
 	
 	public static boolean addNotification(ServerNotification sn) {
+		if (TASServer.LAN_MODE) return false; // ignore notifications if server is running in lan mode!
 		String fname = TASServer.SERVER_NOTIFICATION_FOLDER + Misc.easyDateFormat("yyyyMMdd");
 		int counter = 1;
 		while ((new File(fname + "_" + counter)).exists()) counter++;

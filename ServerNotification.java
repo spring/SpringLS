@@ -28,6 +28,11 @@ public class ServerNotification {
 		this.addLine(firstLine);
 	}
 	
+	public ServerNotification() {
+		this("$TASServer");
+	}
+	
+	
 	public void addLine(String line) {
 		message += (message.equals("") ? line : "\r\n" + line);
 	}
