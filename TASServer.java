@@ -567,6 +567,13 @@ public class TASServer {
 					sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Flooding has been detected from " + client.IP + " (" + client.account.user + "). User's IP has been auto-banned.");
 					banList.add(client.IP, "Auto-ban for flooding.");
 					killClient(client, "Disconnected due to excessive flooding");
+
+					// add server notification:
+					ServerNotification sn = new ServerNotification("Flooding detected");
+					sn.addLine("Flooding detected from " + client.IP + " (" + client.account.user + ").");
+					sn.addLine("User has been automatically banned.");
+					ServerNotifications.addNotification(sn);
+					
 					continue;
 				}
 
@@ -648,6 +655,20 @@ public class TASServer {
 		    	if (System.currentTimeMillis() - time > 1000) {
 		    		System.out.println("WARNING: channelWrite() timed out. Ignoring ...");
 					sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Serious problem: channelWrite() timed out [" + channel.socket().getInetAddress().getHostAddress() + "]");
+					
+					// add server notification:
+					ServerNotification sn = new ServerNotification("channelWrite() timeout");
+					sn.addLine("Serious problem detected: channelWrite() has timed out.");
+					sn.addLine("Client IP: " + channel.socket().getInetAddress().getHostAddress() + ". Users currently using this IP:");
+					boolean found = false;
+					for (int i = 0; i < clients.size(); i++)
+						if (((Client)clients.get(i)).IP.equals(channel.socket().getInetAddress().getHostAddress())) {
+							sn.addLine("* " + ((Client)clients.get(i)).account.user);
+							found = true;
+						}
+					if (!found) sn.addLine("[none]");	
+					ServerNotifications.addNotification(sn);
+					
 		    		return ;
 		    	}
 		    }
@@ -1106,6 +1127,11 @@ public class TASServer {
 			acc.pass = commands[2];
 			
 			writeAccountsInfo(); // save changes
+			
+			// add server notification:
+			ServerNotification sn = new ServerNotification("Account password changed by admin");
+			sn.addLine("Admin <" + client.account.user + "> has changed password for account <" + acc.user + ">");
+			ServerNotifications.addNotification(sn);			
 		}
 		else if (commands[0].equals("CHANGEACCOUNTACCESS")) {
 			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
@@ -1121,12 +1147,19 @@ public class TASServer {
 			Account acc = getAccount(commands[1]);
 			if (acc == null) return false; 
 			
+			int oldAccess = acc.access;
 			acc.access = value;
 			
 			writeAccountsInfo(); // save changes
 			 // just in case if rank changed:
 			client.status = Misc.setRankToStatus(client.status, client.account.getRank());
 			notifyClientsOfNewClientStatus(client);
+			
+			// add server notification:
+			ServerNotification sn = new ServerNotification("Account access changed by admin");
+			sn.addLine("Admin <" + client.account.user + "> has changed access/status bits for account <" + acc.user + ">.");
+			sn.addLine("Old access code: " + oldAccess + ". New code: " + value);
+			ServerNotifications.addNotification(sn);			
 		}
 		else if (commands[0].equals("GETACCOUNTACCESS")) {
 			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
@@ -1144,12 +1177,22 @@ public class TASServer {
 			redirectToIP = commands[1];
 			redirect = true;
 			sendToAllRegisteredUsers("BROADCAST " + "Server has entered redirection mode");
+			
+			// add server notification:
+			ServerNotification sn = new ServerNotification("Entered redirection mode");
+			sn.addLine("Admin <" + client.account.user + "> has enabled redirection mode. New address: " + redirectToIP);
+			ServerNotifications.addNotification(sn);			
 		}
 		else if (commands[0].equals("REDIRECTOFF")) {
 			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
 
 			redirect = false;
 			sendToAllRegisteredUsers("BROADCAST " + "Server has left redirection mode");
+			
+			// add server notification:
+			ServerNotification sn = new ServerNotification("Redirection mode disabled");
+			sn.addLine("Admin <" + client.account.user + "> has disabled redirection mode.");
+			ServerNotifications.addNotification(sn);			
 		}
 		else if (commands[0].equals("BROADCAST")) {
 			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
@@ -1615,7 +1658,7 @@ public class TASServer {
 				return false;
 			}
 			
-			if (ServerNotifications.addNotification(new ServerNotification(client.account.user, Misc.makeSentence(commands, 1))))
+			if (ServerNotifications.addNotification(new ServerNotification("Admin notification", client.account.user, Misc.makeSentence(commands, 1))))
 				client.sendLine("SERVERMSG Notification added.");
 			else
 				client.sendLine("SERVERMSG Error while adding notification! Notification not added.");
@@ -1807,6 +1850,11 @@ public class TASServer {
 			removeAccount(client.account.user);
 			writeAccountsInfo(); // let's save new accounts info to disk
 			sendToAllAdministrators("SERVERMSG [broadcast to all admins]: User <" + client.account.user + "> has just renamed his account to <" + commands[1] + ">");
+			
+			// add server notification:
+			ServerNotification sn = new ServerNotification("Account renamed");
+			sn.addLine("User <" + client.account.user + "> has renamed his account to <" + commands[1] + ">");
+			ServerNotifications.addNotification(sn);			
 		}
 		else if (commands[0].equals("CHANGEPASSWORD")) {
 			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;

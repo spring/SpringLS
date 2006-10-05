@@ -19,7 +19,7 @@ public class ServerNotifications {
 	
 	public static boolean addNotification(ServerNotification sn) {
 		if (TASServer.LAN_MODE) return false; // ignore notifications if server is running in lan mode!
-		String fname = TASServer.SERVER_NOTIFICATION_FOLDER + Misc.easyDateFormat("yyyyMMdd");
+		String fname = TASServer.SERVER_NOTIFICATION_FOLDER + "/" + Misc.easyDateFormat("yyyyMMdd");
 		int counter = 1;
 		while ((new File(fname + "_" + counter)).exists()) counter++;
 		fname += "_" + counter;
