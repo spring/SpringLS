@@ -27,6 +27,7 @@ public class ServerNotifications {
 			BufferedWriter out = new BufferedWriter(new FileWriter(fname, true));
 			out.write(NOTIFICATION_SYSTEM_VERSION + "\r\n");
 			out.write(sn.author + "\r\n");
+			out.write(sn.title + "\r\n");
 			out.write(sn.time + "\r\n");
 			out.write(sn.message);
 			out.close();			

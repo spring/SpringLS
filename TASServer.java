@@ -240,7 +240,7 @@ public class TASServer {
 	
     private static final int BYTE_BUFFER_SIZE = 256; // the size doesn't really matter. Server will work with any size (tested it with BUFFER_LENGTH=1), but too small buffer may impact the performance.
     private static final int SEND_BUFFER_SIZE = 65536 * 2; // socket's send buffer size
-    private static final long CHANNEL_WRITE_SLEEP = 0L;
+    private static final long CHANNEL_WRITE_SLEEP = 20L;
     private static final long MAIN_LOOP_SLEEP = 10L;
     
     private static final int recvRecordPeriod = 10; // in seconds. Length of time period for which we keep record of bytes received from client. Used with anti-flood protection.
@@ -645,13 +645,16 @@ public class TASServer {
 		// write all bytes in one shot
 		try {
 		    while (nbytes != toWrite) {
+		    	long last = nbytes;
 		    	nbytes += channel.write(writeBuffer);
-			
-		    	try {
-		    		Thread.sleep(CHANNEL_WRITE_SLEEP);
-		    	} catch (InterruptedException e) {
+		    	if (nbytes-last == 0) { // no bytes written
+		    		// sleep a bit to avoid creating 100% CPU usage peak:
+			    	try {
+			    		Thread.sleep(CHANNEL_WRITE_SLEEP);
+			    	} catch (InterruptedException e) {
+			    	}
 		    	}
-		    	
+			
 		    	if (System.currentTimeMillis() - time > 1000) {
 		    		System.out.println("WARNING: channelWrite() timed out. Ignoring ...");
 					sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Serious problem: channelWrite() timed out [" + channel.socket().getInetAddress().getHostAddress() + "]");
@@ -1750,7 +1753,7 @@ public class TASServer {
 					client.sendLine("DENIED You are banned from this server! (Reason: " + reason + "). Please contact server administrator.");
 					return false;
 				}
-				if ((!acc.getAgreement())  && (!client.account.getAgreement()) && (!agreement.equals(""))) {
+				if ((!acc.getAgreement()) && (!client.account.getAgreement()) && (!agreement.equals(""))) {
 					sendAgreementToClient(client);
 					return false;
 				}
