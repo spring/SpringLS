@@ -236,7 +236,7 @@
 
       <?php
         print "<h2>Notifications for " . date("Y-m-d", $time) . "</h1>";
-        print "<br><br>";
+        print "<br>";
 
         displayAllNotifs(date("Ymd", $time));
       ?>

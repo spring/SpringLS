@@ -1,3 +1,5 @@
+// Betalord, 2006-10-09
+
 #include <stdio.h>
 
 int main(int argc, char **argv)
