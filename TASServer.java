@@ -605,7 +605,13 @@ public class TASServer {
 				    	if (pos < line.length()-1) if (line.charAt(pos+1) == '\n') pos++;
 				    	client.recvBuf.delete(0, pos+1);
 
+				    	//***** remove this code after fixing cpu peak issue!
+				    	long time = System.currentTimeMillis();
 				    	tryToExecCommand(command, client);
+				    	time = System.currentTimeMillis() - time;
+				    	if (time > 100) {
+				    		sendToAllAdministrators("SERVERMSG [broadcast to all admins]: (DEBUG) User <" + client.account.user + "> caused " + time + " ms load on the server. Command issued: " + command);
+				    	}
 
 				    	if (!client.alive) break; // in case client was killed within tryToExecCommand() method
 					    line = client.recvBuf.toString();
@@ -713,13 +719,9 @@ public class TASServer {
 	}
 	
 	private static Account verifyLogin(String user, String pass) {
-		for (int i = 0; i < accounts.size(); i++) 
-			if (((Account)accounts.get(i)).user.equals(user))
-				if (((Account)accounts.get(i)).pass.equals(pass)) { 
-					return (Account)accounts.get(i); 					
-				} else break;
-		
-		return null;
+		Account acc = getAccount(user);
+		if (acc.pass.equals(pass)) return acc;
+		else return null;
 	}
 	
 	private static boolean isUserAlreadyLoggedIn(Account acc) {
@@ -1113,14 +1115,15 @@ public class TASServer {
 			client.sendLine("SERVERMSG You have successfully removed <" + commands[1] + "> account!");
 		}
 		else if (commands[0].equals("STOPSERVER")) {
-			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
-			
-			closeServerAndExit();
-		}
-		else if (commands[0].equals("STOPSERVERGRACEFULLY")) {
+			// stop server gracefully:
 			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
 			
 			running = false;
+		}
+		else if (commands[0].equals("FORCESTOPSERVER")) {
+			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
+			
+			closeServerAndExit();
 		}
 		else if (commands[0].equals("WRITEACCOUNTSINFO")) {
 			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;

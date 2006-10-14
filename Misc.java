@@ -35,14 +35,21 @@ public class Misc {
 		return formatter.format(d);
 	}
 	
-	/* puts together strings from sl, starting at sl[startIndex] */
-	public static String makeSentence(String[] sl, int startIndex) {
-		if (startIndex > sl.length-1) return "";
+	/* puts together strings from 'a', starting at a[startIndex] 
+	 * see http://leepoint.net/notes-java/data/strings/96string_examples/example_arrayToString.html
+	 * on why StringBuffer is faster.
+	 * */
+	public static String makeSentence(String[] a, int startIndex) {
+		if (startIndex > a.length-1) return "";
 		
-		String res = new String(sl[startIndex]);
-		for (int i = startIndex+1; i < sl.length; i++) res = res.concat(" " + sl[i]);
-		
-		return res;
+	    StringBuffer result = new StringBuffer();
+        result.append(a[startIndex]);
+        for (int i = startIndex+1; i < a.length; i++) {
+            result.append(" ");
+            result.append(a[i]);
+        }
+        
+	    return result.toString();		
 	}
 	
 	/* returns false if char is not an allowed character in the name of a channel, nickname, username, ... */
