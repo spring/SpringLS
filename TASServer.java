@@ -431,9 +431,15 @@ public class TASServer {
 	
 	public static void closeServerAndExit() {
 		System.out.println("Server stopped.");
+		if (!LAN_MODE) writeAccountsInfo();
 		if (helpUDPsrvr != null) helpUDPsrvr.stopServer();
 		if (LOG_MAIN_CHANNEL) try {
 			mainChanLog.close();
+
+			// add server notification:
+			ServerNotification sn = new ServerNotification("Server stopped");
+			sn.addLine("Server has just been stopped. See server log for more info.");
+			ServerNotifications.addNotification(sn);
 		} catch(Exception e) {
 			// nevermind
 		}
@@ -1109,9 +1115,12 @@ public class TASServer {
 		else if (commands[0].equals("STOPSERVER")) {
 			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
 			
-			if (!LAN_MODE) writeAccountsInfo();
-			
 			closeServerAndExit();
+		}
+		else if (commands[0].equals("STOPSERVERGRACEFULLY")) {
+			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
+			
+			running = false;
 		}
 		else if (commands[0].equals("WRITEACCOUNTSINFO")) {
 			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
@@ -2751,7 +2760,7 @@ public class TASServer {
 				client.sendLine("SERVERMSGBOX Unable to synchronize map grades - server is running in LAN mode!");
 				return false;
 			}
-			
+
 			String[] tokens = Misc.makeSentence(commands, 1).split(" ");
 			if (tokens.length % 2 != 0) return false;
 			
@@ -2999,9 +3008,12 @@ public class TASServer {
 		helpUDPsrvr.start();
 
 		if (!startServer(port)) closeServerAndExit();
-
 		
-		// block while we wait for a client to connect
+		// add server notification:
+		ServerNotification sn = new ServerNotification("Server started");
+		sn.addLine("Server has been started on port " + port + ". There are " + accounts.size() + " accounts currently loaded. See server log for more info.");
+		ServerNotifications.addNotification(sn);
+		
 	    running = true;
 	    while (running) { // main loop
 
@@ -3074,6 +3086,20 @@ public class TASServer {
 		    }
 	    }
 
-        System.out.println("Server closed!");
+	    // close everything:
+		if (!LAN_MODE) writeAccountsInfo();
+		if (helpUDPsrvr != null) helpUDPsrvr.stopServer();
+		if (LOG_MAIN_CHANNEL) try {
+			mainChanLog.close();
+		} catch (Exception e) {
+		  // ignore
+		}
+	    
+		// add server notification:
+		sn = new ServerNotification("Server stopped");
+		sn.addLine("Server has just been stopped gracefully. See server log for more info.");
+		ServerNotifications.addNotification(sn);
+		
+        System.out.println("Server closed gracefully!");
 	}
 }
