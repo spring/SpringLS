@@ -94,6 +94,12 @@ public class Account {
 		return user + " " + pass + " " + Integer.toString(access, 2) + " " + lastLogin + " " + lastIP + " " + registrationDate + " " + mapGrades.toString(); 
 	}
 	
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (!(o instanceof Account)) return false;
+		return this.user.equals(((Account)o).user);
+	}	
+	
 	public int accessLevel() {
 		return access & 0x7;
 	}

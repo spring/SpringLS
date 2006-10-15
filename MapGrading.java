@@ -28,9 +28,9 @@ public class MapGrading {
 	/* will reconstruct global map grade list from accounts info */
 	static void reconstructGlobalMapGrades() {
 		globalMapGrades.clear();
-		for (int i = 0; i < TASServer.accounts.size(); i++) {
-			if (((Account)TASServer.accounts.get(i)).getRank() < 3) continue ; // accept only grades from players with rank higher than "beginner"
-			MapGradeList grades = ((Account)TASServer.accounts.get(i)).mapGrades;
+		for (int i = 0; i < Accounts.getAccountsSize(); i++) {
+			if (Accounts.getAccount(i).getRank() < 3) continue ; // accept only grades from players with rank higher than "beginner"
+			MapGradeList grades = Accounts.getAccount(i).mapGrades;
 			if (grades.size() == 0) continue;
 			for (int j = 0; j < grades.size(); j++) {
 				addGlobalGrade(grades.elementAt(j).hash, grades.elementAt(j).grade);

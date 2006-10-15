@@ -69,14 +69,14 @@ public class Statistics {
 			if ((((Battle)TASServer.battles.get(i)).clients.size() > 1) && (Misc.getInGameFromStatus(((Battle)TASServer.battles.get(i)).founder.status) == 1)) activeBattlesCount++;
 			
 		int activeAccounts = 0;
-		for (int i = 0; i < TASServer.accounts.size(); i++)
-			if ((((Account)TASServer.accounts.get(i)).getInGameTime() > 300) && (((Account)TASServer.accounts.get(i)).lastLogin > System.currentTimeMillis() - 1000*60*60*24*7)) activeAccounts++;
+		for (int i = 0; i < Accounts.getAccountsSize(); i++)
+			if ((Accounts.getAccount(i).getInGameTime() > 300) && (Accounts.getAccount(i).lastLogin > System.currentTimeMillis() - 1000*60*60*24*7)) activeAccounts++;
 			
 		String topMods = currentlyPopularModsList();
 		
 		try {
 			BufferedWriter out = new BufferedWriter(new FileWriter(fname, true));
-			out.write(now("HHmmss") + " " + TASServer.clients.size() + " " + activeBattlesCount + " " + TASServer.accounts.size() + " " + activeAccounts + " " + topMods + "\r\n");
+			out.write(now("HHmmss") + " " + TASServer.clients.size() + " " + activeBattlesCount + " " + Accounts.getAccountsSize() + " " + activeAccounts + " " + topMods + "\r\n");
 			out.close();			
 		} catch (IOException e) {
 			System.out.println("Error: unable to access file <" + fname + ">. Skipping ...");

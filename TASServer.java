@@ -221,8 +221,6 @@ public class TASServer {
 	static boolean LAN_MODE = false;
 	static boolean redirect = false; // if true, server is redirection clients to new IP
 	static String redirectToIP = ""; // new IP to which clients are redirected if (redirected==true)
-	static long saveAccountInfoInterval = 1000 * 60 * 60; // in milliseconds
-	static long lastSaveAccountsTime = System.currentTimeMillis(); // time when we last saved accounts info to disk
 	static boolean RECORD_STATISTICS = false; // if true, statistics are saved to disk on regular intervals
 	static String PLOTICUS_FULLPATH = "./ploticus/bin/pl"; // see http://ploticus.sourceforge.net/ for more info on ploticus
 	static String STATISTICS_FOLDER = "./stats/";
@@ -258,7 +256,6 @@ public class TASServer {
     private static ByteBuffer writeBuffer = ByteBuffer.allocateDirect(BYTE_BUFFER_SIZE);
     private static CharsetDecoder asciiDecoder;
     
-	static Vector accounts = new Vector();
 	static Vector clients = new Vector();
 	static Vector channels = new Vector();
 	static Vector battles = new Vector();
@@ -320,118 +317,9 @@ public class TASServer {
 		if (newAgreement.length() > 2) agreement = newAgreement;
 	}
 	
-	/* (re)loads accounts information from disk */
-	private static boolean readAccountsInfo()
-	{
-		try {
-			BufferedReader in = new BufferedReader(new FileReader(ACCOUNTS_INFO_FILEPATH));
-
-			accounts.clear();
-			
-			String line;
-			String tokens[];
-			
-            while ((line = in.readLine()) != null) {
-            	if (line.equals("")) continue;
-            	tokens = line.split(" ");
-            	MapGradeList mgl;
-            	if (tokens.length > 6) mgl = MapGradeList.createFromString(Misc.makeSentence(tokens, 6));
-            	else mgl = new MapGradeList();
-            	if (mgl == null) {
-            		System.out.println("Error: malformed line in accounts data file: \"" + line + "\"");
-            		continue;
-            	}
-            	addAccount(new Account(tokens[0], tokens[1], Integer.parseInt(tokens[2], 2), Long.parseLong(tokens[3]), tokens[4], Long.parseLong(tokens[5]), mgl));
-	        }
-            
-            in.close();
-			
-		} catch (IOException e) {
-			// catch possible io errors from readLine()
-			System.out.println("IOException error while trying to update accounts info from " + ACCOUNTS_INFO_FILEPATH + "! Skipping ...");
-			return false;
-		}
-		
-		System.out.println(accounts.size() + " accounts information read from " + ACCOUNTS_INFO_FILEPATH);
-		
-		return true;
-	}
-	
-	private static boolean writeAccountsInfo()
-	{
-		lastSaveAccountsTime = System.currentTimeMillis();
-		
-		try {
-			PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(ACCOUNTS_INFO_FILEPATH)));			
-
-			for (int i = 0; i < accounts.size(); i++)
-			{
-				out.println(accounts.get(i).toString());
-			}
-			
-			out.close();
-			
-		} catch (IOException e) {
-			System.out.println("IOException error while trying to write accounts info to " + ACCOUNTS_INFO_FILEPATH + "!");
-			return false;
-		}
-		
-		System.out.println(accounts.size() + " accounts information written to " + ACCOUNTS_INFO_FILEPATH + ".");
-		
-		return true;
-	}
-	
-	private static boolean removeAccount(String username) {
-		int accIndex = getAccountIndex(username);
-		if (accIndex == -1) return false;
-		Account acc = (Account)accounts.get(accIndex);
-		if (acc == null) return false;
-		
-		accounts.remove(accIndex);
-		
-		// if any user is connected to this account, kick him:
-		for (int j = 0; j < clients.size(); j++) {
-			if (((Client)clients.get(j)).account.user.equals(username)) {
-				killClient((Client)clients.get(j));
-				j--;
-			}
-		}
-		
-		return true;
-	}
-	
-	private static boolean addAccount(Account acc) {
-		if (!Misc.isValidName(acc.user)) return false;
-		if (!Misc.isValidPass(acc.pass)) return false;
-		
-		// check for duplicate entries:
-		//for (int i = 0; i < accounts.size(); i++) {
-		//	if (((Account)accounts.get(i)).user.equals(acc.user)) return false;
-		//}
-		
-		// check for reserved names:
-		//for (int i = 0; i < reservedAccountNames.length; i++)
-		//	if (reservedAccountNames[i].equals(acc.user)) return false;
-		
-		accounts.add(acc);
-		return true;
-	}
-	
-	private static Account findAccount(String username) {
-		for (int i = 0; i < accounts.size(); i++)
-			if (((Account)accounts.get(i)).user.equals(username)) return (Account)accounts.get(i);
-		return null;
-	}
-	
-	private static Account findAccountNoCase(String username) {
-		for (int i = 0; i < accounts.size(); i++)
-			if (((Account)accounts.get(i)).user.equalsIgnoreCase(username)) return (Account)accounts.get(i);
-		return null;
-	}
-	
 	public static void closeServerAndExit() {
 		System.out.println("Server stopped.");
-		if (!LAN_MODE) writeAccountsInfo();
+		if (!LAN_MODE) Accounts.writeAccountsInfo();
 		if (helpUDPsrvr != null) helpUDPsrvr.stopServer();
 		if (LOG_MAIN_CHANNEL) try {
 			mainChanLog.close();
@@ -719,7 +607,8 @@ public class TASServer {
 	}
 	
 	private static Account verifyLogin(String user, String pass) {
-		Account acc = getAccount(user);
+		Account acc = Accounts.getAccount(user);
+		if (acc == null) return null;
 		if (acc.pass.equals(pass)) return acc;
 		else return null;
 	}
@@ -963,18 +852,6 @@ public class TASServer {
 		return null;	
 	}
 	
-	private static int getAccountIndex(String username) {
-		for (int i = 0; i < accounts.size(); i++)
-			if (((Account)accounts.get(i)).user.equals(username)) return i;
-		return -1;
-	}
-	
-	private static Account getAccount(String username) {
-		for (int i = 0; i < accounts.size(); i++)
-			if (((Account)accounts.get(i)).user.equals(username)) return (Account)accounts.get(i);
-		return null;
-	}
-	
 	/* Sends "message of the day" (MOTD) to client */
 	private static boolean sendMOTDToClient(Client client) {
 		client.sendLine("MOTD Welcome, " + client.account.user + "!");
@@ -1065,7 +942,7 @@ public class TASServer {
 				return false;
 			}
 			 
-			Account acc = findAccountNoCase(commands[1]);
+			Account acc = Accounts.findAccountNoCase(commands[1]);
 			if (acc != null) {
 				client.sendLine("REGISTRATIONDENIED Account already exists");
 				return false;
@@ -1079,8 +956,8 @@ public class TASServer {
 				}
 			
 			acc = new Account(commands[1], commands[2], Account.NORMAL_ACCESS, System.currentTimeMillis(), client.IP, System.currentTimeMillis(), new MapGradeList());
-			accounts.add(acc);
-			writeAccountsInfo(); // let's save new accounts info to disk
+			Accounts.addAccount(acc);
+			Accounts.writeAccountsInfo(); // let's save new accounts info to disk
 			client.sendLine("REGISTRATIONACCEPTED");
 		}
 		else if (commands[0].equals("UPTIME")) {
@@ -1110,8 +987,17 @@ public class TASServer {
 			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
 			if (commands.length != 2) return false;
 			
-			if (!removeAccount(commands[1])) return false;
-			writeAccountsInfo(); // let's save new accounts info to disk
+			if (!Accounts.removeAccount(commands[1])) return false;
+			
+			// if any user is connected to this account, kick him:
+			for (int j = 0; j < clients.size(); j++) {
+				if (((Client)clients.get(j)).account.user.equals(commands[1])) {
+					killClient((Client)clients.get(j));
+					j--;
+				}
+			}
+			
+			Accounts.writeAccountsInfo(); // let's save new accounts info to disk
 			client.sendLine("SERVERMSG You have successfully removed <" + commands[1] + "> account!");
 		}
 		else if (commands[0].equals("STOPSERVER")) {
@@ -1128,20 +1014,20 @@ public class TASServer {
 		else if (commands[0].equals("WRITEACCOUNTSINFO")) {
 			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
 			
-			writeAccountsInfo();
+			Accounts.writeAccountsInfo();
 			client.sendLine("SERVERMSG Accounts info successfully saved to disk");
 		}
 		else if (commands[0].equals("CHANGEACCOUNTPASS")) {
 			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
 			if (commands.length != 3) return false;
 			
-			Account acc = getAccount(commands[1]);
+			Account acc = Accounts.getAccount(commands[1]);
 			if (acc == null) return false; 
 			if (!Misc.isValidPass(commands[2])) return false;
 			
 			acc.pass = commands[2];
 			
-			writeAccountsInfo(); // save changes
+			Accounts.writeAccountsInfo(); // save changes
 			
 			// add server notification:
 			ServerNotification sn = new ServerNotification("Account password changed by admin");
@@ -1159,13 +1045,13 @@ public class TASServer {
 				return false; 
 			}
 			
-			Account acc = getAccount(commands[1]);
+			Account acc = Accounts.getAccount(commands[1]);
 			if (acc == null) return false; 
 			
 			int oldAccess = acc.access;
 			acc.access = value;
 			
-			writeAccountsInfo(); // save changes
+			Accounts.writeAccountsInfo(); // save changes
 			 // just in case if rank changed:
 			client.status = Misc.setRankToStatus(client.status, client.account.getRank());
 			notifyClientsOfNewClientStatus(client);
@@ -1180,7 +1066,7 @@ public class TASServer {
 			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
 			if (commands.length != 2) return false;
 
-			Account acc = getAccount(commands[1]);
+			Account acc = Accounts.getAccount(commands[1]);
 			if (acc == null) return false;
 			
 			client.sendLine("SERVERMSG " + commands[1] + "'s access code is " + acc.access);
@@ -1231,15 +1117,7 @@ public class TASServer {
 			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
 			if (commands.length != 1) return false;
 
-			client.sendLine("SERVERMSG " + accounts.size());
-		}
-		else if (commands[0].equals("FINDACCOUNT")) {
-			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
-			if (commands.length != 2) return false;
-			
-			int index = getAccountIndex(commands[1]);
-			
-			client.sendLine("SERVERMSG " + commands[1] + "'s account index: " + index);
+			client.sendLine("SERVERMSG " + Accounts.getAccountsSize());
 		}
 		else if (commands[0].equals("FINDIP")) {
 			if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) return false;
@@ -1267,17 +1145,17 @@ public class TASServer {
 			}
 				
 			// now let's check if this IP matches any recently used IP:
-			for (int i = 0; i < accounts.size(); i++) {
-				String[] sp2 = ((Account)accounts.get(i)).lastIP.split("\\.");
+			for (int i = 0; i < Accounts.getAccountsSize(); i++) {
+				String[] sp2 = Accounts.getAccount(i).lastIP.split("\\.");
 
 				if (!sp1[0].equals("*")) if (!sp1[0].equals(sp2[0])) continue;
 				if (!sp1[1].equals("*")) if (!sp1[1].equals(sp2[1])) continue;
 				if (!sp1[2].equals("*")) if (!sp1[2].equals(sp2[2])) continue;
 				if (!sp1[3].equals("*")) if (!sp1[3].equals(sp2[3])) continue;				
 
-				if (getClient(((Account)accounts.get(i)).user) == null) { // user is offline
+				if (getClient(Accounts.getAccount(i).user) == null) { // user is offline
 					found = true;
-					client.sendLine("SERVERMSG " + IP + " was recently bound to: "+ ((Account)accounts.get(i)).user + " (offline)");
+					client.sendLine("SERVERMSG " + IP + " was recently bound to: "+ Accounts.getAccount(i).user + " (offline)");
 				}
 			}			
 
@@ -1287,7 +1165,7 @@ public class TASServer {
 			if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) return false;
 			if (commands.length != 2) return false;
 			
-			Account acc = getAccount(commands[1]);
+			Account acc = Accounts.getAccount(commands[1]);
 			if (acc == null) {
 				client.sendLine("SERVERMSG User " + commands[1] + " not found!");
 				return false;
@@ -1300,15 +1178,13 @@ public class TASServer {
 			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
 			if (commands.length != 2) return false;
 			
-			int index;
-			try {
-				index = Integer.parseInt(commands[1]); 
-			} catch (NumberFormatException e) {
-				return false; 
+			Account acc = Accounts.getAccount(commands[1]);
+			if (acc == null) {
+				client.sendLine("SERVERMSG Account <" + commands[1] + "> does not exist.");
+				return false;
 			}
-			if (index >= accounts.size()) return false;
 
-			client.sendLine("SERVERMSG " + "Account #" + index + " info: " + ((Account)accounts.get(index)).user + " " + ((Account)accounts.get(index)).pass + " " + ((Account)accounts.get(index)).access);
+			client.sendLine("SERVERMSG Full account info for <" + acc.user + ">: " + acc.toString());
 		}
 		else if (commands[0].equals("FORGEMSG")) {
 			/* this command is used only for debugging purposes. It sends the string
@@ -1354,7 +1230,7 @@ public class TASServer {
 				} 
 				
 				if (commands.length != 2) return false;
-				Account acc = findAccount(commands[1]);
+				Account acc = Accounts.getAccount(commands[1]);
 				if (acc == null) {
 					client.sendLine("SERVERMSG " + "GETINGAMETIME failed: user " + commands[1] + " not found!");	
 					return false;
@@ -1581,7 +1457,7 @@ public class TASServer {
 			if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) return false;
 			if (commands.length != 2) return false;
 
-			Account acc = getAccount(commands[1]);
+			Account acc = Accounts.getAccount(commands[1]);
 			if (acc == null) {
 				client.sendLine("SERVERMSG GETLASTLOGINTIME failed: <" + commands[1] + "> not found!");
 				return false;
@@ -1773,19 +1649,19 @@ public class TASServer {
 				if (!acc.getAgreement()) {
 					// user has obviously accepted the agreement... Let's update it
 					acc.setAgreement(true);
-					writeAccountsInfo();
+					Accounts.writeAccountsInfo();
 				}
 				client.account = acc;
 				client.status = Misc.setRankToStatus(client.status, client.account.getRank());
 			} else { // LAN_MODE == true
-				Account acc = findAccount(commands[1]);
+				Account acc = Accounts.getAccount(commands[1]);
 				if (acc != null) {
 					client.sendLine("DENIED Player with same name already logged in");
 					return false;
 				}
 				if ((commands[1].equals(LanAdminUsername)) && (commands[2].equals(LanAdminPassword))) acc = new Account(commands[1], commands[2], Account.ADMIN_ACCESS, 0, "?", 0, new MapGradeList()); 
 				else acc = new Account(commands[1], commands[2], Account.NORMAL_ACCESS, 0, "?", 0, new MapGradeList());
-				accounts.add(acc);
+				Accounts.addAccount(acc);
 				client.account = acc;
 			}
 			
@@ -1847,7 +1723,7 @@ public class TASServer {
 				return false;
 			}			
 			
-			Account acc = findAccountNoCase(commands[1]);
+			Account acc = Accounts.getAccount(commands[1]);
 			if (acc != null) {
 				client.sendLine("SERVERMSG RENAMEACCOUNT failed: Account with same username already exists!");
 				return false;
@@ -1859,11 +1735,11 @@ public class TASServer {
 			}
 			
 			acc = new Account(commands[1], client.account.pass, client.account.access, System.currentTimeMillis(), client.IP, client.account.registrationDate, client.account.mapGrades);
-			accounts.add(acc);
+			Accounts.addAccount(acc);
 			client.sendLine("SERVERMSG Your account has been renamed to <" + commands[1] + ">. Reconnect with new account (you will now be automatically disconnected)!");
 			killClient(client, "Quit: renaming account");
-			removeAccount(client.account.user);
-			writeAccountsInfo(); // let's save new accounts info to disk
+			Accounts.removeAccount(client.account.user);
+			Accounts.writeAccountsInfo(); // let's save new accounts info to disk
 			sendToAllAdministrators("SERVERMSG [broadcast to all admins]: User <" + client.account.user + "> has just renamed his account to <" + commands[1] + ">");
 			
 			// add server notification:
@@ -1896,7 +1772,7 @@ public class TASServer {
 			
 			client.account.pass = commands[2];
 
-			writeAccountsInfo(); // let's save new accounts info to disk
+			Accounts.writeAccountsInfo(); // let's save new accounts info to disk
 			client.sendLine("SERVERMSG Your password has been successfully updated!");
 		}
 		else if (commands[0].equals("JOIN")) {
@@ -2852,7 +2728,7 @@ public class TASServer {
 		}
 
 		if (LAN_MODE) {
-			accounts.remove(client.account);
+			Accounts.removeAccount(client.account);
 		}
 		
 		return true;
@@ -2953,7 +2829,7 @@ public class TASServer {
 		System.out.println("TASServer " + VERSION + " started on " + Misc.easyDateFormat("yyyy.MM.dd 'at' hh:mm:ss z"));
 		
 		if (!LAN_MODE) {
-			readAccountsInfo();
+			Accounts.readAccountsInfo();
 			banList.loadFromFile(BAN_LIST_FILENAME);
 			readAgreement();
 		} else {
@@ -3014,7 +2890,7 @@ public class TASServer {
 		
 		// add server notification:
 		ServerNotification sn = new ServerNotification("Server started");
-		sn.addLine("Server has been started on port " + port + ". There are " + accounts.size() + " accounts currently loaded. See server log for more info.");
+		sn.addLine("Server has been started on port " + port + ". There are " + Accounts.getAccountsSize() + " accounts currently loaded. See server log for more info.");
 		ServerNotifications.addNotification(sn);
 		
 	    running = true;
@@ -3069,10 +2945,7 @@ public class TASServer {
 		    }
 		    
 		    // save accounts info to disk on regular intervals:
-		    if ((!LAN_MODE) && (System.currentTimeMillis() - lastSaveAccountsTime > saveAccountInfoInterval)) {
-		    	writeAccountsInfo();
-		    	// note: lastSaveAccountsTime will get updated in writeAccountsInfo() method!
-		    }
+		    Accounts.writeAccountsInfoIfNeeded();
 
 		    // purge mute lists of all channels on regular intervals:
 		    if (System.currentTimeMillis() - lastMutesPurgeTime > purgeMutesInterval) {
@@ -3090,7 +2963,7 @@ public class TASServer {
 	    }
 
 	    // close everything:
-		if (!LAN_MODE) writeAccountsInfo();
+		if (!LAN_MODE) Accounts.writeAccountsInfo();
 		if (helpUDPsrvr != null) helpUDPsrvr.stopServer();
 		if (LOG_MAIN_CHANNEL) try {
 			mainChanLog.close();
