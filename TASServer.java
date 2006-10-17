@@ -237,7 +237,7 @@ public class TASServer {
 	private static int MAX_TEAMS = 16; // max. teams/allies numbers supported by Spring 
 	
     private static final int BYTE_BUFFER_SIZE = 256; // the size doesn't really matter. Server will work with any size (tested it with BUFFER_LENGTH=1), but too small buffer may impact the performance.
-    private static final int SEND_BUFFER_SIZE = 65536 * 2; // socket's send buffer size
+    private static final int SEND_BUFFER_SIZE = 65536; // socket's send buffer size
     private static final long CHANNEL_WRITE_SLEEP = 20L;
     private static final long MAIN_LOOP_SLEEP = 10L;
     
@@ -252,8 +252,9 @@ public class TASServer {
     private static Selector readSelector;
     //***private static SelectionKey selectKey;
     private static boolean running;
-    private static ByteBuffer readBuffer = ByteBuffer.allocateDirect(BYTE_BUFFER_SIZE);
-    private static ByteBuffer writeBuffer = ByteBuffer.allocateDirect(BYTE_BUFFER_SIZE);
+    private static boolean USE_DIRECT_BUFFERS = true; // see http://java.sun.com/j2se/1.5.0/docs/api/java/nio/ByteBuffer.html for difference between direct and non-direct buffers. In this case we should use direct buffers, this is also used by the author of java.nio chat example (see links) upon which this code is builtd on.
+    private static ByteBuffer readBuffer = (USE_DIRECT_BUFFERS ? ByteBuffer.allocateDirect(BYTE_BUFFER_SIZE) : ByteBuffer.allocate(BYTE_BUFFER_SIZE));
+    private static ByteBuffer writeBuffer = (USE_DIRECT_BUFFERS ? ByteBuffer.allocateDirect(BYTE_BUFFER_SIZE) : ByteBuffer.allocate(BYTE_BUFFER_SIZE)); 
     private static CharsetDecoder asciiDecoder;
     
 	static Vector clients = new Vector();
@@ -1553,6 +1554,30 @@ public class TASServer {
 				client.sendLine("SERVERMSG Notification added.");
 			else
 				client.sendLine("SERVERMSG Error while adding notification! Notification not added.");
+		}
+		else if (commands[0].equals("GETSENDBUFFERSIZE")) {
+			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
+			if (commands.length != 2) {
+				client.sendLine("SERVERMSG Error: this method requires exactly 2 arguments!");
+				return false;
+			}
+
+			Client c = getClient(commands[1]);
+			if (c == null) {
+				client.sendLine("SERVERMSG Error: user <" + commands[1] + "> not found online!");
+				return false;
+			}
+			
+			int size;
+			try {
+				size = c.sockChan.socket().getSendBufferSize();
+			} catch (Exception e) {
+				// this could perhaps happen if user just disconnected or something
+				client.sendLine("SERVERMSG Error: exception raised while trying to get send buffer size for <" + commands[1] + ">!");
+				return false;
+			}
+			
+			client.sendLine("SERVERMSG Send buffer size for <" + c.account.user + "> is set to " + size + " bytes.");
 		}
 		else if (commands[0].equals("CHANNELS")) {
 			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
