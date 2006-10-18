@@ -35,8 +35,9 @@
       
         $lines = file('./' . $filename);
         $ltime = $lines[3] / 1000;
+        global $titles;
 
-        print "<table class='notification' border='0' frame='box' cellpadding='5'>";
+        print "<table class='notification' frame='box' cellpadding='5'>";
         print "  <tr>";
         print "    <th class='headercell nopad' width=\"150\">";
         // left-header content
@@ -46,6 +47,7 @@
         print "    <th class='headercell nopad'>";
         // right-header content
         print $lines[2]; // title
+        $titles[$lines[2]] += 1; // keep track of title count
         // end right-header content
         print "    </th>";
         print "  </tr>";
@@ -219,6 +221,8 @@
           	<?php print "<li><a href=\"notifs.php?date=" . ($time - 24 * 60 * 60) . "\" title=\"Previous day\">Current day - 1</a></li>" ?>
           	<?php print "<li><a href=\"notifs.php?date=" . ($time + 24 * 60 * 60) . "\" title=\"Next day\">Current day + 1</a></li>" ?>
           	<li><a href="http://taspring.clan-sy.com/stats" title="Server stats">Server stats</a></li>
+          	<li><a href="http://taspring.clan-sy.com:8202/notifs/searchlog.php" title="Search chat logs">Search chat logs</a></li>
+          	<li><a href="http://taspring.clan-sy.com" title="Spring web site">Spring web site</a></li>
           </ul>
 
           <?php
@@ -239,6 +243,20 @@
         print "<br>";
 
         displayAllNotifs(date("Ymd", $time));
+
+        print "<br /> <hr /> <br />";
+        print "List of notifications by type: <br><br>";
+
+        if (count($titles) == 0)
+          print "-- no notifications listed --";
+        else
+        {
+          foreach ($titles as $title => $c)
+          {
+            print "<b>{$title} ({$c})</b><br />";
+          }
+        }
+
       ?>
 
       <!-- end content -->

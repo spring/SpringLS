@@ -13,41 +13,57 @@
   -->
 
   <?php
-    function displayLog($username)
-    {
-//      $filename = "/home/betalord/ChanServ/logs/#main.log";
-      $filename = "/home/betalord/#main.log";
-      print "<p>Log for: \"{$username}\"</p>";
-      print "<p>Using file {$filename}.</p>";
-      print "<br>";
 
-/*
-      if (!file_exists($filename))
-      {
-        echo "Error: $filename does not exist! Unable to retrieve log.";
-        return false;
-      }
+    include ('functions.php');
+
+    function displaySearchForm() 
+    {
+      print "<p> Select one or more criteria and click Submit: </p>";
+
+      echo "  <form action='{$PHP_SELF}' method='post'>";
+      keywordBox();
+      echo "<br />";
+      minDateBox();
+      echo "<br />";
+      maxDateBox();
+      echo "<br />";
+      echo "<input type='submit' value='Submit' name='submit' />";
+      echo "  </form>";
+      
+      echo "<br><br>";
+      echo "Note 1: to search for all entries made by user Joe, use \"Joe>\" as keyword criterion.<br>";
+      echo "Note 2: to specify time interval, select both min. and max. date criteria.";
+
+    }
+
+    function displayLog($keyword, $mindate, $maxdate)
+    {
+      $filename = "/home/betalord/ChanServ/logs/#main.log";
+//      $filename = "/home/betalord/#main.log";
+//      $filename = "/home/betalord/ChanServ/logs/#slo.log";
+      print "<p>Using file {$filename}.</p>";
+      print "<p>Time stamps are relative to CET - Central European Time.</p>";
+      print "<br>";
+      print "Search results:";
+      print "<hr />";
 
       $count = 0;
-      $handle = @fopen($filename, "r");
-      if ($handle)
-      {
-         while (!feof($handle)) {
-           $buffer = fgets($handle, 1024);
 
-           if (strpos($buffer, $username) !== false)
-           {
-             $count += 1;
-             echo htmlspecialchars(rtrim($buffer)) . "<br>\n";
-             if ($count % 100 == 0)
-             {
-               ob_flush();
-               flush();
-             }
-           }
-         }
+      $command = "./searchlog " . $filename;
+      if (strlen($keyword) > 0) $command = $command . " k " . '"' . $keyword . '"';
+      if ($mindate != 0) $command = $command . " m " . $mindate;
+      if ($maxdate != 0) $command = $command . " M " . $maxdate;
+
+      $handle = popen($command, "r");
+      while (!feof($handle))
+      {
+        $read = fgets($handle, 1024);
+        if (feof($handle)) continue;
+//        echo "<i>" . htmlspecialchars(rtrim($read)) . "</i><br>";
+        echo htmlspecialchars(rtrim($read)) . "<br>";
+        $count += 1;
       }
-      fclose($handle);
+      pclose($handle);
 
       if ($count == 0)
       {
@@ -55,39 +71,54 @@
         return false;
       }
 
+      print "<hr />";
       echo "<br> $count lines mathing search criteria. <br> End of file.";
-*/
-
-
-//      passthru("./a.out " . $filename . " " . $username);
-      $handle = popen("./searchlog " . $filename . " \"" . $username . "\"", "r");
-      while (!feof($handle))
-      {
-        $read = fgets($handle, 1024);
-        echo htmlspecialchars(rtrim($read)) . "<br>";
-      }
-      pclose($handle);
-
-      echo "<br> End of stream!";
-
-      //*** Trenutno ne dela z velikimi fajli, recimo #main,
-      //*** prav tako moram naštimat zadevo da sproducira utf-8, ker se šumnikov ne vidi.
-      //*** dodaj "hint" na koncu, naj ljudje uporabijo "nickname>" convention!
-      //*** v notifs.php poštimi, ker frame='box' ne dela. Primer je tu: http://www.w3schools.com/html/tryit.asp?filename=tryhtml_table_frame,
-      //***   sicer pa za združevanje celic (kul pomoje, lahko uporabim): http://www.w3schools.com/html/tryit.asp?filename=tryhtml_table_span
     }
 
-    if ($_POST['username']) {
-      displayLog($_POST['username']);
+    if ($_POST['submit']) {
+      if ((!isset($_POST['usekeyword'])) && (!isset($_POST['usemindate'])) && (!isset($_POST['usemaxdate'])))
+      {
+        echo '<font color="#FF0000"><b>Error: at least one search criterion must be selected!</b></font><br>';
+        displaySearchForm();
+      } else if ((isset($_POST['usemindate'])) && (!checkDate($_POST['min_month'], $_POST['min_day'], $_POST['min_year']))) {
+        echo '<font color="#FF0000"><b>Error: minimum date is not valid!</b></font><br>';
+        displaySearchForm();
+      } else if ((isset($_POST['usemaxdate'])) && (!checkDate($_POST['max_month'], $_POST['max_day'], $_POST['max_year']))) {
+        echo '<font color="#FF0000"><b>Error: maximum date is not valid!</b></font><br>';
+        displaySearchForm();
+      } else if ((isset($_POST['usekeyword'])) && (strlen($_POST['keyword']) > 255)) {
+        echo '<font color="#FF0000"><b>Error: search keyword too long!</b></font><br>';
+        displaySearchForm();
+      } else {
+        // everything is fine, display the results now:
+        if (isset($_POST['usekeyword'])) {
+          echo "Keyword: " . $_POST['keyword'] . "<br>";
+        }
+
+        if (isset($_POST['usemindate'])) {
+          echo "Min. date: " . date("Y-F-d, H:i:s", mktime($_POST['min_hour'], $_POST['min_min'], $_POST['min_sec'], $_POST['min_month'], $_POST['min_day'], $_POST['min_year'])) . "<br>";
+        }
+
+        if (isset($_POST['usemaxdate'])) {
+          echo "Max. date: " . date("Y-F-d, H:i:s", mktime($_POST['max_hour'], $_POST['max_min'], $_POST['max_sec'], $_POST['max_month'], $_POST['max_day'], $_POST['max_year'])) . "<br>";
+        }
+
+        $keyword = (isset($_POST['usekeyword']) ? $_POST['keyword'] : "");
+        $mindate = (isset($_POST['usemindate']) ? mktime($_POST['min_hour'], $_POST['min_min'], $_POST['min_sec'], $_POST['min_month'], $_POST['min_day'], $_POST['min_year']) : 0);
+        $maxdate = (isset($_POST['usemaxdate']) ? mktime($_POST['max_hour'], $_POST['max_min'], $_POST['max_sec'], $_POST['max_month'], $_POST['max_day'], $_POST['max_year']) : 0);
+
+        /*
+        problem:
+        ura je za -2 zamaknjena, verjetno zarad gmt+2 trenutno?
+        */
+
+        displayLog($keyword, $mindate, $maxdate);
+      }
     } else {
-      print "<form action='test.php' method='post'>";
-      print "Username (or part of): <input type='text' name='username' />";
-      print "<input type='submit' />";
-      print "</form>";
+      displaySearchForm();
     }
 
   ?>
-
 
   </body>
 </html>
