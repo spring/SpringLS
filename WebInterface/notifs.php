@@ -52,14 +52,14 @@
         print "    </th>";
         print "  </tr>";
         print "  <tr>";
-        print "    <td width=\"150\" align='left' valign='top'>";
+        print "    <td width=\"150\" align='left' valign='top' id='notif_leftcell'>";
         // left-cell content
         print "      Time: " . date("G:i:s (O)", $ltime) . "<br><br>";
 //        print "      Date: " . date("Y-m-d", $ltime) . "<br><br>";
         print "      Author: " . $lines[1] . "<br>";
         // end left-cell content
         print "    </td>";
-        print "    <td>";
+        print "    <td id='notif_rightcell'>";
         // right-cell content
         for($i = 4; $i < count($lines); $i += 1) {
           //echo "Line #<b>" . ($i-2) . "</b> : " . htmlspecialchars(rtrim($lines[$i])) . "<br />\n";
@@ -130,60 +130,6 @@
     }
     */
   ?>
-
-
-<!--
-  <table id="navigation">
-  	<tr>
-    	<td class="tnav">
-    	  <?php
-    	    print "<a class=\"navlink_prev_next\" href=\"notifs.php?date=" . $prevNext . ">&nbsp;&#60;&#151; Prev. week&nbsp;</a>"
-    	  ?>
-
-    	  |
-    		<a class="navlink" href="notifs.php?date=x">&nbsp;Mon&nbsp;</a>
-    		|
-    		<a class="navlink_selected" href="notifs.php?date=x">&nbsp;Tue&nbsp;</a>
-    		|
-    		<a class="navlink" href="notifs.php?date=x">&nbsp;Wed&nbsp;</a>
-    		|
-    		<a class="navlink" href="notifs.php?date=x">&nbsp;Thu&nbsp;</a>
-    		|
-    		<a class="navlink" href="notifs.php?date=x">&nbsp;Fri&nbsp;</a>
-    		|
-    		<a class="navlink" href="notifs.php?date=x">&nbsp;Sat&nbsp;</a>
-    		|
-    		<a class="navlink" href="notifs.php?date=x">&nbsp;Sun&nbsp;</a>
-    		|
-    		<a class="navlink_prev_next" href="notifs.php?date=x">Next week &#151;&#62;&nbsp;</a>
-  		</td>
-  	</tr>
-	</table>
-
-	<div id="topmenu">
-    <ul id="mainlevel-nav">
-      <li><a href="http://demo.opensourcecms.com/mambo/" class="mainlevel-nav" >Contact Us</a></li>
-      <li><a href="http://demo.opensourcecms.com/mambo/" class="mainlevel-nav" >Home</a></li>
-    </ul>
-  </div>
-
--->
-
-
-<!--
-<div>
-  <script type='text/javascript' src='/e107/e107_files/nav_menu_alt.js'></script>
-  <div class='menuBar' style='width:100%; white-space: nowrap'>
-    <a class='menuButton' href='/e107/index.php' style='background-image: url(/e107/e107_themes/jayya/images/arrow.png); background-repeat: no-repeat; background-position: 3px 1px; white-space: nowrap' >Home</a>
-    <a class='menuButton' href='/e107/download.php' style='background-image: url(/e107/e107_themes/jayya/images/arrow.png); background-repeat: no-repeat; background-position: 3px 1px; white-space: nowrap' >Downloads</a>
-    <a class='menuButton' href='/e107/user.php' style='background-image: url(/e107/e107_themes/jayya/images/arrow.png); background-repeat: no-repeat; background-position: 3px 1px; white-space: nowrap' >Members</a>
-    <a class='menuButton' href='/e107/submitnews.php' style='background-image: url(/e107/e107_themes/jayya/images/arrow.png); background-repeat: no-repeat; background-position: 3px 1px; white-space: nowrap' >Submit News</a>
-  </div>
-</div>
-
-  <div id="bittopbar"><a accesskey="h" href="/">Home</a><a href="/articles/45">Download</a><a href="/wiki/documentation">Documentation</a><a href="/wiki/support">Support</a><a href="/wiki/developer+center">Community</a><a href="http://www.opensourcecms.com/index.php?option=com_content&amp;task=view&amp;id=2155&amp;PHPSESSID=c7c8f321cab4f67b9dca147abcee97b3">Demo</a></div>
-
--->
 
 
   <table width="100%" border="0" cellspacing="0" cellpadding="10">

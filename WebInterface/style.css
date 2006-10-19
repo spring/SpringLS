@@ -3,31 +3,6 @@
 	margin:0;
 }
 
-table#navigation {
-  margin-left: 15pt;
-  background-color:#FAEBD7;
-  font-family: arial, 'sans serif';
-}
-
-.navlink
-{
-	color: #000000;
-	text-decoration: none;
-}
-
-.navlink_selected
-{
-	color: #000000;
-	text-decoration: none;
-  background-color:#CCFFCC;
-}
-
-.navlink_prev_next
-{
-	color: #0000FF;
-	text-decoration: none;
-}
-
 td.content {
 	background:#FFFFFF;
 }
@@ -91,6 +66,14 @@ table.notification {
 .headercell {
   background: #43464e;
   color: #EEEEEE; /** CCFF33 **/
+}
+
+table.notification #notif_leftcell {
+  background-color: #FAEBD7;
+}
+
+table.notification #notif_rightcell {
+  background-color: #F0F8FF;
 }
 
 /** code below copied from MAMBO! **/

@@ -49,7 +49,7 @@
 
       $count = 0;
 
-      $command = "./searchlog " . $filename;
+      $command = "TZ=UTC ./searchlog " . $filename;
       if (strlen($keyword) > 0) $command = $command . " k " . '"' . $keyword . '"';
       if ($mindate != 0) $command = $command . " m " . $mindate;
       if ($maxdate != 0) $command = $command . " M " . $maxdate;
@@ -91,6 +91,10 @@
         displaySearchForm();
       } else {
         // everything is fine, display the results now:
+        $keyword = (isset($_POST['usekeyword']) ? $_POST['keyword'] : "");
+        $mindate = (isset($_POST['usemindate']) ? gmmktime($_POST['min_hour'], $_POST['min_min'], $_POST['min_sec'], $_POST['min_month'], $_POST['min_day'], $_POST['min_year']) : 0);
+        $maxdate = (isset($_POST['usemaxdate']) ? gmmktime($_POST['max_hour'], $_POST['max_min'], $_POST['max_sec'], $_POST['max_month'], $_POST['max_day'], $_POST['max_year']) : 0);
+
         if (isset($_POST['usekeyword'])) {
           echo "Keyword: " . $_POST['keyword'] . "<br>";
         }
@@ -102,15 +106,6 @@
         if (isset($_POST['usemaxdate'])) {
           echo "Max. date: " . date("Y-F-d, H:i:s", mktime($_POST['max_hour'], $_POST['max_min'], $_POST['max_sec'], $_POST['max_month'], $_POST['max_day'], $_POST['max_year'])) . "<br>";
         }
-
-        $keyword = (isset($_POST['usekeyword']) ? $_POST['keyword'] : "");
-        $mindate = (isset($_POST['usemindate']) ? mktime($_POST['min_hour'], $_POST['min_min'], $_POST['min_sec'], $_POST['min_month'], $_POST['min_day'], $_POST['min_year']) : 0);
-        $maxdate = (isset($_POST['usemaxdate']) ? mktime($_POST['max_hour'], $_POST['max_min'], $_POST['max_sec'], $_POST['max_month'], $_POST['max_day'], $_POST['max_year']) : 0);
-
-        /*
-        problem:
-        ura je za -2 zamaknjena, verjetno zarad gmt+2 trenutno?
-        */
 
         displayLog($keyword, $mindate, $maxdate);
       }
