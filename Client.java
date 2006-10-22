@@ -80,6 +80,17 @@ public class Client {
 				TASServer.killList.add(this);
 				return false;
 			}
+		} catch (ChannelWriteTimeoutException e) {
+    		System.out.println("WARNING: channelWrite() timed out. Disconnecting client ...");
+			TASServer.sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Serious problem: channelWrite() timed out [" + IP + ", <" + account.user + ">]");
+			
+			// add server notification:
+			ServerNotification sn = new ServerNotification("channelWrite() timeout");
+			sn.addLine("Serious problem detected: channelWrite() has timed out.");
+			sn.addLine("Client: " + IP + "(" + (account.user.equals("") ? "user not logged in" : account.user) + ")");
+			ServerNotifications.addNotification(sn);
+			TASServer.killClient(this, "channelWrite() timed out");
+			
 		} catch (Exception e) {
 			System.out.println("Error writing to socket. Line not sent! Killing the client next loop...");
 			TASServer.killList.add(this);

@@ -22,7 +22,6 @@ import java.util.*;
 
 public class NATHelpServer extends Thread {
 
-	private boolean running = false;
 	private DatagramSocket socket = null;
 	private int port;
 	static public Vector msgList = new Vector(); // must be thread-safe
@@ -35,14 +34,15 @@ public class NATHelpServer extends Thread {
 		try {
 			socket = new DatagramSocket(port);
 		} catch (Exception e) {
+			System.out.println("Unable to start UDP server on port " + port + ". Ignoring ...");
 			return ;
 		}
 		
-		running = true;
 		System.out.println("UDP server started on port " + port);
 		
-		while (running) {
+		while (true) {
 	        try {
+	        	if (isInterrupted()) break;
 	            byte[] buf = new byte[256];
 
 	            // receive packet
@@ -50,18 +50,23 @@ public class NATHelpServer extends Thread {
 	            socket.receive(packet);
 	            msgList.add(packet);
 	        } catch (IOException e) {
-	        	System.out.println("ERROR in UDP NAT server. Stack trace:");
-	            e.printStackTrace();
+	            if (e.getMessage().equals("socket closed")) {
+	            	// server stopped gracefully!
+	            } else {
+		        	System.out.println("ERROR in UDP server. Stack trace:");
+		            e.printStackTrace();
+	            }
 	        }
 		}
 
 		socket.close();
-		running = false;
+    	System.out.println("UDP NAT server closed.");
 	}
 	
 	public void stopServer() {
-		if (!running) return ;
-		running = false;
+		if (isInterrupted()) return; // already in process of shutting down
+		interrupt();
+		socket.close();
 	}
 
 }

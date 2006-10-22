@@ -321,7 +321,13 @@ public class TASServer {
 	public static void closeServerAndExit() {
 		System.out.println("Server stopped.");
 		if (!LAN_MODE) Accounts.writeAccountsInfo();
-		if (helpUDPsrvr != null) helpUDPsrvr.stopServer();
+		if (helpUDPsrvr.isAlive()) {
+			helpUDPsrvr.stopServer();
+			try {
+				helpUDPsrvr.join(1000); // give it 1 second to shut down gracefully
+		    } catch (InterruptedException e) {
+		    }
+		}
 		if (LOG_MAIN_CHANNEL) try {
 			mainChanLog.close();
 
@@ -537,7 +543,7 @@ public class TASServer {
 		return true;
 	}
 	
-	private static void channelWrite(SocketChannel channel, ByteBuffer writeBuffer) {
+	private static void channelWrite(SocketChannel channel, ByteBuffer writeBuffer) throws ChannelWriteTimeoutException {
 		long nbytes = 0;
 		long toWrite = writeBuffer.remaining();
 		long time = System.currentTimeMillis();
@@ -556,52 +562,32 @@ public class TASServer {
 			    	}
 		    	}
 			
-		    	if (System.currentTimeMillis() - time > 1000) {
-		    		System.out.println("WARNING: channelWrite() timed out. Ignoring ...");
-					sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Serious problem: channelWrite() timed out [" + channel.socket().getInetAddress().getHostAddress() + "]");
-					
-					// add server notification:
-					ServerNotification sn = new ServerNotification("channelWrite() timeout");
-					sn.addLine("Serious problem detected: channelWrite() has timed out.");
-					sn.addLine("Client IP: " + channel.socket().getInetAddress().getHostAddress() + ". Users currently using this IP:");
-					boolean found = false;
-					for (int i = 0; i < clients.size(); i++)
-						if (((Client)clients.get(i)).IP.equals(channel.socket().getInetAddress().getHostAddress())) {
-							sn.addLine("* " + ((Client)clients.get(i)).account.user);
-							found = true;
-						}
-					if (!found) sn.addLine("[none]");	
-					ServerNotifications.addNotification(sn);
-					
-		    		return ;
-		    	}
+		    	if (System.currentTimeMillis() - time > 1000) throw new ChannelWriteTimeoutException();
 		    }
 		} catch (ClosedChannelException cce) {
-		} catch (Exception e) {
-		} 
+			// do nothing
+		} catch (IOException io) {
+			// do nothing
+		}  
 		
 		// get ready for another write if needed
 		writeBuffer.rewind();
 	}
 	
-	public static boolean sendLineToSocketChannel(String line, SocketChannel channel) {
+	public static boolean sendLineToSocketChannel(String line, SocketChannel channel) throws ChannelWriteTimeoutException {
 		String data = line + '\n';
 		
 		while (data.length() > 0) {
 			String temp = data.substring(0, Math.min(BYTE_BUFFER_SIZE, data.length())); // extract the string from data
 			if (temp.length() == data.length()) data = ""; else data = data.substring(temp.length(), data.length());
-			try {
-				if (!prepWriteBuffer(temp)) return false;
+			if (!prepWriteBuffer(temp)) return false;
 
-				if ((channel == null) || (!channel.isConnected())) {
-					System.out.println("WARNING: SocketChannel is not ready to be written to. Ignoring ...");
-				    return false;
-				}
-				
-				channelWrite(channel, writeBuffer);
-			} catch (Exception e) {
-				return false;
+			if ((channel == null) || (!channel.isConnected())) {
+				System.out.println("WARNING: SocketChannel is not ready to be written to. Ignoring ...");
+			    return false;
 			}
+				
+			channelWrite(channel, writeBuffer);
 		}
 		
 		return true;
@@ -2989,7 +2975,13 @@ public class TASServer {
 
 	    // close everything:
 		if (!LAN_MODE) Accounts.writeAccountsInfo();
-		if (helpUDPsrvr != null) helpUDPsrvr.stopServer();
+		if (helpUDPsrvr.isAlive()) {
+			helpUDPsrvr.stopServer();
+			try {
+				helpUDPsrvr.join(1000); // give it 1 second to shut down gracefully
+		    } catch (InterruptedException e) {
+		    }
+		}
 		if (LOG_MAIN_CHANNEL) try {
 			mainChanLog.close();
 		} catch (Exception e) {
