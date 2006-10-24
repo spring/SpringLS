@@ -17,16 +17,13 @@
  */
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.TreeMap;
-import java.util.Vector;
+import java.util.*;
 
 public class Accounts {
-	private static Vector accounts = new Vector();
+	private static ArrayList accounts = new ArrayList(); // note: ArrayList is not synchronized! Use Vector class instead if multiple threads are to access it.
+	private static SaveAccountsThread saveAccountsThread = null;
 	
 	// 'map' is used to speed up searching for accounts by username (TreeMap class implements very fast Red-Black trees)
 	private static TreeMap map = new TreeMap(
@@ -38,7 +35,7 @@ public class Accounts {
               }
       );
 
-	// same as 'map', only difference is that is ignores case
+	// same as 'map', only difference is that it ignores case
 	private static TreeMap mapNoCase = new TreeMap(
             new java.util.Comparator () {
                 public int compare(Object obj1, Object obj2)
@@ -55,8 +52,8 @@ public class Accounts {
 		return accounts.size();
 	}
 	
-	/* (re)loads accounts information from disk */
-	public static boolean readAccountsInfo()
+	/* (re)loads accounts from disk */
+	public static boolean loadAccounts()
 	{
 		try {
 			BufferedReader in = new BufferedReader(new FileReader(TASServer.ACCOUNTS_INFO_FILEPATH));
@@ -92,36 +89,32 @@ public class Accounts {
 		return true;
 	}
 	
-	public static boolean writeAccountsInfo()
-	{
+	/* if block==false, this method will spawn a new thread which will save the accounts,
+	 * so this method can return immediately (non-blocking mode). If block==true, it will
+	 * not return until accounts have been saved to disk. */
+	public static void saveAccounts(boolean block) {
+		if ((saveAccountsThread != null) && (saveAccountsThread.isAlive())) return; // already in progress. Let's just skip it ...
+		
 		lastSaveAccountsTime = System.currentTimeMillis();
-		
-		try {
-			PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(TASServer.ACCOUNTS_INFO_FILEPATH)));			
+		saveAccountsThread = new SaveAccountsThread((List)accounts.clone());
+		saveAccountsThread.start();
 
-			for (int i = 0; i < accounts.size(); i++)
-			{
-				out.println(accounts.get(i).toString());
-			}
-			
-			out.close();
-			
-		} catch (IOException e) {
-			System.out.println("IOException error while trying to write accounts info to " + TASServer.ACCOUNTS_INFO_FILEPATH + "!");
-			return false;
-		}
+		if (block) {
+			try {
+				saveAccountsThread.join(); // wait until thread returns
+		    } catch (InterruptedException e) {
+		    }
+		}		
 		
-		System.out.println(accounts.size() + " accounts information written to " + TASServer.ACCOUNTS_INFO_FILEPATH + ".");
-		
-		return true;
+		lastSaveAccountsTime = System.currentTimeMillis();
 	}
 	
-	/* will call saveAccountsInfo() only if it hasn't been saved for some time.
+	/* will call saveAccounts() only if they haven't been saved for some time.
 	 * This method should be called periodically! */
-	public static void writeAccountsInfoIfNeeded() {
+	public static void saveAccountsIfNeeded() {
 	    if ((!TASServer.LAN_MODE) && (System.currentTimeMillis() - lastSaveAccountsTime > saveAccountInfoInterval)) {
-	    	writeAccountsInfo();
-	    	// note: lastSaveAccountsTime will get updated in writeAccountsInfo() method!
+	    	saveAccounts(false);
+	    	// note: lastSaveAccountsTime will get updated in saveAccounts() method!
 	    }
 	}
 	
@@ -143,23 +136,18 @@ public class Accounts {
 		return true;
 	}
 	
-	public static boolean removeAccount(String username) {
-		Account acc = getAccount(username);
-		if (acc == null) return false;
-		
-		accounts.remove(acc);
-		map.remove(acc.user);
-		mapNoCase.remove(acc.user);
-		
-		return true;
-	}	
-	
 	public static boolean removeAccount(Account acc) {
 		boolean result = accounts.remove(acc);
 		map.remove(acc.user);
 		mapNoCase.remove(acc.user);
 		return result;
 	}
+	
+	public static boolean removeAccount(String username) {
+		Account acc = getAccount(username);
+		if (acc == null) return false;
+		return removeAccount(acc);
+	}	
 
 	// returns null if account is not found:
 	public static Account getAccount(String username) {

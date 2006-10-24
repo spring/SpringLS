@@ -320,7 +320,7 @@ public class TASServer {
 	
 	public static void closeServerAndExit() {
 		System.out.println("Server stopped.");
-		if (!LAN_MODE) Accounts.writeAccountsInfo();
+		if (!LAN_MODE) Accounts.saveAccounts(true);
 		if (helpUDPsrvr.isAlive()) {
 			helpUDPsrvr.stopServer();
 			try {
@@ -944,7 +944,7 @@ public class TASServer {
 			
 			acc = new Account(commands[1], commands[2], Account.NORMAL_ACCESS, System.currentTimeMillis(), client.IP, System.currentTimeMillis(), new MapGradeList());
 			Accounts.addAccount(acc);
-			Accounts.writeAccountsInfo(); // let's save new accounts info to disk
+			Accounts.saveAccounts(false); // let's save new accounts info to disk
 			client.sendLine("REGISTRATIONACCEPTED");
 		}
 		else if (commands[0].equals("UPTIME")) {
@@ -984,7 +984,7 @@ public class TASServer {
 				}
 			}
 			
-			Accounts.writeAccountsInfo(); // let's save new accounts info to disk
+			Accounts.saveAccounts(false); // let's save new accounts info to disk
 			client.sendLine("SERVERMSG You have successfully removed <" + commands[1] + "> account!");
 		}
 		else if (commands[0].equals("STOPSERVER")) {
@@ -998,11 +998,11 @@ public class TASServer {
 			
 			closeServerAndExit();
 		}
-		else if (commands[0].equals("WRITEACCOUNTSINFO")) {
+		else if (commands[0].equals("SAVEACCOUNTS")) {
 			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
 			
-			Accounts.writeAccountsInfo();
-			client.sendLine("SERVERMSG Accounts info successfully saved to disk");
+			Accounts.saveAccounts(false);
+			client.sendLine("SERVERMSG Accounts will be saved in a background thread.");
 		}
 		else if (commands[0].equals("CHANGEACCOUNTPASS")) {
 			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
@@ -1014,7 +1014,7 @@ public class TASServer {
 			
 			acc.pass = commands[2];
 			
-			Accounts.writeAccountsInfo(); // save changes
+			Accounts.saveAccounts(false); // save changes
 			
 			// add server notification:
 			ServerNotification sn = new ServerNotification("Account password changed by admin");
@@ -1038,7 +1038,7 @@ public class TASServer {
 			int oldAccess = acc.access;
 			acc.access = value;
 			
-			Accounts.writeAccountsInfo(); // save changes
+			Accounts.saveAccounts(false); // save changes
 			 // just in case if rank changed:
 			client.status = Misc.setRankToStatus(client.status, client.account.getRank());
 			notifyClientsOfNewClientStatus(client);
@@ -1660,7 +1660,7 @@ public class TASServer {
 				if (!acc.getAgreement()) {
 					// user has obviously accepted the agreement... Let's update it
 					acc.setAgreement(true);
-					Accounts.writeAccountsInfo();
+					Accounts.saveAccounts(false);
 				}
 				client.account = acc;
 				client.status = Misc.setRankToStatus(client.status, client.account.getRank());
@@ -1750,7 +1750,7 @@ public class TASServer {
 			client.sendLine("SERVERMSG Your account has been renamed to <" + commands[1] + ">. Reconnect with new account (you will now be automatically disconnected)!");
 			killClient(client, "Quit: renaming account");
 			Accounts.removeAccount(client.account.user);
-			Accounts.writeAccountsInfo(); // let's save new accounts info to disk
+			Accounts.saveAccounts(false); // let's save new accounts info to disk
 			sendToAllAdministrators("SERVERMSG [broadcast to all admins]: User <" + client.account.user + "> has just renamed his account to <" + commands[1] + ">");
 			
 			// add server notification:
@@ -1783,7 +1783,7 @@ public class TASServer {
 			
 			client.account.pass = commands[2];
 
-			Accounts.writeAccountsInfo(); // let's save new accounts info to disk
+			Accounts.saveAccounts(false); // let's save new accounts info to disk
 			client.sendLine("SERVERMSG Your password has been successfully updated!");
 		}
 		else if (commands[0].equals("JOIN")) {
@@ -2840,7 +2840,7 @@ public class TASServer {
 		System.out.println("TASServer " + VERSION + " started on " + Misc.easyDateFormat("yyyy.MM.dd 'at' hh:mm:ss z"));
 		
 		if (!LAN_MODE) {
-			Accounts.readAccountsInfo();
+			Accounts.loadAccounts();
 			banList.loadFromFile(BAN_LIST_FILENAME);
 			readAgreement();
 		} else {
@@ -2956,7 +2956,7 @@ public class TASServer {
 		    }
 		    
 		    // save accounts info to disk on regular intervals:
-		    Accounts.writeAccountsInfoIfNeeded();
+		    Accounts.saveAccountsIfNeeded();
 
 		    // purge mute lists of all channels on regular intervals:
 		    if (System.currentTimeMillis() - lastMutesPurgeTime > purgeMutesInterval) {
@@ -2974,7 +2974,7 @@ public class TASServer {
 	    }
 
 	    // close everything:
-		if (!LAN_MODE) Accounts.writeAccountsInfo();
+		if (!LAN_MODE) Accounts.saveAccounts(true);
 		if (helpUDPsrvr.isAlive()) {
 			helpUDPsrvr.stopServer();
 			try {
