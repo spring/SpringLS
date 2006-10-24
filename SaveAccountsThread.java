@@ -1,5 +1,17 @@
 /*
  * Created on 2006.10.21
+ * 
+ * Note that it is vital that everything here is synchronized with main server thread.
+ * Currently dupAccounts list is cloned from original accounts list so we don't have
+ * to worry about thread-safety here (this is the easiest way since otherwise we would
+ * have to make sure no account is added or removed while we are saving accounts to disk).
+ * The second thing for which we must ensure thread-safety is Account.toString() method.
+ * The only problem with Account.toString() method is calling MapGradeList.toString()
+ * method, which could potentially cause problems (other fields used in Account.toString()
+ * are mostly atomic or if they are not it doesn't hurt us really - example is 'long' type, 
+ * which consists of two 32 bit ints and is thus not atomic, but it won't cause corruption
+ * in accounts file as it is used right now). So it is essential to ensure that MapGrading
+ * class is thread-safe (or at least its toString() method is).
  *  
  */
 

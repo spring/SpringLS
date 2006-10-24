@@ -170,6 +170,11 @@
  * 
  * Source for some simple threaded UDP server: http://java.sun.com/docs/books/tutorial/networking/datagrams/example-1dot1/QuoteServerThread.java
  * 
+ * How to properly document thread-safety when writing classes: http://www-128.ibm.com/developerworks/java/library/j-jtp09263.html
+ * 
+ * Good article on immutables (like String etc.): http://macchiato.com/columns/Durable2.html
+ * 
+ * General info on thread-safety in java: http://mindprod.com/jgloss/threadsafe.html
  * 
  * ---- NAT TRAVERSAL ----
  * 

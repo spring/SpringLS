@@ -4,6 +4,10 @@
  * TODO To change the template for this generated file go to
  * Window - Preferences - Java - Code Style - Code Templates
  * 
+ * Note: MapGradeList class is THREAD-SAFE! Make sure you don't break
+ * its thread-safety since it is needed as saveAccounts() method saves
+ * accounts in a separate thread.
+ * 
  */
 
 /**
@@ -16,17 +20,17 @@
 import java.util.*;
 
 public class MapGradeList {
-	private Vector/*MapGrade*/ list;
+	private Vector/*MapGrade*/ list; // must be thread-safe list in order to ensure class'es thread-safety
 
 	public MapGradeList() {
 		list = new Vector();
 	}
 	
-	public boolean add(MapGrade mg) {
+	public synchronized boolean add(MapGrade mg) {
 		return list.add(mg);
 	}
 	
-	public boolean remove(MapGrade mg) {
+	public synchronized boolean remove(MapGrade mg) {
 		return list.remove(mg);
 	}
 	
@@ -42,13 +46,13 @@ public class MapGradeList {
 		return list.size();
 	}
 	
-	public MapGrade findMapGrade(String mapHash) {
+	public synchronized MapGrade findMapGrade(String mapHash) {
 		for (int i = 0; i < list.size(); i++)
 			if (((MapGrade)list.get(i)).hash.equals(mapHash)) return (MapGrade)list.get(i);
 		return null;
 	}
 
-	public String toString() {
+	public synchronized String toString() {
 		if (list.size() == 0) return "";
 		else {
 			String result = "";

@@ -91,7 +91,7 @@ public class Account {
 	}
 	
 	public String toString() {
-		return user + " " + pass + " " + Integer.toString(access, 2) + " " + lastLogin + " " + lastIP + " " + registrationDate + " " + mapGrades.toString(); 
+		return user + " " + pass + " " + Integer.toString(access, 2) + " " + lastLogin + " " + lastIP + " " + registrationDate + " " + mapGrades.toString();
 	}
 	
 	public boolean equals(Object o) {
