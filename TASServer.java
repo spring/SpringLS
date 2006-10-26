@@ -238,7 +238,7 @@ public class TASServer {
 	static long purgeMutesInterval = 1000 * 3; // in miliseconds. On this interval, all channels' mute lists will be checked for expirations and purged accordingly. 
 	static long lastMutesPurgeTime = System.currentTimeMillis(); // time when we last purged mute lists of all channels
 	static String[] reservedAccountNames = {"TASServer", "Server", "server"}; // accounts with these names cannot be registered (since they may be used internally by the server) 
-	
+	static final long minSleepTimeBetweenMapGrades = 5; // minimum time (in seconds) required between two consecutive MAPGRADES command sent by the client. We need this to ensure that client doesn't send MAPGRADES command too often as it creates much load on the server.
 	private static int MAX_TEAMS = 16; // max. teams/allies numbers supported by Spring 
 	
     private static final int BYTE_BUFFER_SIZE = 256; // the size doesn't really matter. Server will work with any size (tested it with BUFFER_LENGTH=1), but too small buffer may impact the performance.
@@ -2652,12 +2652,20 @@ public class TASServer {
 			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
 			
 			if (LAN_MODE) {
-				client.sendLine("SERVERMSGBOX Unable to synchronize map grades - server is running in LAN mode!");
+				client.sendLine("MAPGRADESFAILED Unable to synchronize map grades - server is running in LAN mode!");
 				return false;
 			}
 
 			String[] tokens = Misc.makeSentence(commands, 1).split(" ");
-			if (tokens.length % 2 != 0) return false;
+			if (tokens.length % 2 != 0) {
+				client.sendLine("MAPGRADESFAILED Invalid params to MAPGRADES command!");
+				return false;
+			}
+			
+			if (System.currentTimeMillis() - client.lastMapGradesReceived < minSleepTimeBetweenMapGrades * 1000) {
+				client.sendLine("MAPGRADESFAILED Less than " + minSleepTimeBetweenMapGrades + " seconds have passed since your last synchronization, try again later!");
+				return false;
+			}
 			
 			String respond = "MAPGRADES"; // message that we will send back to the client
 			try {
@@ -2675,6 +2683,7 @@ public class TASServer {
 					respond += " " + hash + " " + MapGrading.getAvarageMapGrade(hash) + " " + MapGrading.getNumberOfMapVotes(hash); 
 				}
 				client.sendLine(respond);
+				client.lastMapGradesReceived = System.currentTimeMillis();
 			} catch (Exception e) {
 				return false;
 			}

@@ -38,6 +38,7 @@ public class Client {
 	public String lobbyVersion; // e.g. "TASClient 1.0" (gets updated when server receives LOGIN command)
 	public long dataOverLastTimePeriod = 0; // how many bytes did client send over last recvRecordPeriod seconds. This is used with anti-flood protection.
 	public long timeOfLastReceive; // time (System.currentTimeMillis()) when we last heard from client (last data received)
+	public long lastMapGradesReceived = 0; // time when we last received MAPGRADES command from this user. This is needed to ensure user doesn't send this command too often as it creates much load on the server.
 	
 	public Client(SocketChannel sockChan) {
 		alive = true;
