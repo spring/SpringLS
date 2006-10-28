@@ -12,16 +12,16 @@
  * Window - Preferences - Java - Code Style - Code Templates
  */
 
-import java.util.Vector;
+import java.util.ArrayList;
 
 public class MuteList {
-	private Vector usernames;
-	private Vector mutedUntil; // time (in milliseconds, refers to System.currentTimeMillis()) when it will expire. Expired records are automatically removed in certain methods. Use 0 to mute user for indefinite time.
+	private ArrayList usernames;
+	private ArrayList mutedUntil; // time (in milliseconds, refers to System.currentTimeMillis()) when it will expire. Expired records are automatically removed in certain methods. Use 0 to mute user for indefinite time.
 	private Channel channel;
 	
 	public MuteList(Channel channel) {
-		usernames = new Vector();
-		mutedUntil = new Vector();
+		usernames = new ArrayList();
+		mutedUntil = new ArrayList();
 		this.channel = channel;
 	}
 	
@@ -91,7 +91,7 @@ public class MuteList {
 	public boolean rename(String oldUsername, String newUsername) {
 		for (int i = 0; i < usernames.size(); i++) {
 			if (((String)usernames.get(i)).equals(oldUsername)) {
-				usernames.setElementAt(new String(newUsername), i);
+				usernames.set(i, new String(newUsername));
 				return true;
 			}
 		}

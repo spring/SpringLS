@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.util.*;
 
 public class Accounts {
-	private static ArrayList accounts = new ArrayList(); // note: ArrayList is not synchronized! Use Vector class instead if multiple threads are to access it.
+	private static ArrayList accounts = new ArrayList(); // note: ArrayList is not synchronized! Use Vector class instead if multiple threads are going to access it.
 	private static SaveAccountsThread saveAccountsThread = null;
 	
 	// 'map' is used to speed up searching for accounts by username (TreeMap class implements very fast Red-Black trees)

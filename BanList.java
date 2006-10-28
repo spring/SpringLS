@@ -4,7 +4,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Vector;
+import java.util.ArrayList;
 
 /*
  * Created on 9.11.2005
@@ -21,12 +21,12 @@ import java.util.Vector;
  */
 
 public class BanList {
-	private Vector ips;
-	private Vector reason;
+	private ArrayList ips;
+	private ArrayList reason;
 	
 	public BanList() {
-		ips = new Vector();
-		reason = new Vector();
+		ips = new ArrayList();
+		reason = new ArrayList();
 	}
 	
 	public void clear() {

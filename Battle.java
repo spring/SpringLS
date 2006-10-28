@@ -11,7 +11,7 @@
  * TODO To change the template for this generated type comment go to
  * Window - Preferences - Java - Code Style - Code Templates
  */
-import java.util.Vector;
+import java.util.ArrayList;
 
 public class Battle {
 	static int IDCounter; // this is the ID that the next battle will have
@@ -21,8 +21,8 @@ public class Battle {
 	public int natType; // NAT traversal technique used by the host. Use 0 for none.
 	public String title; // description of the battle set by founder of the battle
 	public Client founder; // founder (host) of the battle
-	public Vector clients; // clients without the founder
-	public Vector bots;
+	public ArrayList clients; // clients without the founder
+	public ArrayList bots;
 	public String mapName;
 	public int maxPlayers;
 	public String password; // use restricted() method to find out if battle is password-protected
@@ -35,15 +35,15 @@ public class Battle {
 	public int hashCode; // see notes for description!
 	public int rank; // if 0, no rank limit is set. If 1 or higher, only players with this rank (or higher) can join the battle (Note: rank index 1 means seconds rank, not the first one, since you can't limit game to players of the first rank because that means game is open to all players and you don't have to limit it in that case)
 	public String modName;
-	public Vector disabledUnits;
+	public ArrayList disabledUnits;
 	public StartRect[] startRects;
 	public boolean limitDGun;
 	public boolean diminishingMMs;
 	public boolean ghostedBuildings; 
 	public boolean locked; // if true, battle is locked and noone can join it (until lock is released by founder)
 	// following elements are used only with type=1:
-	public Vector replayScript = new Vector(); // contains lines of the script file
-	public Vector tempReplayScript = new Vector(); // here we save script lines until we receive SCRIPTEND command. Then we copy it to "replayScript" object and notify all clients about it. 
+	public ArrayList replayScript = new ArrayList(); // contains lines of the script file
+	public ArrayList tempReplayScript = new ArrayList(); // here we save script lines until we receive SCRIPTEND command. Then we copy it to "replayScript" object and notify all clients about it. 
 	
 	
 	
@@ -108,8 +108,8 @@ public class Battle {
 		this.natType = natType;
 		this.title = new String(title);
 		this.founder = founder;
-		this.clients = new Vector();
-		this.bots = new Vector();
+		this.clients = new ArrayList();
+		this.bots = new ArrayList();
 		this.mapName = new String(mapName);
 		this.maxPlayers = maxPlayers;
 		this.password = new String(password);
@@ -125,7 +125,7 @@ public class Battle {
 		this.hashCode = hashCode;
 		this.rank = rank;
 		this.modName = new String(modName);
-		this.disabledUnits = new Vector();
+		this.disabledUnits = new ArrayList();
 		this.startRects = new StartRect[10];
 		this.locked = false; // we assume this by default. Client must make sure it is unlocked.
 		for (int i = 0; i < startRects.length; i++) startRects[i] = new StartRect();

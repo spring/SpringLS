@@ -1,7 +1,7 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Vector;
+import java.util.ArrayList;
 
 /*
  * Created on 2005.9.1
@@ -19,7 +19,7 @@ import java.util.Vector;
 public class IP2Country {
 	
 	public static boolean initialized = false;
- 	static public Vector countries = new Vector();
+ 	static public ArrayList countries = new ArrayList();
  	static private IPRange[] resolveTable;
 	
 	public static boolean initializeAll(String filename) {

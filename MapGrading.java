@@ -16,7 +16,7 @@
 import java.util.*;
 
 public class MapGrading {
-	public static Vector/*GlobalMapGrade*/ globalMapGrades = new Vector();
+	public static ArrayList/*GlobalMapGrade*/ globalMapGrades = new ArrayList();
 	
 	private static GlobalMapGrade findGlobalMapGrade(String mapHash) {
 		for (int i = 0; i < globalMapGrades.size(); i++)

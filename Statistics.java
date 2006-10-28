@@ -185,7 +185,7 @@ public class Statistics {
 	 * where delimiter is TAB (not SPACE). An empty list is denoted by 0 value for listlen.
      */
 	public static String currentlyPopularModsList() {
-		Vector mods = new Vector();
+		ArrayList mods = new ArrayList();
 		int[] freq = new int[0];
 		boolean found = false;
 
@@ -226,7 +226,7 @@ public class Statistics {
 	 * See comments for currentlyPopularModList() method for more info. 
 	 */
 	public static String getPopularModsList(String date) {
-		Vector mods = new Vector();
+		ArrayList mods = new ArrayList();
 		int[] freq = new int[0];
 		boolean found = false;
 		

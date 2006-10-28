@@ -197,9 +197,9 @@ public class Misc {
 	   while (!isSorted);
 	}
 	
-	/* sorts an array of integers plus a parallel Vector of objects
+	/* sorts an array of integers plus a parallel List of objects
 	 * using simple bubble sort. */
-	public static void bubbleSort(int data[], Vector list)
+	public static void bubbleSort(int data[], List list)
 	{
 	   boolean isSorted;
 	   int tempInt;

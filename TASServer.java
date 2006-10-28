@@ -233,8 +233,8 @@ public class TASServer {
 	static long lastStatisticsUpdate = System.currentTimeMillis(); // time (System.currentTimeMillis()) when we last updated statistics
 	static boolean LOG_MAIN_CHANNEL = false; // if true, server will keep a log of all conversations from channel #main (in file "MainChanLog.log")
 	static PrintStream mainChanLog;
-	static String LanAdminUsername = "admin"; // default lan admin account. Can be overwritten with -LANADMIN switch. Used only when server is running in lan mode!
-	static String LanAdminPassword = Misc.encodePassword("admin");
+	static String lanAdminUsername = "admin"; // default lan admin account. Can be overwritten with -LANADMIN switch. Used only when server is running in lan mode!
+	static String lanAdminPassword = Misc.encodePassword("admin");
 	static long purgeMutesInterval = 1000 * 3; // in miliseconds. On this interval, all channels' mute lists will be checked for expirations and purged accordingly. 
 	static long lastMutesPurgeTime = System.currentTimeMillis(); // time when we last purged mute lists of all channels
 	static String[] reservedAccountNames = {"TASServer", "Server", "server"}; // accounts with these names cannot be registered (since they may be used internally by the server) 
@@ -262,11 +262,11 @@ public class TASServer {
     private static ByteBuffer writeBuffer = (USE_DIRECT_BUFFERS ? ByteBuffer.allocateDirect(BYTE_BUFFER_SIZE) : ByteBuffer.allocate(BYTE_BUFFER_SIZE)); 
     private static CharsetDecoder asciiDecoder;
     
-	static Vector clients = new Vector();
-	static Vector channels = new Vector();
-	static Vector battles = new Vector();
+	static ArrayList clients = new ArrayList();
+	static ArrayList channels = new ArrayList();
+	static ArrayList battles = new ArrayList();
 	static BanList banList = new BanList();
-	static Vector killList = new Vector(); // a list of clients waiting to be killed (disconnected)
+	static ArrayList killList = new ArrayList(); // a list of clients waiting to be killed (disconnected)
 	/* killList is used when we want to kill a client but not immediately (within a loop, for example).
 	 * Client on the list will get killed after main loop reaches its end. Server
 	 * will empty the list in its main loop, so if the same client is added to the
@@ -1675,7 +1675,7 @@ public class TASServer {
 					client.sendLine("DENIED Player with same name already logged in");
 					return false;
 				}
-				if ((commands[1].equals(LanAdminUsername)) && (commands[2].equals(LanAdminPassword))) acc = new Account(commands[1], commands[2], Account.ADMIN_ACCESS, 0, "?", 0, new MapGradeList()); 
+				if ((commands[1].equals(lanAdminUsername)) && (commands[2].equals(lanAdminPassword))) acc = new Account(commands[1], commands[2], Account.ADMIN_ACCESS, 0, "?", 0, new MapGradeList()); 
 				else acc = new Account(commands[1], commands[2], Account.NORMAL_ACCESS, 0, "?", 0, new MapGradeList());
 				Accounts.addAccount(acc);
 				client.account = acc;
@@ -2618,7 +2618,7 @@ public class TASServer {
 				closeServerAndExit();
 			}
 			
-			bat.tempReplayScript = new Vector();
+			bat.tempReplayScript.clear();
 		}				
 		else if (commands[0].equals("SCRIPT")) {
 			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
@@ -2644,7 +2644,7 @@ public class TASServer {
 				closeServerAndExit();
 			}
 			
-			bat.replayScript = bat.tempReplayScript;
+			bat.replayScript = (ArrayList)bat.tempReplayScript.clone();
 			bat.sendScriptToAllExceptFounder();
 		} 				
 		else if (commands[0].equals("MAPGRADES")) {
@@ -2702,7 +2702,7 @@ public class TASServer {
 		return killClient(client, "");
 	}
 	
-	/* this method disconnects and removes client from clients Vector. 
+	/* this method disconnects and removes client from clients list. 
 	 * Also cleans up after him (channels, battles) and notifies other
 	 * users of his departure. "reason" is used with LEFT command to
 	 * notify other users on same channel of this client's departure
@@ -2808,11 +2808,11 @@ public class TASServer {
 						LOG_MAIN_CHANNEL = true;
 					}
 					else if (s.equals("LANADMIN")) {
-						LanAdminUsername = args[i+1];
-						LanAdminPassword = Misc.encodePassword(args[i+2]);
+						lanAdminUsername = args[i+1];
+						lanAdminPassword = Misc.encodePassword(args[i+2]);
 						
-						if (!Misc.isValidName(LanAdminUsername)) throw new Exception();
-						if (!Misc.isValidPass(LanAdminPassword)) throw new Exception();
+						if (!Misc.isValidName(lanAdminUsername)) throw new Exception();
+						if (!Misc.isValidPass(lanAdminPassword)) throw new Exception();
 						i += 2; // we must skip username and password parameters in next iteration
 					}
 					else throw new IOException();

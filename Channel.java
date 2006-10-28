@@ -12,7 +12,7 @@
  * Window - Preferences - Java - Code Style - Code Templates
  */
 
-import java.util.Vector;
+import java.util.ArrayList;
 
 public class Channel {
 	public String name;
@@ -20,14 +20,14 @@ public class Channel {
 	private String topicAuthor;
 	private long topicChangedTime; // time when topic was last changed (in ms since Jan 1, 1970 UTC)
 	private String key = ""; // if key is "" then this channel is not locked (anyone can join). Otherwise, user must supply correct key to join it. 
-	public Vector clients; // clients connected to this channel
+	public ArrayList clients; // clients connected to this channel
 	public MuteList muteList = new MuteList(this); // contains a list of Strings (usernames) who are muted (not allowed to talk in the channel)
 	
 	public Channel(String channelName) {
 		name = new String(channelName);
 		topic = "";
 		topicAuthor = "";
-		clients = new Vector();
+		clients = new ArrayList();
 	}
 	
 	public String getTopic() {
