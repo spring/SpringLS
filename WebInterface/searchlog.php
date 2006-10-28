@@ -45,11 +45,12 @@
       print "<p>Time stamps are relative to CET - Central European Time.</p>";
       print "<br>";
       print "Search results:";
+      print '<div style="font-family: Fixedsys, "Lucida Console", monospace">';
       print "<hr />";
 
       $count = 0;
 
-      $command = "TZ=UTC ./searchlog " . $filename;
+      $command = "./searchlog " . $filename;
       if (strlen($keyword) > 0) $command = $command . " k " . '"' . $keyword . '"';
       if ($mindate != 0) $command = $command . " m " . $mindate;
       if ($maxdate != 0) $command = $command . " M " . $maxdate;
@@ -72,6 +73,7 @@
       }
 
       print "<hr />";
+      print "</div>";
       echo "<br> $count lines mathing search criteria. <br> End of file.";
     }
 
