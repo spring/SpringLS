@@ -22,25 +22,25 @@ import java.io.IOException;
 import java.util.*;
 
 public class Accounts {
-	private static ArrayList accounts = new ArrayList(); // note: ArrayList is not synchronized! Use Vector class instead if multiple threads are going to access it.
+	private static ArrayList<Account> accounts = new ArrayList<Account>(); // note: ArrayList is not synchronized! Use Vector class instead if multiple threads are going to access it.
 	private static SaveAccountsThread saveAccountsThread = null;
 	
-	// 'map' is used to speed up searching for accounts by username (TreeMap class implements very fast Red-Black trees)
-	private static TreeMap map = new TreeMap(
-            new java.util.Comparator () {
-                public int compare(Object obj1, Object obj2)
+	// 'map' is used to speed up searching for accounts by username (TreeMap class implements efficient Red-Black trees)
+	private static TreeMap<String, Account> map = new TreeMap<String, Account>(
+            new java.util.Comparator<String> () {
+                public int compare(String s1, String s2)
                 {
-                  return ((String)obj1).compareTo((String)obj2);
+                  return s1.compareTo(s2);
                 }
               }
       );
 
 	// same as 'map', only difference is that it ignores case
-	private static TreeMap mapNoCase = new TreeMap(
-            new java.util.Comparator () {
-                public int compare(Object obj1, Object obj2)
+	private static TreeMap<String, Account> mapNoCase = new TreeMap<String, Account>(
+            new java.util.Comparator<String> () {
+                public int compare(String s1, String s2)
                 {
-                  return ((String)obj1).compareToIgnoreCase((String)obj2);
+                  return s1.compareToIgnoreCase(s2);
                 }
               }
       );
@@ -55,6 +55,7 @@ public class Accounts {
 	/* (re)loads accounts from disk */
 	public static boolean loadAccounts()
 	{
+		long time = System.currentTimeMillis();
 		try {
 			BufferedReader in = new BufferedReader(new FileReader(TASServer.ACCOUNTS_INFO_FILEPATH));
 
@@ -84,7 +85,7 @@ public class Accounts {
 			return false;
 		}
 		
-		System.out.println(accounts.size() + " accounts information read from " + TASServer.ACCOUNTS_INFO_FILEPATH);
+		System.out.println(accounts.size() + " accounts information read from " + TASServer.ACCOUNTS_INFO_FILEPATH + " (" + (System.currentTimeMillis() - time) + " ms)");
 		
 		return true;
 	}
@@ -151,15 +152,15 @@ public class Accounts {
 
 	// returns null if account is not found:
 	public static Account getAccount(String username) {
-		return (Account)map.get(username);
+		return map.get(username);
 	}
 
 	public static Account getAccount(int index) {
-		return (Account)accounts.get(index);
+		return accounts.get(index);
 	}
 	
 	public static Account findAccountNoCase(String username) {
-		return (Account)mapNoCase.get(username);
+		return mapNoCase.get(username);
 	}
 	
 	public static boolean doesAccountExist(String username) {

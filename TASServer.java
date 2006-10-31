@@ -176,6 +176,12 @@
  * 
  * General info on thread-safety in java: http://mindprod.com/jgloss/threadsafe.html
  * 
+ * How to use ZIP with java: http://java.sun.com/developer/technicalArticles/Programming/compression/
+ * 
+ * How to download file from URL: http://schmidt.devlib.org/java/file-download.html
+ * 
+ * Very good article on exceptions: http://www.freshsources.com/Apr01.html
+ * 
  * ---- NAT TRAVERSAL ----
  * 
  * Primary NAT traversal technique that this lobby server/client implements is "hole punching"
@@ -219,7 +225,8 @@ public class TASServer {
 	static final String AGREEMENT_FILENAME = "agreement.rtf";
 	static final String BAN_LIST_FILENAME = "banlist.txt";
 	static final String ACCOUNTS_INFO_FILEPATH = "accounts.txt";
-	static final String SERVER_NOTIFICATION_FOLDER = "./notifs";  
+	static final String SERVER_NOTIFICATION_FOLDER = "./notifs";
+	static final String IP2COUNTRY_FILENAME = "ip2country.dat";
 	static final int SERVER_PORT = 8200; // default server (TCP) port
 	static int NAT_TRAVERSAL_PORT = 8201; // default UDP port used with some NAT traversal technique. If this port is not forwarded, hole punching technique will not work. 
 	static final int TIMEOUT_LENGTH = 30000; // in milliseconds
@@ -1383,6 +1390,18 @@ public class TASServer {
 			else 
 				client.sendLine("SERVERMSG Error while initializing IP2COUNTRY database!");
 		}
+		else if (commands[0].equals("UPDATEIP2COUNTRY")) {
+			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
+			if (commands.length != 1) return false;
+
+			if (IP2Country.updateInProgress()) {
+				client.sendLine("SERVERMSG IP2Country database update is already in progress, try again later.");
+				return false;
+			}
+			
+			client.sendLine("SERVERMSG Updating IP2country database ... Server will notify of success via server notification system.");
+			IP2Country.updateDatabase();
+		}
 		else if (commands[0].equals("CHANGECHARSET")) {
 			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
 			if (commands.length != 2) return false;
@@ -1570,6 +1589,23 @@ public class TASServer {
 			
 			client.sendLine("SERVERMSG Send buffer size for <" + c.account.user + "> is set to " + size + " bytes.");
 		}
+		else if (commands[0].equals("MEMORYAVAILABLE")) {
+			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
+			if (commands.length != 1) {
+				return false;
+			}
+			
+			client.sendLine("SERVERMSG Amount of free memory in Java Virtual Machine: " + Runtime.getRuntime().freeMemory() + " bytes");
+		}		
+		else if (commands[0].equals("CALLGARBAGECOLLECTOR")) {
+			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
+			if (commands.length != 1) {
+				return false;
+			}
+			
+			System.gc();
+			client.sendLine("SERVERMSG Amount Garbage collector invoked.");
+		}		
 		else if (commands[0].equals("CHANNELS")) {
 			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
 			
@@ -2898,10 +2934,13 @@ public class TASServer {
 		
 		readMOTD(MOTD_FILENAME);
 		upTime = System.currentTimeMillis();
-			if (!IP2Country.initializeAll("Merged2.csv")) {
-			System.out.println("Unable to find <IP2Country> file. Skipping ...");			
+		
+		long tempTime = System.currentTimeMillis();
+		if (!IP2Country.initializeAll(IP2COUNTRY_FILENAME)) {
+			System.out.println("Unable to find or read <IP2Country> file. Skipping ...");			
 		} else {
-			System.out.println("<IP2Country> loaded.");
+			tempTime = System.currentTimeMillis() - tempTime;
+			System.out.println("<IP2Country> loaded in " + tempTime + " ms.");
 		}
 			
 		// construct global map grade list:	

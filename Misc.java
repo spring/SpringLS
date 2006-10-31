@@ -15,7 +15,10 @@
  */
 
 import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import java.text.*;
+import java.io.*;
 import java.net.*;
 import java.security.*;
 
@@ -199,7 +202,7 @@ public class Misc {
 	
 	/* sorts an array of integers plus a parallel List of objects
 	 * using simple bubble sort. */
-	public static void bubbleSort(int data[], List list)
+	public static void bubbleSort(int data[], List<Object> list)
 	{
 	   boolean isSorted;
 	   int tempInt;
@@ -272,6 +275,131 @@ public class Misc {
 			return "";
 		}
 	}
+	
+	/* Will decompress ZIP archive to current folder.
+	 * Code copied from here: http://www.rgagnon.com/javadetails/java-0067.html
+	 * and slightly modified. */
+	public static void unzipArchive(String fileName) throws IOException {
+		ZipInputStream zin = new ZipInputStream(new BufferedInputStream(new FileInputStream(fileName)));
+		ZipEntry e;
+
+		while((e = zin.getNextEntry()) != null) {
+			// unzip specific file from the archive:
+			unzipSingleEntry(zin, e.getName());
+		}
+		
+		zin.close();
+	}
+
+	/* will unzip only first entry from the archive file and save it as localFileName.
+	 * If no file is found inside the archive, it will simply ignore it. */
+	public static void unzipSingleArchive(String fileName, String localFileName) throws IOException {
+		ZipInputStream zin = new ZipInputStream(new BufferedInputStream(new FileInputStream(fileName)));
+		if (zin.getNextEntry() != null) unzipSingleEntry(zin, localFileName);
+		zin.close();
+	}
+	
+	/* will unzip next entry from given ZipInputStream */
+	public static void unzipSingleEntry(ZipInputStream zin, String toFile) throws IOException {
+		FileOutputStream out = new FileOutputStream(toFile);
+		byte [] b = new byte[512];
+		int len = 0;
+		while ((len = zin.read(b)) != -1) {
+			out.write(b, 0, len);
+		}
+		out.close();
+	}	
+	
+	/* downloads a file from the given url and saves it to disk to specified file.
+	 * 'downloadLimit' is specified in bytes per second (use 0 for unlimited) - this is 
+	 * the maximum rate at which this method will attempt to download the file.
+	 * Returns number of bytes written if it succeeds.
+	 * Original code copied from: http://schmidt.devlib.org/java/file-download.html#source */
+	public static long download(String address, String localFileName, int downloadLimit) throws MalformedURLException, IOException {
+		long numWritten = 0;
+		OutputStream out = null;
+		URLConnection conn = null;
+		InputStream in = null;
+		
+		// we will regulate download speed within 1 second time frames and always 
+		// wait after the 1st read of the receive buffer in a new time frame 
+		// for exactly 1 millisecond. That is neeeded because read() method
+		// may return very quickly (in 0 ms, and even multiple times in 0 ms),
+		// if we would calculate download speed for such very short time periods
+		// we could get enormous data rate caused by dividing something very large 
+		// with something very small, which we don't want (that's an error) - we
+		// also want to avoid division by zero at the same time.
+
+		long lastTimeStamp = System.nanoTime() / 1000000;
+		int bytesSinceLastTimeStamp = 0;
+		
+		try {
+			URL url = new URL(address);
+			out = new BufferedOutputStream(
+				new FileOutputStream(localFileName));
+			conn = url.openConnection();
+			in = conn.getInputStream();
+			byte[] buffer = new byte[1024];
+			int numRead = 0;
+			
+			while ((numRead = in.read(buffer)) != -1) {
+				// limit download speed:
+				if (downloadLimit > 0) {
+					bytesSinceLastTimeStamp += numRead;
+					long timeDiff = System.nanoTime() / 1000000 - lastTimeStamp;
+					if (timeDiff > 0) { // to avoid division by zero
+						double rate = (double)bytesSinceLastTimeStamp / (double)timeDiff * 1000.0;
+						if (rate > downloadLimit)
+							try {
+						    	// sleep a bit:
+								Thread.sleep(Math.round((double)bytesSinceLastTimeStamp / (double)downloadLimit * 1000.0 - timeDiff));
+							} catch (InterruptedException ie) { }
+	 					
+						// check if we must start a new time frame:
+						if (timeDiff > 1000) { 
+							// start new time frame
+							lastTimeStamp = System.nanoTime() / 1000000;
+							bytesSinceLastTimeStamp = 0;
+						}
+					} else try { Thread.sleep(1); } catch (InterruptedException ie) { } // we need this because we don't check time between 0 and 1st millisecond in a time frame, but in the first millisecond a lot of data may be read from the socket buffer which we don't want because we can't regulate download speed accurately in that case
+					
+				}
+
+				// write received data to file:
+				out.write(buffer, 0, numRead);
+				numWritten += numRead;
+			}
+		} finally {
+			if (in != null) {
+				in.close();
+			}
+			if (out != null) {
+				out.close();
+			}
+		}
+		return numWritten;
+	}
+	
+	// see extended version of this method for more info!
+	public static long download(String address, String localFileName) throws MalformedURLException, IOException {
+		return download(address, localFileName, 0);
+	}
+	
+	public static boolean deleteFile(String fileName) {
+		return (new File(fileName)).delete();
+	}
+	
+	/* this method is thread-safe (or at least it is if not called from multiple threads with same Exception object)
+	 * and must remain such since multiple threads may call it. */
+	public static String exceptionToFullString(Exception e) {
+		String res = e.toString();
+			             
+		StackTraceElement[] trace = e.getStackTrace();
+		for (int i = 0; i < trace.length; i++)
+			res += "\r\n\tat " + trace[i];
+		
+		return res;
+	}	
 	
 	/* various methods dealing with battleStatus: */
 	

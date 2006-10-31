@@ -34,16 +34,6 @@ public class SaveAccountsThread extends Thread {
     	this.dupAccounts = dupAccounts;
 	}
 	
-	private String exceptionToFullString(Exception e) {
-		String res = e.toString();
-			             
-		StackTraceElement[] trace = e.getStackTrace();
-		for (int i = 0; i < trace.length; i++)
-			res += "\r\n\tat" + trace[i];
-		
-		return res;
-	}
-	
     public void run() {
     	System.out.println("Dumping accounts to disk in a separate thread ...");
     	long time = System.currentTimeMillis();
@@ -61,7 +51,7 @@ public class SaveAccountsThread extends Thread {
 			
 			// add server notification:
 			ServerNotification sn = new ServerNotification("Error saving accounts");
-			sn.addLine("Serious error: accounts info could not be saved to disk. Exception trace:" + exceptionToFullString(e));
+			sn.addLine("Serious error: accounts info could not be saved to disk. Exception trace:" + Misc.exceptionToFullString(e));
 			ServerNotifications.addNotification(sn);
 			
 			return;

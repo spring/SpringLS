@@ -16,8 +16,6 @@
  * Window - Preferences - Java - Code Style - Code Templates
  */
 
-import java.util.*;
-
 public class Account {
 
 	/*
