@@ -13,7 +13,11 @@ import java.util.ArrayList;
 public class Channels {
 	
 	static private ArrayList<Channel> channels = new ArrayList<Channel>();
-	
+
+	public static int getChannelsSize() {
+		return channels.size();
+	}
+
 	/* returns null if channel does not exist (is not open) */
 	public static Channel getChannel(String chanName) {
 		for (int i = 0; i < channels.size(); i++) {
@@ -30,9 +34,11 @@ public class Channels {
 			return null;
 		}
 	}	
-	
-	public static int getChannelsSize() {
-		return channels.size();
+
+	public static boolean addChannel(Channel chan) {
+		if (getChannel(chan.name) != null) return false; // channel already exists!
+		channels.add(chan);
+		return true;
 	}
 	
 	/* removes channel from channel list. Returns true if channel was found. */

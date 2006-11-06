@@ -96,7 +96,7 @@ public class Client {
 			Clients.killClientDelayed(this, "Quit: channelWrite() timed out");
 			
 		} catch (Exception e) {
-			System.out.println("Error writing to socket. Line not sent! Killing the client next loop...");
+			System.out.println("Error writing to socket (exception). Line not sent! Killing the client next loop...");
 			Clients.killClientDelayed(this, "Quit: undefined connection error");
 			return false;
 		}
@@ -135,9 +135,9 @@ public class Client {
 		Channel chan = Channels.getChannel(chanName);
 		if (chan == null) {
 			chan = new Channel(chanName);
-			channels.add(chan);
+			Channels.addChannel(chan);
 		}
-		else if (this.channels.indexOf(chan) == -1) return null; // already in the channel 
+		else if (this.channels.indexOf(chan) != -1) return null; // already in the channel 
 
 		chan.addClient(this);
 		this.channels.add(chan);
@@ -163,7 +163,9 @@ public class Client {
 	 * Also notifies all clients of his departure.
 	 * Also see comments for leaveChannel() method. */
 	public void leaveAllChannels(String reason) {
-		for (int i = 0; i < this.channels.size(); i++) leaveChannel(channels.get(i), reason);
+		while (channels.size() != 0) {
+			leaveChannel(channels.get(0), reason);
+		}
 		this.channels.clear();
 	}
 	

@@ -70,7 +70,7 @@ public class Channel {
 		return !(topic.equals(""));
 	}
 	
-	/* adds new client to the list of clints of this channel */
+	/* adds new client to the list of clients of this channel */
 	public void addClient(Client client) {
 		if (isClientInThisChannel(client)) return ; // already in the channel! 
 
