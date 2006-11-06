@@ -21,12 +21,12 @@ import java.util.ArrayList;
  */
 
 public class BanList {
-	private ArrayList ips;
-	private ArrayList reason;
+	private ArrayList<String> ips; // banned IP addresses
+	private ArrayList<String> reason; // reasons for bans (parallel to 'ips' list)
 	
 	public BanList() {
-		ips = new ArrayList();
-		reason = new ArrayList();
+		ips = new ArrayList<String>();
+		reason = new ArrayList<String>();
 	}
 	
 	public void clear() {
@@ -35,8 +35,8 @@ public class BanList {
 	}
 	
 	public void add(String IP, String reason) {
-		this.ips.add(new String(IP));
-		this.reason.add(new String(reason));
+		this.ips.add(IP);
+		this.reason.add(reason);
 	}
 	
 	public boolean remove(String IP) {
@@ -125,6 +125,5 @@ public class BanList {
 		}
 		return -1;
 	}
-
 	
 }

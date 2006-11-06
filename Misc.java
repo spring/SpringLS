@@ -201,12 +201,13 @@ public class Misc {
 	}
 	
 	/* sorts an array of integers plus a parallel List of objects
-	 * using simple bubble sort. */
-	public static void bubbleSort(int data[], List<Object> list)
+	 * using simple bubble sort. This is a generic method: 
+	 * http://java.sun.com/docs/books/tutorial/extra/generics/methods.html */
+	public static <T> void bubbleSort(int data[], List<T> list)
 	{
 	   boolean isSorted;
 	   int tempInt;
-	   Object tempObj;
+	   T tempObj;
 	   int numberOfTimesLooped = 0;
 	   
 	   do

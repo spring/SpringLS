@@ -20,10 +20,10 @@
 import java.util.*;
 
 public class MapGradeList {
-	private Vector/*MapGrade*/ list; // must be thread-safe list in order to ensure class'es thread-safety
+	private Vector<MapGrade> list; // must be thread-safe list in order to ensure class'es thread-safety
 
 	public MapGradeList() {
-		list = new Vector();
+		list = new Vector<MapGrade>();
 	}
 	
 	public synchronized boolean add(MapGrade mg) {
@@ -35,7 +35,11 @@ public class MapGradeList {
 	}
 	
 	public MapGrade elementAt(int index) {
-		return (MapGrade)list.elementAt(index);
+		try {
+			return list.elementAt(index);
+		} catch (IndexOutOfBoundsException e) {
+			return null;
+		}
 	}
 	
 	public int indexOf(Object elem) {
@@ -48,7 +52,7 @@ public class MapGradeList {
 	
 	public synchronized MapGrade findMapGrade(String mapHash) {
 		for (int i = 0; i < list.size(); i++)
-			if (((MapGrade)list.get(i)).hash.equals(mapHash)) return (MapGrade)list.get(i);
+			if (list.get(i).hash.equals(mapHash)) return list.get(i);
 		return null;
 	}
 
@@ -57,7 +61,7 @@ public class MapGradeList {
 		else {
 			String result = "";
 			for (int i = 0; i < list.size(); i++) {
-				result = result + ((MapGrade)list.get(i)).hash + " " + ((MapGrade)list.get(i)).grade + (i == list.size()-1 ? "" : " ");
+				result = result + list.get(i).hash + " " + list.get(i).grade + (i == list.size()-1 ? "" : " ");
 			}
 			return result;
 		}

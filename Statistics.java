@@ -36,37 +36,36 @@ import java.io.IOException;
 
 public class Statistics {
 	
-	/* will append statistics file (or create one if it doesn't exist) and add new text to it */
-	/*
-	public static boolean addToStatisticsFile(String text)
-	{
-		String fname = TASServer.STATISTICS_FOLDER + now("ddMMyy") + ".dat"; 
-		try {
-			
-			BufferedWriter out = new BufferedWriter(new FileWriter(fname, true));
-			out.write(text);
-			out.close() ;			
-		} catch (IOException e) {
-			System.out.println("Error: unable to access file <" + fname + ">. Skipping ...");
-			return false;
-		}
-		
-		System.out.println("Statistics has been updated to disk ...");
-		
-		return true;
+	public static long lastStatisticsUpdate = System.currentTimeMillis(); // time (System.currentTimeMillis()) when we last updated statistics
+	
+	/* returns -1 if unsuccessful, or else returns time taken to save the statistics file (in milliseconds) */
+	public static int saveStatisticsToDisk() {
+		long taken;
+    	try {
+	    	lastStatisticsUpdate = System.currentTimeMillis();
+	    	taken = Statistics.autoUpdateStatisticsFile();
+			if (taken == -1) return -1;
+	    	Statistics.createAggregateFile(); // to simplify parsing
+	    	Statistics.generatePloticusImages();
+	    	System.out.println("*** Statistics saved to disk. Time taken: " + taken + " ms.");
+    	} catch (Exception e) {
+    		System.out.println("*** Error while saving statistics... Stack trace:");
+    		e.printStackTrace();
+    		return -1;
+    	}
+    	return new Long(taken).intValue();
 	}
-	*/
 	
 	/* will append statistics file (or create one if it doesn't exist) and add latest statistics to it.
 	 * Returns milliseconds taken to calculate statistics, or -1 if it fails. */
-	public static long autoUpdateStatisticsFile()
+	private static long autoUpdateStatisticsFile()
 	{
 		String fname = TASServer.STATISTICS_FOLDER + now("ddMMyy") + ".dat";
 		long startTime = System.currentTimeMillis();
 		
 		int activeBattlesCount = 0;
-		for (int i = 0; i < TASServer.battles.size(); i++)
-			if ((((Battle)TASServer.battles.get(i)).clients.size() > 1) && (Misc.getInGameFromStatus(((Battle)TASServer.battles.get(i)).founder.status) == 1)) activeBattlesCount++;
+		for (int i = 0; i < Battles.getBattlesSize(); i++)
+			if ((Battles.getBattleByIndex(i).getClientsSize() >= 1 /* at least 1 client + founder == 2 players */) && (Misc.getInGameFromStatus(Battles.getBattleByIndex(i).founder.status) == 1)) activeBattlesCount++;
 			
 		int activeAccounts = 0;
 		for (int i = 0; i < Accounts.getAccountsSize(); i++)
@@ -76,7 +75,7 @@ public class Statistics {
 		
 		try {
 			BufferedWriter out = new BufferedWriter(new FileWriter(fname, true));
-			out.write(now("HHmmss") + " " + TASServer.clients.size() + " " + activeBattlesCount + " " + Accounts.getAccountsSize() + " " + activeAccounts + " " + topMods + "\r\n");
+			out.write(now("HHmmss") + " " + Clients.getClientsSize() + " " + activeBattlesCount + " " + Accounts.getAccountsSize() + " " + activeAccounts + " " + topMods + "\r\n");
 			out.close();			
 		} catch (IOException e) {
 			System.out.println("Error: unable to access file <" + fname + ">. Skipping ...");
@@ -89,7 +88,7 @@ public class Statistics {
 	}
 	
 	/* this will create "statistics.dat" file which will contain all records from the last 7 days */
-	public static boolean createAggregateFile() {
+	private static boolean createAggregateFile() {
 		String fname = TASServer.STATISTICS_FOLDER + "statistics.dat";
 		
 		try {
@@ -123,7 +122,7 @@ public class Statistics {
 		return true;
 	}
 	
-	public static boolean generatePloticusImages() {
+	private static boolean generatePloticusImages() {
 		try {
 			String cmd;
 			String cmds[];
@@ -142,7 +141,7 @@ public class Statistics {
 			cmds[4] = TASServer.STATISTICS_FOLDER + "info.png";
 			cmds[5] = "lastupdate=" + lastUpdateFormatter.format(new Date());
 			cmds[6] = "uptime=" + Misc.timeToDHM(System.currentTimeMillis() - TASServer.upTime);
-			cmds[7] = "clients=" + TASServer.clients.size();
+			cmds[7] = "clients=" + Clients.getClientsSize();
 			Runtime.getRuntime().exec(cmds).waitFor();
 			
 			// generate "online clients diagram":
@@ -184,18 +183,18 @@ public class Statistics {
 	 * format: listlen "modname1" freq1 "modname2" freq" ... 
 	 * where delimiter is TAB (not SPACE). An empty list is denoted by 0 value for listlen.
      */
-	public static String currentlyPopularModsList() {
-		ArrayList mods = new ArrayList();
+	private static String currentlyPopularModsList() {
+		ArrayList<String> mods = new ArrayList<String>();
 		int[] freq = new int[0];
 		boolean found = false;
 
-		for (int i = 0; i < TASServer.battles.size(); i++) {
-			if ((Misc.getInGameFromStatus(((Battle)TASServer.battles.get(i)).founder.status) == 1) && (((Battle)TASServer.battles.get(i)).clients.size() >= 1)) {
+		for (int i = 0; i < Battles.getBattlesSize(); i++) {
+			if ((Misc.getInGameFromStatus(Battles.getBattleByIndex(i).founder.status) == 1) && (Battles.getBattleByIndex(i).getClientsSize() >= 1)) {
 				// add to list or update in list:
 				
 				found = false;
 				for (int j = 0; j < mods.size(); j++)
-					if (((String)mods.get(j)).equals(((Battle)TASServer.battles.get(i)).modName)) {
+					if (mods.get(j).equals(Battles.getBattleByIndex(i).modName)) {
 						// mod already in the list. Just increase it's frequency:
 						freq[j]++;
 						found = true;
@@ -203,7 +202,7 @@ public class Statistics {
 					}
 					
 				if (!found) {
-					mods.add(new String(((Battle)TASServer.battles.get(i)).modName));
+					mods.add(new String(Battles.getBattleByIndex(i).modName));
 					freq = (int[])Misc.resizeArray(freq, freq.length + 1);
 					freq[freq.length-1] = 1;
 				}
@@ -215,7 +214,7 @@ public class Statistics {
 		String result = "" + Math.min(5, mods.size()); // return 5 or less mods
 		Misc.bubbleSort(freq, mods);
 		for (int i = 0; i < Math.min(5, mods.size()); i++) {
-			result = result + "\t" + (String)mods.get(i) + "\t" + freq[i];			
+			result = result + "\t" + mods.get(i) + "\t" + freq[i];			
 		}
 		return result;
 	}
@@ -225,8 +224,8 @@ public class Statistics {
 	 * (other entries for the same hour will be ignored). 
 	 * See comments for currentlyPopularModList() method for more info. 
 	 */
-	public static String getPopularModsList(String date) {
-		ArrayList mods = new ArrayList();
+	private static String getPopularModsList(String date) {
+		ArrayList<String> mods = new ArrayList<String>();
 		int[] freq = new int[0];
 		boolean found = false;
 		
@@ -247,7 +246,7 @@ public class Statistics {
             	for (int i = 0; i < noMods; i++) {
     				found = false;
     				for (int j = 0; j < mods.size(); j++)
-    					if (((String)mods.get(j)).equals(temp2[1+i*2])) {
+    					if (mods.get(j).equals(temp2[1+i*2])) {
     						// mod already in the list. Just increase it's frequency:
     						freq[j]+= Integer.parseInt(temp2[2+i*2]);
     						found = true;
@@ -272,7 +271,7 @@ public class Statistics {
 		String result = "" + k; 
 		Misc.bubbleSort(freq, mods); // Note: don't cut the array by k, or sorting won't have any effect!
 		for (int i = 0; i < k; i++) {
-			result = result + "\t" + (String)mods.get(i) + "\t" + freq[i];			
+			result = result + "\t" + mods.get(i) + "\t" + freq[i];			
 		}
 		
 		return result;

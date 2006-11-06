@@ -34,7 +34,7 @@ public class ServerNotifications {
 			out.close();			
 		} catch (IOException e) {
 			System.out.println("Error: unable to write file <" + fname + ">. Server notification will not be saved!");
-			TASServer.sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Serious problem: Unable to save server notification (notification dropped).");
+			Clients.sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Serious problem: Unable to save server notification (notification dropped).");
 			return false;
 		}
 

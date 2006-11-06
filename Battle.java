@@ -21,8 +21,8 @@ public class Battle {
 	public int natType; // NAT traversal technique used by the host. Use 0 for none.
 	public String title; // description of the battle set by founder of the battle
 	public Client founder; // founder (host) of the battle
-	public ArrayList clients; // clients without the founder
-	public ArrayList bots;
+	private ArrayList<Client> clients; // clients without the founder (host)
+	private ArrayList<Bot> bots; // bots added by clients participating in this battle
 	public String mapName;
 	public int maxPlayers;
 	public String password; // use restricted() method to find out if battle is password-protected
@@ -35,81 +35,25 @@ public class Battle {
 	public int hashCode; // see notes for description!
 	public int rank; // if 0, no rank limit is set. If 1 or higher, only players with this rank (or higher) can join the battle (Note: rank index 1 means seconds rank, not the first one, since you can't limit game to players of the first rank because that means game is open to all players and you don't have to limit it in that case)
 	public String modName;
-	public ArrayList disabledUnits;
+	public ArrayList<String> disabledUnits;
 	public StartRect[] startRects;
 	public boolean limitDGun;
 	public boolean diminishingMMs;
 	public boolean ghostedBuildings; 
 	public boolean locked; // if true, battle is locked and noone can join it (until lock is released by founder)
 	// following elements are used only with type=1:
-	public ArrayList replayScript = new ArrayList(); // contains lines of the script file
-	public ArrayList tempReplayScript = new ArrayList(); // here we save script lines until we receive SCRIPTEND command. Then we copy it to "replayScript" object and notify all clients about it. 
+	public ArrayList<String> replayScript = new ArrayList<String>(); // contains lines of the script file
+	public ArrayList<String> tempReplayScript = new ArrayList<String>(); // here we save script lines until we receive SCRIPTEND command. Then we copy it to "replayScript" object and notify all clients about it. 
 	
-	
-	
-	/* Creates new Battle object from a command that client sent to server. This method
-	 * parses the command (String s) and tries to read battle attributes from it. If
-	 * unsuccessful, it returns null as a result. */
-	public static Battle createBattleFromString(String s, Client founder) {
-		String[] parsed = s.split(" ");
-		if (parsed.length < 17) return null;
-		String[] parsed2 = Misc.makeSentence(parsed, 16).split("\t");
-		if (parsed2.length != 3) return null;
-		
-		String pass = parsed[3];
-		if (!pass.equals("*")) if (!Misc.isValidName(pass)) return null;
-		
-		int type;
-		int natType;
-		int port;
-		int maxPlayers;
-		int startMetal;
-		int startEnergy;
-		int maxUnits;
-		int startPos;
-		int gameEndCondition;
-		boolean limitDGun;
-		boolean diminishingMMs;
-		boolean ghostedBuildings;
-		int hash;
-		int rank;
-		
-		try {
-			type = Integer.parseInt(parsed[1]);
-			natType = Integer.parseInt(parsed[2]);
-			// parsed[3] is password
-			port = Integer.parseInt(parsed[4]);
-			maxPlayers = Integer.parseInt(parsed[5]);
-			startMetal = Integer.parseInt(parsed[6]);
-			startEnergy = Integer.parseInt(parsed[7]);
-			maxUnits = Integer.parseInt(parsed[8]);
-			startPos = Integer.parseInt(parsed[9]);
-			gameEndCondition = Integer.parseInt(parsed[10]);
-			limitDGun = Misc.strToBool(parsed[11]);
-			diminishingMMs = Misc.strToBool(parsed[12]);
-			ghostedBuildings = Misc.strToBool(parsed[13]);			
-			hash = Integer.parseInt(parsed[14]);
-			rank = Integer.parseInt(parsed[15]);
-		} catch (NumberFormatException e) {
-			return null; 
-		}
-		
-		if ((startPos < 0) || (startPos > 2)) return null;
-		if ((gameEndCondition < 0) || (gameEndCondition > 1)) return null;
-		if ((type < 0) || (type > 1)) return null;
-		if ((natType < 0) || (natType > 2)) return null;
 
-		return new Battle(type, natType, founder, pass, port, maxPlayers, startMetal, startEnergy, maxUnits, startPos, gameEndCondition, limitDGun, diminishingMMs, ghostedBuildings, hash, rank, parsed2[0], parsed2[1], parsed2[2]);
-	}
-	
 	public Battle(int type, int natType, Client founder, String password, int port, int maxPlayers, int startMetal, int startEnergy, int maxUnits, int startPos, int gameEndCondition, boolean limitDGun, boolean diminishingMMs, boolean ghostedBuildings, int hashCode, int rank, String mapName, String title, String modName) {
 		this.ID = IDCounter++;
 		this.type = type;
 		this.natType = natType;
 		this.title = new String(title);
 		this.founder = founder;
-		this.clients = new ArrayList();
-		this.bots = new ArrayList();
+		this.clients = new ArrayList<Client>();
+		this.bots = new ArrayList<Bot>();
 		this.mapName = new String(mapName);
 		this.maxPlayers = maxPlayers;
 		this.password = new String(password);
@@ -125,7 +69,7 @@ public class Battle {
 		this.hashCode = hashCode;
 		this.rank = rank;
 		this.modName = new String(modName);
-		this.disabledUnits = new ArrayList();
+		this.disabledUnits = new ArrayList<String>();
 		this.startRects = new StartRect[10];
 		this.locked = false; // we assume this by default. Client must make sure it is unlocked.
 		for (int i = 0; i < startRects.length; i++) startRects[i] = new StartRect();
@@ -148,8 +92,8 @@ public class Battle {
 	 * of all clients in this battle EXCEPT for himself! */
 	public void notifyOfBattleStatuses(Client client) {
 		for (int i = 0; i < this.clients.size(); i++) 
-			if ((Client)this.clients.get(i) == client) continue;
-			else client.sendLine("CLIENTBATTLESTATUS " + ((Client)this.clients.get(i)).account.user + " " + ((Client)this.clients.get(i)).battleStatus + " " + ((Client)this.clients.get(i)).teamColor);
+			if (this.clients.get(i) == client) continue;
+			else client.sendLine("CLIENTBATTLESTATUS " + this.clients.get(i).account.user + " " + this.clients.get(i).battleStatus + " " + this.clients.get(i).teamColor);
 		if (founder != client) client.sendLine("CLIENTBATTLESTATUS " + founder.account.user + " " + founder.battleStatus + " " + founder.teamColor);
 	}
 	
@@ -162,7 +106,7 @@ public class Battle {
 	/* sends String s to all clients participating in this battle */
 	public void sendToAllClients(String s) {
 		for (int i = 0; i < this.clients.size(); i++) {
-			((Client)clients.get(i)).sendLine(s);
+			clients.get(i).sendLine(s);
 		}
 		founder.sendLine(s);
 	}
@@ -170,16 +114,29 @@ public class Battle {
 	/* sends String s to all clients participating in this battle except for the founder */
 	public void sendToAllExceptFounder(String s) {
 		for (int i = 0; i < this.clients.size(); i++) {
-			((Client)clients.get(i)).sendLine(s);
+			clients.get(i).sendLine(s);
 		}
 	}
 	
-	private String clientsToString() {
+	public String clientsToString() {
 		if (this.clients.size() == 0) return "";
-		String s = new String(((Client)clients.get(0)).account.user);
+		String s = new String(clients.get(0).account.user);
 		for (int i = 1; i < this.clients.size(); i++)
-			s.concat(" " + ((Client)clients.get(i)).account.user);
+			s.concat(" " + clients.get(i).account.user);
 		return s;
+	}
+	
+	/* returns number of clients participating in this battle */
+	public int getClientsSize() {
+		return clients.size();
+	}
+	
+	public Client getClient(int index) {
+		try {
+			return clients.get(index);
+		} catch (IndexOutOfBoundsException e) {
+			return null;
+		}
 	}
 	
 	public boolean addClient(Client client) {
@@ -198,11 +155,13 @@ public class Battle {
 		return Misc.getInGameFromStatus(founder.status) == 1; 
 	}
 	
-	// returns number of spectators in the battle
+	/* returns number of spectators in this battle. Note that this operation is 
+	 * not very fast - we have to go through the entire list of clients in this 
+	 * battle to figure out spectator count. */
 	public int spectatorCount() {
 		int count = 0;
 		for (int i = 0; i < clients.size(); i++)
-			if (Misc.getModeFromBattleStatus(((Client)clients.get(i)).battleStatus) == 0) count++;
+			if (Misc.getModeFromBattleStatus(clients.get(i).battleStatus) == 0) count++;
 		if (Misc.getModeFromBattleStatus(founder.battleStatus) == 0) count++;
 		return count;
 	}
@@ -213,7 +172,7 @@ public class Battle {
 	
 	public boolean isClientInBattle(Client client) {
 		for (int i = 0; i < clients.size(); i++)
-			if (((Client)clients.get(i)) == client) return true;
+			if (clients.get(i) == client) return true;
 		if (founder == client) return true;	
 		
 		return false;
@@ -221,7 +180,7 @@ public class Battle {
 	
 	public boolean isClientInBattle(String username) {
 		for (int i = 0; i < clients.size(); i++)
-			if (((Client)clients.get(i)).account.user.equals(username)) return true;
+			if (clients.get(i).account.user.equals(username)) return true;
 		if (founder.account.user.equals(username)) return true;	
 		
 		return false;
@@ -229,17 +188,10 @@ public class Battle {
 	
 	public Client getClient(String username) {
 		for (int i = 0; i < clients.size(); i++)
-			if (((Client)clients.get(i)).account.user.equals(username)) return (Client)clients.get(i);
+			if (clients.get(i).account.user.equals(username)) return clients.get(i);
 		if (founder.account.user.equals(username)) return founder;	
 		
 		return null;
-	}
-	
-	/* returns -1 if unit is not in disabled list, index otherwise */
-	public int getUnitIndexInDisabledList(String unitname) {
-		for (int i = 0; i < disabledUnits.size(); i++)
-			if (((String)disabledUnits.get(i)).equals((unitname))) return i;
-		return -1;	
 	}
 	
 	public void sendDisabledUnitsListToClient(Client client) {
@@ -252,21 +204,46 @@ public class Battle {
 		client.sendLine("DISABLEUNITS " + line);
 	}
 	
-	public int getBot(String name) {
-		for (int i = 0; i < bots.size(); i++)
-			if (((Bot)bots.get(i)).name.equals(name)) return i;
-		return -1;	
+	/* returns number of bots in this battle (size of the bot list) */
+	public int getBotsSize() {
+		return bots.size();
 	}
-
-	/* removes first bot in bots list which is owned by client */
+	
+	/* returns Bot object of the specified bot, or null if the bot does not exist */
+	public Bot getBot(String name) {
+		for (int i = 0; i < bots.size(); i++)
+			if (bots.get(i).name.equals(name)) return bots.get(i);
+		return null;	
+	}
+	
+	/* returns null if index is out of bounds */
+	public Bot getBot(int index) {
+		try {
+			return bots.get(index);
+		} catch (IndexOutOfBoundsException e) {
+			return null;
+		}
+	}
+	
+	/* adds bot to the bot list */
+	public void addBot(Bot bot) {
+		bots.add(bot);
+	}
+	
+	/* removes first bot in the bots list which is owned by the client */
 	public boolean removeFirstBotOfClient(Client client) {
 		for (int i = 0; i < bots.size(); i++)
-			if (((Bot)bots.get(i)).ownerName.equals(client.account.user)) {
-				sendToAllClients("REMOVEBOT " + ID + " " + ((Bot)bots.get(i)).name);
+			if (bots.get(i).ownerName.equals(client.account.user)) {
+				sendToAllClients("REMOVEBOT " + ID + " " + bots.get(i).name);
 				bots.remove(i);
 				return true;
 			}
 		return false;	
+	}
+	
+	/* removes specified bot from the bot list */
+	public boolean removeBot(Bot bot) {
+		return bots.remove(bot);
 	}
 	
 	/* removes all bots owned by client */
@@ -276,7 +253,7 @@ public class Battle {
 	
 	public void sendBotListToClient(Client client) {
 		for (int i = 0; i < bots.size(); i++)
-			client.sendLine("ADDBOT " + ID + " " + ((Bot)bots.get(i)).name + " " + ((Bot)bots.get(i)).ownerName + " " + ((Bot)bots.get(i)).battleStatus + " " + ((Bot)bots.get(i)).teamColor + " " + ((Bot)bots.get(i)).AIDll);
+			client.sendLine("ADDBOT " + ID + " " + bots.get(i).name + " " + bots.get(i).ownerName + " " + bots.get(i).battleStatus + " " + bots.get(i).teamColor + " " + bots.get(i).AIDll);
 	}
 	
 	public void sendStartRectsListToClient(Client client) {
@@ -289,15 +266,20 @@ public class Battle {
 	public void sendScriptToClient(Client client) {
 		client.sendLine("SCRIPTSTART");
 		for (int i = 0; i < replayScript.size(); i++) {
-			client.sendLine("SCRIPT " + (String)replayScript.get(i));
+			client.sendLine("SCRIPT " + replayScript.get(i));
 		}
 		client.sendLine("SCRIPTEND");
 	}
 	
 	public void sendScriptToAllExceptFounder() {
 		for (int i = 0; i < clients.size(); i++) {
-			sendScriptToClient((Client)clients.get(i));
+			sendScriptToClient(clients.get(i));
 		} 
 	}
 	
+	/* will copy tempReplayScript to replayScript. This method is called
+	 * when SCRIPTEND command is received. */
+	public void ratifyTempScript() {
+		replayScript = new ArrayList<String>(tempReplayScript); 
+	}
 }

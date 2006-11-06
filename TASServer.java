@@ -1,9 +1,6 @@
 /*
  * Created on 2005.6.16
  *
- * TODO To change the template for this generated file go to
- * Window - Preferences - Java - Code Style - Code Templates
- * 
  * 
  * ---- CHANGELOG ----
  * *** 0.30 ***
@@ -139,7 +136,8 @@
  * 
  * * Whenever you use killClient() within a for loop, don't forget to decrease loop
  *   counter as you will skip next client in the list otherwise. (this was the cause
- *   for some of the "ambigious data" errors)  
+ *   for some of the "ambigious data" errors). Or better, use the killClientDelayed()
+ *   method.  
  * 
  * * Note that access to long-s is not guaranteed to be atomic, but you should use synchronization
  *   anyway if you use multiple threads.
@@ -182,6 +180,8 @@
  * 
  * Very good article on exceptions: http://www.freshsources.com/Apr01.html
  * 
+ * Short introduction to generics in JDK 1.5.0: http://java.sun.com/j2se/1.5.0/docs/guide/language/generics.html
+ * 
  * ---- NAT TRAVERSAL ----
  * 
  * Primary NAT traversal technique that this lobby server/client implements is "hole punching"
@@ -203,8 +203,6 @@
 /**
  * @author Betalord
  *
- * TODO To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Style - Code Templates
  */
 
 import java.util.*;
@@ -237,7 +235,6 @@ public class TASServer {
 	static String PLOTICUS_FULLPATH = "./ploticus/bin/pl"; // see http://ploticus.sourceforge.net/ for more info on ploticus
 	static String STATISTICS_FOLDER = "./stats/";
 	static long saveStatisticsInterval = 1000 * 60 * 20; // in milliseconds
-	static long lastStatisticsUpdate = System.currentTimeMillis(); // time (System.currentTimeMillis()) when we last updated statistics
 	static boolean LOG_MAIN_CHANNEL = false; // if true, server will keep a log of all conversations from channel #main (in file "MainChanLog.log")
 	static PrintStream mainChanLog;
 	static String lanAdminUsername = "admin"; // default lan admin account. Can be overwritten with -LANADMIN switch. Used only when server is running in lan mode!
@@ -269,17 +266,6 @@ public class TASServer {
     private static ByteBuffer writeBuffer = (USE_DIRECT_BUFFERS ? ByteBuffer.allocateDirect(BYTE_BUFFER_SIZE) : ByteBuffer.allocate(BYTE_BUFFER_SIZE)); 
     private static CharsetDecoder asciiDecoder;
     
-	static ArrayList clients = new ArrayList();
-	static ArrayList channels = new ArrayList();
-	static ArrayList battles = new ArrayList();
-	static BanList banList = new BanList();
-	static ArrayList killList = new ArrayList(); // a list of clients waiting to be killed (disconnected)
-	/* killList is used when we want to kill a client but not immediately (within a loop, for example).
-	 * Client on the list will get killed after main loop reaches its end. Server
-	 * will empty the list in its main loop, so if the same client is added to the
-	 * list more than once in the same loop, server will kill it only once and remove 
-	 * redundant entries. */
-	 
 	static NATHelpServer helpUDPsrvr;
 	
 	public static void writeMainChanLog(String text) {
@@ -394,32 +380,6 @@ public class TASServer {
 		return true;
 	}
 	
-	private static Client addNewClient(SocketChannel chan) {
-		
-    	Client client = new Client(chan);
-    	clients.add(client);
-			
-       	// register the channel with the selector 
-       	// store a new Client as the Key's attachment
-       	try {
-       	    chan.configureBlocking(false);
-       	    chan.socket().setSendBufferSize(SEND_BUFFER_SIZE);
-       	    //***chan.socket().setSoTimeout(TIMEOUT_LENGTH); -> this doesn't seem to have an effect with java.nio
-       	    client.selKey = chan.register(readSelector, SelectionKey.OP_READ, client);
-       	} catch (ClosedChannelException cce) {
-       		killClient(client);
-       		return null;
-       	} catch (IOException ioe) {
-       		killClient(client);
-       		return null;
-       	} catch (Exception e) {
-       		killClient(client);
-       		return null;
-       	}
-       	
-       	return client;
-	}
-	
 	private static void acceptNewConnections() {
 		try {
 		    SocketChannel clientChannel;
@@ -432,7 +392,7 @@ public class TASServer {
 	        		continue;
 	        	}
 		    	
-		    	Client client = addNewClient(clientChannel);
+		    	Client client = Clients.addNewClient(clientChannel, readSelector, SEND_BUFFER_SIZE);
 				if (client == null) continue;
 	        	
 		    	// from this point on, we know that client has been successfully connected
@@ -477,9 +437,9 @@ public class TASServer {
 				// basic anti-flood protection:
 				if ((client.dataOverLastTimePeriod > TASServer.maxBytesAlert) && (client.account.accessLevel() < Account.ADMIN_ACCESS)) {
 					System.out.println("WARNING: Flooding detected from " + client.IP + " (" + client.account.user + ")");
-					sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Flooding has been detected from " + client.IP + " (" + client.account.user + "). User's IP has been auto-banned.");
-					banList.add(client.IP, "Auto-ban for flooding.");
-					killClient(client, "Disconnected due to excessive flooding");
+					Clients.sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Flooding has been detected from " + client.IP + " (" + client.account.user + "). User's IP has been auto-banned.");
+					Clients.banList.add(client.IP, "Auto-ban for flooding.");
+					Clients.killClient(client, "Disconnected due to excessive flooding");
 
 					// add server notification:
 					ServerNotification sn = new ServerNotification("Flooding detected");
@@ -494,7 +454,7 @@ public class TASServer {
 				if (nbytes == -1) { 
 					if (DEBUG > 0) System.out.println ("Socket disconnected - killing client");
 					channel.close();
-					killClient(client); // will also close the socket channel 
+					Clients.killClient(client); // will also close the socket channel 
 				} else {
 				    // use a CharsetDecoder to turn those bytes into a string
 				    // and append to client's StringBuffer
@@ -517,7 +477,7 @@ public class TASServer {
 				    	tryToExecCommand(command, client);
 				    	time = System.currentTimeMillis() - time;
 				    	if (time > 100) {
-				    		sendToAllAdministrators("SERVERMSG [broadcast to all admins]: (DEBUG) User <" + client.account.user + "> caused " + time + " ms load on the server. Command issued: " + command);
+				    		Clients.sendToAllAdministrators("SERVERMSG [broadcast to all admins]: (DEBUG) User <" + client.account.user + "> caused " + time + " ms load on the server. Command issued: " + command);
 				    	}
 
 				    	if (!client.alive) break; // in case client was killed within tryToExecCommand() method
@@ -528,13 +488,13 @@ public class TASServer {
 		} catch(IOException ioe) {
 			System.out.println("exception during select(): possibly due to force disconnect. Killing the client ...");
 			try {
-				if (client != null) killClient(client, "Quit: connection lost");				
+				if (client != null) Clients.killClient(client, "Quit: connection lost");				
 			} catch (Exception e) {
 			}
 		} catch(Exception e) {
 			System.out.println("exception in readIncomingMessages(): killing the client ... (" + e.toString() + ")");
 			try {
-				if (client != null) killClient(client, "Quit: connection lost");		
+				if (client != null) Clients.killClient(client, "Quit: connection lost");		
 				e.printStackTrace(); //*** DEBUG
 			} catch (Exception ex) {
 			}
@@ -612,251 +572,12 @@ public class TASServer {
 		else return null;
 	}
 	
-	private static boolean isUserAlreadyLoggedIn(Account acc) {
-		for (int i = 0; i < clients.size(); i++) {
-			if (((Client)clients.get(i)).account.user.equals(acc.user)) return true;
-		}
-		return false;
-	}
-	
-	/* returns index of the channel with ChanName name or -1 if channel does not exist */
-	private static int getChannelIndex(String chanName) {
-		for (int i = 0; i < channels.size(); i++) {
-			if (((Channel)channels.get(i)).name.equals(chanName)) return i;
-		}
-		return -1;
-	}
-	
-	/* returns null if channel is not found */
-	private static Channel getChannel(String chanName) {
-		for (int i = 0; i < channels.size(); i++) {
-			if (((Channel)channels.get(i)).name.equals(chanName)) return (Channel)channels.get(i);
-		}
-		return null;
-	}
-	
-	/* joins a clients to a channel with chanName name. If channel with that name
-	 * does not exist, it is created. Method returns channel as a result. If client is
-	 * already in the channel, it returns null as a result. This method does not check
-	 * for correct key if channel is locked, caller of this method should do that
-	 * before calling it. */
-	private static Channel joinChannel(String chanName, Client client) {
-		Channel chan = getChannel(chanName);
-		if (chan == null) {
-			chan = new Channel(chanName);
-			channels.add(chan);
-		}
-		else if (chan.isClientInThisChannel(client)) return null;
-		
-		chan.addClient(client);
-		return chan;
-	}
-	
-	/* removes user from a channel and sends messages to all other clients in a channel.
-	 * If this was the last client in the channel, then channel is removed from channels list. 
-	 * "reason" may be left blank ("") if no reason is to be specified. */
-	private static boolean leaveChannelAndNotifyAll(Channel chan, Client client, String reason) {
-		boolean result = chan.removeClient(client);
-		
-		if (result) {
-			if (chan.clients.size() == 0) channels.remove(chan); // since channel is empty there is no point in keeping it in a channels list. If we would keep it, the channels list would grow larger and larger in time. We don't want that!
-			else for (int i = 0; i < chan.clients.size(); i++) ((Client)chan.clients.get(i)).sendLine("LEFT " + chan.name + " " + client.account.user + (reason.equals("") ? "" : " " + reason));
-		} 
-		
-		return result;
-	}
-	
-	/* sends information on all clients in a channel (and the topic if it is set) to the client */
-	private static boolean sendChannelInfoToClient(Channel chan, Client client) {
-		// it always sends info about at least one client - the one to whom this list must be sent
-		String s = "CLIENTS " + chan.name;
-		int c = 0;
-		
-		for (int j = 0; j < chan.clients.size(); j++) {
-			s = s.concat(" " + ((Client)chan.clients.get(j)).account.user);
-			c++;
-			if (c > 10) { // 10 is the maximum number of users in a single line
-				client.sendLine(s);
-				s = "CLIENTS " + chan.name;
-				c = 0;
-			}
-		}
-		if (c > 0) {
-			client.sendLine(s);
-		}
-			
-		// send the topic:
-		if (chan.isTopicSet()) client.sendLine("CHANNELTOPIC " + chan.name + " " + chan.getTopicAuthor() + " " + chan.getTopicChangedTime() + " " + chan.getTopic());
-		
-		return true;
-	}
-	
-	/* sends a list of all open channels to client */
-	private static void sendChannelListToClient(Client client) {
-		if (channels.size() == 0) return ; // nothing to send
-		
-		Channel chan;
-		for (int i = 0; i < channels.size(); i++) {
-			chan = (Channel)channels.get(i);
-			client.sendLine("CHANNEL " + chan.name + " " + chan.clients.size() + (chan.isTopicSet() ? " " + chan.getTopic() : ""));
-		}
-		client.sendLine("ENDOFCHANNELS");
-	}
-	
-	private static void sendToAllRegisteredUsers(String s) {
-		for (int i = 0; i < clients.size(); i++) {
-			if (((Client)clients.get(i)).account.accessLevel() < Account.NORMAL_ACCESS) continue;
-			((Client)clients.get(i)).sendLine(s);
-		}
-	}
-	
-	public static void sendToAllAdministrators(String s) {
-		for (int i = 0; i < clients.size(); i++) {
-			if (((Client)clients.get(i)).account.accessLevel() < Account.ADMIN_ACCESS) continue;
-			((Client)clients.get(i)).sendLine(s);
-		}
-		
-	}
-	
-	/* sends text to all registered users except for the client */
-	private static void sendToAllRegisteredUsersExcept(Client client, String s) {
-		for (int i = 0; i < clients.size(); i++) {
-			if (((Client)clients.get(i)).account.accessLevel() < Account.NORMAL_ACCESS) continue;
-			if (((Client)clients.get(i)) == client) continue; 
-			((Client)clients.get(i)).sendLine(s);
-		}
-	}
-	
-	private static void notifyClientsOfNewClientInChannel(Channel chan, Client client) {
-		for (int i = 0; i < chan.clients.size(); i++) {
-			if (((Client)chan.clients.get(i)).equals(client)) continue;
-			((Client)chan.clients.get(i)).sendLine("JOINED " + chan.name + " " + client.account.user);
-		}
-	}
-	
-	/* notifies client of all statuses, including his own (but only if they are different from 0) */
-	private static void sendInfoOnStatusesToClient(Client client) {
-		for (int i = 0; i < clients.size(); i++) {
-			if (((Client)clients.get(i)).account.accessLevel() < Account.NORMAL_ACCESS) continue;
-			if (((Client)clients.get(i)).status != 0) // only send it if not 0. User assumes that every new user's status is 0, so we don't need to tell him that explicitly.
-				client.sendLine("CLIENTSTATUS " + ((Client)clients.get(i)).account.user + " " + ((Client)clients.get(i)).status);
-		}
-			
-	}
-	
-	/* notifies all registered clients (including this client) of the client's new status */
-	private static void notifyClientsOfNewClientStatus(Client client) {
-		for (int i = 0; i < clients.size(); i++) {
-			if (((Client)clients.get(i)).account.accessLevel() < Account.NORMAL_ACCESS) continue;
-			((Client)clients.get(i)).sendLine("CLIENTSTATUS " + client.account.user + " " + client.status);
-		}
-			
-	}
-	
-	/* sends a list of all users connected to the server to client (this list includes
-	 * the client itself, assuming he is already logged in and on the list) */
-	private static void sentListOfAllUsersToClient(Client client) {
-		String ip;
-		for (int i = 0; i < clients.size(); i++) {
-			if (((Client)clients.get(i)).account.accessLevel() < Account.NORMAL_ACCESS) continue;
-			// make sure that clients behind NAT get local IPs and not external ones:
-			if (((Client)clients.get(i)).IP.equals(client.IP)) ip = ((Client)clients.get(i)).localIP;
-			else ip = ((Client)clients.get(i)).IP;
-			client.sendLine("ADDUSER " + ((Client)clients.get(i)).account.user + " " + ((Client)clients.get(i)).country + " " + ((Client)clients.get(i)).cpu + " " + ip);
-		}
-	}
-	
-	/* notifies all registered clients of a new client who just logged in. The new client
-	 * is not notified (he is already notified by other method) */
-	private static void notifyClientsOfNewClientOnServer(Client client) {
-		String ip;
-		for (int i = 0; i < clients.size(); i++) {
-			if (((Client)clients.get(i)).account.accessLevel() < Account.NORMAL_ACCESS) continue;
-			if ((Client)clients.get(i) == client) continue;
-			// make sure that clients behind NAT get local IPs and not external ones:
-			if (((Client)clients.get(i)).IP.equals(client.IP)) ip = client.localIP;
-			else ip = client.IP;
-			((Client)clients.get(i)).sendLine("ADDUSER " + client.account.user + " " + client.country + " " + client.cpu + " " + ip);
-		}
-	}
-	
-	/*------------------------------------ BATTLE RELATED ------------------------------------*/
-	
-	private static void closeBattleAndNotifyAll(Battle battle) {
-		for (int i = 0; i < battle.clients.size(); i++) {
-			((Client)battle.clients.get(i)).battleID = -1;
-		}
-		battle.founder.battleID = -1;
-		sendToAllRegisteredUsers("BATTLECLOSED " + battle.ID);
-		battles.remove(battle);
-	}
-	
-	/* Removes client from a battle and notifies everyone. Also automatically checks if 
-	 * client is a founder and closes the battle in that case. All client's bots in this
-	 * battle are removed as well. */	
-	private static boolean leaveBattle(Client client, Battle battle) {
-		if (battle.founder == client) closeBattleAndNotifyAll(battle);
-		else {
-			if (client.battleID != battle.ID) return false;
-			if (!battle.removeClient(client)) return false;
-			client.battleID = -1;
-			battle.removeClientBots(client);
-			sendToAllRegisteredUsers("LEFTBATTLE " + battle.ID + " " + client.account.user);
-		}
-		
-		return true;
-	}
-	
-	/* The client who just joined the battle is also notified (he should also be notified
-	 * with JOINBATTLE command. See protocol description) */
-	private static void notifyClientsOfNewClientInBattle(Battle battle, Client client) {
-		for (int i = 0; i < clients.size(); i++)  {
-			if (((Client)clients.get(i)).account.accessLevel() < Account.NORMAL_ACCESS) continue;
-			((Client)clients.get(i)).sendLine("JOINEDBATTLE " + battle.ID + " " + client.account.user);
-		}
-	}
-	
-	private static void sendInfoOnBattlesToClient(Client client) {
-		for (int i = 0; i < battles.size(); i++) {
-			Battle bat = (Battle)battles.get(i);
-			// make sure that clients behind NAT get local IPs and not external ones:
-			boolean local = bat.founder.IP.equals(client.IP);
-			client.sendLine(bat.createBattleOpenedCommandEx(local));
-			// we have to send UPDATEBATTLEINFO command too in order to tell the user how many spectators are in the battle, for example.
-			client.sendLine("UPDATEBATTLEINFO " + bat.ID + " " + bat.spectatorCount() + " " + Misc.boolToStr(bat.locked) + " " + bat.mapName);
-			for (int j = 0; j < bat.clients.size(); j++) {
-				client.sendLine("JOINEDBATTLE " + bat.ID + " " + ((Client)bat.clients.get(j)).account.user);
-			}
-		}
-	}
-	
-	/*------------------------------------ MISCELLANEOUS ------------------------------------*/
-	
-	private static Battle getBattle(int BattleID) {
-		for (int i = 0; i < battles.size(); i++)
-			if (((Battle)battles.get(i)).ID == BattleID) return (Battle)battles.get(i);
-		return null;	
-	}
-	
-	private static int getIndexOfClient(String user) {
-		if (user.equals("")) return -1;
-		for (int i = 0; i < clients.size(); i++) 
-			if (((Client)clients.get(i)).account.user.equals(user)) return i;
-		return -1;
-	}
-	
-	private static Client getClient(String username) {
-		for (int i = 0; i < clients.size(); i++)
-			if (((Client)clients.get(i)).account.user.equals(username)) return (Client)clients.get(i);
-		return null;	
-	}
-	
 	/* Sends "message of the day" (MOTD) to client */
 	private static boolean sendMOTDToClient(Client client) {
 		client.sendLine("MOTD Welcome, " + client.account.user + "!");
-		client.sendLine("MOTD There are currently " + (clients.size()-1) + " clients connected"); // -1 is because we shouldn't count the client to which we are sending MOTD
-		client.sendLine("MOTD to server talking in " + channels.size() + " open channels and");
-		client.sendLine("MOTD participating in " + battles.size() + " battles.");
+		client.sendLine("MOTD There are currently " + (Clients.getClientsSize()-1) + " clients connected"); // -1 is because we shouldn't count the client to which we are sending MOTD
+		client.sendLine("MOTD to server talking in " + Channels.getChannelsSize() + " open channels and");
+		client.sendLine("MOTD participating in " + Battles.getBattlesSize() + " battles.");
 		client.sendLine("MOTD Server's uptime is " + Misc.timeToDHM(System.currentTimeMillis() - upTime) + ".");
 		client.sendLine("MOTD");
 		String[] sl = MOTD.split("\n");
@@ -875,25 +596,18 @@ public class TASServer {
 		client.sendLine("AGREEMENTEND");
 	}	
 	
-	/* returns -1 if unsuccessful */
-	public static int saveStatisticsToDisk() {
-		long taken;
-    	try {
-	    	lastStatisticsUpdate = System.currentTimeMillis();
-	    	taken = Statistics.autoUpdateStatisticsFile();
-			if (taken == -1) return -1;
-	    	Statistics.createAggregateFile(); // to simplify parsing
-	    	Statistics.generatePloticusImages();
-	    	System.out.println("*** Statistics saved to disk. Time taken: " + taken + " ms.");
-    	} catch (Exception e) {
-    		System.out.println("*** Error while saving statistics... Stack trace:");
-    		e.printStackTrace();
-    		return -1;
-    	}
-    	return new Long(taken).intValue();
-	}
+	public static boolean redirectAndKill(Socket socket) {
+		if (!redirect) return false;
+		try {
+			(new PrintWriter(socket.getOutputStream(), true)).println("REDIRECT " + redirectToIP);
+			socket.close();
+		} catch (Exception e) {
+			return false;
+		}
+		return true;
+	}	
 	
-	/* add "synchronized" if more than 1 thread is going to call it at the same time! */
+	/* Note: this method is not synchronized! */
 	public static boolean tryToExecCommand(String command, Client client) {
 		if (command.trim().equals("")) return false;
 		String[] commands = command.split(" ");
@@ -970,17 +684,17 @@ public class TASServer {
 			if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) return false;
 			if (commands.length < 2) return false;
 			
-			Client target = getClient(commands[1]);
+			Client target = Clients.getClient(commands[1]);
 			String reason = "";
 			if (commands.length > 2) reason = " (reason: " + Misc.makeSentence(commands, 2) + ")"; 
 			if (target == null) return false;
-			for (int i = 0; i < channels.size(); i++) {
-				if (((Channel)channels.get(i)).isClientInThisChannel(target)) {
-					((Channel)channels.get(i)).broadcast("<" + client.account.user + "> has kicked <" + target.account.user + "> from server" + reason);
+			for (int i = 0; i < Channels.getChannelsSize(); i++) {
+				if (Channels.getChannel(i).isClientInThisChannel(target)) {
+					Channels.getChannel(i).broadcast("<" + client.account.user + "> has kicked <" + target.account.user + "> from server" + reason);
 				}
 			}
 			target.sendLine("SERVERMSG You've been kicked from server by <" + client.account.user + ">" + reason);
-			killClient(target, "Quit: kicked from server");
+			Clients.killClient(target, "Quit: kicked from server");
 		}
 		else if (commands[0].equals("REMOVEACCOUNT")) {
 			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
@@ -989,9 +703,9 @@ public class TASServer {
 			if (!Accounts.removeAccount(commands[1])) return false;
 			
 			// if any user is connected to this account, kick him:
-			for (int j = 0; j < clients.size(); j++) {
-				if (((Client)clients.get(j)).account.user.equals(commands[1])) {
-					killClient((Client)clients.get(j));
+			for (int j = 0; j < Clients.getClientsSize(); j++) {
+				if (Clients.getClient(j).account.user.equals(commands[1])) {
+					Clients.killClient(Clients.getClient(j));
 					j--;
 				}
 			}
@@ -1053,7 +767,7 @@ public class TASServer {
 			Accounts.saveAccounts(false); // save changes
 			 // just in case if rank changed:
 			client.status = Misc.setRankToStatus(client.status, client.account.getRank());
-			notifyClientsOfNewClientStatus(client);
+			Clients.notifyClientsOfNewClientStatus(client);
 			
 			// add server notification:
 			ServerNotification sn = new ServerNotification("Account access changed by admin");
@@ -1076,7 +790,7 @@ public class TASServer {
 
 			redirectToIP = commands[1];
 			redirect = true;
-			sendToAllRegisteredUsers("BROADCAST " + "Server has entered redirection mode");
+			Clients.sendToAllRegisteredUsers("BROADCAST " + "Server has entered redirection mode");
 			
 			// add server notification:
 			ServerNotification sn = new ServerNotification("Entered redirection mode");
@@ -1087,7 +801,7 @@ public class TASServer {
 			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
 
 			redirect = false;
-			sendToAllRegisteredUsers("BROADCAST " + "Server has left redirection mode");
+			Clients.sendToAllRegisteredUsers("BROADCAST " + "Server has left redirection mode");
 			
 			// add server notification:
 			ServerNotification sn = new ServerNotification("Redirection mode disabled");
@@ -1098,19 +812,19 @@ public class TASServer {
 			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
 			if (commands.length < 2) return false;
 
-			sendToAllRegisteredUsers("BROADCAST " + Misc.makeSentence(commands, 1));
+			Clients.sendToAllRegisteredUsers("BROADCAST " + Misc.makeSentence(commands, 1));
 		}
 		else if (commands[0].equals("BROADCASTEX")) {
 			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
 			if (commands.length < 2) return false;
 
-			sendToAllRegisteredUsers("SERVERMSGBOX " + Misc.makeSentence(commands, 1));
+			Clients.sendToAllRegisteredUsers("SERVERMSGBOX " + Misc.makeSentence(commands, 1));
 		}
 		else if (commands[0].equals("ADMINBROADCAST")) {
 			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
 			if (commands.length < 2) return false;
 
-			sendToAllAdministrators("SERVERMSG [broadcast to all admins]: " + Misc.makeSentence(commands, 1));
+			Clients.sendToAllAdministrators("SERVERMSG [broadcast to all admins]: " + Misc.makeSentence(commands, 1));
 		}
 		else if (commands[0].equals("GETACCOUNTCOUNT")) {
 			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
@@ -1130,9 +844,9 @@ public class TASServer {
 				return false;
 			}
 			
-			for (int i = 0; i < clients.size(); i++)
+			for (int i = 0; i < Clients.getClientsSize(); i++)
 			{
-				String[] sp2 = ((Client)clients.get(i)).IP.split("\\.");
+				String[] sp2 = Clients.getClient(i).IP.split("\\.");
 
 				if (!sp1[0].equals("*")) if (!sp1[0].equals(sp2[0])) continue;
 				if (!sp1[1].equals("*")) if (!sp1[1].equals(sp2[1])) continue;
@@ -1140,7 +854,7 @@ public class TASServer {
 				if (!sp1[3].equals("*")) if (!sp1[3].equals(sp2[3])) continue;
 				
 				found = true;
-				client.sendLine("SERVERMSG " + IP + " is bound to: "+ ((Client)clients.get(i)).account.user);
+				client.sendLine("SERVERMSG " + IP + " is bound to: "+ Clients.getClient(i).account.user);
 			}
 				
 			// now let's check if this IP matches any recently used IP:
@@ -1152,7 +866,7 @@ public class TASServer {
 				if (!sp1[2].equals("*")) if (!sp1[2].equals(sp2[2])) continue;
 				if (!sp1[3].equals("*")) if (!sp1[3].equals(sp2[3])) continue;				
 
-				if (getClient(Accounts.getAccount(i).user) == null) { // user is offline
+				if (Clients.getClient(Accounts.getAccount(i).user) == null) { // user is offline
 					found = true;
 					client.sendLine("SERVERMSG " + IP + " was recently bound to: "+ Accounts.getAccount(i).user + " (offline)");
 				}
@@ -1170,7 +884,7 @@ public class TASServer {
 				return false;
 			}
 			
-			boolean online = isUserAlreadyLoggedIn(acc); 
+			boolean online = Clients.isUserLoggedIn(acc); 
 			client.sendLine("SERVERMSG " + commands[1] + "'s last IP was " + acc.lastIP + " (" + (online ? "online)" : "offline)"));
 		}		
 		else if (commands[0].equals("GETACCOUNTINFO")) {
@@ -1191,7 +905,7 @@ public class TASServer {
 			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
 			if (commands.length < 3) return false;
 			
-			Client targetClient = getClient(commands[1]);
+			Client targetClient = Clients.getClient(commands[1]);
 			if (targetClient == null) return false;
 			
 			targetClient.sendLine(Misc.makeSentence(commands, 2));
@@ -1203,7 +917,7 @@ public class TASServer {
 			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
 			if (commands.length < 3) return false;
 			
-			Client targetClient = getClient(commands[1]);
+			Client targetClient = Clients.getClient(commands[1]);
 			if (targetClient == null) return false;
 			
 			tryToExecCommand(Misc.makeSentence(commands, 2), targetClient);
@@ -1212,7 +926,7 @@ public class TASServer {
 			if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) return false;
 			if (commands.length != 2) return false;
 		
-			Client targetClient = getClient(commands[1]);
+			Client targetClient = Clients.getClient(commands[1]);
 			if (targetClient == null) return false;
 			
 			client.sendLine("SERVERMSG " + targetClient.account.user + "'s IP is " + targetClient.IP);
@@ -1250,13 +964,13 @@ public class TASServer {
 				return false; 
 			}
 			
-			Battle bat = getBattle(battleID);
+			Battle bat = Battles.getBattleByID(battleID);
 			if (bat == null) {
 				client.sendLine("SERVERMSG Error: unknown BATTLE_ID!");
 				return false;
 			}
 			
-			closeBattleAndNotifyAll(bat);
+			Battles.closeBattleAndNotifyAll(bat);
 			
 		}
 		else if (commands[0].equals("BANLISTADD")) {
@@ -1265,16 +979,16 @@ public class TASServer {
 			
 			String reason = "";
 			if (commands.length > 2) reason = Misc.makeSentence(commands, 2); 
-			banList.add(commands[1], reason);
-			banList.saveToFile(BAN_LIST_FILENAME);
+			Clients.banList.add(commands[1], reason);
+			Clients.banList.saveToFile(BAN_LIST_FILENAME);
 			client.sendLine("SERVERMSG IP " + commands[1] + " has been added to ban list. Use KICKUSER to kick user from server.");
 		}
 		else if (commands[0].equals("BANLISTREMOVE")) {
 			if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) return false;
 			if (commands.length != 2) return false;
 
-			if (banList.remove(commands[1])) {
-				banList.saveToFile(BAN_LIST_FILENAME);
+			if (Clients.banList.remove(commands[1])) {
+				Clients.banList.saveToFile(BAN_LIST_FILENAME);
 				client.sendLine("SERVERMSG IP " + commands[1] + " has been removed from ban list.");
 			} else {
 				client.sendLine("SERVERMSG IP " + commands[1] + " couldn't be found in ban list!");				
@@ -1284,11 +998,11 @@ public class TASServer {
 			if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) return false;
 			if (commands.length != 1) return false;
 
-			if (banList.size() == 0) client.sendLine("SERVERMSG Ban list is empty!");
+			if (Clients.banList.size() == 0) client.sendLine("SERVERMSG Ban list is empty!");
 			else {
-				client.sendLine("SERVERMSG Ban list (" + banList.size() + " entries):");
-				for (int i = 0; i < banList.size(); i++)
-					client.sendLine("SERVERMSG * " + banList.getIP(i) + " (Reason: " + banList.getReason(i) + ")");
+				client.sendLine("SERVERMSG Ban list (" + Clients.banList.size() + " entries):");
+				for (int i = 0; i < Clients.banList.size(); i++)
+					client.sendLine("SERVERMSG * " + Clients.banList.getIP(i) + " (Reason: " + Clients.banList.getReason(i) + ")");
 				client.sendLine("SERVERMSG End of ban list.");
 			}
 		}
@@ -1296,7 +1010,7 @@ public class TASServer {
 			if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) return false;
 			if (commands.length != 4) return false;
 			
-			Channel chan = getChannel(commands[1]);
+			Channel chan = Channels.getChannel(commands[1]);
 			if (chan == null) { 
 				client.sendLine("SERVERMSG MUTE failed: Channel #" + commands[1] + " does not exist!");
 				return false;
@@ -1325,7 +1039,7 @@ public class TASServer {
 			if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) return false;
 			if (commands.length != 3) return false;
 
-			Channel chan = getChannel(commands[1]);
+			Channel chan = Channels.getChannel(commands[1]);
 			if (chan == null) { 
 				client.sendLine("SERVERMSG UNMUTE failed: Channel #" + commands[1] + " does not exist!");
 				return false;
@@ -1348,7 +1062,7 @@ public class TASServer {
 				return false;
 			}
 			
-			Channel chan = getChannel(commands[1]);
+			Channel chan = Channels.getChannel(commands[1]);
 			if (chan == null) { 
 				client.sendLine("SERVERMSG MUTELIST failed: Channel #" + commands[1] + " does not exist!");
 				return false;
@@ -1367,7 +1081,7 @@ public class TASServer {
 			if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) return false;
 			if (commands.length < 3) return false;
 
-			Channel chan = getChannel(commands[1]);
+			Channel chan = Channels.getChannel(commands[1]);
 			if (chan == null) { 
 				client.sendLine("SERVERMSG CHANNELMESSAGE failed: Channel #" + commands[1] + " does not exist!");
 				return false;
@@ -1422,7 +1136,7 @@ public class TASServer {
 			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
 			if (commands.length != 2) return false;
 
-			Client targetClient = getClient(commands[1]);
+			Client targetClient = Clients.getClient(commands[1]);
 			if (targetClient == null) {
 				client.sendLine("SERVERMSG <" + commands[1] + "> not found!");
 				return false;
@@ -1433,7 +1147,7 @@ public class TASServer {
 			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
 			if (commands.length != 1) return false;
 
-			int taken = saveStatisticsToDisk(); 
+			int taken = Statistics.saveStatisticsToDisk(); 
 			if (taken == -1)
 				client.sendLine("SERVERMSG Unable to update statistics!");
 			else 
@@ -1474,7 +1188,7 @@ public class TASServer {
 				return false;
 			}
 			
-			if (getClient(acc.user) == null) {
+			if (Clients.getClient(acc.user) == null) {
 				client.sendLine("SERVERMSG <" + acc.user + ">'s last login was on " + Misc.easyDateFormat(acc.lastLogin, "d MMM yyyy HH:mm:ss z"));
 			} else {
 				client.sendLine("SERVERMSG <" + acc.user + "> is currently online");
@@ -1487,7 +1201,7 @@ public class TASServer {
 				return false;
 			}
 			
-			Channel chan = getChannel(commands[1]);
+			Channel chan = Channels.getChannel(commands[1]);
 			if (chan == null) {
 				client.sendLine("SERVERMSG Error: Channel does not exist: " + commands[1]);
 				return false;
@@ -1516,13 +1230,13 @@ public class TASServer {
 				return false;
 			}
 			
-			Channel chan = getChannel(commands[1]);
+			Channel chan = Channels.getChannel(commands[1]);
 			if (chan == null) {
 				client.sendLine("SERVERMSG Error: Channel does not exist: " + commands[1]);
 				return false;
 			}
 			
-			Client target = getClient(commands[2]);
+			Client target = Clients.getClient(commands[2]);
 			if (target == null) {
 				client.sendLine("SERVERMSG Error: <" + commands[2] + "> not found!");
 				return false;
@@ -1537,7 +1251,7 @@ public class TASServer {
 			if (commands.length > 3) reason = " " + Misc.makeSentence(commands, 3);
 			chan.broadcast("<" + client.account.user + "> has kicked <" + target.account.user + "> from the channel" + (reason.equals("") ? "" : " (reason:" + reason + ")"));
 			target.sendLine("FORCELEAVECHANNEL " + chan.name + " " + client.account.user + reason);
-			leaveChannelAndNotifyAll(chan, target, "kicked from channel");
+			target.leaveChannel(chan, "kicked from channel");
 		}
 		else if (commands[0].equals("LAUNCHPROCESS")) {
 			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
@@ -1572,7 +1286,7 @@ public class TASServer {
 				return false;
 			}
 
-			Client c = getClient(commands[1]);
+			Client c = Clients.getClient(commands[1]);
 			if (c == null) {
 				client.sendLine("SERVERMSG Error: user <" + commands[1] + "> not found online!");
 				return false;
@@ -1603,13 +1317,16 @@ public class TASServer {
 				return false;
 			}
 			
+			long time = System.nanoTime();
 			System.gc();
-			client.sendLine("SERVERMSG Amount Garbage collector invoked.");
+			time = (System.nanoTime() - time) / 1000000;
+			
+			client.sendLine("SERVERMSG Garbage collector invoked (time taken: " + time + " ms)");
 		}		
 		else if (commands[0].equals("CHANNELS")) {
 			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
 			
-			sendChannelListToClient(client);
+			Channels.sendChannelListToClient(client);
 		}
 		else if (commands[0].equals("REQUESTUPDATEFILE")) {
 			//***if (client.account.accessLevel() > Account.NIL_ACCESS) return false;
@@ -1619,11 +1336,11 @@ public class TASServer {
 			
 			if (version.equals("0.12")) {
 				client.sendLine("SERVERMSGBOX Your lobby client is outdated! Please update from: http://taspring.clan-sy.com/download.php");
-				killClient(client);
+				Clients.killClient(client);
 				return false;
 			} else if (version.equals("0.121")) {
 				client.sendLine("SERVERMSGBOX Your lobby client is outdated! Please update from: http://taspring.clan-sy.com/download.php");
-				killClient(client);
+				Clients.killClient(client);
 				return false;
 /*
 			} else if (version.equals("0.18")) {
@@ -1652,7 +1369,7 @@ public class TASServer {
 			} else { // unknown client version
 //				client.sendLine("SERVERMSGBOX No update available for your version of lobby. See official spring web site to get the latest lobby client!");
 				client.sendLine("SERVERMSGBOX You are using an outdated Spring and lobby program, check the download section for new updates at the official Spring web site: http://taspring.clan-sy.com");
-				killClient(client);
+				Clients.killClient(client);
 			}
 		
 			//*** not implemented yet;
@@ -1683,12 +1400,12 @@ public class TASServer {
 					client.sendLine("DENIED Bad username/password");
 					return false;
 				}
-				if (isUserAlreadyLoggedIn(acc)) {
+				if (Clients.isUserLoggedIn(acc)) {
 					client.sendLine("DENIED Already logged in");
 					return false;
 				}
-				if (banList.banned(client.IP)) {
-					String reason = banList.getReason(banList.getIndex(client.IP));
+				if (Clients.banList.banned(client.IP)) {
+					String reason = Clients.banList.getReason(Clients.banList.getIndex(client.IP));
 					if (reason.equals("")) reason = "[not given]";
 					client.sendLine("DENIED You are banned from this server! (Reason: " + reason + "). Please contact server administrator.");
 					return false;
@@ -1733,13 +1450,13 @@ public class TASServer {
 			// do the notifying and all: 
 			client.sendLine("ACCEPTED " + client.account.user);
 			sendMOTDToClient(client);
-			sentListOfAllUsersToClient(client);
-			sendInfoOnBattlesToClient(client);
-			sendInfoOnStatusesToClient(client);
-			notifyClientsOfNewClientOnServer(client);
+			Clients.sendListOfAllUsersToClient(client);
+			Battles.sendInfoOnBattlesToClient(client);
+			Clients.sendInfoOnStatusesToClient(client);
+			Clients.notifyClientsOfNewClientOnServer(client);
 
 			// we have to notify everyone about client's status to let them know about his rank:
-			notifyClientsOfNewClientStatus(client);
+			Clients.notifyClientsOfNewClientStatus(client);
 			
 			if (DEBUG > 0) System.out.println("User just logged in: " + client.account.user);
 		}
@@ -1782,17 +1499,17 @@ public class TASServer {
 			}			
 
 			// make sure all mutes are accordingly adjusted to new username:
-			for (int i = 0; i < channels.size(); i++) {
-				((Channel)channels.get(i)).muteList.rename(client.account.user, commands[1]);
+			for (int i = 0; i < Channels.getChannelsSize(); i++) {
+				Channels.getChannel(i).muteList.rename(client.account.user, commands[1]);
 			}
 			
 			acc = new Account(commands[1], client.account.pass, client.account.access, System.currentTimeMillis(), client.IP, client.account.registrationDate, client.account.mapGrades);
 			Accounts.addAccount(acc);
 			client.sendLine("SERVERMSG Your account has been renamed to <" + commands[1] + ">. Reconnect with new account (you will now be automatically disconnected)!");
-			killClient(client, "Quit: renaming account");
+			Clients.killClient(client, "Quit: renaming account");
 			Accounts.removeAccount(client.account.user);
 			Accounts.saveAccounts(false); // let's save new accounts info to disk
-			sendToAllAdministrators("SERVERMSG [broadcast to all admins]: User <" + client.account.user + "> has just renamed his account to <" + commands[1] + ">");
+			Clients.sendToAllAdministrators("SERVERMSG [broadcast to all admins]: User <" + client.account.user + "> has just renamed his account to <" + commands[1] + ">");
 			
 			// add server notification:
 			ServerNotification sn = new ServerNotification("Account renamed");
@@ -1837,7 +1554,7 @@ public class TASServer {
 			}
 
 			// check if key is correct (if channel is locked):
-			Channel chan = getChannel(commands[1]);
+			Channel chan = Channels.getChannel(commands[1]);
 			if ((chan != null) && (chan.isLocked()) && (client.account.accessLevel() < Account.ADMIN_ACCESS /* we will allow admins to join locked channels */)) {
 				if (!Misc.makeSentence(commands, 2).equals(chan.getKey())) {
 					client.sendLine("JOINFAILED " + commands[1] + " Wrong key (this channel is locked)!");
@@ -1845,29 +1562,29 @@ public class TASServer {
 				}
 			}
 
-			chan = joinChannel(commands[1], client);
+			chan = client.joinChannel(commands[1]);
 			if (chan == null) {
 				client.sendLine("JOINFAILED " + commands[1] + " Already in the channel!");
 				return false;
 			}
 			client.sendLine("JOIN " + commands[1]);
-			sendChannelInfoToClient(chan, client);
-			notifyClientsOfNewClientInChannel(chan, client);
+			Channels.sendChannelInfoToClient(chan, client);
+			Channels.notifyClientsOfNewClientInChannel(chan, client);
 		}
 		else if (commands[0].equals("LEAVE")) {
 			if (commands.length < 2) return false;
 			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
 			
-			Channel chan = getChannel(commands[1]);
+			Channel chan = Channels.getChannel(commands[1]);
 			if (chan == null) return false;
 			
-			leaveChannelAndNotifyAll(chan, client, "");
+			client.leaveChannel(chan, "");
 		}
 		else if (commands[0].equals("CHANNELTOPIC")) {
 			if (commands.length < 3) return false;
 			if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) return false;
 			
-			Channel chan = getChannel(commands[1]);
+			Channel chan = Channels.getChannel(commands[1]);
 			if (chan == null) {
 				client.sendLine("SERVERMSG Error: Channel does not exist: " + commands[1]);
 				return false;
@@ -1886,7 +1603,7 @@ public class TASServer {
 			if (commands.length < 3) return false;
 			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
 			
-			Channel chan = getChannel(commands[1]);
+			Channel chan = client.getChannel(commands[1]);
 			if (chan == null) return false;
 			
 			if (chan.muteList.isMuted(client.account.user)) {
@@ -1899,7 +1616,7 @@ public class TASServer {
 			if ((s.length() > maxChatMessageLength) && (client.account.accessLevel() < Account.ADMIN_ACCESS)) {
 				System.out.println("WARNING: Flooding detected from " + client.IP + " (" + client.account.user + ") [exceeded max. chat message size]");
 				client.sendLine("SERVERMSG Flooding detected - you have exceeded maximum allowed chat message size (" + maxChatMessageLength + " bytes). Your message has been ignored.");
-				sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Flooding has been detected from " + client.IP + " (" + client.account.user + ") - exceeded maximum chat message size. Ignoring ...");
+				Clients.sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Flooding has been detected from " + client.IP + " (" + client.account.user + ") - exceeded maximum chat message size. Ignoring ...");
 				return false;
 			}
 			chan.sendLineToClients("SAID " + chan.name + " " + client.account.user + " " + s);
@@ -1908,7 +1625,7 @@ public class TASServer {
 			if (commands.length < 3) return false;
 			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
 			
-			Channel chan = getChannel(commands[1]);
+			Channel chan = client.getChannel(commands[1]);
 			if (chan == null) return false;
 
 			if (chan.muteList.isMuted(client.account.user)) {
@@ -1921,7 +1638,7 @@ public class TASServer {
 			if ((s.length() > maxChatMessageLength) && (client.account.accessLevel() < Account.ADMIN_ACCESS)) {
 				System.out.println("WARNING: Flooding detected from " + client.IP + " (" + client.account.user + ") [exceeded max. chat message size]");
 				client.sendLine("SERVERMSG Flooding detected - you have exceeded maximum allowed chat message size (" + maxChatMessageLength + " bytes). Your message has been ignored.");
-				sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Flooding has been detected from " + client.IP + " (" + client.account.user + ") - exceeded maximum chat message size. Ignoring ...");
+				Clients.sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Flooding has been detected from " + client.IP + " (" + client.account.user + ") - exceeded maximum chat message size. Ignoring ...");
 				return false;
 			}
 			
@@ -1931,19 +1648,19 @@ public class TASServer {
 			if (commands.length < 3) return false;
 			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
 			
-			int i = getIndexOfClient(commands[1]);
-			if (i == -1) return false;
+			Client target = Clients.getClient(commands[1]);
+			if (target == null) return false;
 			
 			String s = Misc.makeSentence(commands, 2);
 			// check for flooding:
 			if ((s.length() > maxChatMessageLength) && (client.account.accessLevel() < Account.ADMIN_ACCESS)) {
 				System.out.println("WARNING: Flooding detected from " + client.IP + " (" + client.account.user + ") [exceeded max. chat message size]");
 				client.sendLine("SERVERMSG Flooding detected - you have exceeded maximum allowed chat message size (" + maxChatMessageLength + " bytes). Your message has been ignored.");
-				sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Flooding has been detected from " + client.IP + " (" + client.account.user + ") - exceeded maximum chat message size. Ignoring ...");
+				Clients.sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Flooding has been detected from " + client.IP + " (" + client.account.user + ") - exceeded maximum chat message size. Ignoring ...");
 				return false;
 			}
 
-			((Client)clients.get(i)).sendLine("SAIDPRIVATE " + client.account.user + " " + s);
+			target.sendLine("SAIDPRIVATE " + client.account.user + " " + s);
 			client.sendLine(command); // echo the command. See protocol description!
 		}
 		else if (commands[0].equals("JOINBATTLE")) {
@@ -1964,7 +1681,7 @@ public class TASServer {
 				return false; 
 			}
 			
-			Battle bat = getBattle(battleID);
+			Battle bat = Battles.getBattleByID(battleID);
 			
 			if (bat == null) { 
 				client.sendLine("JOINBATTLEFAILED " + "Invalid battle ID!");
@@ -1998,7 +1715,7 @@ public class TASServer {
 			client.battleID = battleID;
 			bat.addClient(client);
 		 	client.sendLine("JOINBATTLE " + bat.ID + " " + bat.metal + " " + bat.energy + " " + bat.units + " " + bat.startPos + " " + bat.gameEndCondition + " " + Misc.boolToStr(bat.limitDGun)+ " " + Misc.boolToStr(bat.diminishingMMs) + " " + Misc.boolToStr(bat.ghostedBuildings) + " " + bat.hashCode); // notify client that he has successfully joined the battle
-			notifyClientsOfNewClientInBattle(bat, client);
+			Clients.notifyClientsOfNewClientInBattle(bat, client);
 			bat.notifyOfBattleStatuses(client);
 			bat.sendBotListToClient(client);
 			// tell host about this client's UDP source port (if battle is hosted using "hole punching" NAT traversal technique):
@@ -2018,12 +1735,12 @@ public class TASServer {
 			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
 
 			if (client.battleID == -1) return false;
-			Battle bat = getBattle(client.battleID);
+			Battle bat = Battles.getBattleByID(client.battleID);
 			if (bat == null) {
 				System.out.println("Serious error occured: Invalid battle ID. Server will now exit!");
 				closeServerAndExit();
 			}
-			leaveBattle(client, bat); // automatically checks if client is a founder and closes battle
+			Battles.leaveBattle(client, bat); // automatically checks if client is a founder and closes battle
 		}
 		else if (commands[0].equals("OPENBATTLE")) {
 			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
@@ -2031,21 +1748,21 @@ public class TASServer {
 				client.sendLine("OPENBATTLEFAILED " + "You are already hosting a battle!");
 				return false;
 			}
-			Battle bat = Battle.createBattleFromString(command, client);
+			Battle bat = Battles.createBattleFromString(command, client);
 			if (bat == null) {
 				client.sendLine("OPENBATTLEFAILED " + "Invalid command format or bad arguments");
 				return false;
 			}
-			battles.add(bat);
+			Battles.addBattle(bat);
 			client.battleStatus = 0; // reset client's battle status
 			client.battleID = bat.ID;
 
 			boolean local;
-			for (int i = 0; i < clients.size(); i++) {
-				if (((Client)clients.get(i)).account.accessLevel() < Account.NORMAL_ACCESS) continue;
+			for (int i = 0; i < Clients.getClientsSize(); i++) {
+				if (Clients.getClient(i).account.accessLevel() < Account.NORMAL_ACCESS) continue;
 				// make sure that clients behind NAT get local IPs and not external ones:
-				local = client.IP.equals(((Client)clients.get(i)).IP);
-				((Client)clients.get(i)).sendLine(bat.createBattleOpenedCommandEx(local));
+				local = client.IP.equals(Clients.getClient(i).IP);
+				Clients.getClient(i).sendLine(bat.createBattleOpenedCommandEx(local));
 			}
 			
 			client.sendLine("OPENBATTLE " + bat.ID); // notify client that he successfully opened a new battle
@@ -2057,7 +1774,7 @@ public class TASServer {
 			
 			if (client.battleID == -1) return false;
 
-			Battle bat = getBattle(client.battleID);
+			Battle bat = Battles.getBattleByID(client.battleID);
 			if (bat == null) return false;
 			
 			int newTeamColor;
@@ -2078,7 +1795,7 @@ public class TASServer {
 			client.battleStatus = Misc.setHandicapOfBattleStatus(newStatus, Misc.getHandicapFromBattleStatus(client.battleStatus));
 			
 			// if game is full or game type is "battle replay", force player's mode to spectator:
-			if ((bat.clients.size()+1-bat.spectatorCount() > bat.maxPlayers) || (bat.type == 1)) {
+			if ((bat.getClientsSize()+1-bat.spectatorCount() > bat.maxPlayers) || (bat.type == 1)) {
 				client.battleStatus = Misc.setModeOfBattleStatus(client.battleStatus, 0);
 			}
 			// if player has chosen team number which is already used by some other player/bot,
@@ -2088,17 +1805,17 @@ public class TASServer {
 					client.battleStatus = Misc.setAllyNoOfBattleStatus(client.battleStatus, Misc.getAllyNoFromBattleStatus(bat.founder.battleStatus));
 					client.teamColor = bat.founder.teamColor;
 				} 
-			for (int i = 0; i < bat.clients.size(); i++)
-				if (((Client)bat.clients.get(i)) != client)
-					if ((Misc.getTeamNoFromBattleStatus(((Client)bat.clients.get(i)).battleStatus) == Misc.getTeamNoFromBattleStatus(client.battleStatus)) && (Misc.getModeFromBattleStatus(((Client)bat.clients.get(i)).battleStatus) != 0)) {
-						client.battleStatus = Misc.setAllyNoOfBattleStatus(client.battleStatus, Misc.getAllyNoFromBattleStatus(((Client)bat.clients.get(i)).battleStatus));
-						client.teamColor = ((Client)bat.clients.get(i)).teamColor;
+			for (int i = 0; i < bat.getClientsSize(); i++)
+				if (bat.getClient(i) != client)
+					if ((Misc.getTeamNoFromBattleStatus(bat.getClient(i).battleStatus) == Misc.getTeamNoFromBattleStatus(client.battleStatus)) && (Misc.getModeFromBattleStatus(bat.getClient(i).battleStatus) != 0)) {
+						client.battleStatus = Misc.setAllyNoOfBattleStatus(client.battleStatus, Misc.getAllyNoFromBattleStatus(bat.getClient(i).battleStatus));
+						client.teamColor = bat.getClient(i).teamColor;
 						break;
 					}
-			for (int i = 0; i < bat.bots.size(); i++)
-				if (Misc.getTeamNoFromBattleStatus(((Bot)bat.bots.get(i)).battleStatus) == Misc.getTeamNoFromBattleStatus(client.battleStatus)) {
-					client.battleStatus = Misc.setAllyNoOfBattleStatus(client.battleStatus, Misc.getAllyNoFromBattleStatus(((Bot)bat.bots.get(i)).battleStatus));
-					client.teamColor = ((Bot)bat.bots.get(i)).teamColor;
+			for (int i = 0; i < bat.getBotsSize(); i++)
+				if (Misc.getTeamNoFromBattleStatus(bat.getBot(i).battleStatus) == Misc.getTeamNoFromBattleStatus(client.battleStatus)) {
+					client.battleStatus = Misc.setAllyNoOfBattleStatus(client.battleStatus, Misc.getAllyNoFromBattleStatus(bat.getBot(i).battleStatus));
+					client.teamColor = bat.getBot(i).teamColor;
 					break;
 				}
 					
@@ -2124,8 +1841,8 @@ public class TASServer {
 			if (Misc.getInGameFromStatus(client.status) != tmp2) {
 				// user changed his in-game status.
 				if (tmp2 == 0) { // client just entered game
-					Battle bat = getBattle(client.battleID);
-					if ((bat != null) && (bat.clients.size() > 0))
+					Battle bat = Battles.getBattleByID(client.battleID);
+					if ((bat != null) && (bat.getClientsSize() > 0))
 							client.inGameTime = System.currentTimeMillis();
 					else client.inGameTime = 0; // we won't update clients who play by themselves (or with bots), since some try to exploit the system by leaving computer alone in-battle for hours to increase their ranks
 					// check if client is a battle host using "hole punching" technique:
@@ -2142,14 +1859,14 @@ public class TASServer {
 					}
 				}
 			}
-			notifyClientsOfNewClientStatus(client);
+			Clients.notifyClientsOfNewClientStatus(client);
 		}
 		else if (commands[0].equals("SAYBATTLE")) {
 			if (commands.length < 2) return false;
 			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
 			
 			if (client.battleID == -1) return false;
-			Battle bat = getBattle(client.battleID);
+			Battle bat = Battles.getBattleByID(client.battleID);
 			if (bat == null) return false;
 			
 			String s = Misc.makeSentence(commands, 1); 
@@ -2157,7 +1874,7 @@ public class TASServer {
 			if ((s.length() > maxChatMessageLength) && (client.account.accessLevel() < Account.ADMIN_ACCESS)) {
 				System.out.println("WARNING: Flooding detected from " + client.IP + " (" + client.account.user + ") [exceeded max. chat message size]");
 				client.sendLine("SERVERMSG Flooding detected - you have exceeded maximum allowed chat message size (" + maxChatMessageLength + " bytes). Your message has been ignored.");
-				sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Flooding has been detected from " + client.IP + " (" + client.account.user + ") - exceeded maximum chat message size. Ignoring ...");
+				Clients.sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Flooding has been detected from " + client.IP + " (" + client.account.user + ") - exceeded maximum chat message size. Ignoring ...");
 				return false;
 			}				
 			
@@ -2168,7 +1885,7 @@ public class TASServer {
 			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
 			
 			if (client.battleID == -1) return false;
-			Battle bat = getBattle(client.battleID);
+			Battle bat = Battles.getBattleByID(client.battleID);
 			if (bat == null) return false;
 
 			String s = Misc.makeSentence(commands, 1);
@@ -2176,7 +1893,7 @@ public class TASServer {
 			if ((s.length() > maxChatMessageLength) && (client.account.accessLevel() < Account.ADMIN_ACCESS)) {
 				System.out.println("WARNING: Flooding detected from " + client.IP + " (" + client.account.user + ") [exceeded max. chat message size]");
 				client.sendLine("SERVERMSG Flooding detected - you have exceeded maximum allowed chat message size (" + maxChatMessageLength + " bytes). Your message has been ignored.");
-				sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Flooding has been detected from " + client.IP + " (" + client.account.user + ") - exceeded maximum chat message size. Ignoring ...");
+				Clients.sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Flooding has been detected from " + client.IP + " (" + client.account.user + ") - exceeded maximum chat message size. Ignoring ...");
 				return false;
 			}				
 			
@@ -2187,7 +1904,7 @@ public class TASServer {
 			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
 			
 			if (client.battleID == -1) return false;
-			Battle bat = getBattle(client.battleID);
+			Battle bat = Battles.getBattleByID(client.battleID);
 			if (bat == null) return false;
 			if (bat.founder != client) return false; // only founder may change battle parameters!
 			
@@ -2202,14 +1919,14 @@ public class TASServer {
 			
 			bat.mapName = Misc.makeSentence(commands, 3);
 			bat.locked = locked;
-			sendToAllRegisteredUsers("UPDATEBATTLEINFO " + bat.ID + " " + spectatorCount + " " + Misc.boolToStr(bat.locked) + " " + bat.mapName);
+			Clients.sendToAllRegisteredUsers("UPDATEBATTLEINFO " + bat.ID + " " + spectatorCount + " " + Misc.boolToStr(bat.locked) + " " + bat.mapName);
 		}
 		else if (commands[0].equals("UPDATEBATTLEDETAILS")) {
 			if (commands.length != 9) return false;
 			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
 			
 			if (client.battleID == -1) return false;
-			Battle bat = getBattle(client.battleID);
+			Battle bat = Battles.getBattleByID(client.battleID);
 			if (bat == null) return false;
 			if (bat.founder != client) return false; // only founder may change battle parameters!
 
@@ -2236,10 +1953,9 @@ public class TASServer {
 			if ((startPos < 0) || (startPos > 2)) return false;
 			if ((gameEndCondition < 0) || (gameEndCondition > 1)) return false;
 			
-			
-			bat.metal = metal;
-			bat.energy = energy;
-			bat.units = units;
+			bat.metal = Math.min(10000, Math.max(0, metal)); // force it to be in range [0..10000]
+			bat.energy = Math.min(10000, Math.max(0, energy)); // force it to be in range [0..10000]
+			bat.units = Math.min(5000, Math.max(10, units)); // force it to be in range [10..5000]
 			bat.startPos = startPos;
 			bat.gameEndCondition = gameEndCondition;
 			bat.limitDGun = limitDGun;
@@ -2252,7 +1968,7 @@ public class TASServer {
 			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
 			
 			if (client.battleID == -1) return false;
-			Battle bat = getBattle(client.battleID);
+			Battle bat = Battles.getBattleByID(client.battleID);
 			if (bat == null) return false;
 			if (bat.founder != client) return false; // only founder can change handicap value of another user
 			
@@ -2264,38 +1980,35 @@ public class TASServer {
 			}
 			if ((value < 0) || (value > 100)) return false;
 
-			int tmp = getIndexOfClient(commands[1]);
-			if (tmp == -1) return false;
-			Client targetClient = (Client)clients.get(tmp);
+			Client target = Clients.getClient(commands[1]);
+			if (target == null) return false;
+			if (!bat.isClientInBattle(target)) return false;
 			
-			if (!bat.isClientInBattle(targetClient)) return false;
-			
-			targetClient.battleStatus = Misc.setHandicapOfBattleStatus(targetClient.battleStatus, value); 
-			bat.notifyClientsOfBattleStatus(targetClient);
+			target.battleStatus = Misc.setHandicapOfBattleStatus(target.battleStatus, value); 
+			bat.notifyClientsOfBattleStatus(target);
 		}
 		else if (commands[0].equals("KICKFROMBATTLE")) {
 			if (commands.length != 2) return false;
 			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
 			
 			if (client.battleID == -1) return false;
-			Battle bat = getBattle(client.battleID);
+			Battle bat = Battles.getBattleByID(client.battleID);
 			if (bat == null) return false;
 			if (bat.founder != client) return false; // only founder can kick other clients
 			
-			int tmp = getIndexOfClient(commands[1]);
-			if (tmp == -1) return false;
-			Client targetClient = (Client)clients.get(tmp);
+			Client target = Clients.getClient(commands[1]);
+			if (target == null) return false;
+			if (!bat.isClientInBattle(target)) return false;
 			
-			if (!bat.isClientInBattle(targetClient)) return false;
-			bat.sendToAllClients("SAIDBATTLEEX " + client.account.user + " kicked " + targetClient.account.user + " from battle");
-			targetClient.sendLine("FORCEQUITBATTLE");
+			bat.sendToAllClients("SAIDBATTLEEX " + client.account.user + " kicked " + target.account.user + " from battle");
+			target.sendLine("FORCEQUITBATTLE");
 		}
 		else if (commands[0].equals("FORCETEAMNO")) {
 			if (commands.length != 3) return false;
 			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
 			
 			if (client.battleID == -1) return false;
-			Battle bat = getBattle(client.battleID);
+			Battle bat = Battles.getBattleByID(client.battleID);
 			if (bat == null) return false;
 			if (bat.founder != client) return false; // only founder can force team/ally numbers
 			
@@ -2307,19 +2020,19 @@ public class TASServer {
 			}
 			if ((value < 0) || (value > TASServer.MAX_TEAMS-1)) return false;
 			
-			Client targetClient = getClient(commands[1]);
-			if (targetClient == null) return false;
-			if (!bat.isClientInBattle(targetClient)) return false;
+			Client target = Clients.getClient(commands[1]);
+			if (target == null) return false;
+			if (!bat.isClientInBattle(target)) return false;
 			
-			targetClient.battleStatus = Misc.setTeamNoOfBattleStatus(targetClient.battleStatus, value);
-			bat.notifyClientsOfBattleStatus(targetClient); 
+			target.battleStatus = Misc.setTeamNoOfBattleStatus(target.battleStatus, value);
+			bat.notifyClientsOfBattleStatus(target); 
 		}
 		else if (commands[0].equals("FORCEALLYNO")) {
 			if (commands.length != 3) return false;
 			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
 			
 			if (client.battleID == -1) return false;
-			Battle bat = getBattle(client.battleID);
+			Battle bat = Battles.getBattleByID(client.battleID);
 			if (bat == null) return false;
 			if (bat.founder != client) return false; // only founder can force team/ally numbers
 			
@@ -2331,19 +2044,19 @@ public class TASServer {
 			}
 			if ((value < 0) || (value > TASServer.MAX_TEAMS-1)) return false;
 			
-			Client targetClient = getClient(commands[1]);
-			if (targetClient == null) return false;
-			if (!bat.isClientInBattle(targetClient)) return false;
+			Client target = Clients.getClient(commands[1]);
+			if (target == null) return false;
+			if (!bat.isClientInBattle(target)) return false;
 			
-			targetClient.battleStatus = Misc.setAllyNoOfBattleStatus(targetClient.battleStatus, value);
-			bat.notifyClientsOfBattleStatus(targetClient); 
+			target.battleStatus = Misc.setAllyNoOfBattleStatus(target.battleStatus, value);
+			bat.notifyClientsOfBattleStatus(target); 
 		}		
 		else if (commands[0].equals("FORCETEAMCOLOR")) {
 			if (commands.length != 3) return false;
 			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
 			
 			if (client.battleID == -1) return false;
-			Battle bat = getBattle(client.battleID);
+			Battle bat = Battles.getBattleByID(client.battleID);
 			if (bat == null) return false;
 			if (bat.founder != client) return false; // only founder can force team color change
 			
@@ -2354,30 +2067,30 @@ public class TASServer {
 				return false; 
 			}
 			
-			Client targetClient = getClient(commands[1]);
-			if (targetClient == null) return false;
-			if (!bat.isClientInBattle(targetClient)) return false;
+			Client target = Clients.getClient(commands[1]);
+			if (target == null) return false;
+			if (!bat.isClientInBattle(target)) return false;
 			
-			targetClient.teamColor = value;
-			bat.notifyClientsOfBattleStatus(targetClient); 
+			target.teamColor = value;
+			bat.notifyClientsOfBattleStatus(target); 
 		}	
 		else if (commands[0].equals("FORCESPECTATORMODE")) {
 			if (commands.length != 2) return false;
 			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
 			
 			if (client.battleID == -1) return false;
-			Battle bat = getBattle(client.battleID);
+			Battle bat = Battles.getBattleByID(client.battleID);
 			if (bat == null) return false;
 			if (bat.founder != client) return false; // only founder can force spectator mode
 			
-			Client targetClient = getClient(commands[1]);
-			if (targetClient == null) return false;
-			if (!bat.isClientInBattle(targetClient)) return false;
+			Client target = Clients.getClient(commands[1]);
+			if (target == null) return false;
+			if (!bat.isClientInBattle(target)) return false;
 			
-			if (Misc.getModeFromBattleStatus(targetClient.battleStatus) == 0) return false; // no need to change it, it's already set to spectator mode!
+			if (Misc.getModeFromBattleStatus(target.battleStatus) == 0) return false; // no need to change it, it's already set to spectator mode!
 			
-			targetClient.battleStatus = Misc.setModeOfBattleStatus(targetClient.battleStatus, 0);
-			bat.notifyClientsOfBattleStatus(targetClient); 
+			target.battleStatus = Misc.setModeOfBattleStatus(target.battleStatus, 0);
+			bat.notifyClientsOfBattleStatus(target); 
 		}		
 		else if (commands[0].equals("ADDBOT")) {
 			if (commands.length < 5) return false;
@@ -2385,7 +2098,7 @@ public class TASServer {
 			
 			if (client.battleID == -1) return false;
 			
-			Battle bat = getBattle(client.battleID);
+			Battle bat = Battles.getBattleByID(client.battleID);
 			if (bat == null) {
 				System.out.println("Serious error occured: Invalid battle ID. Server will now exit!");
 				closeServerAndExit();
@@ -2410,13 +2123,13 @@ public class TASServer {
 				return false;
 			}
 			
-			if (bat.getBot(commands[1]) != -1) {
+			if (bat.getBot(commands[1]) != null) {
 				client.sendLine("SERVERMSGBOX Bot name already assigned. Choose another!");
 				return false;
 			}
 
 			Bot bot = new Bot(commands[1], client.account.user, Misc.makeSentence(commands, 4), value, teamColor);
-			bat.bots.add(bot);
+			bat.addBot(bot);
 			
 			bat.sendToAllClients("ADDBOT " + bat.ID + " " + bot.name + " " + client.account.user + " " + bot.battleStatus + " " + bot.teamColor + " " + bot.AIDll);
 			
@@ -2427,17 +2140,16 @@ public class TASServer {
 			
 			if (client.battleID == -1) return false;
 			
-			Battle bat = getBattle(client.battleID);
+			Battle bat = Battles.getBattleByID(client.battleID);
 			if (bat == null) {
 				System.out.println("Serious error occured: Invalid battle ID. Server will now exit!");
 				closeServerAndExit();
 			}
 			
-			int index = bat.getBot(commands[1]);
-			if (index == -1) return false;
+			Bot bot = bat.getBot(commands[1]);
+			if (bot == null) return false;
 			
-			Bot bot = (Bot)bat.bots.get(index);
-			bat.bots.remove(index);
+			bat.removeBot(bot);
 			
 			bat.sendToAllClients("REMOVEBOT " + bat.ID + " " + bot.name);
 		}
@@ -2447,16 +2159,14 @@ public class TASServer {
 			
 			if (client.battleID == -1) return false;
 			
-			Battle bat = getBattle(client.battleID);
+			Battle bat = Battles.getBattleByID(client.battleID);
 			if (bat == null) {
 				System.out.println("Serious error occured: Invalid battle ID. Server will now exit!");
 				closeServerAndExit();
 			}
 			
-			int index = bat.getBot(commands[1]);
-			if (index == -1) return false;
-			
-			Bot bot = (Bot)bat.bots.get(index);
+			Bot bot = bat.getBot(commands[1]);
+			if (bot == null) return false;
 
 			int value;
 			try {
@@ -2487,14 +2197,14 @@ public class TASServer {
 			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
 			
 			if (client.battleID == -1) return false;
-			Battle bat = getBattle(client.battleID);
+			Battle bat = Battles.getBattleByID(client.battleID);
 			if (bat == null) return false;
 			if (bat.founder != client) return false; // only founder can disable/enable units
 
 			// let's check if client didn't double the data (he shouldn't, but we can't
 			// trust him, so we will check ourselves):
 			for (int i = 1; i < commands.length; i++) {
-				if (bat.getUnitIndexInDisabledList(commands[i]) != -1) continue;
+				if (bat.disabledUnits.indexOf(commands[i]) != -1) continue;
 				bat.disabledUnits.add(commands[i]);
 			}
 			
@@ -2505,15 +2215,12 @@ public class TASServer {
 			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
 			
 			if (client.battleID == -1) return false;
-			Battle bat = getBattle(client.battleID);
+			Battle bat = Battles.getBattleByID(client.battleID);
 			if (bat == null) return false;
 			if (bat.founder != client) return false; // only founder can disable/enable units
 
-			int tmp;
 			for (int i = 1; i < commands.length; i++) {
-				tmp = bat.getUnitIndexInDisabledList(commands[i]);
-				if (tmp == -1) continue; // let's just ignore this unit
-				bat.disabledUnits.remove(tmp);
+				bat.disabledUnits.remove(commands[i]); // will ignore it if string is not found in the list
 			}
 			
 			bat.sendToAllExceptFounder(command);
@@ -2523,7 +2230,7 @@ public class TASServer {
 			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
 			
 			if (client.battleID == -1) return false;
-			Battle bat = getBattle(client.battleID);
+			Battle bat = Battles.getBattleByID(client.battleID);
 			if (bat == null) return false;
 			if (bat.founder != client) return false; // only founder can disable/enable units
 
@@ -2537,35 +2244,37 @@ public class TASServer {
 			// and only clients who are participating in their battle
 			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
 			if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) { // normal user
-				Client targetClient = getClient(commands[1]);
-				if (targetClient == null) return false;
+				Client target = Clients.getClient(commands[1]);
+				if (target == null) return false;
 
 				if (client.battleID == -1) {
 					client.sendLine("SERVERMSG RING command failed: You can only ring players participating in your own battle!");
 					return false; 
 				}
 				
-				Battle bat = getBattle(client.battleID);
+				Battle bat = Battles.getBattleByID(client.battleID);
 				if (bat == null) {
 					System.out.println("Serious error occured: Invalid battle ID. Server will now exit!");
 					closeServerAndExit();
 				}
+				
 				if (!bat.isClientInBattle(commands[1])) {
 					client.sendLine("SERVERMSG RING command failed: You don't have permission to ring players other than those participating in your battle!");
 					return false;
 				}
-				if (bat.founder != client) {
-					/* only host can ring players participating in his own battle, unless target is host himself */
-					client.sendLine("SERVERMSG RING command failed: Only battle host is allowed to ring players participating in his own battle!");
+				
+				// only host can ring players participating in his own battle, unless target is host himself:
+				if ((client != bat.founder) && (target != bat.founder)) {
+					client.sendLine("SERVERMSG RING command failed: You can ring only battle host, or if you are the battle host, only players participating in your own battle!");
 					return false;
 				}
 												
-				targetClient.sendLine("RING " + client.account.user);
+				target.sendLine("RING " + client.account.user);
 			} else { // privileged user
-				Client targetClient = getClient(commands[1]);
-				if (targetClient == null) return false;
+				Client target = Clients.getClient(commands[1]);
+				if (target == null) return false;
 				
-				targetClient.sendLine("RING " + client.account.user);
+				target.sendLine("RING " + client.account.user);
 			}
 		}
 		else if (commands[0].equals("ADDSTARTRECT")) {
@@ -2574,7 +2283,7 @@ public class TASServer {
 			
 			if (client.battleID == -1) return false;
 			
-			Battle bat = getBattle(client.battleID);
+			Battle bat = Battles.getBattleByID(client.battleID);
 			if (bat == null) {
 				System.out.println("Serious error occured: Invalid battle ID. Server will now exit!");
 				closeServerAndExit();
@@ -2591,13 +2300,13 @@ public class TASServer {
 				bottom = Integer.parseInt(commands[5]);
 			} catch (NumberFormatException e) {
 				client.sendLine("SERVERMSG Serious error: inconsistent data (" + commands[0] + " command). You will now be disconnected ...");
-				killClient(client, "Quit: inconsistent data");
+				Clients.killClient(client, "Quit: inconsistent data");
 				return false; 
 			}
 			
 			if (bat.startRects[allyno].enabled) {
 				client.sendLine("SERVERMSG Serious error: inconsistent data (" + commands[0] + " command). You will now be disconnected ...");
-				killClient(client, "Quit: inconsistent data");
+				Clients.killClient(client, "Quit: inconsistent data");
 				return false; 
 			}
 			
@@ -2615,7 +2324,7 @@ public class TASServer {
 			
 			if (client.battleID == -1) return false;
 			
-			Battle bat = getBattle(client.battleID);
+			Battle bat = Battles.getBattleByID(client.battleID);
 			if (bat == null) {
 				System.out.println("Serious error occured: Invalid battle ID. Server will now exit!");
 				closeServerAndExit();
@@ -2628,13 +2337,13 @@ public class TASServer {
 				allyno = Integer.parseInt(commands[1]);
 			} catch (NumberFormatException e) {
 				client.sendLine("SERVERMSG Serious error: inconsistent data (" + commands[0] + " command). You will now be disconnected ...");
-				killClient(client, "Quit: inconsistent data");
+				Clients.killClient(client, "Quit: inconsistent data");
 				return false; 
 			}
 			
 			if (!bat.startRects[allyno].enabled) {
 				client.sendLine("SERVERMSG Serious error: inconsistent data (" + commands[0] + " command). You will now be disconnected ...");
-				killClient(client, "Quit: inconsistent data");
+				Clients.killClient(client, "Quit: inconsistent data");
 				return false; 
 			}
 			
@@ -2648,7 +2357,7 @@ public class TASServer {
 			
 			if (client.battleID == -1) return false;
 			
-			Battle bat = getBattle(client.battleID);
+			Battle bat = Battles.getBattleByID(client.battleID);
 			if (bat == null) {
 				System.out.println("Serious error occured: Invalid battle ID. Server will now exit!");
 				closeServerAndExit();
@@ -2661,7 +2370,7 @@ public class TASServer {
 			
 			if (client.battleID == -1) return false;
 			
-			Battle bat = getBattle(client.battleID);
+			Battle bat = Battles.getBattleByID(client.battleID);
 			if (bat == null) {
 				System.out.println("Serious error occured: Invalid battle ID. Server will now exit!");
 				closeServerAndExit();
@@ -2674,13 +2383,15 @@ public class TASServer {
 			
 			if (client.battleID == -1) return false;
 			
-			Battle bat = getBattle(client.battleID);
+			Battle bat = Battles.getBattleByID(client.battleID);
 			if (bat == null) {
 				System.out.println("Serious error occured: Invalid battle ID. Server will now exit!");
 				closeServerAndExit();
 			}
 			
-			bat.replayScript = (ArrayList)bat.tempReplayScript.clone();
+			// copy temp script to active script:
+			bat.ratifyTempScript();
+			
 			bat.sendScriptToAllExceptFounder();
 		} 				
 		else if (commands[0].equals("MAPGRADES")) {
@@ -2731,80 +2442,7 @@ public class TASServer {
 		
 		return true;
 		
-	}
-	
-	/* see the other killClient() method! */
-	public static boolean killClient(Client client) {
-		return killClient(client, "");
-	}
-	
-	/* this method disconnects and removes client from clients list. 
-	 * Also cleans up after him (channels, battles) and notifies other
-	 * users of his departure. "reason" is used with LEFT command to
-	 * notify other users on same channel of this client's departure
-	 * reason (it may be left blank ("") to give no reason). */
-	public static boolean killClient(Client client, String reason) {
-		int index = clients.indexOf(client);
-		if (index == -1) return false;
-		if (!client.alive) return false;
-		client.disconnect();
-		clients.remove(index);
-		client.alive = false;
-		if (reason.trim().equals("")) reason = "Quit";
-		
-		
-		/* We have to remove client from all channels. This is O(n*m) (n - number of channels,
-		 * m - average number of users in a channel) operation since
-		 * we don't keep a list of all the channels client is in. We do this because
-		 * it is much more simple and we don't care much about speed since this method
-		 * is called very seldom.
-		 *  */
-		int lastSize = channels.size();
-		int pos = 0;
-		while (pos < channels.size())
-		{
-			leaveChannelAndNotifyAll((Channel)channels.get(pos), client, reason);
-			if (channels.size() < lastSize) {
-				lastSize = channels.size();
-			} else pos++;
-		}; /* why did we have to check the channels.size()? Because when we removed a client
-		     from a channel, channel may have been removed from channels list, if the client
-		     was the last client in the channel. That is why we must check the size (if we
-		     would use simple for loop, we could get ArrayOutOfBounds exception!) */ 
-	
-		if (client.battleID != -1) {
-			Battle bat = getBattle(client.battleID);
-			if (bat == null) {
-				System.out.println("Serious error occured: Invalid battle ID. Server will now exit!");
-				closeServerAndExit();
-			}
-			leaveBattle(client, bat); // automatically checks if client is a founder and closes battle
-		}
-		
-		if (client.account.accessLevel() != Account.NIL_ACCESS) {
-			sendToAllRegisteredUsers("REMOVEUSER " + client.account.user);
-			if (DEBUG > 0) System.out.println("Registered user killed: " + client.account.user);
-		} else {
-			if (DEBUG > 0) System.out.println("Unregistered user killed");
-		}
-
-		if (LAN_MODE) {
-			Accounts.removeAccount(client.account);
-		}
-		
-		return true;
-	}
-	
-	public static boolean redirectAndKill(Socket socket) {
-		if (!redirect) return false;
-		try {
-			(new PrintWriter(socket.getOutputStream(), true)).println("REDIRECT " + redirectToIP);
-			socket.close();
-		} catch (Exception e) {
-			return false;
-		}
-		return true;
-	}
+	} // tryToExecCommand()
 	
 	public static void main(String[] args) {
 
@@ -2891,7 +2529,7 @@ public class TASServer {
 		
 		if (!LAN_MODE) {
 			Accounts.loadAccounts();
-			banList.loadFromFile(BAN_LIST_FILENAME);
+			Clients.banList.loadFromFile(BAN_LIST_FILENAME);
 			readAgreement();
 		} else {
 			System.out.println("LAN mode enabled");
@@ -2969,31 +2607,28 @@ public class TASServer {
 		    // reset received bytes count every n seconds
 		    if (System.currentTimeMillis() - lastFloodCheckedTime > recvRecordPeriod * 1000) {
 		    	lastFloodCheckedTime = System.currentTimeMillis();
-		    	for (int i = 0; i < clients.size(); i++) ((Client)clients.get(i)).dataOverLastTimePeriod = 0;
+		    	for (int i = 0; i < Clients.getClientsSize(); i++) Clients.getClient(i).dataOverLastTimePeriod = 0;
 		    }
 		    
 		    // check for timeouts:
 		    if (System.currentTimeMillis() - lastTimeoutCheck > TIMEOUT_LENGTH) {
 		    	lastTimeoutCheck = System.currentTimeMillis();
 		    	long now = System.currentTimeMillis();
-		    	for (int i = 0; i < clients.size(); i++) {
-		    		if (now - ((Client)clients.get(i)).timeOfLastReceive > TIMEOUT_LENGTH) {
-		    			System.out.println("Timeout detected from " + ((Client)clients.get(i)).account.user + " (" + ((Client)clients.get(i)).IP + "). Killing client ...");
-		    			killClient((Client)clients.get(i), "Quit: timeout");		
+		    	for (int i = 0; i < Clients.getClientsSize(); i++) {
+		    		if (now - Clients.getClient(i).timeOfLastReceive > TIMEOUT_LENGTH) {
+		    			System.out.println("Timeout detected from " + Clients.getClient(i).account.user + " (" + Clients.getClient(i).IP + "). Killing client ...");
+		    			Clients.killClient(Clients.getClient(i), "Quit: timeout");		
 		    			i--;
 		    		}
 		    	}
 		    }
 		    
-		    // kill all clients on killList():
-		    for (; killList.size() > 0;) {
-		    	killClient((Client)killList.get(0), "Quit: undefined connection error");
-		    	killList.remove(0);
-		    }
+		    // kill all clients scheduled to be killed:
+		    Clients.processKillList();
 		    
 		    // update statistics:
-		    if ((RECORD_STATISTICS) && (System.currentTimeMillis() - lastStatisticsUpdate > saveStatisticsInterval))
-		    	saveStatisticsToDisk();
+		    if ((RECORD_STATISTICS) && (System.currentTimeMillis() - Statistics.lastStatisticsUpdate > saveStatisticsInterval))
+		    	Statistics.saveStatisticsToDisk();
 		    	
 		    // check UDP server for any new packets:
 		    while (NATHelpServer.msgList.size() > 0) {
@@ -3002,7 +2637,7 @@ public class TASServer {
 	            int p = packet.getPort();
 	            String data = new String(packet.getData(), packet.getOffset(), packet.getLength());
 	            if (DEBUG > 1) System.out.println("*** UDP packet received from " + address.getHostAddress() + " from port " + p);
-	            Client client = getClient(data);
+	            Client client = Clients.getClient(data);
 	            if (client == null) continue;
 	            client.UDPSourcePort = p;
 	            client.sendLine("UDPSOURCEPORT " + p);
@@ -3014,8 +2649,8 @@ public class TASServer {
 		    // purge mute lists of all channels on regular intervals:
 		    if (System.currentTimeMillis() - lastMutesPurgeTime > purgeMutesInterval) {
 		    	lastMutesPurgeTime = System.currentTimeMillis();
-		    	for (int i = 0; i < channels.size(); i++) {
-		    		((Channel)channels.get(i)).muteList.clearExpiredOnes();
+		    	for (int i = 0; i < Channels.getChannelsSize(); i++) {
+		    		Channels.getChannel(i).muteList.clearExpiredOnes();
 		    	}
 		    }
 		    

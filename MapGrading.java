@@ -16,12 +16,12 @@
 import java.util.*;
 
 public class MapGrading {
-	public static ArrayList/*GlobalMapGrade*/ globalMapGrades = new ArrayList();
+	public static ArrayList<GlobalMapGrade> globalMapGrades = new ArrayList<GlobalMapGrade>();
 	
 	private static GlobalMapGrade findGlobalMapGrade(String mapHash) {
 		for (int i = 0; i < globalMapGrades.size(); i++)
-			if (((GlobalMapGrade)globalMapGrades.get(i)).mapHash.equals(mapHash))
-				return (GlobalMapGrade)globalMapGrades.get(i);
+			if (globalMapGrades.get(i).mapHash.equals(mapHash))
+				return globalMapGrades.get(i);
 		return null;
 	}
 	

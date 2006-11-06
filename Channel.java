@@ -20,14 +20,18 @@ public class Channel {
 	private String topicAuthor;
 	private long topicChangedTime; // time when topic was last changed (in ms since Jan 1, 1970 UTC)
 	private String key = ""; // if key is "" then this channel is not locked (anyone can join). Otherwise, user must supply correct key to join it. 
-	public ArrayList clients; // clients connected to this channel
+	private ArrayList<Client> clients; // clients participating in this channel
 	public MuteList muteList = new MuteList(this); // contains a list of Strings (usernames) who are muted (not allowed to talk in the channel)
 	
 	public Channel(String channelName) {
 		name = new String(channelName);
 		topic = "";
 		topicAuthor = "";
-		clients = new ArrayList();
+		clients = new ArrayList<Client>();
+	}
+	
+	public boolean equals(Channel chan) {
+		return this.name.equals(chan.name);
 	}
 	
 	public String getTopic() {
@@ -66,7 +70,7 @@ public class Channel {
 		return !(topic.equals(""));
 	}
 	
-	/* adds a new client to the listeners of this channel */
+	/* adds new client to the list of clints of this channel */
 	public void addClient(Client client) {
 		if (isClientInThisChannel(client)) return ; // already in the channel! 
 
@@ -81,13 +85,27 @@ public class Channel {
 		return (clients.indexOf(client) != -1);
 	}
 	
+	/* returns number of clients in this channel */
+	public int getClientsSize() {
+		return clients.size();		
+	}
+	
+	/*  returns null if index if out of bounds */
+	public Client getClient(int index) {
+		try {
+			return clients.get(index);
+		} catch(IndexOutOfBoundsException e) {
+			return null;
+		}
+	}
+	
 	/* sends s to all clients in this channel */
 	public void sendLineToClients(String s) {
 		if (name.toUpperCase().equals("MAIN")) if (TASServer.LOG_MAIN_CHANNEL) {
 			TASServer.writeMainChanLog(s);
 		}
 		for (int i = 0; i < clients.size(); i++)
-			((Client)clients.get(i)).sendLine(s);
+			clients.get(i).sendLine(s);
 	}
 	
 	public boolean isLocked() {

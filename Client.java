@@ -14,7 +14,9 @@
 
 //import java.io.*;
 //import java.net.*;
+
 import java.nio.channels.*;
+import java.util.*;
 
 public class Client {
 	public boolean alive = false;
@@ -27,6 +29,7 @@ public class Client {
 	public int battleStatus; // see MYBATTLESTATUS command for actual values of battleStatus
 	public int teamColor; // see MYBATTLESTATUS for info on this one
 	public int battleID; // battle ID in which client is participating. Must be -1 if not participating in any battle.
+	public ArrayList<Channel> channels = new ArrayList<Channel>(); // list of channels user is participating in
 	
 	public SocketChannel sockChan;
 	public SelectionKey selKey;
@@ -78,23 +81,23 @@ public class Client {
 		try {
 			if (!TASServer.sendLineToSocketChannel(text, sockChan)) {
 				System.out.println("Error writing to socket. Line not sent! Killing the client next loop...");
-				TASServer.killList.add(this);
+				Clients.killClientDelayed(this, "Quit: undefined connection error");
 				return false;
 			}
 		} catch (ChannelWriteTimeoutException e) {
     		System.out.println("WARNING: channelWrite() timed out. Disconnecting client ...");
-			TASServer.sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Serious problem: channelWrite() timed out [" + IP + ", <" + account.user + ">]");
+			Clients.sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Serious problem: channelWrite() timed out [" + IP + ", <" + account.user + ">]");
 			
 			// add server notification:
 			ServerNotification sn = new ServerNotification("channelWrite() timeout");
 			sn.addLine("Serious problem detected: channelWrite() has timed out.");
 			sn.addLine("Client: " + IP + "(" + (account.user.equals("") ? "user not logged in" : account.user) + ")");
 			ServerNotifications.addNotification(sn);
-			TASServer.killClient(this, "channelWrite() timed out");
+			Clients.killClientDelayed(this, "Quit: channelWrite() timed out");
 			
 		} catch (Exception e) {
 			System.out.println("Error writing to socket. Line not sent! Killing the client next loop...");
-			TASServer.killList.add(this);
+			Clients.killClientDelayed(this, "Quit: undefined connection error");
 			return false;
 		}
 		return true;
@@ -104,7 +107,7 @@ public class Client {
 		sendLine("TASServer " + TASServer.VERSION + " " + TASServer.NAT_TRAVERSAL_PORT);
 	}
 	
-	/* should only be called by TASServer.killClient() method! */
+	/* should only be called by Clients.killClient() method! */
 	public void disconnect() {
 		if (!alive) {
 			System.out.println("PROBLEM DETECTED: disconnecting dead client. Skipping ...");
@@ -120,4 +123,58 @@ public class Client {
 		sockChan = null;
 		selKey = null;
 	}
+	
+	/* joins client to <chanName> channel. If channel with that name
+	 * does not exist, it is created. Method returns channel object as a result. 
+	 * If client is already in the channel, it returns null as a result. 
+	 * This method does not check for a correct key in case the channel is locked, 
+	 * caller of this method should do that before calling it.
+	 * This method also doesn't do any notificating of other clients in the channel,
+	 * caller must do all that. */
+	public Channel joinChannel(String chanName) {
+		Channel chan = Channels.getChannel(chanName);
+		if (chan == null) {
+			chan = new Channel(chanName);
+			channels.add(chan);
+		}
+		else if (this.channels.indexOf(chan) == -1) return null; // already in the channel 
+
+		chan.addClient(this);
+		this.channels.add(chan);
+		return chan;
+	}
+	
+	/* removes client from the channel and notifies all other clients in the channel about it.
+	 * If this was the last client in the channel, then channel is removed from channels list. 
+	 * "reason" may be left blank ("") if no reason is to be given. */
+	public boolean leaveChannel(Channel chan, String reason) {
+		boolean result = chan.removeClient(this);
+		
+		if (result) {
+			if (chan.getClientsSize() == 0) Channels.removeChannel(chan); // since channel is empty there is no point in keeping it in a channels list. If we would keep it, the channels list would grow larger and larger in time. We don't want that!
+			else for (int i = 0; i < chan.getClientsSize(); i++) chan.getClient(i).sendLine("LEFT " + chan.name + " " + this.account.user + (reason.equals("") ? "" : " " + reason));
+			this.channels.remove(chan);
+		} 
+		
+		return result;
+	}
+	
+	/* calls leaveChannel() for every channel client is participating in.
+	 * Also notifies all clients of his departure.
+	 * Also see comments for leaveChannel() method. */
+	public void leaveAllChannels(String reason) {
+		for (int i = 0; i < this.channels.size(); i++) leaveChannel(channels.get(i), reason);
+		this.channels.clear();
+	}
+	
+	/* will search the list of channels this user is participating in
+	 * and return the specified channel or null if client is not participating
+	 * in this channel. */
+	public Channel getChannel(String chanName) {
+		for (int i = 0; i < channels.size(); i++) {
+			if (channels.get(i).name.equals(chanName)) return channels.get(i);
+		}
+		return null;		
+	}
+	
 }

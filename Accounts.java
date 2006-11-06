@@ -9,11 +9,6 @@
 /**
  * @author Betalord
  *
- * TODO To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Style - Code Templates
- * 
- * TODO Move writeAccountsInfo() to a separate thread so it won't block when processing
- *      commands like LOGIN, REGISTER, etc. 
  */
 
 import java.io.BufferedReader;
@@ -155,8 +150,13 @@ public class Accounts {
 		return map.get(username);
 	}
 
+	/* returns null if index is out of bounds */
 	public static Account getAccount(int index) {
-		return accounts.get(index);
+		try {
+			return accounts.get(index);
+		} catch (IndexOutOfBoundsException e) {
+			return null;
+		}
 	}
 	
 	public static Account findAccountNoCase(String username) {
