@@ -50,7 +50,7 @@ public class NATHelpServer extends Thread {
 	            socket.receive(packet);
 	            msgList.add(packet);
 	        } catch (IOException e) {
-	            if (e.getMessage().equals("socket closed")) {
+	            if (e.getMessage().equalsIgnoreCase("socket closed")) {
 	            	// server stopped gracefully!
 	            } else {
 		        	System.out.println("ERROR in UDP server. Stack trace:");
