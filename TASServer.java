@@ -245,7 +245,7 @@ public class TASServer {
 	static final long minSleepTimeBetweenMapGrades = 5; // minimum time (in seconds) required between two consecutive MAPGRADES command sent by the client. We need this to ensure that client doesn't send MAPGRADES command too often as it creates much load on the server.
 	private static int MAX_TEAMS = 16; // max. teams/allies numbers supported by Spring 
 	
-    private static final int BYTE_BUFFER_SIZE = 256; // the size doesn't really matter. Server will work with any size (tested it with BUFFER_LENGTH=1), but too small buffer may impact the performance.
+    private static final int READ_BUFFER_SIZE = 256; // size of the ByteBuffer used to read data from the socket channel. This size doesn't really matter - server will work with any size (tested with READ_BUFFER_SIZE==1), but too small buffer size may impact the performance.
     private static final int SEND_BUFFER_SIZE = 65536; // socket's send buffer size
     private static final long CHANNEL_WRITE_SLEEP = 20L;
     private static final long MAIN_LOOP_SLEEP = 10L;
@@ -261,10 +261,9 @@ public class TASServer {
     private static Selector readSelector;
     //***private static SelectionKey selectKey;
     private static boolean running;
-    private static boolean USE_DIRECT_BUFFERS = true; // see http://java.sun.com/j2se/1.5.0/docs/api/java/nio/ByteBuffer.html for difference between direct and non-direct buffers. In this case we should use direct buffers, this is also used by the author of java.nio chat example (see links) upon which this code is builtd on.
-    private static ByteBuffer readBuffer = (USE_DIRECT_BUFFERS ? ByteBuffer.allocateDirect(BYTE_BUFFER_SIZE) : ByteBuffer.allocate(BYTE_BUFFER_SIZE));
-    private static ByteBuffer writeBuffer = (USE_DIRECT_BUFFERS ? ByteBuffer.allocateDirect(BYTE_BUFFER_SIZE) : ByteBuffer.allocate(BYTE_BUFFER_SIZE)); 
+    private static ByteBuffer readBuffer = ByteBuffer.allocateDirect(READ_BUFFER_SIZE); // see http://java.sun.com/j2se/1.5.0/docs/api/java/nio/ByteBuffer.html for difference between direct and non-direct buffers. In this case we should use direct buffers, this is also used by the author of java.nio chat example (see links) upon which this code is built on.
     private static CharsetDecoder asciiDecoder;
+    private static CharsetEncoder asciiEncoder;
     
 	static NATHelpServer helpUDPsrvr;
 	
@@ -341,21 +340,28 @@ public class TASServer {
 	}
 	
 	private static boolean changeCharset(String newCharset) throws IllegalCharsetNameException, UnsupportedCharsetException {
-		CharsetDecoder temp;
-		temp = Charset.forName(newCharset).newDecoder(); // this line will throw IllegalCharsetNameException and UnsupportedCharsetException exceptions
+		CharsetDecoder dec;
+		CharsetEncoder enc;
 		
-		asciiDecoder = temp;
+		dec = Charset.forName(newCharset).newDecoder();
+		enc = Charset.forName(newCharset).newEncoder();
+		
+		asciiDecoder = dec;
 	    asciiDecoder.replaceWith("?");
 	    asciiDecoder.onUnmappableCharacter(CodingErrorAction.REPLACE);
 	    asciiDecoder.onMalformedInput(CodingErrorAction.REPLACE);
-		//***asciiDecoder.reset();
+	    
+		asciiEncoder = enc;
+	    asciiEncoder.replaceWith(new byte[] { (byte)'?' });
+	    asciiEncoder.onUnmappableCharacter(CodingErrorAction.REPLACE);
+	    asciiEncoder.onMalformedInput(CodingErrorAction.REPLACE);
 	
 		return true;
 	}
 	
 	private static boolean startServer(int port) {
 		try {
-			changeCharset("ISO-8859-1"); // initializes asciiDecoder
+			changeCharset("ISO-8859-1"); // initializes asciiDecoder and asciiEncoder
 			
 		    // open a non-blocking server socket channel
 		    sSockChan = ServerSocketChannel.open();
@@ -501,20 +507,6 @@ public class TASServer {
 		}
 	}
 	
-	private static boolean prepWriteBuffer(String data) {
-		// fills the buffer from the given string
-		// and prepares it for a channel write
-		try {
-			writeBuffer.clear();
-			writeBuffer.put(data.getBytes());
-			writeBuffer.flip();
-		} catch (Exception e) {
-			return false;
-		}
-		
-		return true;
-	}
-	
 	private static void channelWrite(SocketChannel channel, ByteBuffer writeBuffer) throws ChannelWriteTimeoutException {
 		long nbytes = 0;
 		long toWrite = writeBuffer.remaining();
@@ -549,18 +541,19 @@ public class TASServer {
 	public static boolean sendLineToSocketChannel(String line, SocketChannel channel) throws ChannelWriteTimeoutException {
 		String data = line + '\n';
 		
-		while (data.length() > 0) {
-			String temp = data.substring(0, Math.min(BYTE_BUFFER_SIZE, data.length())); // extract the string from data
-			if (temp.length() == data.length()) data = ""; else data = data.substring(temp.length(), data.length());
-			if (!prepWriteBuffer(temp)) return false;
-
-			if ((channel == null) || (!channel.isConnected())) {
-				System.out.println("WARNING: SocketChannel is not ready to be written to. Ignoring ...");
-			    return false;
-			}
-				
-			channelWrite(channel, writeBuffer);
+		if ((channel == null) || (!channel.isConnected())) {
+			System.out.println("WARNING: SocketChannel is not ready to be written to. Ignoring ...");
+		    return false;
 		}
+		
+		ByteBuffer buf;
+		try{
+			buf = asciiEncoder.encode(CharBuffer.wrap(data));
+		} catch (CharacterCodingException e) {
+			return false;
+		}
+				
+		channelWrite(channel, buf);
 		
 		return true;
 	}
