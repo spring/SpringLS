@@ -166,5 +166,13 @@ public class Accounts {
 	public static boolean doesAccountExist(String username) {
 		return getAccount(username) != null;
 	}
+	
+	/* will delete account 'oldAcc' and insert 'newAcc' into his position */
+	public static boolean replaceAccount(Account oldAcc, Account newAcc) {
+		int index = accounts.indexOf(oldAcc);
+		if (index == -1) return false; // 'oldAcc' does not exist!
+		accounts.set(index, newAcc);
+		return true;
+	}
 
 }

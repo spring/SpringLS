@@ -1497,10 +1497,9 @@ public class TASServer {
 			}
 			
 			acc = new Account(commands[1], client.account.pass, client.account.access, System.currentTimeMillis(), client.IP, client.account.registrationDate, client.account.mapGrades);
-			Accounts.addAccount(acc);
 			client.sendLine("SERVERMSG Your account has been renamed to <" + commands[1] + ">. Reconnect with new account (you will now be automatically disconnected)!");
 			Clients.killClient(client, "Quit: renaming account");
-			Accounts.removeAccount(client.account.user);
+			Accounts.replaceAccount(client.account, acc);
 			Accounts.saveAccounts(false); // let's save new accounts info to disk
 			Clients.sendToAllAdministrators("SERVERMSG [broadcast to all admins]: User <" + client.account.user + "> has just renamed his account to <" + commands[1] + ">");
 			
