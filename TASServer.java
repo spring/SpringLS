@@ -214,7 +214,7 @@ import java.nio.charset.*;
 
 public class TASServer {
 	
-	static final String VERSION = "0.30";
+	static final String VERSION = "0.31";
 	static byte DEBUG = 1; // 0 - no verbose, 1 - normal verbose, 2 - extensive verbose
 	static String MOTD = "Enjoy your stay :-)";
 	static String agreement = ""; // agreement which is sent to user upon first login. User must send CONFIRMAGREEMENT command to confirm the agreement before server allows him to log in. See LOGIN command implementation for more details.
@@ -1447,7 +1447,9 @@ public class TASServer {
 			Battles.sendInfoOnBattlesToClient(client);
 			Clients.sendInfoOnStatusesToClient(client);
 			Clients.notifyClientsOfNewClientOnServer(client);
-
+			// notify client that we've finished sending login info:
+			client.sendLine("LOGININFOEND");
+			
 			// we have to notify everyone about client's status to let them know about his rank:
 			Clients.notifyClientsOfNewClientStatus(client);
 			

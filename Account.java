@@ -19,23 +19,20 @@
 public class Account {
 
 	/*
-	 *
-	 * access levels (first 3 bits of int access):
-	 * 0 - none (should not be used for logged-in clients)
-	 * 1 - normal (limited)
-	 * 2 - privileged
-	 * 3 - admin 
-	 * 4, 5, 6, 7 - "reserved for future use"
-	 * 
-	 * in-game time bits (next 20 bits) tell how many minutes did client
-	 * spend in-game.
-	 * 
-	 * next bit is an "agreement" bit - it tells us whether user has already
-	 * read the "terms of use" and agreed to it, or not. If not, we should
-	 * first send him the agreement and wait until he confirms it before allowing
-	 * him to log on the server.
-	 * 
-	 * all other bits are unused ("reserved for future use")
+	 * access bits (31 effective bits, last one is a sign and we don't want to use it):
+	 * * bits 0 - 3 (4 bits): access level
+	 *     0 - none (should not be used for logged-in clients)
+	 *     1 - normal (limited)
+	 *     2 - privileged
+	 *     3 - admin 
+	 * * bits 3 - 7 (4 bits): reserved for future use.
+	 * * bits 8 - 28 (20 bits): in-game time (how many minutes did client spent in-game).
+	 * * bit 29: agreement bit. It tells us whether user has already
+	 *     read the "terms of use" and agreed to it. If not, we should
+	 *     first send him the agreement and wait until he confirms it (before
+	 *     allowing him to log on the server).    
+	 * * bit 30: reserved for future use
+	 * * bit 31: unused (integer sign)
 	 * 
 	 */
 	
