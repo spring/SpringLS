@@ -19,19 +19,20 @@
 public class Account {
 
 	/*
-	 * access bits (31 effective bits, last one is a sign and we don't want to use it):
-	 * * bits 0 - 3 (4 bits): access level
+	 * access bits (31 effective bits, last one is a sign bit and we don't use it):
+	 * * bits 0 - 2 (3 bits): access level
 	 *     0 - none (should not be used for logged-in clients)
 	 *     1 - normal (limited)
 	 *     2 - privileged
-	 *     3 - admin 
-	 * * bits 3 - 7 (4 bits): reserved for future use.
-	 * * bits 8 - 28 (20 bits): in-game time (how many minutes did client spent in-game).
-	 * * bit 29: agreement bit. It tells us whether user has already
+	 *     3 - admin
+	 *     values 4 - 7 are reserved for future use
+	 * * bits 3 - 22 (20 bits): in-game time (how many minutes did client spent in-game).
+	 * * bit 23: agreement bit. It tells us whether user has already
 	 *     read the "terms of use" and agreed to it. If not, we should
 	 *     first send him the agreement and wait until he confirms it (before
 	 *     allowing him to log on the server).    
-	 * * bit 30: reserved for future use
+	 * * bit 24 - bot mode (0 - normal user, 1 - automated bot).     
+	 * * bits 25 - 30 (6 bits): reserved for future use.
 	 * * bit 31: unused (integer sign)
 	 * 
 	 */
@@ -98,6 +99,15 @@ public class Account {
 	public int accessLevel() {
 		return access & 0x7;
 	}
+	
+	public boolean getBotMode() {
+		return ((access & 0x1000000) >> 24) == 1;
+	}
+	
+	public void setBotMode(boolean bot) {
+		int b = bot ? 1 : 0;
+		access = (access & 0xFEFFFFFF) | (b << 24);
+	}
 
 	/* returns in-game time in minutes */
 	public int getInGameTime() {
@@ -115,7 +125,6 @@ public class Account {
 	/* must be 1 (true) or 0 (false) */
 	public void setAgreement(boolean agreed) {
 		int agr = agreed ? 1 : 0;
-		
 		access = (access & 0xFF7FFFFF) | (agr << 23);
 	} 
 	

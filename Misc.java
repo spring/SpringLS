@@ -460,42 +460,4 @@ public class Misc {
 		return (battleStatus & 0xF0FFFFFF) | (side << 24);
 	}
 	
-	/* various methods dealing with status: */
-	
-	public static int getInGameFromStatus(int status) {
-		return status & 0x1;
-	}
-	
-	public static int getAwayBitFromStatus(int status) {
-		return (status & 0x2) >> 1;
-	}
-	
-	public static int getRankFromStatus(int status) {
-		return (status & 0x1C) >> 2;
-	}
-	
-	public static int getAccessFromStatus(int status) {
-		return (status & 0x20) >> 5;
-	}
-
-	public static int setInGameToStatus(int status, int inGame) {
-		return (status & 0xFFFFFFFE) | inGame;
-	}
-	
-	public static int setAwayBitToStatus(int status, int away) {
-		return (status & 0xFFFFFFFD) | (away << 1);
-	}
-	
-	public static int setRankToStatus(int status, int rank) {
-		return (status & 0xFFFFFFE3) | (rank << 2);
-	}
-
-	public static int setAccessToStatus(int status, int access) {
-		if ((access < 0) || (access > 1)) {
-			System.out.println("Critical error: Invalid use of setAccessToStatus()! Shuting down the server ...");
-			TASServer.closeServerAndExit();
-		}
-		return (status & 0xFFFFFFDF) | (access << 5);
-	}
-	
 }

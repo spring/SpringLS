@@ -152,7 +152,7 @@ public class Battle {
 	}
 	
 	public boolean inGame() {
-		return Misc.getInGameFromStatus(founder.status) == 1; 
+		return founder.getInGameFromStatus();
 	}
 	
 	/* returns number of spectators in this battle. Note that this operation is 

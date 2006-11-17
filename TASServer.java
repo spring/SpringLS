@@ -758,8 +758,9 @@ public class TASServer {
 			acc.access = value;
 			
 			Accounts.saveAccounts(false); // save changes
-			 // just in case if rank changed:
-			client.status = Misc.setRankToStatus(client.status, client.account.getRank());
+			 // just in case if rank got changed:
+			client.setRankToStatus(client.account.getRank());
+			
 			Clients.notifyClientsOfNewClientStatus(client);
 			
 			// add server notification:
@@ -1414,7 +1415,6 @@ public class TASServer {
 					Accounts.saveAccounts(false);
 				}
 				client.account = acc;
-				client.status = Misc.setRankToStatus(client.status, client.account.getRank());
 			} else { // LAN_MODE == true
 				Account acc = Accounts.getAccount(commands[1]);
 				if (acc != null) {
@@ -1428,10 +1428,9 @@ public class TASServer {
 			}
 			
 			// set client's status:
-			client.status = Misc.setRankToStatus(client.status, client.account.getRank());
-			if ((client.account.accessLevel() >= Account.PRIVILEGED_ACCESS) && (!LAN_MODE))
-				client.status = Misc.setAccessToStatus(client.status, 1);
-			else client.status = Misc.setAccessToStatus(client.status, 0);
+			client.setRankToStatus(client.account.getRank());
+			client.setBotModeToStatus(client.account.getBotMode());
+			client.setAccessToStatus((((client.account.accessLevel() >= Account.PRIVILEGED_ACCESS) && (!LAN_MODE)) ? true : false));
 			
 			client.cpu = cpu;
 			client.account.lastLogin = System.currentTimeMillis();
@@ -1450,7 +1449,7 @@ public class TASServer {
 			// notify client that we've finished sending login info:
 			client.sendLine("LOGININFOEND");
 			
-			// we have to notify everyone about client's status to let them know about his rank:
+			// notify everyone about client's status:
 			Clients.notifyClientsOfNewClientStatus(client);
 			
 			if (DEBUG > 0) System.out.println("User just logged in: " + client.account.user);
@@ -1826,15 +1825,21 @@ public class TASServer {
 				return false; 
 			}
 
-			// we must preserve rank bits and access bit (client is not allowed to change them himself):
-			int tmp = Misc.getRankFromStatus(client.status);
-			int tmp2 = Misc.getInGameFromStatus(client.status);
-			int tmp3 = Misc.getAccessFromStatus(client.status);
-			client.status = Misc.setRankToStatus(newStatus, tmp);
-			client.status = Misc.setAccessToStatus(client.status, tmp3);
-			if (Misc.getInGameFromStatus(client.status) != tmp2) {
+			// we must preserve rank bits, access bit and bot mode bit (client is not allowed to change them himself):
+			int tmp = client.getRankFromStatus();
+			boolean tmp2 = client.getInGameFromStatus();
+			boolean tmp3 = client.getAccessFromStatus();
+			boolean tmp4 = client.getBotModeFromStatus();
+			
+			client.status = newStatus;
+			
+			client.setRankToStatus(tmp);
+			client.setAccessToStatus(tmp3);
+			client.setBotModeToStatus(tmp4);
+			
+			if (client.getInGameFromStatus() != tmp2) {
 				// user changed his in-game status.
-				if (tmp2 == 0) { // client just entered game
+				if (tmp2 == false) { // client just entered game
 					Battle bat = Battles.getBattleByID(client.battleID);
 					if ((bat != null) && (bat.getClientsSize() > 0))
 							client.inGameTime = System.currentTimeMillis();
@@ -1848,7 +1853,7 @@ public class TASServer {
 					if (client.inGameTime != 0) { // we won't update clients who play by themselves (or with bots), since some try to exploit the system by leaving computer alone in-battle for hours to increase their ranks 
 						int diff = new Long((System.currentTimeMillis() - client.inGameTime) / 60000).intValue(); // in minutes
 						if (client.account.addMinsToInGameTime(diff)) {
-							client.status = Misc.setRankToStatus(client.status, client.account.getRank());
+							client.setRankToStatus(client.account.getRank());
 						}
 					}
 				}

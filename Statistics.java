@@ -65,7 +65,7 @@ public class Statistics {
 		
 		int activeBattlesCount = 0;
 		for (int i = 0; i < Battles.getBattlesSize(); i++)
-			if ((Battles.getBattleByIndex(i).getClientsSize() >= 1 /* at least 1 client + founder == 2 players */) && (Misc.getInGameFromStatus(Battles.getBattleByIndex(i).founder.status) == 1)) activeBattlesCount++;
+			if ((Battles.getBattleByIndex(i).getClientsSize() >= 1 /* at least 1 client + founder == 2 players */) && (Battles.getBattleByIndex(i).inGame())) activeBattlesCount++;
 			
 		int activeAccounts = 0;
 		for (int i = 0; i < Accounts.getAccountsSize(); i++)
@@ -189,7 +189,7 @@ public class Statistics {
 		boolean found = false;
 
 		for (int i = 0; i < Battles.getBattlesSize(); i++) {
-			if ((Misc.getInGameFromStatus(Battles.getBattleByIndex(i).founder.status) == 1) && (Battles.getBattleByIndex(i).getClientsSize() >= 1)) {
+			if ((Battles.getBattleByIndex(i).inGame()) && (Battles.getBattleByIndex(i).getClientsSize() >= 1)) {
 				// add to list or update in list:
 				
 				found = false;

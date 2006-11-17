@@ -179,4 +179,47 @@ public class Client {
 		return null;		
 	}
 	
+	
+	/* various methods dealing with client status: */
+	
+	public boolean getInGameFromStatus() {
+		return (status & 0x1) == 1;
+	}
+	
+	public boolean getAwayBitFromStatus() {
+		return ((status & 0x2) >> 1) == 1;
+	}
+	
+	public int getRankFromStatus() {
+		return (status & 0x1C) >> 2;
+	}
+	
+	public boolean getAccessFromStatus() {
+		return ((status & 0x20) >> 5) == 1;
+	}
+	
+	public boolean getBotModeFromStatus() {
+		return ((status & 0x40) >> 6) == 1;
+	}
+
+	public void setInGameToStatus(boolean inGame) {
+		status = (status & 0xFFFFFFFE) | (inGame ? 1 : 0);
+	}
+	
+	public void setAwayBitToStatus(boolean away) {
+		status = (status & 0xFFFFFFFD) | ((away ? 1 : 0) << 1);
+	}
+	
+	public void setRankToStatus(int rank) {
+		status = (status & 0xFFFFFFE3) | (rank << 2);
+	}
+
+	public void setAccessToStatus(boolean access) {
+		status = (status & 0xFFFFFFDF) | ((access ? 1 : 0) << 5);
+	}
+	
+	public void setBotModeToStatus(boolean isBot) {
+		status = (status & 0xFFFFFFBF) | ((isBot ? 1 : 0) << 6);
+	}
+	
 }
