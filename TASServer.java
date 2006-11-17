@@ -252,6 +252,7 @@ public class TASServer {
     
     private static final int recvRecordPeriod = 10; // in seconds. Length of time period for which we keep record of bytes received from client. Used with anti-flood protection.
     private static final int maxBytesAlert = 20000; // maximum number of bytes received in the last recvRecordPeriod seconds from a single client before we raise "flood alert". Used with anti-flood protection.
+    private static final int maxBytesAlertForBot = 50000; // same as 'maxBytesAlert' but is used for clients in "bot mode" only (see client.status bits)
     private static long lastFloodCheckedTime = System.currentTimeMillis(); // time (in same format as System.currentTimeMillis) when we last updated it. Used with anti-flood protection.
     private static long maxChatMessageLength = 1024; // used with basic anti-flood protection. Any chat messages (channel or private chat messages) longer than this are considered flooding. Used with following commands: SAY, SAYEX, SAYPRIVATE, SAYBATTLE, SAYBATTLEEX
     
@@ -441,7 +442,9 @@ public class TASServer {
 				client.dataOverLastTimePeriod += nbytes;
 				
 				// basic anti-flood protection:
-				if ((client.dataOverLastTimePeriod > TASServer.maxBytesAlert) && (client.account.accessLevel() < Account.ADMIN_ACCESS)) {
+				if ((client.account.accessLevel() < Account.ADMIN_ACCESS) 
+					&& (((client.getBotModeFromStatus() == false) && (client.dataOverLastTimePeriod > TASServer.maxBytesAlert)) ||
+					((client.getBotModeFromStatus() == true) && (client.dataOverLastTimePeriod > TASServer.maxBytesAlertForBot)))) {
 					System.out.println("WARNING: Flooding detected from " + client.IP + " (" + client.account.user + ")");
 					Clients.sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Flooding has been detected from " + client.IP + " (" + client.account.user + "). User's IP has been auto-banned.");
 					Clients.banList.add(client.IP, "Auto-ban for flooding.");
