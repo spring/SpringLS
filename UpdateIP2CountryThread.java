@@ -61,11 +61,11 @@ public class UpdateIP2CountryThread extends Thread {
     		long bytes2; // bytes downloaded from 2nd URL
     		
    	    	time1 = System.currentTimeMillis();
-   	    	bytes1 = Misc.download("http://software77.net/cgi-bin/ip-country/geo-ip.pl?action=downloadZ", tempZippedFile1, DOWNLOAD_LIMIT);
+   	    	bytes1 = Misc.download("http://ip-to-country.webhosting.info/downloads/ip-to-country.csv.zip", tempZippedFile1, DOWNLOAD_LIMIT);
    	    	time1 = System.currentTimeMillis() - time1;
    	    	
    	    	time2 = System.currentTimeMillis();
-   	    	bytes2 = Misc.download("http://ip-to-country.webhosting.info/downloads/ip-to-country.csv.zip", tempZippedFile2, DOWNLOAD_LIMIT);
+   	    	bytes2 = Misc.download("http://software77.net/cgi-bin/ip-country/geo-ip.pl?action=downloadZ", tempZippedFile2, DOWNLOAD_LIMIT);
  	    	time2 = System.currentTimeMillis() - time2;   	    	
     	    	
    	    	time3 = System.currentTimeMillis();
@@ -92,7 +92,7 @@ public class UpdateIP2CountryThread extends Thread {
             	out.println(
             			tokens[0].substring(1, tokens[0].length()-1) + "," + // IP FROM field
             			tokens[1].substring(1, tokens[1].length()-1) + "," + // IP TO field
-            			tokens[4].substring(1, tokens[4].length()-1)         // COUNTRY_CHAR2 field
+            			tokens[2].substring(1, tokens[2].length()-1)         // COUNTRY_CHAR2 field
             			);
 	        }
             
@@ -109,7 +109,7 @@ public class UpdateIP2CountryThread extends Thread {
             	out.println(
             			tokens[0].substring(1, tokens[0].length()-1) + "," + // IP FROM field
             			tokens[1].substring(1, tokens[1].length()-1) + "," + // IP TO field
-            			tokens[2].substring(1, tokens[2].length()-1)         // COUNTRY_CHAR2 field
+            			tokens[4].substring(1, tokens[4].length()-1)         // COUNTRY_CHAR2 field
             			);
 	        }
             

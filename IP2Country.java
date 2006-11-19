@@ -85,8 +85,8 @@ public class IP2Country {
         	// check if this entry overlaps with any existing entry:
         	try {
         		// try to find a duplicate:
-        		IPRange prev = resolveTable.headMap(new IPRange(ip.IP_FROM + 1, ip.IP_TO + 1, "xx")).lastKey(); // +1 because headMap() returns keys that are strictly less than given key, but we want equals as well
-        		IPRange next = resolveTable.tailMap(new IPRange(ip.IP_FROM + 1, ip.IP_TO + 1, "xx")).firstKey(); // +1 because tailMap() returns keys that are bigger or equal to given key, but we want strictly bigger ones 
+        		IPRange prev = resolveTable.headMap(new IPRange(ip.IP_FROM + 1, ip.IP_TO + 1, "XX")).lastKey(); // +1 because headMap() returns keys that are strictly less than given key, but we want equals as well
+        		IPRange next = resolveTable.tailMap(new IPRange(ip.IP_FROM + 1, ip.IP_TO + 1, "XX")).firstKey(); // +1 because tailMap() returns keys that are bigger or equal to given key, but we want strictly bigger ones 
         		
         		if ((prev.IP_FROM == ip.IP_FROM) && (prev.IP_TO == ip.IP_TO)) {
         			// duplicate!
