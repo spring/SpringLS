@@ -63,9 +63,10 @@ public class Account {
 	public long lastLogin; // time (System.currentTimeMillis()) of the last login
 	public String lastIP; // the most recent IP used to log into this account
 	public long registrationDate; // date when user registered this account. In miliseconds (refers to System.currentTimeMillis()). 0 means registration date is unknown (clients who registered in some early version when this field was not yet implemented).
+	public String lastCountry; // resolved country code for this user's IP when he last logged on. If country could not be resolved, "XX" is used for country code, otherwise a 2-char country code is used
 	public MapGradeList mapGrades; // list of map grades
 	
-	public Account(String user, String pass, int access, long lastLogin, String lastIP, long registrationDate, MapGradeList mapGrades)
+	public Account(String user, String pass, int access, long lastLogin, String lastIP, long registrationDate, String lastCountry, MapGradeList mapGrades)
 	{
 		this.user = user;
 		this.pass = pass;
@@ -73,6 +74,7 @@ public class Account {
 		this.lastLogin = lastLogin;
 		this.lastIP = lastIP;
 		this.registrationDate = registrationDate;
+		this.lastCountry = lastCountry;
 		this.mapGrades = mapGrades;
 	}
 	
@@ -83,11 +85,12 @@ public class Account {
 		this.lastLogin = acc.lastLogin;
 		this.lastIP = acc.lastIP;
 		this.registrationDate = acc.registrationDate;
+		this.lastCountry = new String(acc.lastCountry);
 		this.mapGrades = MapGradeList.createFromString(acc.mapGrades.toString());
 	}
 	
 	public String toString() {
-		return user + " " + pass + " " + Integer.toString(access, 2) + " " + lastLogin + " " + lastIP + " " + registrationDate + " " + mapGrades.toString();
+		return user + " " + pass + " " + Integer.toString(access, 2) + " " + lastLogin + " " + lastIP + " " + registrationDate + " " + lastCountry + " " + mapGrades.toString();
 	}
 	
 	public boolean equals(Object o) {

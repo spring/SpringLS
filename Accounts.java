@@ -63,13 +63,13 @@ public class Accounts {
             	if (line.equals("")) continue;
             	tokens = line.split(" ");
             	MapGradeList mgl;
-            	if (tokens.length > 6) mgl = MapGradeList.createFromString(Misc.makeSentence(tokens, 6));
+            	if (tokens.length > 7) mgl = MapGradeList.createFromString(Misc.makeSentence(tokens, 7));
             	else mgl = new MapGradeList();
             	if (mgl == null) {
             		System.out.println("Error: malformed line in accounts data file: \"" + line + "\"");
             		continue;
             	}
-            	addAccount(new Account(tokens[0], tokens[1], Integer.parseInt(tokens[2], 2), Long.parseLong(tokens[3]), tokens[4], Long.parseLong(tokens[5]), mgl));
+            	addAccount(new Account(tokens[0], tokens[1], Integer.parseInt(tokens[2], 2), Long.parseLong(tokens[3]), tokens[4], Long.parseLong(tokens[5]), tokens[6], mgl));
 	        }
             
             in.close();

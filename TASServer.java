@@ -1,8 +1,10 @@
 /*
  * Created on 2005.6.16
- *
  * 
- * ---- CHANGELOG ----
+ * 
+ * ---- INTERNAL CHANGELOG ----
+ * *** 0.31 ***
+ * * added new bot mode for accounts (increases traffic limit when using bot mode)
  * *** 0.30 ***
  * * added MAPGRADES command
  * * added FORCESPECTATORMODE command
@@ -664,7 +666,7 @@ public class TASServer {
 					return false;
 				}
 			
-			acc = new Account(commands[1], commands[2], Account.NORMAL_ACCESS, System.currentTimeMillis(), client.IP, System.currentTimeMillis(), new MapGradeList());
+			acc = new Account(commands[1], commands[2], Account.NORMAL_ACCESS, System.currentTimeMillis(), client.IP, System.currentTimeMillis(), client.country, new MapGradeList());
 			Accounts.addAccount(acc);
 			Accounts.saveAccounts(false); // let's save new accounts info to disk
 			client.sendLine("REGISTRATIONACCEPTED");
@@ -1360,9 +1362,9 @@ public class TASServer {
 				client.sendLine("OFFERFILE 7 *	http://taspring.clan-sy.com/dl/taspring_0.70b2_patch.exe	This is a 0.70b1->0.70b2 patch. It will update Spring and lobby client. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
 			} else if (version.equals("0.23")) {
 				client.sendLine("OFFERFILE 7 *	http://taspring.clan-sy.com/dl/LobbyUpdate_023_024.exe	This is a TASClient 0.24 patch which fixes watching replays from the lobby. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
-*/				
 			} else if (version.equals("0.25")) {
 				client.sendLine("OFFERFILE 7 *	http://taspring.clan-sy.com/dl/LobbyUpdate_025_026.exe	This is a TASClient 0.26 patch which fixes serious bug with hosting replays in the lobby. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
+*/				
 			} else { // unknown client version
 //				client.sendLine("SERVERMSGBOX No update available for your version of lobby. See official spring web site to get the latest lobby client!");
 				client.sendLine("SERVERMSGBOX You are using an outdated Spring and lobby program, check the download section for new updates at the official Spring web site: http://taspring.clan-sy.com");
@@ -1424,8 +1426,8 @@ public class TASServer {
 					client.sendLine("DENIED Player with same name already logged in");
 					return false;
 				}
-				if ((commands[1].equals(lanAdminUsername)) && (commands[2].equals(lanAdminPassword))) acc = new Account(commands[1], commands[2], Account.ADMIN_ACCESS, 0, "?", 0, new MapGradeList()); 
-				else acc = new Account(commands[1], commands[2], Account.NORMAL_ACCESS, 0, "?", 0, new MapGradeList());
+				if ((commands[1].equals(lanAdminUsername)) && (commands[2].equals(lanAdminPassword))) acc = new Account(commands[1], commands[2], Account.ADMIN_ACCESS, 0, "?", 0, "XX", new MapGradeList()); 
+				else acc = new Account(commands[1], commands[2], Account.NORMAL_ACCESS, 0, "?", 0, "XX", new MapGradeList());
 				Accounts.addAccount(acc);
 				client.account = acc;
 			}
@@ -1437,6 +1439,7 @@ public class TASServer {
 			
 			client.cpu = cpu;
 			client.account.lastLogin = System.currentTimeMillis();
+			client.account.lastCountry = client.country;
 			client.account.lastIP = client.IP;
 			if (commands[4].equals("*")) client.localIP = new String(client.IP);
 			else client.localIP = commands[4];
@@ -1500,7 +1503,7 @@ public class TASServer {
 				Channels.getChannel(i).muteList.rename(client.account.user, commands[1]);
 			}
 			
-			acc = new Account(commands[1], client.account.pass, client.account.access, System.currentTimeMillis(), client.IP, client.account.registrationDate, client.account.mapGrades);
+			acc = new Account(commands[1], client.account.pass, client.account.access, System.currentTimeMillis(), client.IP, client.account.registrationDate, client.account.lastCountry, client.account.mapGrades);
 			client.sendLine("SERVERMSG Your account has been renamed to <" + commands[1] + ">. Reconnect with new account (you will now be automatically disconnected)!");
 			Clients.killClient(client, "Quit: renaming account");
 			Accounts.replaceAccount(client.account, acc);
