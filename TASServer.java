@@ -383,7 +383,7 @@ public class TASServer {
 		    return false;
 		}
 		
-		System.out.println("Port " + port + " opened\n" +
+		System.out.println("Port " + port + " is open\n" +
 				 "Listening for connections ...");
 		
 		return true;
@@ -1905,7 +1905,7 @@ public class TASServer {
 			bat.sendToAllClients("SAIDBATTLEEX " + client.account.user + " " + s);
 		}
 		else if (commands[0].equals("UPDATEBATTLEINFO")) {
-			if (commands.length < 4) return false;
+			if (commands.length < 5) return false;
 			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
 			
 			if (client.battleID == -1) return false;
@@ -1915,16 +1915,19 @@ public class TASServer {
 			
 			int spectatorCount = 0;
 			boolean locked;
+			int maphash;
 			try {
 				spectatorCount = Integer.parseInt(commands[1]);
 				locked = Misc.strToBool(commands[2]);
+				maphash = Integer.parseInt(commands[3]);
 			} catch (NumberFormatException e) {
 				return false; 
 			}
 			
-			bat.mapName = Misc.makeSentence(commands, 3);
+			bat.mapName = Misc.makeSentence(commands, 4);
 			bat.locked = locked;
-			Clients.sendToAllRegisteredUsers("UPDATEBATTLEINFO " + bat.ID + " " + spectatorCount + " " + Misc.boolToStr(bat.locked) + " " + bat.mapName);
+			bat.mapHash = maphash;
+			Clients.sendToAllRegisteredUsers("UPDATEBATTLEINFO " + bat.ID + " " + spectatorCount + " " + Misc.boolToStr(bat.locked) + " " + maphash + " " + bat.mapName);
 		}
 		else if (commands[0].equals("UPDATEBATTLEDETAILS")) {
 			if (commands.length != 9) return false;

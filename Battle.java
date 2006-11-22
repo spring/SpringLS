@@ -34,6 +34,7 @@ public class Battle {
 	public int gameEndCondition; // 0 = game continues if commander dies, 1 = game ends if commander dies
 	public int hashCode; // see notes for description!
 	public int rank; // if 0, no rank limit is set. If 1 or higher, only players with this rank (or higher) can join the battle (Note: rank index 1 means seconds rank, not the first one, since you can't limit game to players of the first rank because that means game is open to all players and you don't have to limit it in that case)
+	public int mapHash; // see protocol description for details!
 	public String modName;
 	public ArrayList<String> disabledUnits;
 	public StartRect[] startRects;
@@ -46,7 +47,7 @@ public class Battle {
 	public ArrayList<String> tempReplayScript = new ArrayList<String>(); // here we save script lines until we receive SCRIPTEND command. Then we copy it to "replayScript" object and notify all clients about it. 
 	
 
-	public Battle(int type, int natType, Client founder, String password, int port, int maxPlayers, int startMetal, int startEnergy, int maxUnits, int startPos, int gameEndCondition, boolean limitDGun, boolean diminishingMMs, boolean ghostedBuildings, int hashCode, int rank, String mapName, String title, String modName) {
+	public Battle(int type, int natType, Client founder, String password, int port, int maxPlayers, int startMetal, int startEnergy, int maxUnits, int startPos, int gameEndCondition, boolean limitDGun, boolean diminishingMMs, boolean ghostedBuildings, int hashCode, int rank, int mapHash, String mapName, String title, String modName) {
 		this.ID = IDCounter++;
 		this.type = type;
 		this.natType = natType;
@@ -68,6 +69,7 @@ public class Battle {
 		this.ghostedBuildings = ghostedBuildings;
 		this.hashCode = hashCode;
 		this.rank = rank;
+		this.mapHash = mapHash;
 		this.modName = new String(modName);
 		this.disabledUnits = new ArrayList<String>();
 		this.startRects = new StartRect[10];
@@ -77,7 +79,7 @@ public class Battle {
 	
 	/* creates BATTLEOPENED command from this battle and returns it as a result */
 	public String createBattleOpenedCommand() {
-		return "BATTLEOPENED " + ID + " " + type + " " + natType + " " + founder.account.user + " " + founder.IP + " "+ port + " " + maxPlayers + " " + Misc.boolToStr(restricted()) + " " + rank + " " + mapName + "\t" + title + "\t" + modName;
+		return "BATTLEOPENED " + ID + " " + type + " " + natType + " " + founder.account.user + " " + founder.IP + " "+ port + " " + maxPlayers + " " + Misc.boolToStr(restricted()) + " " + rank + " " + mapHash + " " + mapName + "\t" + title + "\t" + modName;
 	}
 	
 	/* same as createBattleOpenedCommand() but requires sender to tell what IP to use (local or external) */
@@ -85,7 +87,7 @@ public class Battle {
 		String ip;
 		if (local) ip = founder.localIP;
 		else ip = founder.IP;
-		return "BATTLEOPENED " + ID + " " + type + " " + natType + " " + founder.account.user + " " + ip + " "+ port + " " + maxPlayers + " " + Misc.boolToStr(restricted()) + " " + rank + " " + mapName + "\t" + title + "\t" + modName;
+		return "BATTLEOPENED " + ID + " " + type + " " + natType + " " + founder.account.user + " " + ip + " "+ port + " " + maxPlayers + " " + Misc.boolToStr(restricted()) + " " + rank + " " + mapHash + " " + mapName + "\t" + title + "\t" + modName;
 	}
 	
 	/* sends series of CLIENTBATTLESTATUS command to client telling him about battle statuses

@@ -69,7 +69,7 @@ public class Battles {
 			boolean local = bat.founder.IP.equals(client.IP);
 			client.sendLine(bat.createBattleOpenedCommandEx(local));
 			// we have to send UPDATEBATTLEINFO command too in order to tell the user how many spectators are in the battle, for example.
-			client.sendLine("UPDATEBATTLEINFO " + bat.ID + " " + bat.spectatorCount() + " " + Misc.boolToStr(bat.locked) + " " + bat.mapName);
+			client.sendLine("UPDATEBATTLEINFO " + bat.ID + " " + bat.spectatorCount() + " " + Misc.boolToStr(bat.locked) + " " + bat.mapHash + " " + bat.mapName);
 			for (int j = 0; j < bat.getClientsSize(); j++) {
 				client.sendLine("JOINEDBATTLE " + bat.ID + " " + bat.getClient(j).account.user);
 			}
@@ -81,8 +81,8 @@ public class Battles {
 	 * fails, it returns null as a result. */
 	public static Battle createBattleFromString(String s, Client founder) {
 		String[] parsed = s.split(" ");
-		if (parsed.length < 17) return null;
-		String[] parsed2 = Misc.makeSentence(parsed, 16).split("\t");
+		if (parsed.length < 18) return null;
+		String[] parsed2 = Misc.makeSentence(parsed, 17).split("\t");
 		if (parsed2.length != 3) return null;
 		
 		String pass = parsed[3];
@@ -102,6 +102,7 @@ public class Battles {
 		boolean ghostedBuildings;
 		int hash;
 		int rank;
+		int maphash;
 		
 		try {
 			type = Integer.parseInt(parsed[1]);
@@ -119,6 +120,7 @@ public class Battles {
 			ghostedBuildings = Misc.strToBool(parsed[13]);			
 			hash = Integer.parseInt(parsed[14]);
 			rank = Integer.parseInt(parsed[15]);
+			maphash = Integer.parseInt(parsed[16]);
 		} catch (NumberFormatException e) {
 			return null; 
 		}
@@ -128,7 +130,7 @@ public class Battles {
 		if ((type < 0) || (type > 1)) return null;
 		if ((natType < 0) || (natType > 2)) return null;
 
-		return new Battle(type, natType, founder, pass, port, maxPlayers, startMetal, startEnergy, maxUnits, startPos, gameEndCondition, limitDGun, diminishingMMs, ghostedBuildings, hash, rank, parsed2[0], parsed2[1], parsed2[2]);
+		return new Battle(type, natType, founder, pass, port, maxPlayers, startMetal, startEnergy, maxUnits, startPos, gameEndCondition, limitDGun, diminishingMMs, ghostedBuildings, hash, rank, maphash, parsed2[0], parsed2[1], parsed2[2]);
 	}
 	
 	/* will add this battle object to battle list */
