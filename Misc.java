@@ -96,6 +96,11 @@ public class Misc {
 		return res;
 	}
 	
+	/* int to hex, with leading zeroes and uppercase (http://www.rgagnon.com/javadetails/java-0004.html) */
+	public static String intToHex(int i) {
+		return Integer.toHexString(0x10000 | i).substring(1).toUpperCase();
+	}
+	
 	/* this method will return local IP address such as "192.168.1.100" instead of "127.0.0.1".
 	 * Found it here: http://forum.java.sun.com/thread.jspa?threadID=619056&messageID=3477258
 	 *  */

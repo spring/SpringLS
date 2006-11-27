@@ -4,8 +4,8 @@
  * TODO To change the template for this generated file go to
  * Window - Preferences - Java - Code Style - Code Templates
  * 
- * Note: MapGradeList class is THREAD-SAFE! Make sure you don't break
- * its thread-safety since it is needed as saveAccounts() method saves
+ * Note: MapGradeList class is THREAD-SAFE - make sure you keep it so 
+ * since thread-safety is needed as saveAccounts() method saves
  * accounts in a separate thread.
  * 
  */
@@ -61,7 +61,7 @@ public class MapGradeList {
 		else {
 			String result = "";
 			for (int i = 0; i < list.size(); i++) {
-				result = result + list.get(i).hash + " " + list.get(i).grade + (i == list.size()-1 ? "" : " ");
+				result = result + list.get(i).toString() + (i == list.size()-1 ? "" : " ");
 			}
 			return result;
 		}
@@ -70,11 +70,11 @@ public class MapGradeList {
 	public static MapGradeList createFromString(String s) {
 		if (s.equals("")) return null;
 		String[] tokens = s.split(" ");
-		if (tokens.length % 2 != 0) return null;
+		if (tokens.length % 3 != 0) return null;
 		MapGradeList result = new MapGradeList();
 		try {
-			for (int i = 0; i < tokens.length / 2; i++) {
-				result.add(new MapGrade(tokens[i*2], Integer.parseInt(tokens[i*2+1])));
+			for (int i = 0; i < tokens.length / 3; i++) {
+				result.add(new MapGrade(tokens[i*3], Integer.parseInt(tokens[i*3+1]), Integer.parseInt(tokens[i*3+2])));
 			}
 		} catch (NumberFormatException e) {
 			return null;

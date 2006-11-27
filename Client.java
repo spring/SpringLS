@@ -42,6 +42,7 @@ public class Client {
 	public long dataOverLastTimePeriod = 0; // how many bytes did client send over last recvRecordPeriod seconds. This is used with anti-flood protection.
 	public long timeOfLastReceive; // time (System.currentTimeMillis()) when we last heard from client (last data received)
 	public long lastMapGradesReceived = 0; // time when we last received MAPGRADES command from this user. This is needed to ensure user doesn't send this command too often as it creates much load on the server.
+	public String mapHashUponEnteringGame; // here we keep a hash of the map which was used at the moment this client changed his status to in-game. Its value is undefined (null) if client entered in-game withouth actually participating in a battle. We need this hash when updating map time info for this user (since this user could return from the game after battle host has closed the battle).
 	
 	public Client(SocketChannel sockChan) {
 		alive = true;
@@ -68,6 +69,7 @@ public class Client {
 		inGameTime = 0;
 	    battleID = -1;
 	    cpu = 0;
+	    mapHashUponEnteringGame = null;
 	    
 	    timeOfLastReceive = System.currentTimeMillis();
 	}

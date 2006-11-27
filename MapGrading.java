@@ -26,7 +26,7 @@ public class MapGrading {
 	}
 	
 	/* will reconstruct global map grade list from accounts info */
-	static void reconstructGlobalMapGrades() {
+	public static void reconstructGlobalMapGrades() {
 		globalMapGrades.clear();
 		for (int i = 0; i < Accounts.getAccountsSize(); i++) {
 			if (Accounts.getAccount(i).getRank() < 3) continue ; // accept only grades from players with rank higher than "beginner"
@@ -38,13 +38,13 @@ public class MapGrading {
 		}
 	}
 
-	static float getAvarageMapGrade(String mapHash) {
+	public static float getAvarageMapGrade(String mapHash) {
 		GlobalMapGrade mg = findGlobalMapGrade(mapHash);
 		if (mg == null) return 0;
 		else return mg.avGrade;
 	}
 	
-	static int getNumberOfMapVotes(String mapHash) {
+	public static int getNumberOfMapVotes(String mapHash) {
 		GlobalMapGrade mg = findGlobalMapGrade(mapHash);
 		if (mg == null) return 0;
 		else return mg.noVotes;
@@ -52,6 +52,7 @@ public class MapGrading {
 	
 	/* where "grade" should be between 1 and 10 */
 	private static void addGlobalGrade(String mapHash, int grade) {
+		if (grade == 0) return ;
 		GlobalMapGrade mg = findGlobalMapGrade(mapHash);
 		if (mg == null) {
 			mg = new GlobalMapGrade(mapHash);
@@ -61,14 +62,14 @@ public class MapGrading {
 	}
 	
 	/* will update client's grade list and also global grade list */
-	static void updateLocalAndGlobalGrade(Client client, String mapHash, int grade) {
+	public static void updateLocalAndGlobalGrade(Client client, String mapHash, int grade) {
 		if (grade == 0) return ; // 0 means user hasn't graded the map yet, so we ignore it
 
 		if (client.account.getRank() < 3) return ; // accept only grades from players with rank higher than "beginner"
 		
 		MapGrade mg = client.account.mapGrades.findMapGrade(mapHash);
-		if (mg == null) { // this is client's first time grading for this map
-			mg = new MapGrade(mapHash, grade);
+		if (mg == null) { // this is client's first time grading this map
+			mg = new MapGrade(mapHash, grade, 0);
 			client.account.mapGrades.add(mg);
 			// update global map grades:
 			GlobalMapGrade gmg = findGlobalMapGrade(mapHash);
@@ -77,7 +78,7 @@ public class MapGrading {
 				globalMapGrades.add(gmg);
 			}
 			gmg.avGrade = (gmg.avGrade * gmg.noVotes + grade) / (++gmg.noVotes);
-		} else { // client is only changing grade for this map
+		} else { // client is only adjusting grade for this map
 			if (mg.grade == grade) return ; // no change
 			int diff = grade - mg.grade;
 			mg.grade = grade;
@@ -89,6 +90,17 @@ public class MapGrading {
 			}
 			gmg.avGrade = (gmg.avGrade * gmg.noVotes + diff) / gmg.noVotes;
 		}		
+	}
+	
+	/* 'addMins' - how many minutes to add to the "map grade" */
+	public static void updateLocalMapGradeMins(Client client, String mapHash, int addMins) {
+		MapGrade mg = client.account.mapGrades.findMapGrade(mapHash);
+		if (mg == null) {
+			mg = new MapGrade(mapHash, 0, addMins);
+			client.account.mapGrades.add(mg);
+		} else {
+			mg.mins += addMins;
+		}
 	}
 	
 }

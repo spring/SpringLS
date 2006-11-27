@@ -1855,13 +1855,17 @@ public class TASServer {
 						// tell clients to replace battle port with founder's public UDP source port:
 						bat.sendToAllExceptFounder("HOSTPORT " + client.UDPSourcePort);
 					}
+					if (bat != null) client.mapHashUponEnteringGame = Misc.intToHex(bat.mapHash);
 				} else { // back from game
-					if (client.inGameTime != 0) { // we won't update clients who play by themselves (or with bots), since some try to exploit the system by leaving computer alone in-battle for hours to increase their ranks 
+					if (client.inGameTime != 0) { // we won't update clients who play by themselves (or with bots only), since some try to exploit the system by leaving computer alone in-battle for hours to increase their ranks 
 						int diff = new Long((System.currentTimeMillis() - client.inGameTime) / 60000).intValue(); // in minutes
 						if (client.account.addMinsToInGameTime(diff)) {
 							client.setRankToStatus(client.account.getRank());
 						}
+						// we will also update map in-game time for this client here:
+						if(client.mapHashUponEnteringGame != null) MapGrading.updateLocalMapGradeMins(client, client.mapHashUponEnteringGame, diff);
 					}
+					client.mapHashUponEnteringGame = null;
 				}
 			}
 			Clients.notifyClientsOfNewClientStatus(client);
