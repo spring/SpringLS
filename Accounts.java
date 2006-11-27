@@ -171,7 +171,14 @@ public class Accounts {
 	public static boolean replaceAccount(Account oldAcc, Account newAcc) {
 		int index = accounts.indexOf(oldAcc);
 		if (index == -1) return false; // 'oldAcc' does not exist!
+		
 		accounts.set(index, newAcc);
+		
+		map.remove(oldAcc.user);
+		mapNoCase.remove(oldAcc.user);
+		map.put(newAcc.user, newAcc);
+		mapNoCase.put(newAcc.user, newAcc);
+		
 		return true;
 	}
 
