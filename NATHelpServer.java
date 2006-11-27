@@ -49,6 +49,8 @@ public class NATHelpServer extends Thread {
 	            DatagramPacket packet = new DatagramPacket(buf, buf.length);
 	            socket.receive(packet);
 	            msgList.add(packet);
+	        } catch (InterruptedIOException e) {
+	        	break;
 	        } catch (IOException e) {
 	            if (e.getMessage().equalsIgnoreCase("socket closed")) {
 	            	// server stopped gracefully!
