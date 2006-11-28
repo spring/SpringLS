@@ -101,7 +101,8 @@ public class IP2Country {
         		else if ((prev.IP_FROM == ip.IP_FROM) && (prev.IP_TO > ip.IP_TO)) {
         			if (!prev.COUNTRY_CODE2.equals(ip.COUNTRY_CODE2)) {
             			// this poses a problem - what to do about it?
-            			// Currently we also add the second entry, and since it is narrower it will come on top of 1st one so it will have "priority" (if some IP doesn't fit the narrower range, it may still fit the wider one).
+        				// Currently we simply discharge the 2nd entry, hoping that the 1st one is correct (and 2nd wasn't)
+        				continue;
         			}
         			else continue; // discharge duplicate subrange
         		}
@@ -118,7 +119,8 @@ public class IP2Country {
         		else if ((prev.IP_FROM < ip.IP_FROM) && (prev.IP_TO >= ip.IP_TO)) {
         			if (!prev.COUNTRY_CODE2.equals(ip.COUNTRY_CODE2)) {
             			// this poses a problem - what should we do about it?
-            			// Currently we add the second entry as well since it presents a narrower range and perhaps more accurately determines the country (this entry will come on top since it is narrower) 
+        				// Currently we simply discharge the 2nd entry, hoping that the 1st one is correct (and 2nd wasn't)
+        				continue;
         			} 
         			else continue; // discharge duplicate subrange
         		}
