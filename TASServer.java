@@ -605,7 +605,8 @@ public class TASServer {
 		return true;
 	}	
 	
-	/* Note: this method is not synchronized! */
+	/* Note: this method is not synchronized! 
+	 * Note2: this method may be called recursively!*/
 	public static boolean tryToExecCommand(String command, Client client) {
 		if (command.trim().equals("")) return false;
 		String[] commands = command.split(" ");
@@ -1733,7 +1734,7 @@ public class TASServer {
 			if (commands.length != 1) return false;
 			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
 
-			if (client.battleID == -1) return false;
+			if (client.battleID == -1) return false; // this may happen when client sent LEAVEBATTLE command right after he was kicked from the battle, for example.
 			Battle bat = Battles.getBattleByID(client.battleID);
 			if (bat == null) {
 				System.out.println("Serious error occured: Invalid battle ID. Server will now exit!");
@@ -2013,7 +2014,10 @@ public class TASServer {
 			if (!bat.isClientInBattle(target)) return false;
 			
 			bat.sendToAllClients("SAIDBATTLEEX " + client.account.user + " kicked " + target.account.user + " from battle");
+			// notify client that he was kicked from the battle:
 			target.sendLine("FORCEQUITBATTLE");
+			// force client to leave battle:
+			tryToExecCommand("LEAVEBATTLE", target);
 		}
 		else if (commands[0].equals("FORCETEAMNO")) {
 			if (commands.length != 3) return false;
