@@ -17,11 +17,13 @@ import java.util.ArrayList;
 public class MuteList {
 	private ArrayList<String> usernames;
 	private ArrayList<Long> mutedUntil; // time (in milliseconds, refers to System.currentTimeMillis()) when it will expire. Expired records are automatically removed in certain methods. Use 0 to mute user for indefinite time.
+	private ArrayList<String> IPs; // IPs of the muted users. If user is not muted by IP (but only by username), corresponding IP in this list is set to 'null'
 	private Channel channel;
 	
 	public MuteList(Channel channel) {
 		usernames = new ArrayList<String>();
 		mutedUntil = new ArrayList<Long>();
+		IPs = new ArrayList<String>();
 		this.channel = channel;
 	}
 	
@@ -33,6 +35,7 @@ public class MuteList {
 				channel.broadcast("<" + usernames.get(i) + "> has been unmuted (mute expired)");
 				usernames.remove(i);
 				mutedUntil.remove(i);
+				IPs.remove(i);
 				i--;
 			}		
 	}
@@ -46,10 +49,30 @@ public class MuteList {
 			}
 
 		return false;
-	}	
+	}
 	
-	// returns false if already on the list. Use "seconds" to tell for how long should user be muted. 
-	public boolean mute(String username, int seconds) {
+	public boolean isMuted(String username, String IP) {
+		clearExpiredOnes();
+		
+		for (int i = 0; i < usernames.size(); i++)
+			if (usernames.get(i).equals(username) || ((IPs.get(i) != null) && (IPs.get(i).equals(IP)))) return true;
+
+		return false;	
+	}
+	
+	public boolean isIPMuted(String IP) {
+		clearExpiredOnes();
+		
+		for (int i = 0; i < IPs.size(); i++) {
+			if ((IPs.get(i) != null) && (IPs.get(i).equals(IP))) return true;
+		}
+
+		return false;
+	}
+	
+	// returns false if already muted. Use "seconds" to tell for how long should user be muted.
+	// Set 'IP' to 'null' if you don't want to mute this user by the IP. 
+	public boolean mute(String username, int seconds, String IP) {
 		for (int i = 0; i < usernames.size(); i++)
 			if (usernames.get(i).equals(username)) return false;
 			
@@ -57,6 +80,7 @@ public class MuteList {
 		Long until = new Long(0);
 		if (seconds != 0) until = new Long(System.currentTimeMillis() + seconds*1000); 
 		mutedUntil.add(until);
+		IPs.add(IP); 
 		return true;	
 	}	
 	
@@ -66,6 +90,7 @@ public class MuteList {
 			if (usernames.get(i).equals(username)) {
 				usernames.remove(i);
 				mutedUntil.remove(i);
+				IPs.remove(i);
 				return true;
 			}
 			
@@ -86,6 +111,11 @@ public class MuteList {
 		if (index > mutedUntil.size()-1) return -1; 
 		if (mutedUntil.get(index).longValue() == 0) return 0;
 		else return (mutedUntil.get(index).longValue() - System.currentTimeMillis()) / 1000; 
+	}
+	
+	// returns 'null' if no IP is set for the user
+	public String getIP(int index) {
+		return IPs.get(index);
 	}
 	
 	public boolean rename(String oldUsername, String newUsername) {

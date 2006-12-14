@@ -3,6 +3,8 @@
  * 
  * 
  * ---- INTERNAL CHANGELOG ----
+ * *** 0.32 ***
+ * * added option to mute by IP
  * *** 0.31 ***
  * * added new bot mode for accounts (increases traffic limit when using bot mode)
  * *** 0.30 ***
@@ -1008,7 +1010,7 @@ public class TASServer {
 		}
 		else if (commands[0].equals("MUTE")) {
 			if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) return false;
-			if (commands.length != 4) return false;
+			if (commands.length < 4) return false;
 			
 			Channel chan = Channels.getChannel(commands[1]);
 			if (chan == null) { 
@@ -1022,6 +1024,22 @@ public class TASServer {
 				return false;
 			}
 			
+			Account targetAccount = Accounts.getAccount(username);
+			if (targetAccount == null) {
+				client.sendLine("SERVERMSG MUTE failed: User <" + username + "> does not exist");
+				return false;
+			}
+			
+			boolean muteByIP = false;
+			if (commands.length > 4) {
+				String option = commands[4];
+				if (option.toUpperCase().equals("IP")) muteByIP = true;
+				else {
+					client.sendLine("SERVERMSG MUTE failed: Invalid argument: " + option + "\"");
+					return false;
+				}
+			}
+			
 			int minutes;
 			try {
 				minutes = Integer.parseInt(commands[3]); 
@@ -1030,7 +1048,7 @@ public class TASServer {
 				return false; 
 			}
 			
-			chan.muteList.mute(username, minutes*60);
+			chan.muteList.mute(username, minutes*60, (muteByIP ? targetAccount.lastIP : null));
 			
 			client.sendLine("SERVERMSG You have muted <" + username + "> on channel #" + chan.name + ".");
 			chan.broadcast("<" + client.account.user + "> has muted <" + username + ">");
@@ -1609,7 +1627,11 @@ public class TASServer {
 			if (chan.muteList.isMuted(client.account.user)) {
 				client.sendLine("SERVERMSG Message dropped. You are not allowed to talk in #" + chan.name + "! Please contact one of the moderators.");
 				return false;
+			} else if (chan.muteList.isIPMuted(client.IP)) {
+				client.sendLine("SERVERMSG Message dropped. You are not allowed to talk in #" + chan.name + " (muted by IP address)! If you believe this is an error, contact one of the moderators.");
+				return false;
 			}
+			
 			
 			String s = Misc.makeSentence(commands, 2);
 			// check for flooding:			
@@ -1630,6 +1652,9 @@ public class TASServer {
 
 			if (chan.muteList.isMuted(client.account.user)) {
 				client.sendLine("SERVERMSG Message dropped. You are not allowed to talk in #" + chan.name + "! Please contact one of the moderators.");
+				return false;
+			} else if (chan.muteList.isIPMuted(client.IP)) {
+				client.sendLine("SERVERMSG Message dropped. You are not allowed to talk in #" + chan.name + " (muted by IP address)! If you believe this is an error, contact one of the moderators.");
 				return false;
 			}
 			
