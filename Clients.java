@@ -123,27 +123,19 @@ public class Clients {
 	/* sends a list of all users connected to the server to client (this list includes
 	 * the client itself, assuming he is already logged in and in the list) */
 	public static void sendListOfAllUsersToClient(Client client) {
-		String ip;
 		for (int i = 0; i < clients.size(); i++) {
 			if (clients.get(i).account.accessLevel() < Account.NORMAL_ACCESS) continue;
-			// make sure that clients behind NAT get local IPs and not external ones:
-			if (clients.get(i).IP.equals(client.IP)) ip = clients.get(i).localIP;
-			else ip = clients.get(i).IP;
-			client.sendLine("ADDUSER " + clients.get(i).account.user + " " + clients.get(i).country + " " + clients.get(i).cpu + " " + ip);
+			client.sendLine("ADDUSER " + clients.get(i).account.user + " " + clients.get(i).country + " " + clients.get(i).cpu);
 		}
 	}
 
 	/* notifies all registered clients of a new client who just logged in. The new client
 	 * is not notified (he is already notified by some other method) */
 	public static void notifyClientsOfNewClientOnServer(Client client) {
-		String ip;
 		for (int i = 0; i < clients.size(); i++) {
 			if (clients.get(i).account.accessLevel() < Account.NORMAL_ACCESS) continue;
 			if (clients.get(i) == client) continue;
-			// make sure that clients behind NAT get local IPs and not external ones:
-			if (clients.get(i).IP.equals(client.IP)) ip = client.localIP;
-			else ip = client.IP;
-			clients.get(i).sendLine("ADDUSER " + client.account.user + " " + client.country + " " + client.cpu + " " + ip);
+			clients.get(i).sendLine("ADDUSER " + client.account.user + " " + client.country + " " + client.cpu + " ");
 		}
 	}
 

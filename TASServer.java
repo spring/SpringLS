@@ -5,6 +5,10 @@
  * ---- INTERNAL CHANGELOG ----
  * *** 0.32 ***
  * * added option to mute by IP
+ * * replaced CLIENTPORT command with CLIENTOIPPORT command and also 
+ *   removed IP field from the ADDUSER command (this way IPs are no longer
+ *   public unless you join a battle that uses nat traversal, where host
+ *   needs to know your IP in order for the nat traversal trick to work)
  * *** 0.31 ***
  * * added new bot mode for accounts (increases traffic limit when using bot mode)
  * *** 0.30 ***
@@ -1340,7 +1344,7 @@ public class TASServer {
 			time = (System.nanoTime() - time) / 1000000;
 			
 			client.sendLine("SERVERMSG Garbage collector invoked (time taken: " + time + " ms)");
-		}		
+		}
 		else if (commands[0].equals("CHANNELS")) {
 			if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
 			
@@ -1743,9 +1747,10 @@ public class TASServer {
 			Clients.notifyClientsOfNewClientInBattle(bat, client);
 			bat.notifyOfBattleStatuses(client);
 			bat.sendBotListToClient(client);
-			// tell host about this client's UDP source port (if battle is hosted using "hole punching" NAT traversal technique):
-			if (bat.natType == 1) {
-				bat.founder.sendLine("CLIENTPORT " + client.account.user + " " + client.UDPSourcePort);
+			// tell host about this client's IP and UDP source port (if battle is hosted using one of the NAT traversal techniques):
+			if ((bat.natType == 1) || (bat.natType == 2)) {
+				// make sure that clients behind NAT get local IPs and not external ones:
+				bat.founder.sendLine("CLIENTIPPORT " + client.account.user + " " + (bat.founder.IP.equals(client.IP) ? client.localIP : client.IP) + " " + client.UDPSourcePort);
 			}
 			
 			client.sendLine("REQUESTBATTLESTATUS");
