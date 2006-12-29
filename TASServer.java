@@ -222,7 +222,7 @@ import java.nio.charset.*;
 
 public class TASServer {
 	
-	static final String VERSION = "0.31";
+	static final String VERSION = "0.32";
 	static byte DEBUG = 1; // 0 - no verbose, 1 - normal verbose, 2 - extensive verbose
 	static String MOTD = "Enjoy your stay :-)";
 	static String agreement = ""; // agreement which is sent to user upon first login. User must send CONFIRMAGREEMENT command to confirm the agreement before server allows him to log in. See LOGIN command implementation for more details.
@@ -1388,6 +1388,8 @@ public class TASServer {
 			} else if (version.equals("0.25")) {
 				client.sendLine("OFFERFILE 7 *	http://taspring.clan-sy.com/dl/LobbyUpdate_025_026.exe	This is a TASClient 0.26 patch which fixes serious bug with hosting replays in the lobby. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
 */				
+			} else if (version.equals("0.31")) {
+				client.sendLine("OFFERFILE 7 *	http://taspring.clan-sy.com/dl/taspring_0.74b2_patch.exe	This is a 0.74b1->0.74b2 patch. It will update Spring and lobby client. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
 			} else { // unknown client version
 //				client.sendLine("SERVERMSGBOX No update available for your version of lobby. See official spring web site to get the latest lobby client!");
 				client.sendLine("SERVERMSGBOX You are using an outdated Spring and lobby program, check the download section for new updates at the official Spring web site: http://taspring.clan-sy.com");
