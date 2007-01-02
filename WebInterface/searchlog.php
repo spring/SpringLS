@@ -77,6 +77,25 @@
       echo "<br> $count lines mathing search criteria. <br> End of file.";
     }
 
+    // this is where execution of this script starts:
+
+    // first check if user's ip is not in the ban list:
+    $ip = $_SERVER['REMOTE_ADDR'];
+    $iparray = file("ipblock.txt");
+    $i = 0;
+    while ($i < count($iparray)) {
+      $line = $iparray[$i];
+      $line = trim(substr($line, 0, strpos($line, '#')));
+      if ($line == "") {
+        $i++;
+        continue;
+      }
+      if ($_GET['debug']) echo "<$line><br>";
+      if ($line == $ip)
+        exit("You have been blocked from accessing this script. Contact server administrator for more info.");
+      $i++;
+    }
+
     if ($_POST['submit']) {
       if ((!isset($_POST['usekeyword'])) && (!isset($_POST['usemindate'])) && (!isset($_POST['usemaxdate'])))
       {
