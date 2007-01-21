@@ -3,6 +3,9 @@
  * 
  * 
  * ---- INTERNAL CHANGELOG ----
+ * *** 0.33 ***
+ * * added "update properties" (updateProperties object)
+ * * added SETLATESTSPRINGVERSION and RELOADUPDATEPROPERTIES commands
  * *** 0.32 ***
  * * added option to mute by IP
  * * replaced CLIENTPORT command with CLIENTOIPPORT command and also 
@@ -228,12 +231,14 @@ public class TASServer {
 	static String MOTD = "Enjoy your stay :-)";
 	static String agreement = ""; // agreement which is sent to user upon first login. User must send CONFIRMAGREEMENT command to confirm the agreement before server allows him to log in. See LOGIN command implementation for more details.
 	static long upTime;
+	static String latestSpringVersion = "*"; // this is sent via welcome message to every new client who connects to the server
 	static final String MOTD_FILENAME = "motd.txt";
 	static final String AGREEMENT_FILENAME = "agreement.rtf";
 	static final String BAN_LIST_FILENAME = "banlist.txt";
 	static final String ACCOUNTS_INFO_FILEPATH = "accounts.txt";
 	static final String SERVER_NOTIFICATION_FOLDER = "./notifs";
 	static final String IP2COUNTRY_FILENAME = "ip2country.dat";
+	static final String UPDATE_PROPERTIES_FILENAME = "updates.xml";
 	static final int SERVER_PORT = 8200; // default server (TCP) port
 	static int NAT_TRAVERSAL_PORT = 8201; // default UDP port used with some NAT traversal technique. If this port is not forwarded, hole punching technique will not work. 
 	static final int TIMEOUT_LENGTH = 30000; // in milliseconds
@@ -276,6 +281,8 @@ public class TASServer {
     private static CharsetDecoder asciiDecoder;
     private static CharsetEncoder asciiEncoder;
     
+    private static Properties updateProperties = new Properties(); // here we store a list of Spring versions and server responses to them - we use it when client doesn't have the latest Spring version and requests an update from us
+    
 	static NATHelpServer helpUDPsrvr;
 	
 	public static void writeMainChanLog(String text) {
@@ -307,6 +314,42 @@ public class TASServer {
 		MOTD = newMOTD;
 		return true;
 	}
+	
+	private static boolean readUpdateProperties(String fileName) {
+		FileInputStream fStream = null; 
+		try {  
+			fStream = new FileInputStream(fileName); 
+			updateProperties.loadFromXML(fStream); 
+		} catch (IOException e) {
+			return false;
+		} finally {  
+			if (fStream != null) {  
+				try {  
+					fStream.close(); 
+				} catch (IOException e) {  
+				}  
+			}  
+		} 		
+		return true;
+	}
+	
+	private static boolean writeUpdateProperties(String fileName) {
+		FileOutputStream fStream = null; 
+		try {  
+			fStream = new FileOutputStream(fileName); 
+			updateProperties.storeToXML(fStream, null); 
+		} catch (IOException e) {
+			return false;
+		} finally {  
+			if (fStream != null) {  
+				try {  
+					fStream.close(); 
+				} catch (IOException e) {  
+				}  
+			}  
+		} 		
+		return true;
+	}	
 
 	/* reads agreement from disk (if file is found) */
 	private static void readAgreement()
@@ -1367,54 +1410,49 @@ public class TASServer {
 			
 			Channels.sendChannelListToClient(client);
 		}
+		else if (commands[0].equals("SETLATESTSPRINGVERSION")) {
+			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
+			if (commands.length != 2) {
+				client.sendLine("SERVERMSG Bad arguments to SETLATESTSPRINGVERSION command!");
+				return false;
+			}
+
+			if (LAN_MODE) {
+				client.sendLine("SERVERMSG Error: cannot change latest Spring version while server is running in LAN mode!");
+				return false;
+			}
+			
+			latestSpringVersion = commands[1];
+			
+			client.sendLine("SERVERMSG Latest spring version has been set to " + latestSpringVersion);
+		}
+		else if (commands[0].equals("RELOADUPDATEPROPERTIES")) {
+			if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
+
+			if (readUpdateProperties(UPDATE_PROPERTIES_FILENAME)) {
+				System.out.println("\"Update properties\" read from " + UPDATE_PROPERTIES_FILENAME);
+				client.sendLine("SERVERMSG \"Update properties\" have been successfully loaded from " + UPDATE_PROPERTIES_FILENAME);
+			} else {
+				client.sendLine("SERVERMSG Unable to load \"Update properties\" from " + UPDATE_PROPERTIES_FILENAME + "!");
+			}
+		}
 		else if (commands[0].equals("REQUESTUPDATEFILE")) {
 			//***if (client.account.accessLevel() > Account.NIL_ACCESS) return false;
-			if (commands.length != 2) return false;
+			if (commands.length < 2) return false;
 			
-			String version = commands[1];
+			String version = Misc.makeSentence(commands, 1);
+			String response = updateProperties.getProperty(version);
+			if (response == null) updateProperties.getProperty("default"); // use general response ("default"), if it exists.
+			// if still no response has been found, use some default response:
+			if (response == null) response = "SERVERMSGBOX No update available. Please download the latest version of the software from official Spring web site: http://spring.clan-sy.com";
+
+			// send a response to the client:
+			client.sendLine(response);
 			
-			if (version.equals("0.12")) {
-				client.sendLine("SERVERMSGBOX Your lobby client is outdated! Please update from: http://taspring.clan-sy.com/download.php");
-				Clients.killClient(client);
-				return false;
-			} else if (version.equals("0.121")) {
-				client.sendLine("SERVERMSGBOX Your lobby client is outdated! Please update from: http://taspring.clan-sy.com/download.php");
-				Clients.killClient(client);
-				return false;
-/*
-			} else if (version.equals("0.18")) {
-				client.sendLine("OFFERFILE 7 *	http://taspring.clan-sy.com/dl/taspring_0.67b2_patch.exe	This is a 0.67b1->0.67b2 patch. It will update Spring and lobby client. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
-			} else if (version.equals("0.181")) {
-				client.sendLine("OFFERFILE 7 *	http://taspring.clan-sy.com/dl/taspring_0.67b2_patch.exe	This is a 0.67b1->0.67b2 patch. It will update Spring and lobby client. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
-			} else if (version.equals("0.182")) {
-				client.sendLine("OFFERFILE 7 *	http://taspring.clan-sy.com/dl/taspring_0.67b2_patch.exe	This is a 0.67b1->0.67b2 patch. It will update Spring and lobby client. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
-			} else if (version.equals("0.19")) {
-				client.sendLine("OFFERFILE 7 *	http://taspring.clan-sy.com/dl/taspring_0.67b3_patch.exe	This is a 0.67b2->0.67b3 patch which fixes bug with AIs not being loaded correctly. It will update Spring and lobby client. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
-			} else if (version.equals("0.191")) {
-				client.sendLine("OFFERFILE 7 *	http://spring.clan-sy.com/dl/LobbyUpdate_0191_0195.exe	This is a TASClient 0.195 patch which fixes some serious issue with last update. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
-			} else if (version.equals("0.192")) {
-				client.sendLine("OFFERFILE 7 *	http://spring.clan-sy.com/dl/LobbyUpdate_0192_0195.exe	This is a TASClient 0.195 patch which fixes some serious issue with last update. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
-			} else if (version.equals("0.193")) {
-				client.sendLine("OFFERFILE 7 *	http://spring.clan-sy.com/dl/LobbyUpdate_0193_0195.exe	This is a TASClient 0.195 patch which fixes some serious issue with last update. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
-			} else if (version.equals("0.194")) {
-				client.sendLine("OFFERFILE 7 *	http://spring.clan-sy.com/dl/LobbyUpdate_0194_0195.exe	This is a TASClient 0.195 patch which fixes some serious issue with last update. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
-			} else if (version.equals("0.20")) {
-				client.sendLine("OFFERFILE 7 *	http://taspring.clan-sy.com/dl/taspring_0.70b2_patch.exe	This is a 0.70b1->0.70b2 patch. It will update Spring and lobby client. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
-			} else if (version.equals("0.23")) {
-				client.sendLine("OFFERFILE 7 *	http://taspring.clan-sy.com/dl/LobbyUpdate_023_024.exe	This is a TASClient 0.24 patch which fixes watching replays from the lobby. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
-			} else if (version.equals("0.25")) {
-				client.sendLine("OFFERFILE 7 *	http://taspring.clan-sy.com/dl/LobbyUpdate_025_026.exe	This is a TASClient 0.26 patch which fixes serious bug with hosting replays in the lobby. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
-*/				
-			} else if (version.equals("0.31")) {
-				client.sendLine("OFFERFILE 7 *	http://taspring.clan-sy.com/dl/spring_0.74b2_update.exe	This is a 0.74b1->0.74b2 patch. It will update Spring and lobby client. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
-			} else { // unknown client version
-//				client.sendLine("SERVERMSGBOX No update available for your version of lobby. See official spring web site to get the latest lobby client!");
-				client.sendLine("SERVERMSGBOX You are using an outdated Spring and lobby program, check the download section for new updates at the official Spring web site: http://taspring.clan-sy.com");
+			// kill client if no update has been found for him:
+			if (response.substring(0, 12).toUpperCase().equals("SERVERMSGBOX")) {
 				Clients.killClient(client);
 			}
-		
-			//*** not implemented yet;
-
 		}
 		else if (commands[0].equals("LOGIN")) {
 			if (client.account.accessLevel() != Account.NIL_ACCESS) {
@@ -2594,7 +2632,7 @@ public class TASServer {
 		
 		// switch to lan mode if user accounts information is not present:
 		if (!LAN_MODE) {
-			if (!(new File("filename")).exists()) {
+			if (!(new File(ACCOUNTS_INFO_FILEPATH)).exists()) {
 				System.out.println("Accounts info file not found, switching to \"lan mode\" ...");
 				LAN_MODE = true;
 			}
@@ -2645,6 +2683,10 @@ public class TASServer {
 		
 		readMOTD(MOTD_FILENAME);
 		upTime = System.currentTimeMillis();
+		
+		if (readUpdateProperties(UPDATE_PROPERTIES_FILENAME)) {
+			System.out.println("\"Update properties\" read from " + UPDATE_PROPERTIES_FILENAME);
+		}
 		
 		long tempTime = System.currentTimeMillis();
 		if (!IP2Country.initializeAll(IP2COUNTRY_FILENAME)) {
