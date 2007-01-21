@@ -219,6 +219,7 @@ import java.net.*;
 import java.nio.*;
 import java.nio.channels.*;
 import java.nio.charset.*;
+import java.util.regex.*;
 
 public class TASServer {
 	
@@ -257,6 +258,7 @@ public class TASServer {
     private static final int SEND_BUFFER_SIZE = 65536; // socket's send buffer size
     private static final long CHANNEL_WRITE_SLEEP = 20L;
     private static final long MAIN_LOOP_SLEEP = 10L;
+    private static final int NO_MSG_ID = -1; // meaning message isn't using an ID (see protocol description on message/command IDs)
     
     private static final int recvRecordPeriod = 10; // in seconds. Length of time period for which we keep record of bytes received from client. Used with anti-flood protection.
     private static final int maxBytesAlert = 20000; // maximum number of bytes received in the last recvRecordPeriod seconds from a single client before we raise "flood alert". Used with anti-flood protection.
@@ -612,15 +614,30 @@ public class TASServer {
 	}	
 	
 	/* Note: this method is not synchronized! 
-	 * Note2: this method may be called recursively!*/
+	 * Note2: this method may be called recursively! */
 	public static boolean tryToExecCommand(String command, Client client) {
-		if (command.trim().equals("")) return false;
-		String[] commands = command.split(" ");
-		commands[0] = commands[0].toUpperCase();
-		
+		command = command.trim();
+		if (command.equals("")) return false;
+
 		if (DEBUG > 1) 
 			if (client.account.accessLevel() != Account.NIL_ACCESS) System.out.println("[<-" + client.account.user + "]" + " \"" + command + "\"");
 			else System.out.println("[<-" + client.IP + "]" + " \"" + command + "\"");
+		
+		int ID = NO_MSG_ID;
+		if (command.charAt(0) == '#') try {
+			if (!command.matches("$#\\d+\\s")) return false; // malformed command
+			ID = Integer.parseInt(command.substring(1).split("\\s")[0]);
+			// remove ID field from the rest of command:
+			command = command.replaceFirst("#\\d+\\s", "");
+		} catch (NumberFormatException e) {
+			return false; // this means that the command is malformed
+		} catch (PatternSyntaxException e) {
+			return false; // this means that the command is malformed
+		}
+
+		// parse command into tokens:
+		String[] commands = command.split(" ");
+		commands[0] = commands[0].toUpperCase();
 		
 		
 		if (commands[0].equals("PING")) {
@@ -1389,7 +1406,7 @@ public class TASServer {
 				client.sendLine("OFFERFILE 7 *	http://taspring.clan-sy.com/dl/LobbyUpdate_025_026.exe	This is a TASClient 0.26 patch which fixes serious bug with hosting replays in the lobby. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
 */				
 			} else if (version.equals("0.31")) {
-				client.sendLine("OFFERFILE 7 *	http://taspring.clan-sy.com/dl/taspring_0.74b2_patch.exe	This is a 0.74b1->0.74b2 patch. It will update Spring and lobby client. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
+				client.sendLine("OFFERFILE 7 *	http://taspring.clan-sy.com/dl/spring_0.74b2_update.exe	This is a 0.74b1->0.74b2 patch. It will update Spring and lobby client. Alternatively you can download it from the Spring web site. All files are checked for viruses and are considered to be safe.");
 			} else { // unknown client version
 //				client.sendLine("SERVERMSGBOX No update available for your version of lobby. See official spring web site to get the latest lobby client!");
 				client.sendLine("SERVERMSGBOX You are using an outdated Spring and lobby program, check the download section for new updates at the official Spring web site: http://taspring.clan-sy.com");
@@ -2574,6 +2591,14 @@ public class TASServer {
 		}
 
 		System.out.println("TASServer " + VERSION + " started on " + Misc.easyDateFormat("yyyy.MM.dd 'at' hh:mm:ss z"));
+		
+		// switch to lan mode if user accounts information is not present:
+		if (!LAN_MODE) {
+			if (!(new File("filename")).exists()) {
+				System.out.println("Accounts info file not found, switching to \"lan mode\" ...");
+				LAN_MODE = true;
+			}
+		}
 		
 		if (!LAN_MODE) {
 			Accounts.loadAccounts();
