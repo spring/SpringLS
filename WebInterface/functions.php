@@ -28,13 +28,13 @@
     if ($sel_y == -1)
       $sel_y = date('Y');
 
-    // Default minimum year is this year
+    // Default minimum year is last year
     if ($min_y == -1)
-      $min_y = date('Y');
+      $min_y = date('Y') - 1;
 
     // Default maximum year is two years ahead
     if ($max_y == -1)
-      $max_y = ($min_y + 2);
+      $max_y = ($min_y + 3);
 
 
     // --------------------------------------------------------------------------
