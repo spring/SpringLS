@@ -226,7 +226,7 @@ import java.util.regex.*;
 
 public class TASServer {
 	
-	static final String VERSION = "0.32";
+	static final String VERSION = "0.33";
 	static byte DEBUG = 1; // 0 - no verbose, 1 - normal verbose, 2 - extensive verbose
 	static String MOTD = "Enjoy your stay :-)";
 	static String agreement = ""; // agreement which is sent to user upon first login. User must send CONFIRMAGREEMENT command to confirm the agreement before server allows him to log in. See LOGIN command implementation for more details.
@@ -263,7 +263,7 @@ public class TASServer {
     private static final int SEND_BUFFER_SIZE = 65536; // socket's send buffer size
     private static final long CHANNEL_WRITE_SLEEP = 20L;
     private static final long MAIN_LOOP_SLEEP = 10L;
-    private static final int NO_MSG_ID = -1; // meaning message isn't using an ID (see protocol description on message/command IDs)
+    public static final int NO_MSG_ID = -1; // meaning message isn't using an ID (see protocol description on message/command IDs)
     
     private static final int recvRecordPeriod = 10; // in seconds. Length of time period for which we keep record of bytes received from client. Used with anti-flood protection.
     private static final int maxBytesAlert = 20000; // maximum number of bytes received in the last recvRecordPeriod seconds from a single client before we raise "flood alert". Used with anti-flood protection.
@@ -281,7 +281,13 @@ public class TASServer {
     private static CharsetDecoder asciiDecoder;
     private static CharsetEncoder asciiEncoder;
     
-    private static Properties updateProperties = new Properties(); // here we store a list of Spring versions and server responses to them - we use it when client doesn't have the latest Spring version and requests an update from us
+    private static Properties updateProperties = new Properties(); /* here we store a list of Spring versions and server responses to them. 
+     																* We use it when client doesn't have the latest Spring version or the lobby program 
+     																* and requests an update from us. The XML file should normally contain at least the "default" key
+     																* which contains a standard response in case no suitable response is found.
+     																* Each text field associated with a key contains a full string that will be send to the client
+     																* as a response, so it should contain a full server command. 
+     																*/
     
 	static NATHelpServer helpUDPsrvr;
 	

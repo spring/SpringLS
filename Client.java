@@ -34,6 +34,7 @@ public class Client {
 	public SocketChannel sockChan;
 	public SelectionKey selKey;
 	public StringBuffer recvBuf;
+	private int msgID = TASServer.NO_MSG_ID; // -1 means no ID is used (NO_MSG_ID constant). This is the message/command ID used when sending command as described in the "lobby protocol description" document. Use setSendMsgID and resetSendMsgID methods to manipulate it.
 	
 	public long inGameTime; // in milliseconds. Used internally to remember time when user entered game using System.currentTimeMillis().
 	public String country;
@@ -74,8 +75,26 @@ public class Client {
 	    timeOfLastReceive = System.currentTimeMillis();
 	}
 	
+	// any messages sent via sendLine() method will contain this ID. See "lobby protocol description" document for more info on message/command IDs.
+	public void setSendMsgID(int ID) {
+		this.msgID = ID;
+	}
+	
+	public void resetSendMsgID(int ID) {
+		this.msgID = ID;
+	}
+	
+	/* will prefix the message with a msgID value, if it was previously set via setSendMsgID() method. */
 	public boolean sendLine(String text) {
+		return sendLine(text, msgID);
+	}
+	
+	/* the 'msgID' param overrides any previously set ID (via setSendMsgID method). Use NO_MSG_ID (which should equal to -1) for none.  */
+	public boolean sendLine(String text, int msgID) {
 		if (!alive) return false;
+		
+		// prefix message with a message ID:
+		if (msgID != TASServer.NO_MSG_ID) text = "#" + msgID + " " + text;
 		
 		if (TASServer.DEBUG > 1) 
 			if (account.accessLevel() != Account.NIL_ACCESS) System.out.println("[->" + account.user + "]" + " \"" + text + "\"");
