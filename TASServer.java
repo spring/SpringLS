@@ -856,7 +856,10 @@ public class TASServer {
 				if (commands.length != 2) return false;
 
 				Account acc = Accounts.getAccount(commands[1]);
-				if (acc == null) return false;
+				if (acc == null) {
+					client.sendLine("SERVERMSG User <" + commands[1] + "> not found!");
+					return false;
+				}
 				
 				client.sendLine("SERVERMSG " + commands[1] + "'s access code is " + acc.access);
 			}
@@ -1415,6 +1418,44 @@ public class TASServer {
 				
 				client.sendLine("SERVERMSG Garbage collector invoked (time taken: " + time + " ms)");
 			}
+			else if (commands[0].equals("TESTLOGIN")) {
+				if (commands.length != 3) return false;
+				if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
+
+				if (verifyLogin(commands[1], commands[2]) == null) {
+					client.sendLine("TESTLOGINDENY");
+					return false;
+				}
+
+				// we don't check here if agreement bit is set yet or if user is banned, we only verify if login info is correct
+				client.sendLine("TESTLOGINACCEPT");
+			}
+			else if (commands[0].equals("SETBOTMODE")) {
+				if (commands.length != 3) return false;
+				if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
+
+				int mode;
+				try {
+					mode = Integer.parseInt(commands[2]);
+				} catch (NumberFormatException e) {
+					client.sendLine("SERVERMSG Invalid 'mode' parameter (must be 0 or 1)!");
+					return false;
+				}
+				if ((mode != 0) && (mode != 1)) {
+					client.sendLine("SERVERMSG Invalid 'mode' parameter (must be 0 or 1)!");
+					return false;
+				}
+				
+				Account acc = Accounts.getAccount(commands[1]);
+				if (acc == null) {
+					client.sendLine("SERVERMSG User <" + commands[1] + "> not found!");
+					return false;
+				}
+				
+				acc.setBotMode((mode == 0) ? false : true);
+				
+				client.sendLine("SERVERMSG Bot mode set to "  + mode + " for user <" + commands[1] + ">");
+			}			
 			else if (commands[0].equals("CHANNELS")) {
 				if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
 				
@@ -2548,18 +2589,6 @@ public class TASServer {
 					return false;
 				}
 			} 	
-			else if (commands[0].equals("TESTLOGIN")) {
-				if (commands.length != 3) return false;
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
-
-				if (verifyLogin(commands[1], commands[2]) == null) {
-					client.sendLine("TESTLOGINDENY");
-					return false;
-				}
-
-				// we don't check here if agreement bit is set yet or if user is banned, we only verify if login info is correct
-				client.sendLine("TESTLOGINACCEPT");
-			} 					
 			else {
 				// unknown command!
 				return false;
