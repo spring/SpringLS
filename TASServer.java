@@ -5,6 +5,7 @@
  * ---- INTERNAL CHANGELOG ----
  * *** 0.34 ***
  * * message IDs are now actually working
+ * * added TESTLOGIN, TESTLOGINACCEPT and TESTLOGINDENY commands
  * *** 0.33 ***
  * * added "update properties" (updateProperties object)
  * * added SETLATESTSPRINGVERSION and RELOADUPDATEPROPERTIES commands
@@ -2546,7 +2547,19 @@ public class TASServer {
 				} catch (Exception e) {
 					return false;
 				}
-			} 				
+			} 	
+			else if (commands[0].equals("TESTLOGIN")) {
+				if (commands.length != 3) return false;
+				if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
+
+				if (verifyLogin(commands[1], commands[2]) == null) {
+					client.sendLine("TESTLOGINDENY");
+					return false;
+				}
+
+				// we don't check here if agreement bit is set yet or if user is banned, we only verify if login info is correct
+				client.sendLine("TESTLOGINACCEPT");
+			} 					
 			else {
 				// unknown command!
 				return false;
