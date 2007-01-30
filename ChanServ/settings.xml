@@ -6,6 +6,10 @@
     <password>CY9rzUYh03PK3k6DJie09g==</password>
   </account>
 
+  <remoteaccessaccounts>
+    <account key="test:pass"/>
+  </remoteaccessaccounts>
+
   <channels>
     <static>
       <channel name="test1"/>

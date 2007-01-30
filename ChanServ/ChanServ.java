@@ -75,6 +75,7 @@ public class ChanServ {
 	static final String VERSION = "0.1";
 	static final String CONFIG_FILENAME = "settings.xml";
 	static final boolean DEBUG = false;
+	static private boolean connected = false; // are we connected to the TASServer? 
 	static Document config; 
 	static String serverAddress = "";
 	static int serverPort;
@@ -86,6 +87,9 @@ public class ChanServ {
     static Timer timer; // keep alive timer
     
     static Semaphore configLock = new Semaphore(1, true); // we use it when there is a danger of config object being used by main and TaskTimer threads simultaneously
+    
+    static RemoteAccessServer remoteAccessServer;
+    static int remoteAccessPort;
     
     static Vector/*Client*/ clients = new Vector();
     static Vector/*Channel*/ channels = new Vector();
@@ -111,6 +115,10 @@ public class ChanServ {
 		}
 	}
 	
+	public static boolean isConnected() {
+		return connected;
+	}
+	
 	private static void loadConfig(String fname)
 	{
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -126,12 +134,27 @@ public class ChanServ {
            //node = (Node)xpath.evaluate("config/account/username", config, XPathConstants.NODE);
            serverAddress = (String)xpath.evaluate("config/account/serveraddress/text()", config, XPathConstants.STRING);
            serverPort = Integer.parseInt((String)xpath.evaluate("config/account/serverport/text()", config, XPathConstants.STRING));
+           remoteAccessPort = Integer.parseInt((String)xpath.evaluate("config/account/remoteaccessport/text()", config, XPathConstants.STRING));
            username = (String)xpath.evaluate("config/account/username/text()", config, XPathConstants.STRING);
            password = (String)xpath.evaluate("config/account/password/text()", config, XPathConstants.STRING);
            
            //node = (Node)xpath.evaluate("config/account/username", config, XPathConstants.NODE);
            //node.setTextContent("this is a test!");
 
+           // load remote access accounts:
+           node = (Node)xpath.evaluate("config/remoteaccessaccounts", config, XPathConstants.NODE);
+           if (node == null) {
+          		Log.error("Bad XML document. Path config/remoteaccessaccounts does not exist. Exiting ...");
+				closeAndExit(1);
+           }
+           node = node.getFirstChild();
+           while (node != null) {
+        	   if (node.getNodeType() == Node.ELEMENT_NODE) {
+        		   RemoteAccessServer.remoteAccounts.add(((Element)node).getAttribute("key"));
+              	}
+              	node = node.getNextSibling();
+           }     
+           
            // load static channel list:
            node = (Node)xpath.evaluate("config/channels/static", config, XPathConstants.NODE);
            if (node == null) {
@@ -140,10 +163,10 @@ public class ChanServ {
            }
            node = node.getFirstChild();
            while (node != null) {
-           	if (node.getNodeType() == Node.ELEMENT_NODE) {
-           		channels.add(new Channel(((Element)node).getAttribute("name")));
-			}
-			node = node.getNextSibling();
+        	   if (node.getNodeType() == Node.ELEMENT_NODE) {
+        		   channels.add(new Channel(((Element)node).getAttribute("name")));
+        	   }
+        	   node = node.getNextSibling();
            }
            
            // load registered channel list:
@@ -206,6 +229,7 @@ public class ChanServ {
     		closeAndExit(1);
         } catch (Exception e) {
         	Log.error("Unknown exception while reading config file: " + fname);
+        	e.printStackTrace();
         	closeAndExit(1);
         	//e.printStackTrace();
         }
@@ -320,7 +344,8 @@ public class ChanServ {
 		}
 	}
 	
-	public static void sendLine(String s) {
+	// multiple threads may call this method
+	public static synchronized void sendLine(String s) {
 		if (DEBUG) Log.log("Client: \"" + s + "\"");
 		sockout.println(s);
 	}
@@ -404,9 +429,32 @@ public class ChanServ {
 	
 	public static boolean execRemoteCommand(String command) {
 		if (command.trim().equals("")) return false;
+		
+		// try to extract message ID if present:
+		if (command.charAt(0) == '#') try {
+			if (!command.matches("^#\\d+\\s[\\s\\S]*")) return false; // malformed command
+			int ID = Integer.parseInt(command.substring(1).split("\\s")[0]);
+			// remove ID field from the rest of command:
+			command = command.replaceFirst("#\\d+\\s", "");
+			// forward the command to the waiting thread:
+			synchronized (remoteAccessServer.threads) {
+				for (int i = 0; i < remoteAccessServer.threads.size(); i++) {
+					if (((RemoteClientThread)remoteAccessServer.threads.get(i)).ID == ID) {
+						((RemoteClientThread)remoteAccessServer.threads.get(i)).replyQueue.put(command);
+						return true;
+					}
+				}
+			}
+			return false; // no suitable thread found! Perhaps thread already finished before it could read the response (not a problem)
+		} catch (NumberFormatException e) {
+			return false; // this means that the command is malformed
+		} catch (PatternSyntaxException e) {
+			return false; // this means that the command is malformed
+		}
+		
 		String[] commands = command.split(" ");
 		commands[0] = commands[0].toUpperCase();
-
+		
 		if (commands[0].equals("TASSERVER")) {
 			sendLine("LOGIN " + username + " " + password + " 0 * ChanServ " + VERSION);
 		} else if (commands[0].equals("ACCEPTED")) {
@@ -1073,6 +1121,11 @@ public class ChanServ {
 			forwardMuteList.add(new MuteListRequest(chanName, client.name, System.currentTimeMillis(), (channel != null) ? channel.name : ""));
 			sendLine("MUTELIST " + chan.name);
 		} else if (params[0].equals("SHUTDOWN")) {
+			if (!client.isModerator()) {
+				sendMessage(client, channel, "Insufficient access to execute " + params[0] + " command!");
+				return ;
+			}
+			
 			String reason = "restarting ..."; // default reason text
 			
 			if (params.length > 1) {
@@ -1171,11 +1224,18 @@ public class ChanServ {
 		loadConfig(CONFIG_FILENAME);
 		saveConfig(CONFIG_FILENAME); //*** debug
 		
+		// run remote access server:
+		Log.log("Trying to run remote access server on port " + remoteAccessPort + " ...");
+		remoteAccessServer = new RemoteAccessServer(remoteAccessPort);
+		remoteAccessServer.start();
+		
 		if (!tryToConnect())
 			closeAndExit(1);
 		else {
 			startKeepAliveTimer();
+			connected = true;
 			messageLoop();
+			connected = false;
 		}
 		stopKeepAliveTimer();
 		
@@ -1189,7 +1249,9 @@ public class ChanServ {
 	    	Log.log("Trying to reconnect to the server ...");
 			if (!tryToConnect()) continue;
 			startKeepAliveTimer();
+			connected = true;
 			messageLoop();
+			connected = false;
 			stopKeepAliveTimer();
 		}
 	}
