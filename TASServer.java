@@ -3,6 +3,8 @@
  * 
  * 
  * ---- INTERNAL CHANGELOG ----
+ * *** 0.34 ***
+ * * message IDs are now actually working
  * *** 0.33 ***
  * * added "update properties" (updateProperties object)
  * * added SETLATESTSPRINGVERSION and RELOADUPDATEPROPERTIES commands
@@ -688,16 +690,13 @@ public class TASServer {
 		String[] commands = command.split(" ");
 		commands[0] = commands[0].toUpperCase();
 		
-		System.out.println("debug1");
-		
 		client.setSendMsgID(ID);
 		
 		try {
 			if (commands[0].equals("PING")) {
 				//***if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
 			
-				if (commands.length > 1) client.sendLine("PONG " + Misc.makeSentence(commands, 1));
-				else client.sendLine("PONG");
+				client.sendLine("PONG");
 			}
 			if (commands[0].equals("REGISTER")) {
 				if (commands.length != 3) {
