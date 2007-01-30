@@ -70,6 +70,27 @@ class KeepAliveTask extends TimerTask {
 	}
 }
 
+class AntiSpamTask extends TimerTask {
+	public void run() {
+		if (!ChanServ.isConnected()) return;
+		synchronized (ChanServ.channels) {
+			for (int i = 0; i < ChanServ.channels.size(); i++) {
+				synchronized ((Channel)ChanServ.channels.get(i)) {
+					Channel chan = (Channel)ChanServ.channels.get(i);
+					if (!chan.antispam) continue; // anti-spam protection is disabled
+					for (int j = 0; j < chan.lineCount.size(); j++) {
+						if ((Integer)chan.lineCount.get(j) > ChanServ.ANTISPAM_MAXLINES) {
+							ChanServ.sendLine("MUTE " + chan.name + " " + chan.getClient(j) + " 15");
+							ChanServ.sendLine("SAYPRIVATE " + chan.getClient(j) + " You have been temporarily muted due to spamming in channel #" + chan.name + ". You may get temporarily banned if you will continue to spam this channel.");
+						}
+						chan.lineCount.set(j, 0);
+					}
+				}
+			}
+		}
+	}
+}
+
 public class ChanServ {
 
 	static final String VERSION = "0.1";
@@ -85,6 +106,9 @@ public class ChanServ {
     static PrintWriter sockout = null;
     static BufferedReader sockin = null;
     static Timer timer; // keep alive timer
+    static Timer antiSpamTimer; // used with anti-spam protection
+    static final int ANTISPAM_MAXLINES = 10; // maximum lines allowed per fixed time interval
+    static final int ANTISPAM_INTERVAL = 5; // in seconds. Bot will test for spam on this intervals 
     
     static Semaphore configLock = new Semaphore(1, true); // we use it when there is a danger of config object being used by main and TaskTimer threads simultaneously
     
@@ -185,6 +209,7 @@ public class ChanServ {
 					chan.topic = ((Element)node).getAttribute("topic");
 					chan.key = ((Element)node).getAttribute("key");
 					chan.founder = ((Element)node).getAttribute("founder");
+					chan.antispam = ((Element)node).getAttribute("antispam").equals("yes") ? true : false;
 	           		channels.add(chan);
 	           		// load this channel's operator list:
 	           		node2 = node.getFirstChild();
@@ -255,7 +280,7 @@ public class ChanServ {
 					closeAndExit(1);
 				}
 				
-				// delete all channels:
+				// delete all static channels:
 				root.getChildNodes();
 				node = root.getFirstChild();
 				while (node != null) {
@@ -266,13 +291,14 @@ public class ChanServ {
 					//}
 				}
 				
-				// add new channels:
+				// add new static channels:
 				for (int i = 0; i < channels.size(); i++) {
 					chan = (Channel)channels.get(i);
 					if (!chan.isStatic) continue;
 					root.appendChild(config.createTextNode(Misc.EOL + Misc.enumSpaces(6)));
 					elem = config.createElement("channel");
 					elem.setAttribute("name", chan.name);
+					elem.setAttribute("antispam", chan.antispam ? "yes" : "no");
 					//elem.setTextContent(chan.name);
 					root.appendChild(elem);
 				}
@@ -305,6 +331,7 @@ public class ChanServ {
 					elem.setAttribute("topic", chan.topic);
 					elem.setAttribute("key", chan.key);
 					elem.setAttribute("founder", chan.founder);
+					elem.setAttribute("antispam", chan.antispam ? "yes" : "no");
 
 					// write operator list:
 					if (chan.getOperatorList().size() > 0) {
@@ -486,7 +513,7 @@ public class ChanServ {
 			Channel chan = getChannel(commands[1]);
 			if (chan == null) return false; // this could happen just after we unregistered the channel (since there is always some lag between us and the server)
 			chan.joined = true;
-			chan.clients.clear();
+			chan.clearClients();
 			// put "logging started" header in the log file:
 			Misc.outputLog(chan.logFileName, "");
 			Misc.outputLog(chan.logFileName, "Log started on " + Misc.easyDateFormat("dd/MM/yy"));
@@ -503,17 +530,17 @@ public class ChanServ {
 			Channel chan = getChannel(commands[1]);
 			if (chan == null) return false; // this could happen just after we unregistered the channel (since there is always some lag between us and the server)
 			for (int i = 2; i < commands.length; i++) {
-				chan.clients.add(commands[i]);
+				chan.addClient(commands[i]);
 			}
 		} else if (commands[0].equals("JOINED")) {
 			Channel chan = getChannel(commands[1]);
 			if (chan == null) return false; // this could happen just after we unregistered the channel (since there is always some lag between us and the server)
-			chan.clients.add(commands[2]);
+			chan.addClient(commands[2]);
 			Misc.outputLog(chan.logFileName, Misc.easyDateFormat("[HH:mm:ss]") + " * " + commands[2] + " has joined " + "#" + chan.name);
 		} else if (commands[0].equals("LEFT")) { 
 			Channel chan = getChannel(commands[1]);
 			if (chan == null) return false; // this could happen just after we unregistered the channel (since there is always some lag between us and the server)
-			chan.clients.remove(commands[2]);
+			chan.removeClient(commands[2]);
 			String out = Misc.easyDateFormat("[HH:mm:ss]") + " * " + commands[2] + " has left " + "#" + chan.name;
 			if (commands.length > 3)
 				out = out + " (" + Misc.makeSentence(commands, 3) + ")";
@@ -531,7 +558,7 @@ public class ChanServ {
 			if (chan == null) return false; // this could happen just after we unregistered the channel (since there is always some lag between us and the server)
 			String user = commands[2];
 			String msg = Misc.makeSentence(commands, 3);
-			
+			chan.incClientLine(user, msg);
 			Misc.outputLog(chan.logFileName, Misc.easyDateFormat("[HH:mm:ss]") + " <" + user + "> " + msg);
 			if (msg.charAt(0) == '!') processUserCommand(msg.substring(1, msg.length()), getClient(user), chan);
 		} else if (commands[0].equals("SAIDEX")) {
@@ -539,6 +566,7 @@ public class ChanServ {
 			if (chan == null) return false; // this could happen just after we unregistered the channel (since there is always some lag between us and the server)
 			String user = commands[2];
 			String msg = Misc.makeSentence(commands, 3);
+			chan.incClientLine(user, msg);
 			Misc.outputLog(chan.logFileName, Misc.easyDateFormat("[HH:mm:ss]") + " * " + user + " " + msg);
 		} else if (commands[0].equals("SAIDPRIVATE")) {
 			
@@ -651,7 +679,7 @@ public class ChanServ {
 				return ;
 			}
 
-			String respond = "Channel #" + chan.name + " info: Founder is <" + chan.founder + ">, ";
+			String respond = "Channel #" + chan.name + " info: Anti-spam protection is " + (chan.antispam ? "on" : "off") + ". Founder is <" + chan.founder + ">, ";
 			Vector ops = chan.getOperatorList();
 			if (ops.size() == 0) respond = respond + "no operators are registered.";
 			else if (ops.size() == 1) respond = respond + "1 registered operator is <" + (String)ops.get(0) + ">.";
@@ -859,6 +887,48 @@ public class ChanServ {
 			// ok remove user from channel's operator list:
 			chan.removeOperator(params[2]);
 			sendLine("CHANNELMESSAGE " + chan.name + " <" + params[2] + "> has just been removed from this channel's operator list by <" + client.name + ">");
+		} else if (params[0].equals("SPAMPROTECTION")) {
+			// if the command was issued from a channel:
+			if (channel != null) { // insert <channame> parameter so we don't have to handle two different situations for each command
+				params = (String[])Misc.insertIntoObjectArray("#" + channel.name, 1, params);
+			}
+			
+			if (params.length != 3) {
+				sendMessage(client, channel, "Error: Invalid params!");
+				return ;
+			}
+			
+			if (params[1].charAt(0) != '#') {
+				sendMessage(client, channel, "Error: Bad channel name (forgot #?)");
+				return ;
+			}
+			
+			String chanName = params[1].substring(1, params[1].length());
+			Channel chan = getChannel(chanName);
+			if (chan == null) {
+				sendMessage(client, channel, "Channel #" + chanName + " does not exist!");
+				return ;
+			}
+			
+			if (!(client.isModerator() || client.name.equals(chan.founder))) {
+				sendMessage(client, channel, "Insufficient access to execute " + params[0] + " command!");
+				return ;
+			}
+			
+			if (params[2].toUpperCase().equals("ON")) {
+				sendMessage(client, channel, "Anti-spam protection has been enabled for #" + chan.name);
+				sendLine("CHANNELMESSAGE " + chan.name + " Anti-spam protection for channel #" + chan.name + " has been enabled");
+				chan.antispam = true;
+				return ;
+			} else if (params[2].toUpperCase().equals("OFF")) {
+				sendMessage(client, channel, "Anti-spam protection has been disabled for #" + chan.name);
+				sendLine("CHANNELMESSAGE " + chan.name + " Anti-spam protection for channel #" + chan.name + " has been disabled");
+				chan.antispam = false;
+				return ;
+			} else {
+				sendMessage(client, channel, "Error: Invalid parameter (\"" + params[2] + "\">. Valid is \"on|off\"");
+				return ;
+			}
 		} else if (params[0].equals("TOPIC")) {
 			// if the command was issued from a channel:
 			if (channel != null) { // insert <channame> parameter so we don't have to handle two different situations for each command
@@ -991,7 +1061,7 @@ public class ChanServ {
 			}
 			
 			String target = params[2];
-			if (chan.clients.indexOf(target) == -1) {
+			if (!chan.clientExists(target)) {
 				sendMessage(client, channel, "Error: <" + target + "> not found in #" + chanName + "!");
 				return ;
 			}
@@ -1202,6 +1272,21 @@ public class ChanServ {
 		}
 	}
 	
+	public static void startAntiSpamTimer() {
+		antiSpamTimer = new Timer();
+		antiSpamTimer.schedule(new AntiSpamTask(),
+                1000,        //initial delay
+                ANTISPAM_INTERVAL*1000);  //subsequent rate
+	}
+
+	public static void stopAntiSpamTimer() {
+		try {
+			antiSpamTimer.cancel();
+		} catch (Exception e) {
+			//
+		}
+	}	
+	
 	public static void main(String[] args) {
 
 		Log.externalLogFileName = "$main.log";
@@ -1233,11 +1318,13 @@ public class ChanServ {
 			closeAndExit(1);
 		else {
 			startKeepAliveTimer();
+			startAntiSpamTimer();
 			connected = true;
 			messageLoop();
 			connected = false;
+			stopKeepAliveTimer();
+			stopAntiSpamTimer();
 		}
-		stopKeepAliveTimer();
 		
 		// we are out of the main loop (due to an error, for example), lets reconnect:
 		while (true) {
@@ -1249,10 +1336,12 @@ public class ChanServ {
 	    	Log.log("Trying to reconnect to the server ...");
 			if (!tryToConnect()) continue;
 			startKeepAliveTimer();
+			startAntiSpamTimer();
 			connected = true;
 			messageLoop();
 			connected = false;
 			stopKeepAliveTimer();
+			stopAntiSpamTimer();
 		}
 	}
 }
