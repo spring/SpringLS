@@ -1455,6 +1455,18 @@ public class TASServer {
 				acc.setBotMode((mode == 0) ? false : true);
 				
 				client.sendLine("SERVERMSG Bot mode set to "  + mode + " for user <" + commands[1] + ">");
+			}
+			else if (commands[0].equals("GETREGISTRATIONDATE")) {
+				if (commands.length != 2) return false;
+				if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
+
+				Account acc = Accounts.getAccount(commands[1]);
+				if (acc == null) {
+					client.sendLine("SERVERMSG User <" + commands[1] + "> not found!");
+					return false;
+				}
+
+				client.sendLine("SERVERMSG Registration timestamp for <" + commands[1] + "> is " + acc.registrationDate + " (" + Misc.easyDateFormat(acc.registrationDate, "d MMM yyyy HH:mm:ss z") + ")");
 			}			
 			else if (commands[0].equals("CHANNELS")) {
 				if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
