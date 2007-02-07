@@ -31,6 +31,18 @@
  * * LOGINBAD
  *   Sent by server as a response to a failed TESTLOGIN command.
  *   
+ * * GETACCESS username
+ *   Sent by client trying to figure out access status of some user.
+ *   Returns 1 for "normal", 2 for "moderator", 3 for "admin".
+ *   If user is not found, returns 0 as a result.
+ *   If the operation fails for some reason, socket will simply get disconnected.
+ *   
+ * * QUERYSERVER {server command}  
+ *   This will forward the given command directly to server and then forward server's response back to the client.
+ *   This command means potential security risc. Will be replaced in the future by a set of user specific commands.
+ *   Currently commands that may be passed to this function are limited - only some command are allowed. This is so
+ *   in order to avoid some security risks with the command.
+ *   If the operation fails for some reason, socket will simply get disconnected.   
  */
 
 import java.io.*;
@@ -42,6 +54,15 @@ public class RemoteAccessServer extends Thread {
 	final static int TIMEOUT = 30000; // in milliseconds
 	
 	public static Vector remoteAccounts = new Vector(); // contains String-s of keys for remote server access
+	
+	// used with QUERYSERVER command
+	public static final String allowedQueryCommands[] = {
+		"GETREGISTRATIONDATE",
+		"GETINGAMETIME",
+		"GETLASTIP",
+		"GETLASTLOGINTIME",
+		"RELOADUPDATEPROPERTIES"
+		};
 	
 	public Vector threads = new Vector(); // here we keep a list of all currently running client threads
 	private int port;
@@ -199,6 +220,51 @@ class RemoteClientThread extends Thread {
 			}
 			else
 				sendLine("LOGINBAD");
+		} else if (params[0].equals("GETACCESS")) {
+			if (!identified) return ;
+			if (params.length != 2) return ; // malformed command
+			if (!ChanServ.isConnected()) {
+				kill();
+				return ;
+			}
+			queryTASServer("GETACCOUNTACCESS " + params[1]);
+			String reply = waitForReply();
+
+			// if user not found:
+			if (reply.equals("User <" + params[1] + "> not found!")) {
+				sendLine("0");
+				return ;
+			}
+			
+			String[] tmp = reply.split(" ");
+			int access = 0;
+			try {
+				access = Integer.parseInt(tmp[tmp.length-1]);
+			} catch (NumberFormatException e) { // should not happen
+				kill();
+				return ; 
+			}
+			sendLine("" + (access & 0x7));
+		} else if (params[0].equals("QUERYSERVER")) {
+			if (!identified) return ;
+			if (params.length < 2) return ; // malformed command
+			if (!ChanServ.isConnected()) {
+				kill();
+				return ;
+			}
+			boolean allow = false;
+			for (int i = 0; i < RemoteAccessServer.allowedQueryCommands.length; i++) {
+				if (RemoteAccessServer.allowedQueryCommands[i].equals(params[1])) {
+					allow = true;
+					break;
+				}
+			}
+			
+			if (!allow) kill(); // client is trying to execute a command that is not allowed!
+			
+			queryTASServer(Misc.makeSentence(params, 1));
+			String reply = waitForReply();
+			sendLine(reply);
 		} else {
 			// unknown command!
 		}
