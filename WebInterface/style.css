@@ -3,6 +3,19 @@
 	margin:0;
 }
 
+h1 {
+  /* copied from: http://steveeray.com/headinggallery/ */
+/*  color: #443333;*/
+  color: #776666;
+	margin: 0.5em 0 1em;
+	padding: 0 0 0 20px;
+	width: 24em;
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 2em;
+	font-weight: normal;
+	background: #eeeedd url('img/rallado_beige_hx.png') bottom left repeat-x;
+}
+
 td.content {
 	background:#FFFFFF;
 }
@@ -14,8 +27,9 @@ td.content {
   font-size: 1.0em;
 }
 
-#leftcell{
-width: 200px;
+.leftcell{
+/* width: 200px; */
+width: 150px;
 }
 
 ul#leftmenu {
@@ -46,7 +60,7 @@ background-color: #B1BDC9;
 color: Yellow;
 }
 ul#leftmenu li a:active {
-background-color: white;
+background-color: #eeeeee;
 color: black;
 }
 
@@ -127,16 +141,244 @@ ul#mainlevel-nav li a:hover {
 	width: 100%;
 }
 
-a,
-a:link,
-a:active,
-a:visited {
-	text-decoration:none;
-	color:#000000;
+/**
+  Login table. Used at the left side of the page.
+**/
+table.logintable {
+  padding: 0px;
+/*  margin: 0px 0px 0px 0px; */
+/*  border: 1px solid #000000; */
+  border: 0px none #000000;
+  text-align: center;
+  border-collapse: collapse;
 }
 
-a:hover {
-	text-decoration:underline;
-	color:#3973AC;
+/**
+  Table type 1. Used with "userinfo.php".
+  See example at http://www.evolt.org/article/CSS_Table_Formatting_The_Way_Forward/17/17798/index.html
+  Good reference: http://www.blooberry.com/indexdot/css/syntax/selectors/selectors.htm
+**/
+table.table1 {
+  border-collapse: collapse;
+  font-family: sans-serif;
+}
+table.table1 td, table.table1 th {
+  border: 1px solid #000000;
+  font-size: 75%;
+  vertical-align: baseline;
+}
+table.table1 tr > td {
+  background-color: #ccccff;
+  font-weight: bold;
+  color: #000000;
+}
+table.table1 td + td {
+  background-color: #cccccc;
+  font-weight: normal;
+  color: #000000;
 }
 
+/**
+  Table type 2. Used with "updating.php".
+**/
+table.table2 {
+  border-collapse: collapse;
+  font-family: sans-serif;
+}
+table.table2 th {
+  border: 1px solid #000000;
+/*  vertical-align: baseline; */
+  font-size: 75%;
+  background: #43464e;
+  color: #EEEEEE; /** CCFF33 **/
+}
+table.table2 td {
+  border: 1px solid #000000;
+  vertical-align: baseline;
+  background-color: #ccccff;
+  font-weight: normal;
+  font-size: 75%;
+  color: #000000;
+}
+
+/**
+  Table type 2. Currently not used anywhere.
+  Doesn't work in IE (works fine with Firefox though).
+**/
+table.table3 {
+  background: #43464e;
+  color: #EEEEEE; /** CCFF33 **/
+  border-collapse: collapse;
+  font-family: sans-serif;
+}
+table.table3 td, table.table3 th {
+  border: 1px solid #000000;
+  font-size: 75%;
+  vertical-align: baseline;
+}
+table.table3 tr > td {
+  background-color: #ccccff;
+  font-weight: bold;
+  color: #000000;
+}
+table.table3 td + td {
+  background-color: #cccccc;
+  font-weight: normal;
+  color: #000000;
+}
+
+/**
+  Standard button type 1. Used with "updating.php".
+  Copied from: http://wellstyled.com/css-inline-buttons.html
+**/
+a.button1:link, a.button1:visited {
+  display: block;
+/*  float: right; */
+  margin: 2px 5px 2px 5px;
+  padding: 2px;
+  width: 100px;
+  background: #cccccc;
+  color: black;
+  text-align: center;
+  text-decoration: none;
+  font: normal 10px Verdana;
+  border-top: 1px solid #cccccc;
+  border-bottom: 1px solid black;
+  border-left: 1px solid #cccccc;
+  border-right: 1px solid black;
+}
+a.button1:hover {
+  background: #eeeeee;
+}
+a.button1:active {
+  border-bottom: 1px solid #eeeeee;
+  border-top: 1px solid black;
+  border-right: 1px solid #eeeeee;
+  border-left: 1px solid black;
+}
+
+/**
+  Experimental left-side menu.
+  Copied from: http://www.westciv.com/style_master/house/tutorials/quick/buttons/index.html
+  
+  There are 4 type of buttons here:
+  "normal button",
+  "user button",
+  "moderator button",
+  "administrator button".
+  
+  Moderator and administrator buttons lead to pages that require given level of access.
+  User and normal buttons do not require user to be logged in - only difference between
+  them is that one is used for general links, the other for "less" general.
+
+**/
+#navigator {
+  font-family: Verdana, Helvetica, Arial, sans-serif;
+  font-size: 0.8em;
+  background-color: #7ea8cf;
+  border: 1px #666666 solid;
+  width: 170px;
+  /*
+  margin-top: 100px;
+  margin-left: 37.5%;
+  margin-right: 37.5%;
+  */
+  text-align: center;
+  padding: 8px;
+}
+#navigator .button_usr {
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 3px;
+  margin-top: 3px;
+}
+#navigator .button_usr a {
+  padding: 4px;
+  background-color: #d4eeaf;
+  text-decoration: none;
+  color: #4f5942;
+  border-top: 2px #edf8de solid;
+  border-left: 2px #edf8de solid;
+  border-bottom: 2px #727f5e solid;
+  border-right: 2px #727f5e solid;
+  display: block;
+}
+#navigator .button_usr a:hover {
+  border-top: 2px #727f5e solid;
+  border-left: 2px #727f5e solid;
+  border-bottom: 2px #edf8de solid;
+  border-right: 2px #edf8de solid;
+  background-color: #abbf8e;
+}
+#navigator .button_nor {
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 3px;
+  margin-top: 3px;
+}
+#navigator .button_nor a {
+  padding: 4px;
+  background-color: #b5c9e2;
+  text-decoration: none;
+  color: #224059;
+  border-top: 2px #cce3ff solid;
+  border-left: 2px #cce3ff solid;
+  border-bottom: 2px #31557f solid;
+  border-right: 2px #31557f solid;
+  display: block;
+}
+#navigator .button_nor a:hover {
+  background-color: #99aabf;
+  border-top: 2px #31557f solid;
+  border-left: 2px #31557f solid;
+  border-bottom: 2px #cce3ff solid;
+  border-right: 2px #cce3ff solid;
+}
+#navigator .button_adm {
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 3px;
+  margin-top: 3px;
+}
+#navigator .button_adm a {
+  padding: 4px;
+  background-color: #fdcb89;
+  text-decoration: none;
+  color: #594730;
+  border-top: 2px #ffe5c3 solid;
+  border-left: 2px #ffe5c3 solid;
+  border-bottom: 2px #7f6645 solid;
+  border-right: 2px #7f6645 solid;
+  display: block;
+}
+#navigator .button_adm a:hover {
+  border-top: 2px #7f6645 solid;
+  border-left: 2px #7f6645 solid;
+  border-bottom: 2px #ffe5c3 solid;
+  border-right: 2px #ffe5c3 solid;
+  background-color: #bf9967;
+}
+#navigator .button_mod {
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 3px;
+  margin-top: 3px;
+}
+#navigator .button_mod a {
+  padding: 4px;
+  background-color: #fee8af;
+  text-decoration: none;
+  color: #59513d;
+  border-top: 2px #fff8e6 solid;
+  border-left: 2px #fff8e6 solid;
+  border-bottom: 2px #7f7458 solid;
+  border-right: 2px #7f7458 solid;
+  display: block;
+}
+#navigator .button_mod a:hover {
+  border-top: 2px #7f7458 solid;
+  border-left: 2px #7f7458 solid;
+  border-bottom: 2px #fff8e6 solid;
+  border-right: 2px #fff8e6 solid;
+  background-color: #bfaf84;
+}

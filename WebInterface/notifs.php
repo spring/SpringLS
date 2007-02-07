@@ -1,14 +1,8 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html>
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>TASServer system notifications</title>
-    <link rel="stylesheet" type="text/css" href="style.css" />
-  </head>
-  <body class="waterbody">
-
+<?php require("inc/head.php") ?>
 
   <?php
+
+    $notifs_folder = "../notifs/";
 
     // will count how many notifications exist for specific day (basename should be left part of filename for that specific day):
     function countNotifs($basename)
@@ -33,7 +27,7 @@
         print "<br />";
       */
       
-        $lines = file('./' . $filename);
+        $lines = file($filename);
         $ltime = $lines[3] / 1000;
         global $titles;
 
@@ -74,13 +68,15 @@
 
     function displayAllNotifs($basename)
     {
+      global $notifs_folder;
+
       $counter = 1;
-      while (file_exists($basename . "_" . $counter))
+      while (file_exists($notifs_folder . $basename . "_" . $counter))
       {
-        displayNotif($basename . "_" . $counter);
+        displayNotif($notifs_folder . $basename . "_" . $counter);
         $counter += 1;
       }
-      
+
       if ($counter == 1) print "<p>There are no notifications logged for this day.</p>";
     }
 
@@ -102,84 +98,39 @@
     $linktime['saturday'] = $time - 24 * 60 * 60 * ($day - 6);
 
     // figure out how many notifications exist per certain day in the week (for selected week):
-    $count['sunday'] = countNotifs(date("Ymd", $linktime['sunday']));
-    $count['monday'] = countNotifs(date("Ymd", $linktime['monday']));
-    $count['tuesday'] = countNotifs(date("Ymd", $linktime['tuesday']));
-    $count['wednesday'] = countNotifs(date("Ymd", $linktime['wednesday']));
-    $count['thursday'] = countNotifs(date("Ymd", $linktime['thursday']));
-    $count['friday'] = countNotifs(date("Ymd", $linktime['friday']));
-    $count['saturday'] = countNotifs(date("Ymd", $linktime['saturday']));
+    $count['sunday'] = countNotifs($notifs_folder . date("Ymd", $linktime['sunday']));
+    $count['monday'] = countNotifs($notifs_folder . date("Ymd", $linktime['monday']));
+    $count['tuesday'] = countNotifs($notifs_folder . date("Ymd", $linktime['tuesday']));
+    $count['wednesday'] = countNotifs($notifs_folder . date("Ymd", $linktime['wednesday']));
+    $count['thursday'] = countNotifs($notifs_folder . date("Ymd", $linktime['thursday']));
+    $count['friday'] = countNotifs($notifs_folder . date("Ymd", $linktime['friday']));
+    $count['saturday'] = countNotifs($notifs_folder . date("Ymd", $linktime['saturday']));
 
-
-
-    /*
-    //Includes setup and function stuff
-    include ('include/start.php');
-
-    //Gets what page we are trying to view
-    $page = 'index';
-    if ($_GET['time'])
-    {
-      if (strpos($_GET['p'], ".") === FALSE)
-      {
-        if (file_exists("pages/".$_GET['p'].".php"))
-        {
-          $page = $_GET['p'];
-        }
-      }
-    }
-    */
   ?>
 
 
   <table width="100%" border="0" cellspacing="0" cellpadding="10">
     <tr>
-    <td id="leftcell">
-    </td>
-
-    <td>
-    	<div id="topmenu">
-        <ul id="mainlevel-nav">
-      	  <?php
-      	    print "<li><a href=\"notifs.php?date={$prevWeek}\" style=\"color: #0099FF;\" >Prev. week</a></li>";
-      	    print "<li><a href=\"notifs.php?date={$linktime['sunday']}\"" . ($day == 0 ? "style=\"color: #99FF66;\"" : "") . "> Sunday ({$count['sunday']})</a></li>";
-      	    print "<li><a href=\"notifs.php?date={$linktime['monday']}\"" . ($day == 1 ? "style=\"color: #99FF66;\"" : "") . "> Monday ({$count['monday']})</a></li>";
-      	    print "<li><a href=\"notifs.php?date={$linktime['tuesday']}\"" . ($day == 2 ? "style=\"color: #99FF66;\"" : "") . "> Tuesday ({$count['tuesday']})</a></li>";
-      	    print "<li><a href=\"notifs.php?date={$linktime['wednesday']}\"" . ($day == 3 ? "style=\"color: #99FF66;\"" : "") . "> Wednesday ({$count['wednesday']})</a></li>";
-      	    print "<li><a href=\"notifs.php?date={$linktime['thursday']}\"" . ($day == 4 ? "style=\"color: #99FF66;\"" : "") . "> Thursday ({$count['thursday']})</a></li>";
-      	    print "<li><a href=\"notifs.php?date={$linktime['friday']}\"" . ($day == 5 ? "style=\"color: #99FF66;\"" : "") . "> Friday ({$count['friday']})</a></li>";
-      	    print "<li><a href=\"notifs.php?date={$linktime['saturday']}\"" . ($day == 6 ? "style=\"color: #99FF66;\"" : "") . "> Saturday ({$count['saturday']})</a></li>";
-      	    print "<li><a href=\"notifs.php?date={$nextWeek}\" style=\"color: #0099FF;\" >Next week</a></li>";
-      	  ?>
-        </ul>
-      </div>
-    </td>
+      <td colspan="2">
+      	<div id="topmenu">
+          <ul id="mainlevel-nav">
+        	  <?php
+        	    print "<li><a href=\"notifs.php?date={$prevWeek}\" style=\"color: #0099FF;\" >Prev. week</a></li>";
+        	    print "<li><a href=\"notifs.php?date={$linktime['sunday']}\"" . ($day == 0 ? "style=\"color: #99FF66;\"" : "") . "> Sunday ({$count['sunday']})</a></li>";
+        	    print "<li><a href=\"notifs.php?date={$linktime['monday']}\"" . ($day == 1 ? "style=\"color: #99FF66;\"" : "") . "> Monday ({$count['monday']})</a></li>";
+        	    print "<li><a href=\"notifs.php?date={$linktime['tuesday']}\"" . ($day == 2 ? "style=\"color: #99FF66;\"" : "") . "> Tuesday ({$count['tuesday']})</a></li>";
+        	    print "<li><a href=\"notifs.php?date={$linktime['wednesday']}\"" . ($day == 3 ? "style=\"color: #99FF66;\"" : "") . "> Wednesday ({$count['wednesday']})</a></li>";
+        	    print "<li><a href=\"notifs.php?date={$linktime['thursday']}\"" . ($day == 4 ? "style=\"color: #99FF66;\"" : "") . "> Thursday ({$count['thursday']})</a></li>";
+        	    print "<li><a href=\"notifs.php?date={$linktime['friday']}\"" . ($day == 5 ? "style=\"color: #99FF66;\"" : "") . "> Friday ({$count['friday']})</a></li>";
+        	    print "<li><a href=\"notifs.php?date={$linktime['saturday']}\"" . ($day == 6 ? "style=\"color: #99FF66;\"" : "") . "> Saturday ({$count['saturday']})</a></li>";
+        	    print "<li><a href=\"notifs.php?date={$nextWeek}\" style=\"color: #0099FF;\" >Next week</a></li>";
+        	  ?>
+          </ul>
+        </div>
+      </td>
     </tr>
 
     <tr>
-      <td id="leftcell" align="center" valign="top">
-      <!-- start menu -->
-
-        <div id="left">
-
-          <ul id="leftmenu">
-          	<li><a href="notifs.php" title="Today">Today</a></li>
-          	<?php print "<li><a href=\"notifs.php?date=" . ($time - 24 * 60 * 60) . "\" title=\"Previous day\">Current day - 1</a></li>" ?>
-          	<?php print "<li><a href=\"notifs.php?date=" . ($time + 24 * 60 * 60) . "\" title=\"Next day\">Current day + 1</a></li>" ?>
-          	<li><a href="http://taspring.clan-sy.com/stats" title="Server stats">Server stats</a></li>
-          	<li><a href="http://taspring.clan-sy.com:8202/notifs/searchlog.php" title="Search chat logs">Search chat logs</a></li>
-          	<li><a href="http://taspring.clan-sy.com" title="Spring web site">Spring web site</a></li>
-          </ul>
-
-          <?php
-            print "<br />";
-            print "Current time: " . date("G:i:s (O)", time()) . "<br />";
-          ?>
-
-        </div>
-
-      <!-- end menu -->
-      </td>
       <td class="content" valign="top">
 
       <!-- start content -->
@@ -207,8 +158,24 @@
 
       <!-- end content -->
       </td>
+
+      <td align="center" valign="top" style="width: 200px">
+      <!-- start menu -->
+
+        <div id="left">
+
+          <ul id="leftmenu">
+          	<li><a href="notifs.php" title="Today">Today</a></li>
+          	<?php print "<li><a href=\"notifs.php?date=" . ($time - 24 * 60 * 60) . "\" title=\"Previous day\">Current day - 1</a></li>" ?>
+          	<?php print "<li><a href=\"notifs.php?date=" . ($time + 24 * 60 * 60) . "\" title=\"Next day\">Current day + 1</a></li>" ?>
+          </ul>
+
+        </div>
+
+      <!-- end menu -->
+      </td>
     </tr>
   </table>
 
-  </body>
-</html>
+
+<?php require("inc/footer.php") ?>

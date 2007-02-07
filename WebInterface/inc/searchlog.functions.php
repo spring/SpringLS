@@ -1,4 +1,6 @@
 <?php
+  // this is a collection of functions used with searchlog.php
+
   // this function has been copied from: http://www.laughing-buddha.net/jon/php/selectdate/
   // make sure you use checkdate() on the returned values, as date may be invalid!
   function selectDate (
@@ -337,6 +339,5 @@
 
     echo '</table>';
   }
-
 
 ?>

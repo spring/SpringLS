@@ -1,22 +1,10 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html>
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>TASServer system notifications</title>
-    <link rel="stylesheet" type="text/css" href="style.css" />
-  </head>
-  <body>
-  
-  <!--
-    <label for="search_input_id">Type in username or part of username you want to retrieve log for:</label>
-    <input type="text" style="font-size: 11px" name="search_input" id="search_input_id" size="10" accesskey="s" tabindex="101" value="User Name" onfocus="if (this.value == 'User Name') this.value = '';" />
-  -->
+<?php require("inc/head.php") ?>
 
   <?php
 
-    include ('functions.php');
+    require("inc/searchlog.functions.php");
 
-    function displaySearchForm() 
+    function displaySearchForm()
     {
       print "<p> Select one or more criteria and click Submit: </p>";
 
@@ -29,18 +17,15 @@
       echo "<br />";
       echo "<input type='submit' value='Submit' name='submit' />";
       echo "  </form>";
-      
+
       echo "<br><br>";
       echo "Note 1: to search for all entries made by user Joe, use \"Joe>\" as keyword criterion.<br>";
       echo "Note 2: to specify time interval, select both min. and max. date criteria.";
-
     }
 
     function displayLog($keyword, $mindate, $maxdate)
     {
-      $filename = "/home/betalord/ChanServ/logs/#main.log";
-//      $filename = "/home/betalord/#main.log";
-//      $filename = "/home/betalord/ChanServ/logs/#slo.log";
+      $filename = "../../ChanServ/logs/#main.log";
       print "<p>Using file {$filename}.</p>";
       print "<p>Time stamps are relative to CET - Central European Time.</p>";
       print "<br>";
@@ -136,5 +121,4 @@
 
   ?>
 
-  </body>
-</html>
+<?php require("inc/footer.php") ?>
