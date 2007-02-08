@@ -964,6 +964,42 @@ public class ChanServ {
 			
 			// ok set the topic:
 			sendLine("CHANNELTOPIC " + chan.name + " " + topic);
+		} else if (params[0].equals("CHANMSG")) {
+			// if the command was issued from a channel:
+			if (channel != null) { // insert <channame> parameter so we don't have to handle two different situations for each command
+				params = (String[])Misc.insertIntoObjectArray("#" + channel.name, 1, params);
+			}
+			
+			if (params.length < 3) {
+				sendMessage(client, channel, "Error: Invalid params!");
+				return ;
+			}
+			
+			if (params[1].charAt(0) != '#') {
+				sendMessage(client, channel, "Error: Bad channel name (forgot #?)");
+				return ;
+			}
+			
+			String msg = Misc.makeSentence(params, 2);
+			if (msg.trim().equals("")) {
+				sendMessage(client, channel, "Error: Invalid params!");
+				return ;
+			}
+			
+			String chanName = params[1].substring(1, params[1].length());
+			Channel chan = getChannel(chanName);
+			if ((chan == null) || (chan.isStatic)) {
+				sendMessage(client, channel, "Channel #" + chanName + " is not registered!");
+				return ;
+			}
+			
+			if (!(client.name.equals(chan.founder) || chan.isOperator(client.name))) {
+				sendMessage(client, channel, "Insufficient access to execute " + params[0] + " command!");
+				return ;
+			}
+			
+			// ok send the channel message:
+			sendLine("CHANNELMESSAGE " + chan.name + " <" + client.name + "> says: " + msg);
 		} else if (params[0].equals("LOCK")) {
 			// if the command was issued from a channel:
 			if (channel != null) { // insert <channame> parameter so we don't have to handle two different situations for each command
