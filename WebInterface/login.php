@@ -2,11 +2,11 @@
   // As an argument you should specify the "goback" string, which must be a filename of the
   // page to which it should redirect (withouth any "/" characters, just the filename, like "index.php")
 
-  session_start();
+  require("inc/functions.php");
 
-  include("inc/functions.php");
-  
-  if (!isset($_SESSION['username']))
+  startSessionProperly();
+
+  if (!loggedIn())
   {
     login($_POST['username'], $_POST['password']);
   }

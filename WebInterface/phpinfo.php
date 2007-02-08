@@ -3,8 +3,8 @@
      header or footer, so we must call session_start() ourselves. This is so because
      a call to phpinfo() outputs complete html document, not just the tables. */
 
-  session_start();
   require("inc/functions.php");
+  startSessionProperly();
   if (checkAccess() == false)
   {
     require("inc/restricted.inc");

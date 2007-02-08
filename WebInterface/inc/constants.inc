@@ -4,7 +4,8 @@
   $constants['remote_port'] = "8205";
   $constants['access_key'] = "phpscript:pass"; // remote access key
   $constants['updates_file'] = "../updates_.xml"; // file name (and path) to the updates.xml file
-  
+  $constants['session_timeout_time'] = 10 * 60; // in seconds. After so many seconds of inactivity, user will be automatically logged out
+
   /* restrictions for various pages (0 means no restrictions (default), 1 means "normal user" (that is user must be logged in),
      2 means moderator and 3 means administrator. Pages not listed in this array have default restriction of 0.
   */

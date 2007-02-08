@@ -121,19 +121,50 @@
     unset($_SESSION['error']);
     $_SESSION['username'] = $username;
     $_SESSION['access'] = $access;
+    $_SESSION['last_timestamp'] = time(); // last time when user accessed some page. Used with manual timeout checking
   }
 
-  function logout() 
+  // see http://www.captain.at/howto-php-sessions.php
+  function startSessionProperly()
   {
-    session_start(); // is this needed at all? Judging from here it is: http://www.tizag.com/phpT/phpsessions.php
+/*
+    ini_set('session.gc_maxlifetime', 10); // in seconds
+    ini_set('session.gc_probability',1);
+    ini_set('session.gc_divisor',1);
+    Note: code above causes some ill side-effects, that is why I implemented custom timeout handling.
+*/
+    global $constants;
+
+    session_start();
+    if (time() - $_SESSION['last_timestamp'] > $constants['session_timeout_time'])
+    {
+      // recreate session
+      session_destroy();
+      session_start();
+    }
+    else
+    {
+      $_SESSION['last_timestamp'] = time();
+    }
+  }
+
+  function logout()
+  {
+    //session_start(); // is this needed at all? Judging from here it is: http://www.tizag.com/phpT/phpsessions.php
+    startSessionProperly();
     session_unset();
     session_destroy();
+  }
+
+  function loggedIn()
+  {
+    return isset($_SESSION['username']);
   }
 
   function displayLogin()
   {
     echo "<br>";
-    if (!isset($_SESSION['username']))
+    if (!loggedIn())
     {
       if (isset($_SESSION['error']))
       {
@@ -146,13 +177,13 @@
       echo "      <font face='verdana, arial, helvetica' size='2'>Username:</font>";
       echo "    </td></tr>";
       echo "    <tr><td>";
-      echo "      <input type ='text' class='bginput' name='username'>";
+      echo "      <input type ='username' class='bginput' name='username'>";
       echo "    </td></tr>";
       echo "    <tr><td>";
       echo "      <font face='verdana, arial, helvetica' size='2'>Password:</font>";
       echo "    </td></tr>";
       echo "    <tr><td>";
-      echo "      <input type ='text' class='bginput' name='password'>";
+      echo "      <input type ='password' class='bginput' name='password'>";
       echo "    </td></tr>";
       echo "    <tr><td>";
       echo "      <input type='submit' value='Login'>";
