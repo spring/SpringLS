@@ -9,7 +9,7 @@
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>TASServer system notifications</title>
+    <title>TASServer Web Interface</title>
     <link rel="stylesheet" type="text/css" href="style.css" />
   </head>
   <body class="waterbody">
@@ -52,7 +52,7 @@
               page_link("userinfo.php", "User information");
               page_link("updating.php", "Update manager");
               page_link("phpinfo.php", "PHPINFO");
-              page_link("http://taspring.clan-sy.com", "Spring web site");
+              page_link("http://spring.clan-sy.com", "Spring web site");
 
             ?>
           </ul>

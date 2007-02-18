@@ -177,13 +177,13 @@
       echo "      <font face='verdana, arial, helvetica' size='2'>Username:</font>";
       echo "    </td></tr>";
       echo "    <tr><td>";
-      echo "      <input type ='username' class='bginput' name='username'>";
+      echo "      <input type ='username' name='username' style='width: 120px;'>";
       echo "    </td></tr>";
       echo "    <tr><td>";
       echo "      <font face='verdana, arial, helvetica' size='2'>Password:</font>";
       echo "    </td></tr>";
       echo "    <tr><td>";
-      echo "      <input type ='password' class='bginput' name='password'>";
+      echo "      <input type ='password' name='password' style='width: 120px;'>";
       echo "    </td></tr>";
       echo "    <tr><td>";
       echo "      <input type='submit' value='Login'>";
