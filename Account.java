@@ -57,20 +57,24 @@ public class Account {
 	public static int PRIVILEGED_ACCESS = 2;
 	public static int ADMIN_ACCESS = 3;
 	
+	public static int NO_USER_ID = 0;
+	
 	public String user;
 	public String pass;
 	public int access; // access type. Bit 31 must be 0 (due to int being signed number - we don't want to use any binary complement conversions).
+	public int lastUserID; // unique user identification number. Equals NO_USER_ID (currently 0) if not used/set. By default it is not set. Multiple accounts may share same user ID. This value actually indicates last ID as sent with the LOGIN or USERID command by the client. We use it to detect spawned accounts (accounts registered by the same user), ban evasion etc.
 	public long lastLogin; // time (System.currentTimeMillis()) of the last login
 	public String lastIP; // the most recent IP used to log into this account
-	public long registrationDate; // date when user registered this account. In miliseconds (refers to System.currentTimeMillis()). 0 means registration date is unknown (clients who registered in some early version when this field was not yet implemented).
+	public long registrationDate; // date when user registered this account. In miliseconds (refers to System.currentTimeMillis()). 0 means registration date is unknown (clients who registered in some early version when this field was not yet implemented. Note that this field was first introduced with Spring 0.67b3, Dec 18 2005).
 	public String lastCountry; // resolved country code for this user's IP when he last logged on. If country could not be resolved, "XX" is used for country code, otherwise a 2-char country code is used
 	public MapGradeList mapGrades; // list of map grades
 	
-	public Account(String user, String pass, int access, long lastLogin, String lastIP, long registrationDate, String lastCountry, MapGradeList mapGrades)
+	public Account(String user, String pass, int access, int lastUserID, long lastLogin, String lastIP, long registrationDate, String lastCountry, MapGradeList mapGrades)
 	{
 		this.user = user;
 		this.pass = pass;
 		this.access = access;
+		this.lastUserID = lastUserID;
 		this.lastLogin = lastLogin;
 		this.lastIP = lastIP;
 		this.registrationDate = registrationDate;
@@ -82,6 +86,7 @@ public class Account {
 		this.user = new String(acc.user);
 		this.pass = new String(acc.pass);
 		this.access = acc.access;
+		this.lastUserID = NO_USER_ID;
 		this.lastLogin = acc.lastLogin;
 		this.lastIP = acc.lastIP;
 		this.registrationDate = acc.registrationDate;
@@ -90,7 +95,7 @@ public class Account {
 	}
 	
 	public String toString() {
-		return user + " " + pass + " " + Integer.toString(access, 2) + " " + lastLogin + " " + lastIP + " " + registrationDate + " " + lastCountry + " " + mapGrades.toString();
+		return user + " " + pass + " " + Integer.toString(access, 2) + " " + lastUserID + " " + lastLogin + " " + lastIP + " " + registrationDate + " " + lastCountry + " " + mapGrades.toString();
 	}
 	
 	public boolean equals(Object o) {

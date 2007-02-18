@@ -743,7 +743,7 @@ public class TASServer {
 						return false;
 					}
 				
-				acc = new Account(commands[1], commands[2], Account.NORMAL_ACCESS, System.currentTimeMillis(), client.IP, System.currentTimeMillis(), client.country, new MapGradeList());
+				acc = new Account(commands[1], commands[2], Account.NORMAL_ACCESS, Account.NO_USER_ID, System.currentTimeMillis(), client.IP, System.currentTimeMillis(), client.country, new MapGradeList());
 				Accounts.addAccount(acc);
 				Accounts.saveAccounts(false); // let's save new accounts info to disk
 				client.sendLine("REGISTRATIONACCEPTED");
@@ -844,12 +844,14 @@ public class TASServer {
 				client.setRankToStatus(client.account.getRank());
 				
 				Clients.notifyClientsOfNewClientStatus(client);
+
+				client.sendLine("SERVERMSG You have changed password for <" + commands[1] + "> successfully.");
 				
 				// add server notification:
 				ServerNotification sn = new ServerNotification("Account access changed by admin");
 				sn.addLine("Admin <" + client.account.user + "> has changed access/status bits for account <" + acc.user + ">.");
 				sn.addLine("Old access code: " + oldAccess + ". New code: " + value);
-				ServerNotifications.addNotification(sn);			
+				ServerNotifications.addNotification(sn);
 			}
 			else if (commands[0].equals("GETACCOUNTACCESS")) {
 				if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
@@ -1468,11 +1470,6 @@ public class TASServer {
 
 				client.sendLine("SERVERMSG Registration timestamp for <" + commands[1] + "> is " + acc.registrationDate + " (" + Misc.easyDateFormat(acc.registrationDate, "d MMM yyyy HH:mm:ss z") + ")");
 			}			
-			else if (commands[0].equals("CHANNELS")) {
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
-				
-				Channels.sendChannelListToClient(client);
-			}
 			else if (commands[0].equals("SETLATESTSPRINGVERSION")) {
 				if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
 				if (commands.length != 2) {
@@ -1498,6 +1495,24 @@ public class TASServer {
 				} else {
 					client.sendLine("SERVERMSG Unable to load \"Update properties\" from " + UPDATE_PROPERTIES_FILENAME + "!");
 				}
+				client.sendLine("SERVERMSG Update properties loaded successfully from " + UPDATE_PROPERTIES_FILENAME + "!");
+			}
+			else if (commands[0].equals("GETUSERID")) {
+				if (commands.length != 2) return false;
+				if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
+
+				Account acc = Accounts.getAccount(commands[1]);
+				if (acc == null) {
+					client.sendLine("SERVERMSG User <" + commands[1] + "> not found!");
+					return false;
+				}
+
+				client.sendLine("SERVERMSG Last user ID for <" + commands[1] + "> was " + acc.lastUserID);
+			}					
+			else if (commands[0].equals("CHANNELS")) {
+				if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
+				
+				Channels.sendChannelListToClient(client);
 			}
 			else if (commands[0].equals("REQUESTUPDATEFILE")) {
 				//***if (client.account.accessLevel() > Account.NIL_ACCESS) return false;
@@ -1526,6 +1541,17 @@ public class TASServer {
 				if (commands.length < 6) {
 					client.sendLine("DENIED Bad command arguments");
 					return false;
+				}
+				
+				String[] args2 = Misc.makeSentence(commands, 5).split("\t");
+				String lobbyVersion = args2[0];
+				int userID = Account.NO_USER_ID;
+				if (args2.length > 1) try {
+					long temp = Long.parseLong(args2[1], 16);
+					userID = (int)temp; // we transform unsigned 32 bit integer to a signed one
+				} catch (NumberFormatException e) {
+					client.sendLine("DENIED <userID> field should be an integer");
+					return false; 
 				}
 				
 				int cpu;
@@ -1569,8 +1595,8 @@ public class TASServer {
 						client.sendLine("DENIED Player with same name already logged in");
 						return false;
 					}
-					if ((commands[1].equals(lanAdminUsername)) && (commands[2].equals(lanAdminPassword))) acc = new Account(commands[1], commands[2], Account.ADMIN_ACCESS, 0, "?", 0, "XX", new MapGradeList()); 
-					else acc = new Account(commands[1], commands[2], Account.NORMAL_ACCESS, 0, "?", 0, "XX", new MapGradeList());
+					if ((commands[1].equals(lanAdminUsername)) && (commands[2].equals(lanAdminPassword))) acc = new Account(commands[1], commands[2], Account.ADMIN_ACCESS, Account.NO_USER_ID, 0, "?", 0, "XX", new MapGradeList()); 
+					else acc = new Account(commands[1], commands[2], Account.NORMAL_ACCESS, Account.NO_USER_ID, 0, "?", 0, "XX", new MapGradeList());
 					Accounts.addAccount(acc);
 					client.account = acc;
 				}
@@ -1586,7 +1612,8 @@ public class TASServer {
 				client.account.lastIP = client.IP;
 				if (commands[4].equals("*")) client.localIP = new String(client.IP);
 				else client.localIP = commands[4];
-				client.lobbyVersion = Misc.makeSentence(commands, 5);
+				client.lobbyVersion = lobbyVersion;
+				client.account.lastUserID = userID;
 				
 				// do the notifying and all: 
 				client.sendLine("ACCEPTED " + client.account.user);
@@ -1607,6 +1634,30 @@ public class TASServer {
 				// update client's temp account (he is not logged in yet since he needs to confirm the agreement before server will allow him to log in):
 				client.account.setAgreement(true);
 			}
+			else if (commands[0].equals("USERID")) {
+				if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
+				
+				if (commands.length != 2) {
+					client.sendLine("SERVERMSG Bad USERID command - too many or too few parameters");
+					return false;
+				}
+				
+				int userID = Account.NO_USER_ID;
+				try {
+					long temp = Long.parseLong(commands[1], 16);
+					userID = (int)temp; // we transform unsigned 32 bit integer to a signed one
+				} catch (NumberFormatException e) {
+					client.sendLine("SERVERMSG Bad USERID command - userID field should be an integer");
+					return false; 
+				}
+				
+				client.account.lastUserID = userID;
+				
+				// add server notification:
+				ServerNotification sn = new ServerNotification("User ID received");
+				sn.addLine("<" + client.account.user + "> has generated a new user ID: " + commands[1] + "(" + userID + ")");
+				ServerNotifications.addNotification(sn);			
+			}			
 			else if (commands[0].equals("RENAMEACCOUNT")) {
 				if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
 				
@@ -1646,7 +1697,7 @@ public class TASServer {
 					Channels.getChannel(i).muteList.rename(client.account.user, commands[1]);
 				}
 				
-				acc = new Account(commands[1], client.account.pass, client.account.access, System.currentTimeMillis(), client.IP, client.account.registrationDate, client.account.lastCountry, client.account.mapGrades);
+				acc = new Account(commands[1], client.account.pass, client.account.access, client.account.lastUserID, System.currentTimeMillis(), client.IP, client.account.registrationDate, client.account.lastCountry, client.account.mapGrades);
 				client.sendLine("SERVERMSG Your account has been renamed to <" + commands[1] + ">. Reconnect with new account (you will now be automatically disconnected)!");
 				Clients.killClient(client, "Quit: renaming account");
 				Accounts.replaceAccount(client.account, acc);
