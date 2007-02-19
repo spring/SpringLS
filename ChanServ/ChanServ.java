@@ -847,6 +847,17 @@ public class ChanServ {
 				sendMessage(client, channel, "Error: User is already in this channel's operator list!");
 				return ;
 			}
+
+			// just to protect from flooding the bot with long usernames:
+			if (params[2].length() > 30) {
+				sendMessage(client, channel, "Error: Too long username!");
+				return ;
+			}
+
+			if (chan.getOperatorList().size() > 100) {
+				sendMessage(client, channel, "Error: Too many operators (100) registered. This is part of a bot-side protection against flooding, if you think you really need more operators assigned, please contact bot maintainer.");
+				return ;
+			}
 			
 			// ok add user to channel's operator list:
 			chan.addOperator(params[2]);
