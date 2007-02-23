@@ -202,7 +202,7 @@ table.table2 td {
 }
 
 /**
-  Table type 2. Currently not used anywhere.
+  Table type 3. Currently not used anywhere.
   Doesn't work in IE (works fine with Firefox though).
 **/
 table.table3 {
@@ -225,6 +225,26 @@ table.table3 td + td {
   background-color: #cccccc;
   font-weight: normal;
   color: #000000;
+}
+
+/**
+  Table type 4. Used when table withouth any inner borders is needed (searchlog.php, userinfo.php, ...)
+**/
+.table4 {
+	border: solid black 1px;
+  /*border: solid #BBB 1px;*/
+	border-collapse: collapse;
+}
+.table4 td {
+	text-align: left;
+	vertical-align: top;
+	padding: 5px;
+}
+.table4 td.header, .table4 th {
+	font-weight: bold;
+	background: #DDD;
+  text-align: left;
+	padding: 0px 5px 0px 5px;
 }
 
 /**

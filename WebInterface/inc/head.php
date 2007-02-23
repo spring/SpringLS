@@ -1,5 +1,13 @@
 <?php
   require("functions.php");
+  require("maintenance.inc");
+
+  global $MAINTENANCE_MODE;
+  if ($MAINTENANCE_MODE) 
+  {
+    displayMaintenancePage();
+    die();
+  }
   
   startSessionProperly();
 ?>

@@ -141,6 +141,7 @@
       // recreate session
       session_destroy();
       session_start();
+      $_SESSION['last_timestamp'] = time();
     }
     else
     {
@@ -215,6 +216,21 @@
       echo "</table>";
 
     }
+  }
+  
+  function displayMaintenancePage() {
+    echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">';
+    echo '<html>';
+    echo '  <head>';
+    echo '    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />';
+    echo '    <title>TASServer Web Interface</title>';
+    echo '  </head>';
+    echo '  <body>';
+    echo '   <h1 style="color: blue">Maintenance mode</h1>';
+    echo '   <h3>The site is currently running in maintenance mode and is not accessible.</h3>';
+    echo '   <h3>Please check again later!</h3>';
+    echo '  </body>';
+    echo '</html>';
   }
 
   function printError($error) {

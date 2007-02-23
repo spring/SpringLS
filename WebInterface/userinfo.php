@@ -5,7 +5,7 @@
   function displayInputForm()
   {
     echo "<form action='{$PHP_SELF}' method='post'>";
-    echo '<table cellspacing="5" frame="border">';
+    echo '<table class="table4">';
     echo '<tr>';
     echo '  <td>';
     echo "  Info for (type in username): <input type='text' name='username' />";

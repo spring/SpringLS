@@ -258,7 +258,7 @@
 
   // "minimum date box" - contains all the elements we need in a box shaped table
   function minDateBox () {
-    echo '<table cellspacing="5" frame="border">';
+    echo '<table class="table4">';
     echo '<tr>';
     echo '  <td colspan="4">';
     echo '  <input type="checkbox" name="usemindate" /> Show newer than:';
@@ -288,7 +288,7 @@
   
   // "maximum date box" - contains all the elements we need in a box shaped table
   function maxDateBox () {
-    echo '<table cellspacing="5" frame="border">';
+    echo '<table class="table4">';
     echo '<tr>';
     echo '  <td colspan="4">';
     echo '  <input type="checkbox" name="usemaxdate" /> Show older than:';
@@ -317,7 +317,7 @@
   }
   
   function keywordBox () {
-    echo '<table cellspacing="5" frame="border">';
+    echo '<table class="table4">';
     echo '<tr>';
     echo '  <td colspan="4">';
     echo '  <input type="checkbox" name="usekeyword" /> Only show lines that contain:';
