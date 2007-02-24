@@ -1,6 +1,6 @@
 <?php
   require("functions.php");
-  require("maintenance.inc");
+  include("maintenance.inc");
 
   global $MAINTENANCE_MODE;
   if ($MAINTENANCE_MODE) 
