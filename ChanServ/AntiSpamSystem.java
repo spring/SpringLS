@@ -87,7 +87,7 @@ class SpamSettings {
 	}
 }
 
-class AntiSpammTask extends TimerTask {
+class AntiSpamTask extends TimerTask {
 	// here we will reduce penalty points for all users
 	public void run() {
 		if (!ChanServ.isConnected()) return;
@@ -119,7 +119,7 @@ public class AntiSpamSystem {
 		spamSettings = new HashMap<String, SpamSettings>();
 		
 		antiSpamTimer = new Timer();
-		antiSpamTimer.schedule(new AntiSpammTask(),
+		antiSpamTimer.schedule(new AntiSpamTask(),
                 1000,        //initial delay
                 1000);       //subsequent rate
 	}
