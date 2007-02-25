@@ -117,7 +117,6 @@
 
   echo "<br />";
   echo "<p>Click <a href='updating.apply.php?goback=" . basename($_SERVER['PHP_SELF']) . "'>here</a> to force server-side update. This will force server to reload updates.xml file from the disk.</p>";
-  echo "<p>To download updates.xml, click <a href='" . $constants['updates_file'] . "'>here</a>.</p>";
 
 ?>
 
