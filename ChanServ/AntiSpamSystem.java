@@ -36,14 +36,16 @@ class SpamRecord {
 }
 
 class SpamSettings {
-	public static final SpamSettings DEFAULT_SETTINGS = new SpamSettings(200, 1.0, 0.5, 0.5); 
+	public static final SpamSettings DEFAULT_SETTINGS = new SpamSettings(5, 200, 1.0, 0.5, 0.5); 
 	
+	int penaltyLimit; // when penalty points reach this limit, user gets muted
 	int longMsgLength; // length (in characters) of a message that is considered "long". For long messages, extra penalty points will be added
 	double normalMsgPenalty; // this is penalty that is added each time user says something in the channel. Other penalties are added upon this one.
 	double longMsgPenalty; // penalty value added if the message is longer than 'longMsgLength'
 	double doubleMsgPenalty; // penalty value added if message is same as previous message
 	
-	public SpamSettings(int longMsgLength, double normalMsgPenalty, double longMsgPenalty, double doubleMsgPenalty) {
+	public SpamSettings(int penaltyLimit, int longMsgLength, double normalMsgPenalty, double longMsgPenalty, double doubleMsgPenalty) {
+		this.penaltyLimit = penaltyLimit;
 		this.longMsgLength = longMsgLength;
 		this.normalMsgPenalty = normalMsgPenalty;
 		this.longMsgPenalty = longMsgPenalty;
@@ -52,11 +54,11 @@ class SpamSettings {
 	
 	public SpamSettings() {
 		// use the default settings:
-		this(DEFAULT_SETTINGS.longMsgLength, DEFAULT_SETTINGS.normalMsgPenalty, DEFAULT_SETTINGS.longMsgPenalty, DEFAULT_SETTINGS.doubleMsgPenalty);
+		this(DEFAULT_SETTINGS.penaltyLimit, DEFAULT_SETTINGS.longMsgLength, DEFAULT_SETTINGS.normalMsgPenalty, DEFAULT_SETTINGS.longMsgPenalty, DEFAULT_SETTINGS.doubleMsgPenalty);
 	}
 	
 	public String toString() {
-		return longMsgLength + " " + normalMsgPenalty + " " + longMsgPenalty + " " + doubleMsgPenalty;
+		return penaltyLimit + " " + longMsgLength + " " + normalMsgPenalty + " " + longMsgPenalty + " " + doubleMsgPenalty;
 	}
 	
 	// this method is redundant. Use settings.toString() instead! 
@@ -68,12 +70,13 @@ class SpamSettings {
 	public static SpamSettings stringToSpamSettings(String settings) {
 		SpamSettings ss = new SpamSettings();
 		String[] parsed = settings.split(" ");
-		if (parsed.length != 4) return null;
+		if (parsed.length != 5) return null;
 		try {
-			ss.longMsgLength = Integer.parseInt(parsed[0]);
-			ss.normalMsgPenalty = Double.parseDouble(parsed[1]);
-			ss.longMsgPenalty = Double.parseDouble(parsed[2]);
-			ss.doubleMsgPenalty = Double.parseDouble(parsed[3]);
+			ss.penaltyLimit = Integer.parseInt(parsed[0]);
+			ss.longMsgLength = Integer.parseInt(parsed[1]);
+			ss.normalMsgPenalty = Double.parseDouble(parsed[2]);
+			ss.longMsgPenalty = Double.parseDouble(parsed[3]);
+			ss.doubleMsgPenalty = Double.parseDouble(parsed[4]);
 		} catch (NumberFormatException e) {
 			return null;
 		}
@@ -82,7 +85,7 @@ class SpamSettings {
 	
 	/* returns true if settings string is valid */
 	public static boolean validateSpamSettingsString(String settings) {
-		return settings.matches("^\\d+ [0-9]*\\.?[0-9]+ [0-9]*\\.?[0-9]+ [0-9]*\\.?[0-9]+$");
+		return settings.matches("^\\d+ \\d+ [0-9]*\\.?[0-9]+ [0-9]*\\.?[0-9]+ [0-9]*\\.?[0-9]+$");
 		// perhaps rather use "return stringToSpamSettings(settings) != null" ?
 	}
 }
@@ -155,7 +158,7 @@ public class AntiSpamSystem {
 			rec.lastMsg = msg;
 			
 			// check if user has gathered too many penalty points:
-			if (rec.penaltyPoints >= 5.0) {
+			if (rec.penaltyPoints >= settings.penaltyLimit) {
 				rec.penaltyPoints = 0; // reset counter
 				muteUser(chan, user);
 			}

@@ -953,7 +953,7 @@ public class ChanServ {
 				params = (String[])Misc.insertIntoObjectArray("#" + channel.name, 1, params);
 			}
 			
-			if (params.length != 6) {
+			if (params.length != 7) {
 				sendMessage(client, channel, "Error: Invalid params!");
 				return ;
 			}
@@ -1049,13 +1049,13 @@ public class ChanServ {
 				return ;
 			}
 			
-			if (!(client.name.equals(chan.founder) || chan.isOperator(client.name))) {
+			if (!(client.isModerator() || client.name.equals(chan.founder) || chan.isOperator(client.name))) {
 				sendMessage(client, channel, "Insufficient access to execute " + params[0] + " command!");
 				return ;
 			}
 			
 			// ok send the channel message:
-			sendLine("CHANNELMESSAGE " + chan.name + " <" + client.name + "> says: " + msg);
+			sendLine("CHANNELMESSAGE " + chan.name + " issued by <" + client.name + ">: " + msg);
 		} else if (params[0].equals("LOCK")) {
 			// if the command was issued from a channel:
 			if (channel != null) { // insert <channame> parameter so we don't have to handle two different situations for each command
