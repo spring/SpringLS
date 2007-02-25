@@ -944,7 +944,7 @@ public class ChanServ {
 				chan.antispam = false;
 				return ;
 			} else {
-				sendMessage(client, channel, "Error: Invalid parameter (\"" + params[2] + "\">. Valid is \"on|off\"");
+				sendMessage(client, channel, "Error: Invalid parameter (\"" + params[2] + "\"). Valid is \"on|off\"");
 				return ;
 			}
 		} else if (params[0].equals("SPAMSETTINGS")) {
