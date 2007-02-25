@@ -52,6 +52,7 @@ import java.util.*;
 public class RemoteAccessServer extends Thread {
 	
 	final static int TIMEOUT = 30000; // in milliseconds
+	final static boolean DEBUG = true;  
 	
 	public static Vector remoteAccounts = new Vector(); // contains String-s of keys for remote server access
 	
@@ -61,7 +62,8 @@ public class RemoteAccessServer extends Thread {
 		"GETINGAMETIME",
 		"GETLASTIP",
 		"GETLASTLOGINTIME",
-		"RELOADUPDATEPROPERTIES"
+		"RELOADUPDATEPROPERTIES",
+		"GETLOBBYVERSION"
 		};
 	
 	public Vector threads = new Vector(); // here we keep a list of all currently running client threads
@@ -135,6 +137,7 @@ class RemoteClientThread extends Thread {
 	}
 	
 	public void sendLine(String text) {
+		if (RemoteAccessServer.DEBUG) System.out.println("RAS: \"" + text + "\"");
 		out.println(text);
 	}    
     
@@ -163,6 +166,7 @@ class RemoteClientThread extends Thread {
 			while (true) {
 				input = readLine();
 				if (input == null) throw new IOException();
+				if (RemoteAccessServer.DEBUG) System.out.println(IP + ": \"" + input + "\"");
 				processCommand(input);
 			}
 		}

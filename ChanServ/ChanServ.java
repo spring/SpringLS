@@ -10,6 +10,9 @@
  * *** LINKS ****
  * * http://java.sun.com/docs/books/tutorial/extra/regex/test_harness.html
  *   (how to use regex in java to match a pattern)
+ * 
+ * * http://www.regular-expressions.info/floatingpoint.html
+ *   (how to properly match a floating value in regex)  
  *   
  * *** NOTES ***
  * * ChanServ MUST use account with admin privileges (not just moderator privileges)
@@ -70,27 +73,6 @@ class KeepAliveTask extends TimerTask {
 	}
 }
 
-class AntiSpamTask extends TimerTask {
-	public void run() {
-		if (!ChanServ.isConnected()) return;
-		synchronized (ChanServ.channels) {
-			for (int i = 0; i < ChanServ.channels.size(); i++) {
-				synchronized ((Channel)ChanServ.channels.get(i)) {
-					Channel chan = (Channel)ChanServ.channels.get(i);
-					if (!chan.antispam) continue; // anti-spam protection is disabled
-					for (int j = 0; j < chan.lineCount.size(); j++) {
-						if ((Integer)chan.lineCount.get(j) > ChanServ.ANTISPAM_MAXLINES) {
-							ChanServ.sendLine("MUTE " + chan.name + " " + chan.getClient(j) + " 15");
-							ChanServ.sendLine("SAYPRIVATE " + chan.getClient(j) + " You have been temporarily muted due to spamming in channel #" + chan.name + ". You may get temporarily banned if you will continue to spam this channel.");
-						}
-						chan.lineCount.set(j, 0);
-					}
-				}
-			}
-		}
-	}
-}
-
 public class ChanServ {
 
 	static final String VERSION = "0.1";
@@ -106,9 +88,6 @@ public class ChanServ {
     static PrintWriter sockout = null;
     static BufferedReader sockin = null;
     static Timer timer; // keep alive timer
-    static Timer antiSpamTimer; // used with anti-spam protection
-    static final int ANTISPAM_MAXLINES = 10; // maximum lines allowed per fixed time interval
-    static final int ANTISPAM_INTERVAL = 5; // in seconds. Bot will test for spam on this intervals 
     
     static Semaphore configLock = new Semaphore(1, true); // we use it when there is a danger of config object being used by main and TaskTimer threads simultaneously
     
@@ -127,6 +106,7 @@ public class ChanServ {
     }
     	
 	public static void closeAndExit(int returncode) {
+		AntiSpamSystem.uninitialize();
 		Log.log("Program stopped.");
 		System.exit(returncode);
 	}
@@ -180,6 +160,7 @@ public class ChanServ {
            }     
            
            // load static channel list:
+           Channel chan;
            node = (Node)xpath.evaluate("config/channels/static", config, XPathConstants.NODE);
            if (node == null) {
            		Log.error("Bad XML document. Path config/channels/static does not exist. Exiting ...");
@@ -188,13 +169,21 @@ public class ChanServ {
            node = node.getFirstChild();
            while (node != null) {
         	   if (node.getNodeType() == Node.ELEMENT_NODE) {
-        		   channels.add(new Channel(((Element)node).getAttribute("name")));
+        		   chan = new Channel(((Element)node).getAttribute("name"));
+        		   chan.antispam = ((Element)node).getAttribute("antispam").equals("yes") ? true : false;
+        		   chan.antispamSettings = ((Element)node).getAttribute("antispamsettings");
+        		   if (!SpamSettings.validateSpamSettingsString(chan.antispamSettings)) {
+        			   Log.log("Fixing invalid spam settings for #" + chan.name + " ...");
+        			   chan.antispamSettings = SpamSettings.spamSettingsToString(SpamSettings.DEFAULT_SETTINGS);
+        		   }
+        		   channels.add(chan);
+        		   // apply anti-spam settings:
+        		   AntiSpamSystem.setSpamSettingsForChannel(chan.name, chan.antispamSettings);
         	   }
         	   node = node.getNextSibling();
            }
            
            // load registered channel list:
-           Channel chan;
            node = (Node)xpath.evaluate("config/channels/registered", config, XPathConstants.NODE);
            if (node == null) {
 			Log.error("Bad XML document. Path config/channels/registered does not exist. Exiting ...");
@@ -210,6 +199,11 @@ public class ChanServ {
 					chan.key = ((Element)node).getAttribute("key");
 					chan.founder = ((Element)node).getAttribute("founder");
 					chan.antispam = ((Element)node).getAttribute("antispam").equals("yes") ? true : false;
+					chan.antispamSettings = ((Element)node).getAttribute("antispamsettings");
+					if (!SpamSettings.validateSpamSettingsString(chan.antispamSettings)) {
+						Log.log("Fixing invalid spam settings for #" + chan.name + " ...");
+						chan.antispamSettings = SpamSettings.spamSettingsToString(SpamSettings.DEFAULT_SETTINGS);
+					}
 	           		channels.add(chan);
 	           		// load this channel's operator list:
 	           		node2 = node.getFirstChild();
@@ -221,6 +215,8 @@ public class ChanServ {
 	           			}
 	           			node2 = node2.getNextSibling();
 	           		}
+	           		// apply anti-spam settings:
+					AntiSpamSystem.setSpamSettingsForChannel(chan.name, chan.antispamSettings);
 				}
 				node = node.getNextSibling();
 			}
@@ -299,6 +295,7 @@ public class ChanServ {
 					elem = config.createElement("channel");
 					elem.setAttribute("name", chan.name);
 					elem.setAttribute("antispam", chan.antispam ? "yes" : "no");
+					elem.setAttribute("antispamsettings", chan.antispamSettings);
 					//elem.setTextContent(chan.name);
 					root.appendChild(elem);
 				}
@@ -332,6 +329,7 @@ public class ChanServ {
 					elem.setAttribute("key", chan.key);
 					elem.setAttribute("founder", chan.founder);
 					elem.setAttribute("antispam", chan.antispam ? "yes" : "no");
+					elem.setAttribute("antispamsettings", chan.antispamSettings);
 
 					// write operator list:
 					if (chan.getOperatorList().size() > 0) {
@@ -558,7 +556,7 @@ public class ChanServ {
 			if (chan == null) return false; // this could happen just after we unregistered the channel (since there is always some lag between us and the server)
 			String user = commands[2];
 			String msg = Misc.makeSentence(commands, 3);
-			chan.incClientLine(user, msg);
+			if (chan.antispam) AntiSpamSystem.processUserMsg(chan.name, user, msg);
 			Misc.outputLog(chan.logFileName, Misc.easyDateFormat("[HH:mm:ss]") + " <" + user + "> " + msg);
 			if (msg.charAt(0) == '!') processUserCommand(msg.substring(1, msg.length()), getClient(user), chan);
 		} else if (commands[0].equals("SAIDEX")) {
@@ -566,7 +564,7 @@ public class ChanServ {
 			if (chan == null) return false; // this could happen just after we unregistered the channel (since there is always some lag between us and the server)
 			String user = commands[2];
 			String msg = Misc.makeSentence(commands, 3);
-			chan.incClientLine(user, msg);
+			if (chan.antispam) AntiSpamSystem.processUserMsg(chan.name, user, msg);
 			Misc.outputLog(chan.logFileName, Misc.easyDateFormat("[HH:mm:ss]") + " * " + user + " " + msg);
 		} else if (commands[0].equals("SAIDPRIVATE")) {
 			
@@ -724,6 +722,8 @@ public class ChanServ {
 			channels.add(chan);
 			chan.founder = params[2];
 			chan.isStatic = false;
+			chan.antispam = false;
+			chan.antispamSettings = SpamSettings.spamSettingsToString(SpamSettings.DEFAULT_SETTINGS);
 			sendLine("JOIN " + chan.name);
 			sendMessage(client, channel, "Channel #" + chanName + " successfully registered to " + params[2]);
 		} else if (params[0].equals("UNREGISTER")) {
@@ -786,6 +786,8 @@ public class ChanServ {
 			Channel chan = new Channel(chanName);
 			channels.add(chan);
 			chan.isStatic = true;
+			chan.antispam = false;
+			chan.antispamSettings = SpamSettings.spamSettingsToString(SpamSettings.DEFAULT_SETTINGS);
 			sendLine("JOIN " + chan.name);
 			sendMessage(client, channel, "Channel #" + chanName + " successfully added to static list.");
 		} else if (params[0].equals("REMOVESTATIC")) {
@@ -904,7 +906,7 @@ public class ChanServ {
 				params = (String[])Misc.insertIntoObjectArray("#" + channel.name, 1, params);
 			}
 			
-			if (params.length != 3) {
+			if ((params.length != 3) && (params.length != 2)) {
 				sendMessage(client, channel, "Error: Invalid params!");
 				return ;
 			}
@@ -918,6 +920,11 @@ public class ChanServ {
 			Channel chan = getChannel(chanName);
 			if (chan == null) {
 				sendMessage(client, channel, "Channel #" + chanName + " does not exist!");
+				return ;
+			}
+			
+			if (params.length == 2) {
+				sendMessage(client, channel, "Anti-spam protection for channel #" + chan.name + " is " + (chan.antispam ? "on (settings: " + chan.antispamSettings + ")" : "off"));
 				return ;
 			}
 			
@@ -940,6 +947,44 @@ public class ChanServ {
 				sendMessage(client, channel, "Error: Invalid parameter (\"" + params[2] + "\">. Valid is \"on|off\"");
 				return ;
 			}
+		} else if (params[0].equals("SPAMSETTINGS")) {
+			// if the command was issued from a channel:
+			if (channel != null) { // insert <channame> parameter so we don't have to handle two different situations for each command
+				params = (String[])Misc.insertIntoObjectArray("#" + channel.name, 1, params);
+			}
+			
+			if (params.length != 6) {
+				sendMessage(client, channel, "Error: Invalid params!");
+				return ;
+			}
+			
+			if (params[1].charAt(0) != '#') {
+				sendMessage(client, channel, "Error: Bad channel name (forgot #?)");
+				return ;
+			}
+			
+			String chanName = params[1].substring(1, params[1].length());
+			Channel chan = getChannel(chanName);
+			if (chan == null) {
+				sendMessage(client, channel, "Channel #" + chanName + " does not exist!");
+				return ;
+			}
+			
+			if (!(client.isModerator() || client.name.equals(chan.founder))) {
+				sendMessage(client, channel, "Insufficient access to execute " + params[0] + " command!");
+				return ;
+			}
+			
+			String settings = Misc.makeSentence(params, 2);
+			
+			if (!SpamSettings.validateSpamSettingsString(settings)) {
+				sendMessage(client, channel, "Invalid 'settings' parameter!");
+				return ;
+			}
+			
+			chan.antispamSettings = settings;
+			AntiSpamSystem.setSpamSettingsForChannel(chan.name, chan.antispamSettings);
+			sendMessage(client, channel, "Anti-spam settings successfully updated (" + chan.antispamSettings + ")");
 		} else if (params[0].equals("TOPIC")) {
 			// if the command was issued from a channel:
 			if (channel != null) { // insert <channame> parameter so we don't have to handle two different situations for each command
@@ -1319,21 +1364,6 @@ public class ChanServ {
 		}
 	}
 	
-	public static void startAntiSpamTimer() {
-		antiSpamTimer = new Timer();
-		antiSpamTimer.schedule(new AntiSpamTask(),
-                1000,        //initial delay
-                ANTISPAM_INTERVAL*1000);  //subsequent rate
-	}
-
-	public static void stopAntiSpamTimer() {
-		try {
-			antiSpamTimer.cancel();
-		} catch (Exception e) {
-			//
-		}
-	}	
-	
 	public static void main(String[] args) {
 
 		Log.externalLogFileName = "$main.log";
@@ -1352,6 +1382,9 @@ public class ChanServ {
 
 		Log.log("ChanServ started on " + Misc.easyDateFormat("dd/MM/yy"));
 		Log.log("");
+
+		// it is vital that we initialize AntiSpamSystem before loading the configuration file (since we will configure AntiSpamSystem too)
+		AntiSpamSystem.initialize();
 		
 		loadConfig(CONFIG_FILENAME);
 		saveConfig(CONFIG_FILENAME); //*** debug
@@ -1365,12 +1398,10 @@ public class ChanServ {
 			closeAndExit(1);
 		else {
 			startKeepAliveTimer();
-			startAntiSpamTimer();
 			connected = true;
 			messageLoop();
 			connected = false;
 			stopKeepAliveTimer();
-			stopAntiSpamTimer();
 		}
 		
 		// we are out of the main loop (due to an error, for example), lets reconnect:
@@ -1383,12 +1414,13 @@ public class ChanServ {
 	    	Log.log("Trying to reconnect to the server ...");
 			if (!tryToConnect()) continue;
 			startKeepAliveTimer();
-			startAntiSpamTimer();
 			connected = true;
 			messageLoop();
 			connected = false;
 			stopKeepAliveTimer();
-			stopAntiSpamTimer();
 		}
+		
+		// AntiSpamSystem.uninitialize(); -> this code is unreachable. We call it in closeAndExit() method!
+
 	}
 }

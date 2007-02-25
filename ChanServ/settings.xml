@@ -2,6 +2,7 @@
   <account>
     <serveraddress>taspringmaster.clan-sy.com</serveraddress>
     <serverport>8200</serverport>
+    <remoteaccessport>8205</remoteaccessport>
     <username>test</username>
     <password>CY9rzUYh03PK3k6DJie09g==</password>
   </account>
@@ -12,18 +13,17 @@
 
   <channels>
     <static>
-      <channel name="test1"/>
-      <channel name="test2"/>
-      <channel name="hopla"/>
+      <channel antispam="no" antispamsettings="200 1.0 0.5 0.5" name="test1"/>
+      <channel antispam="no" antispamsettings="200 1.0 0.5 0.5" name="test2"/>
+      <channel antispam="no" antispamsettings="200 1.0 0.5 0.5" name="hopla"/>
     </static>
     <registered>
-      <channel founder="" key="" name="test3" topic="-test-">
-        <operator name="Betalord"/>
+      <channel antispam="yes" antispamsettings="100 3 0 0" founder="" key="" name="test3" topic="-test-">
         <operator name="test"/>
         <operator name="test2"/>
         <operator name="test3"/>
       </channel>
-      <channel founder="" key="" name="test4" topic="-test-">
+      <channel antispam="no" antispamsettings="200 1.0 0.5 0.5" founder="" key="" name="test4" topic="-test-">
         <operator name="Betalord"/>
         <operator name="test"/>
         <operator name="test2"/>
