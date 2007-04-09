@@ -538,10 +538,13 @@ public class TASServer {
 				    String line = client.recvBuf.toString();
 				    while ((line.indexOf('\n') != -1) || (line.indexOf('\r') != -1)) {
 				    	int pos = line.indexOf('\r');
-				    	if (pos == -1) pos = line.indexOf('\n');
+					int npos = line.indexOf('\n');
+					if (pos == -1 || (npos != -1 && npos < pos))
+						pos = npos;
 				    	String command = line.substring(0, pos);
-				    	if (pos < line.length()-1) if (line.charAt(pos+1) == '\n') pos++;
-				    	client.recvBuf.delete(0, pos+1);
+					while (pos+1 < line.length() && (line.charAt(pos+1) == '\r' || line.charAt(pos+1) == '\n'))
+						++pos;
+					client.recvBuf.delete(0, pos+1);
 
 				    	//***** remove this code after fixing cpu peak issue!
 				    	long time = System.currentTimeMillis();

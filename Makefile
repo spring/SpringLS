@@ -19,4 +19,4 @@ distclean: clean
 
 # Start the server in the background, building it if it doesn't exist yet.
 start: TASServer.jar
-	java -jar TASServer.jar &
+	java -jar TASServer.jar -lan -debug 2 &
