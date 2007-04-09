@@ -558,7 +558,7 @@ public class ChanServ {
 			String msg = Misc.makeSentence(commands, 3);
 			if (chan.antispam) AntiSpamSystem.processUserMsg(chan.name, user, msg);
 			Misc.outputLog(chan.logFileName, Misc.easyDateFormat("[HH:mm:ss]") + " <" + user + "> " + msg);
-			if (msg.charAt(0) == '!') processUserCommand(msg.substring(1, msg.length()), getClient(user), chan);
+			if ((msg.length() > 0) && (msg.charAt(0) == '!')) processUserCommand(msg.substring(1, msg.length()), getClient(user), chan);
 		} else if (commands[0].equals("SAIDEX")) {
 			Channel chan = getChannel(commands[1]);
 			if (chan == null) return false; // this could happen just after we unregistered the channel (since there is always some lag between us and the server)
@@ -572,7 +572,7 @@ public class ChanServ {
 			String msg = Misc.makeSentence(commands, 2);
 			
 			Misc.outputLog(user + ".log", Misc.easyDateFormat("[dd/MM/yy HH:mm:ss]") + " <" + user + "> " + msg);
-			if (msg.charAt(0) == '!') processUserCommand(msg.substring(1, msg.length()), getClient(user), null);
+			if ((msg.length() > 0) && (msg.charAt(0)) == '!') processUserCommand(msg.substring(1, msg.length()), getClient(user), null);
 		} else if (commands[0].equals("SERVERMSG")) {
 			Log.log("Message from server: " + Misc.makeSentence(commands, 1));
 			if (Misc.makeSentence(commands, 1).startsWith("[broadcast to all admins]")) processAdminBroadcast(Misc.makeSentence(commands, 1).substring("[broadcast to all admins]: ".length(), Misc.makeSentence(commands, 1).length()));
