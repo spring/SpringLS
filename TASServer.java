@@ -284,13 +284,14 @@ public class TASServer {
     private static CharsetDecoder asciiDecoder;
     private static CharsetEncoder asciiEncoder;
     
-    private static Properties updateProperties = new Properties(); /* here we store a list of Spring versions and server responses to them. 
-     																* We use it when client doesn't have the latest Spring version or the lobby program 
-     																* and requests an update from us. The XML file should normally contain at least the "default" key
-     																* which contains a standard response in case no suitable response is found.
-     																* Each text field associated with a key contains a full string that will be send to the client
-     																* as a response, so it should contain a full server command. 
-     																*/
+	/* here we store a list of Spring versions and server responses to them. 
+	 * We use it when client doesn't have the latest Spring version or the lobby program 
+	 * and requests an update from us. The XML file should normally contain at least the "default" key
+	 * which contains a standard response in case no suitable response is found.
+	 * Each text field associated with a key contains a full string that will be send to the client
+	 * as a response, so it should contain a full server command. 
+	 */
+    private static Properties updateProperties = new Properties();
     
 	static NATHelpServer helpUDPsrvr;
 	
@@ -330,6 +331,9 @@ public class TASServer {
 			fStream = new FileInputStream(fileName); 
 			updateProperties.loadFromXML(fStream); 
 		} catch (IOException e) {
+			// Just here to easily get the format of the XML file...
+			updateProperties.setProperty("default", "SERVERMSGBOX No update available. Please download the latest version of the software from official Spring web site: http://spring.clan-sy.com");
+			writeUpdateProperties(fileName);
 			return false;
 		} finally {  
 			if (fStream != null) {  
@@ -1480,11 +1484,6 @@ public class TASServer {
 					return false;
 				}
 
-				if (LAN_MODE) {
-					client.sendLine("SERVERMSG Error: cannot change latest Spring version while server is running in LAN mode!");
-					return false;
-				}
-				
 				latestSpringVersion = commands[1];
 				
 				client.sendLine("SERVERMSG Latest spring version has been set to " + latestSpringVersion);
@@ -1498,7 +1497,6 @@ public class TASServer {
 				} else {
 					client.sendLine("SERVERMSG Unable to load \"Update properties\" from " + UPDATE_PROPERTIES_FILENAME + "!");
 				}
-				client.sendLine("SERVERMSG Update properties loaded successfully from " + UPDATE_PROPERTIES_FILENAME + "!");
 			}
 			else if (commands[0].equals("GETUSERID")) {
 				if (commands.length != 2) return false;
@@ -1523,9 +1521,11 @@ public class TASServer {
 				
 				String version = Misc.makeSentence(commands, 1);
 				String response = updateProperties.getProperty(version);
-				if (response == null) updateProperties.getProperty("default"); // use general response ("default"), if it exists.
+				if (response == null)
+					response = updateProperties.getProperty("default"); // use general response ("default"), if it exists.
 				// if still no response has been found, use some default response:
-				if (response == null) response = "SERVERMSGBOX No update available. Please download the latest version of the software from official Spring web site: http://spring.clan-sy.com";
+				if (response == null)
+					response = "SERVERMSGBOX No update available. Please download the latest version of the software from official Spring web site: http://spring.clan-sy.com";
 
 				// send a response to the client:
 				client.sendLine(response);
