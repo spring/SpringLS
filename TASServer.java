@@ -1689,7 +1689,7 @@ public class TASServer {
 					return false;
 				}			
 				
-				Account acc = Accounts.getAccount(commands[1]);
+				Account acc = Accounts.findAccountNoCase(commands[1]);
 				if (acc != null) {
 					client.sendLine("SERVERMSG RENAMEACCOUNT failed: Account with same username already exists!");
 					return false;
