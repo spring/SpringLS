@@ -284,14 +284,14 @@ public class TASServer {
     private static CharsetDecoder asciiDecoder;
     private static CharsetEncoder asciiEncoder;
     
-	/* here we store a list of Spring versions and server responses to them. 
-	 * We use it when client doesn't have the latest Spring version or the lobby program 
-	 * and requests an update from us. The XML file should normally contain at least the "default" key
-	 * which contains a standard response in case no suitable response is found.
-	 * Each text field associated with a key contains a full string that will be send to the client
-	 * as a response, so it should contain a full server command. 
-	 */
-    private static Properties updateProperties = new Properties();
+    /* in 'updateProperties' we store a list of Spring versions and server responses to them.
+     * We use it when client doesn't have the latest Spring version or the lobby program 
+     * and requests an update from us. The XML file should normally contain at least the "default" key
+     * which contains a standard response in case no suitable response is found.
+     * Each text field associated with a key contains a full string that will be send to the client
+     * as a response, so it should contain a full server command. 
+     */    
+    private static Properties updateProperties = new Properties(); 
     
 	static NATHelpServer helpUDPsrvr;
 	
@@ -331,9 +331,6 @@ public class TASServer {
 			fStream = new FileInputStream(fileName); 
 			updateProperties.loadFromXML(fStream); 
 		} catch (IOException e) {
-			// Just here to easily get the format of the XML file...
-			updateProperties.setProperty("default", "SERVERMSGBOX No update available. Please download the latest version of the software from official Spring web site: http://spring.clan-sy.com");
-			writeUpdateProperties(fileName);
 			return false;
 		} finally {  
 			if (fStream != null) {  
@@ -542,21 +539,13 @@ public class TASServer {
 				    String line = client.recvBuf.toString();
 				    while ((line.indexOf('\n') != -1) || (line.indexOf('\r') != -1)) {
 				    	int pos = line.indexOf('\r');
-					int npos = line.indexOf('\n');
-					if (pos == -1 || (npos != -1 && npos < pos))
-						pos = npos;
+				    	int npos = line.indexOf('\n');
+				    	if (pos == -1 || ((npos != -1) && (npos < pos))) pos = npos;
 				    	String command = line.substring(0, pos);
-					while (pos+1 < line.length() && (line.charAt(pos+1) == '\r' || line.charAt(pos+1) == '\n'))
-						++pos;
-					client.recvBuf.delete(0, pos+1);
-
-				    	//***** remove this code after fixing cpu peak issue!
-				    	long time = System.currentTimeMillis();
+				    	while (pos+1 < line.length() && (line.charAt(pos+1) == '\r' || line.charAt(pos+1) == '\n')) ++pos;
+				    	client.recvBuf.delete(0, pos+1);
+				    	
 				    	tryToExecCommand(command, client);
-				    	time = System.currentTimeMillis() - time;
-				    	if (time > 100) {
-				    		Clients.sendToAllAdministrators("SERVERMSG [broadcast to all admins]: (DEBUG) User <" + client.account.user + "> caused " + time + " ms load on the server. Command issued: " + command);
-				    	}
 
 				    	if (!client.alive) break; // in case client was killed within tryToExecCommand() method
 					    line = client.recvBuf.toString();
@@ -721,22 +710,21 @@ public class TASServer {
 					client.sendLine("REGISTRATIONDENIED Can't register in LAN-mode. Login with any username and password to proceed");
 					return false;
 				}
-				
-				if ((!Misc.isValidName(commands[1])) || (!Misc.isValidPass(commands[2]))) {
-					client.sendLine("REGISTRATIONDENIED Invalid username/password");
+
+				// validate username:
+				String valid = Accounts.isUsernameValid(commands[1]);
+				if (valid != null) {
+					client.sendLine("REGISTRATIONDENIED Invalid username (reason: " + valid + ")");
 					return false;
 				}
 				
-				if (commands[1].length() > 20) {
-					client.sendLine("REGISTRATIONDENIED Too long username");
+				// validate password:
+				valid = Accounts.isPasswordValid(commands[2]);
+				if (valid != null) {
+					client.sendLine("REGISTRATIONDENIED Invalid password (reason: " + valid + ")");
 					return false;
 				}
 				
-				if (commands[1].length() < 2) {
-					client.sendLine("REGISTRATIONDENIED Too short username");
-					return false;
-				}
-				 
 				Account acc = Accounts.findAccountNoCase(commands[1]);
 				if (acc != null) {
 					client.sendLine("REGISTRATIONDENIED Account already exists");
@@ -818,7 +806,8 @@ public class TASServer {
 				
 				Account acc = Accounts.getAccount(commands[1]);
 				if (acc == null) return false; 
-				if (!Misc.isValidPass(commands[2])) return false;
+				// validate password:
+				if (Accounts.isPasswordValid(commands[2]) != null) return false;
 				
 				acc.pass = commands[2];
 				
@@ -827,7 +816,7 @@ public class TASServer {
 				// add server notification:
 				ServerNotification sn = new ServerNotification("Account password changed by admin");
 				sn.addLine("Admin <" + client.account.user + "> has changed password for account <" + acc.user + ">");
-				ServerNotifications.addNotification(sn);			
+				ServerNotifications.addNotification(sn);
 			}
 			else if (commands[0].equals("CHANGEACCOUNTACCESS")) {
 				if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
@@ -1319,7 +1308,7 @@ public class TASServer {
 					chan.setKey("");
 					chan.broadcast("<" + client.account.user + "> has just unlocked #" + chan.name);
 				} else {
-					if (!Misc.isValidName(commands[2])) {
+					if (!commands[2].matches("^[A-Za-z0-9_]+$")) {
 						client.sendLine("SERVERMSG Error: Invalid key: " + commands[2]);
 						return false;
 					}
@@ -1674,20 +1663,12 @@ public class TASServer {
 					return false;
 				}
 				
-				if (!Misc.isValidName(commands[1])) {
-					client.sendLine("SERVERMSG RENAMEACCOUNT failed: Invalid username");
+				// validate new username:
+				String valid = Accounts.isUsernameValid(commands[1]);
+				if (valid != null) {
+					client.sendLine("SERVERMSG RENAMEACCOUNT failed: Invalid username (reason: " + valid + ")");
 					return false;
 				}
-				
-				if (commands[1].length() > 20) {
-					client.sendLine("SERVERMSG RENAMEACCOUNT failed: Too long username");
-					return false;
-				}
-				
-				if (commands[1].length() < 2) {
-					client.sendLine("SERVERMSG RENAMEACCOUNT failed: Too short username");
-					return false;
-				}			
 				
 				Account acc = Accounts.findAccountNoCase(commands[1]);
 				if (acc != null) {
@@ -1710,7 +1691,7 @@ public class TASServer {
 				// add server notification:
 				ServerNotification sn = new ServerNotification("Account renamed");
 				sn.addLine("User <" + client.account.user + "> has renamed his account to <" + commands[1] + ">");
-				ServerNotifications.addNotification(sn);			
+				ServerNotifications.addNotification(sn);
 			}
 			else if (commands[0].equals("CHANGEPASSWORD")) {
 				if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
@@ -1730,8 +1711,10 @@ public class TASServer {
 					return false;
 				}
 				
-				if (!(Misc.isValidPass(commands[2]))) {
-					client.sendLine("SERVERMSG CHANGEPASSWORD failed: Illegal password");
+				// validate password:
+				String valid = Accounts.isPasswordValid(commands[2]);
+				if (valid != null) {
+					client.sendLine("SERVERMSG CHANGEPASSWORD failed: Invalid password (reason: " + valid + ")");
 					return false;
 				}
 				
@@ -1744,8 +1727,10 @@ public class TASServer {
 				if (commands.length < 2) return false;
 				if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
 
-				if (!Misc.isValidName(commands[1])) {
-					client.sendLine("JOINFAILED " + commands[1] + " Bad channel name!");
+				// check if channel name is OK:
+				String valid = Channels.isChanNameValid(commands[1]);
+				if (valid != null) {
+					client.sendLine("JOINFAILED Bad channel name (\"#" + commands[1] + "\"). Reason: " + valid);
 					return false;
 				}
 
@@ -2168,7 +2153,7 @@ public class TASServer {
 					return false; 
 				}
 				if ((startPos < 0) || (startPos > 2)) return false;
-				if ((gameEndCondition < 0) || (gameEndCondition > 1)) return false;
+				if ((gameEndCondition < 0) || (gameEndCondition > 2)) return false;
 				
 				bat.metal = Math.min(10000, Math.max(0, metal)); // force it to be in range [0..10000]
 				bat.energy = Math.min(10000, Math.max(0, energy)); // force it to be in range [0..10000]
@@ -2337,8 +2322,8 @@ public class TASServer {
 				} catch (NumberFormatException e) {
 					return false; 
 				}
-				
-				if (!Misc.isValidName(commands[1])) {
+
+				if (!commands[1].matches("^[A-Za-z0-9_]+$")) {
 					client.sendLine("SERVERMSGBOX Bad bot name. Try another!");
 					return false;
 				}
@@ -2709,8 +2694,8 @@ public class TASServer {
 						lanAdminUsername = args[i+1];
 						lanAdminPassword = Misc.encodePassword(args[i+2]);
 						
-						if (!Misc.isValidName(lanAdminUsername)) throw new Exception();
-						if (!Misc.isValidPass(lanAdminPassword)) throw new Exception();
+						if (Accounts.isUsernameValid(lanAdminUsername) != null) throw new Exception();
+						if (Accounts.isPasswordValid(lanAdminPassword) != null) throw new Exception();
 						i += 2; // we must skip username and password parameters in next iteration
 					}
 					else throw new IOException();
