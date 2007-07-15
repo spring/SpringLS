@@ -59,7 +59,8 @@
               page_link("searchlog.php", "Search logs");
               page_link("userinfo.php", "User information");
               page_link("updating.php", "Update manager");
-              page_link("phpinfo.php", "PHPINFO");
+              page_link("editmotd.php", "Edit MOTD");
+              page_link("phpinfo.php", "phpinfo()");
               page_link("http://spring.clan-sy.com", "Spring web site");
 
             ?>
