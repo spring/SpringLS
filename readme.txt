@@ -55,6 +55,15 @@ http://java.sun.com/j2se/1.5.0/download.jsp
 -LOGMAIN
   Server will log all conversations from channel #main to MainChanLog.log
 
+-LANADMIN [username] [password]
+  Will override default lan admin account. Use this account to set up your lan server
+  at runtime.
+
+-LOADARGS [filename]
+  Will read command-line arguments from the specified file. You can freely combine actual
+  command-line arguments with the ones from the file (if duplicate args are specified, the last
+  one will prevail).
+
 
 Example of usage (main lobby server uses these arguments):
 java TASServer -DEBUG 1 -natport 8201 -logmain -port 8200 | tee ./logs/TASServer.log

@@ -229,7 +229,7 @@ import java.util.regex.*;
 
 public class TASServer {
 	
-	static final String VERSION = "0.33";
+	static final String VERSION = "0.34";
 	static byte DEBUG = 1; // 0 - no verbose, 1 - normal verbose, 2 - extensive verbose
 	static String MOTD = "Enjoy your stay :-)";
 	static String agreement = ""; // agreement which is sent to user upon first login. User must send CONFIRMAGREEMENT command to confirm the agreement before server allows him to log in. See LOGIN command implementation for more details.
@@ -242,7 +242,8 @@ public class TASServer {
 	static final String SERVER_NOTIFICATION_FOLDER = "./notifs";
 	static final String IP2COUNTRY_FILENAME = "ip2country.dat";
 	static final String UPDATE_PROPERTIES_FILENAME = "updates.xml";
-	static final int SERVER_PORT = 8200; // default server (TCP) port
+	static final int DEFAULT_SERVER_PORT = 8200; // default server (TCP) port
+	static int serverPort = DEFAULT_SERVER_PORT; // actual server (TCP) port to be used (or currently in use)
 	static int NAT_TRAVERSAL_PORT = 8201; // default UDP port used with some NAT traversal technique. If this port is not forwarded, hole punching technique will not work. 
 	static final int TIMEOUT_LENGTH = 30000; // in milliseconds
 	static boolean LAN_MODE = false;
@@ -2653,54 +2654,74 @@ public class TASServer {
 		
 	} // tryToExecCommand()
 	
+	/* processes all arguments from string 'args'. Raises an exception in case of errors. */
+	public static void processCommandLineArguments(String[] args) throws IOException, Exception {
+		// process command line arguments:
+		String s;
+		for (int i = 0; i < args.length; i++)
+			if (args[i].charAt(0) == '-') {
+				s = args[i].substring(1).toUpperCase();
+				if (s.equals("PORT")) {
+					int p = Integer.parseInt(args[i+1]);
+					if ((p < 1) || (p > 65535)) throw new IOException();
+					serverPort = p;
+					i++; // we must skip port number parameter in the next iteration
+				}
+				else if (s.equals("LAN")) {
+					LAN_MODE = true;						
+				}
+				else if (s.equals("DEBUG")) {
+					int level = Integer.parseInt(args[i+1]);											
+					if ((level < 0) || (level > 127)) throw new IOException();
+					DEBUG = (byte)level;
+					i++;  // we must skip debug level parameter in the next iteration
+				}
+				else if (s.equals("STATISTICS")) {
+					RECORD_STATISTICS = true;
+				}
+				else if (s.equals("NATPORT")) {
+					int p = Integer.parseInt(args[i+1]);
+					if ((p < 1) || (p > 65535)) throw new IOException();
+					NAT_TRAVERSAL_PORT = p;
+					i++; // we must skip port number parameter in the next iteration
+				}
+				else if (s.equals("LOGMAIN")) {
+					LOG_MAIN_CHANNEL = true;
+				}
+				else if (s.equals("LANADMIN")) {
+					lanAdminUsername = args[i+1];
+					lanAdminPassword = Misc.encodePassword(args[i+2]);
+						
+					if (Accounts.isUsernameValid(lanAdminUsername) != null) throw new Exception();
+					if (Accounts.isPasswordValid(lanAdminPassword) != null) throw new Exception();
+					i += 2; // we must skip username and password parameters in next iteration
+				}
+				else if (s.equals("LOADARGS")) {
+					try {
+						BufferedReader in = new BufferedReader(new FileReader(args[i+1]));
+						String line;
+			            while ((line = in.readLine()) != null) {
+			            	try {
+			            		processCommandLineArguments(line.split(" "));
+			            	} catch (Exception e) {
+			            		System.out.println("Error in reading " + args[i+1] + " (invalid line)");
+			            		throw e;
+			            	}
+				        }
+			            in.close();
+					} catch (IOException e) {
+						throw e;
+					}
+				}
+				else throw new IOException();
+			} else throw new IOException();
+	}
+	
 	public static void main(String[] args) {
-
-		int port = SERVER_PORT;
 
 		// process command line arguments:
 		try {
-			String s;
-			for (int i = 0; i < args.length; i++)
-				if (args[i].charAt(0) == '-') {
-					s = args[i].substring(1).toUpperCase();
-					if (s.equals("PORT")) {
-						int p = Integer.parseInt(args[i+1]);
-						if ((p < 1) || (p > 65535)) throw new IOException();
-						port = p;
-						i++; // we must skip port number parameter in the next iteration
-					}
-					else if (s.equals("LAN")) {
-						LAN_MODE = true;						
-					}
-					else if (s.equals("DEBUG")) {
-						int level = Integer.parseInt(args[i+1]);											
-						if ((level < 0) || (level > 127)) throw new IOException();
-						DEBUG = (byte)level;
-						i++;  // we must skip debug level parameter in the next iteration
-					}
-					else if (s.equals("STATISTICS")) {
-						RECORD_STATISTICS = true;
-					}
-					else if (s.equals("NATPORT")) {
-						int p = Integer.parseInt(args[i+1]);
-						if ((p < 1) || (p > 65535)) throw new IOException();
-						NAT_TRAVERSAL_PORT = p;
-						i++; // we must skip port number parameter in the next iteration
-					}
-					else if (s.equals("LOGMAIN")) {
-						LOG_MAIN_CHANNEL = true;
-					}
-					else if (s.equals("LANADMIN")) {
-						lanAdminUsername = args[i+1];
-						lanAdminPassword = Misc.encodePassword(args[i+2]);
-						
-						if (Accounts.isUsernameValid(lanAdminUsername) != null) throw new Exception();
-						if (Accounts.isPasswordValid(lanAdminPassword) != null) throw new Exception();
-						i += 2; // we must skip username and password parameters in next iteration
-					}
-					else throw new IOException();
-				} else throw new IOException();
-			
+			processCommandLineArguments(args);
 		} catch (Exception e) {
 			System.out.println("Bad arguments. Usage:");
 			System.out.println("");
@@ -2729,6 +2750,11 @@ public class TASServer {
 			System.out.println("-LANADMIN [username] [password]");
 			System.out.println("  Will override default lan admin account. Use this account to set up your lan server\n");
 			System.out.println("  at runtime.");
+			System.out.println("");
+			System.out.println("-LOADARGS [filename]");
+			System.out.println("  Will read command-line arguments from the specified file. You can freely combine actual\n");
+			System.out.println("  command-line arguments with the ones from the file (if duplicate args are specified, the last\n");
+			System.out.println("  one will prevail).");
 			System.out.println("");
 						
 			closeServerAndExit();
@@ -2809,11 +2835,11 @@ public class TASServer {
 		helpUDPsrvr = new NATHelpServer(NAT_TRAVERSAL_PORT);
 		helpUDPsrvr.start();
 
-		if (!startServer(port)) closeServerAndExit();
+		if (!startServer(serverPort)) closeServerAndExit();
 		
 		// add server notification:
 		ServerNotification sn = new ServerNotification("Server started");
-		sn.addLine("Server has been started on port " + port + ". There are " + Accounts.getAccountsSize() + " accounts currently loaded. See server log for more info.");
+		sn.addLine("Server has been started on port " + serverPort + ". There are " + Accounts.getAccountsSize() + " accounts currently loaded. See server log for more info.");
 		ServerNotifications.addNotification(sn);
 		
 	    running = true;
