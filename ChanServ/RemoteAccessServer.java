@@ -63,7 +63,8 @@ public class RemoteAccessServer extends Thread {
 		"GETLASTIP",
 		"GETLASTLOGINTIME",
 		"RELOADUPDATEPROPERTIES",
-		"GETLOBBYVERSION"
+		"GETLOBBYVERSION",
+		"UPDATEMOTD",
 		};
 	
 	public Vector threads = new Vector(); // here we keep a list of all currently running client threads
