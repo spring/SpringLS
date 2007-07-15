@@ -55,32 +55,6 @@ public class Misc {
 	    return result.toString();		
 	}
 	
-	/* returns false if char is not an allowed character in the name of a channel, nickname, username, ... */
-	public static boolean isValidChar(char c) {
-		if (
-		   ((c >= 48) && (c <= 57))  || // numbers
-		   ((c >= 65) && (c <= 90))  || // capital letters
-		   ((c >= 97) && (c <= 122)) || // letters
-		   (c == 95) || // underscore
-		   (c == 91) || // left bracket "["
-		   (c == 93)    // right bracket "]"
-		   ) return true; else return false;
-	}
-	
-	/* returns false if name (of a channel, nickname, username, ...) is invalid */
-	public static boolean isValidName(String name) {
-		for (int i = 0; i < name.length(); i++) if (!isValidChar(name.charAt(i))) return false;
-		return true;
-	}
-
-	public static boolean isValidPass(String pass) {
-		if (pass.length() < 2) return false;
-		if (pass.length() > 30) return false; // md5-base64 encoded passwords require 24 chars
-		// we have to allow a bit wider range of possible chars as base64 can produce chars such as +, = and /
-		for (int i = 0; i < pass.length(); i++) if ((pass.charAt(i) < 43) || (pass.charAt(i) > 122)) return false;
-		return true;
-	}
-	
 	public static String boolToStr(boolean b) {
 		if (b) return "1"; else return "0";
 	}

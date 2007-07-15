@@ -31,7 +31,7 @@ public class Battle {
 	public int energy; // starting energy
 	public int units; // max. units
 	public int startPos; // 0 = fixed, 1 = random, 2 = choose in game
-	public int gameEndCondition; // 0 = game continues if commander dies, 1 = game ends if commander dies
+	public int gameEndCondition; // 0 = game continues if commander dies, 1 = game ends if commander dies, 2 = lineage mode
 	public int hashCode; // see notes for description!
 	public int rank; // if 0, no rank limit is set. If 1 or higher, only players with this rank (or higher) can join the battle (Note: rank index 1 means seconds rank, not the first one, since you can't limit game to players of the first rank because that means game is open to all players and you don't have to limit it in that case)
 	public int mapHash; // see protocol description for details!

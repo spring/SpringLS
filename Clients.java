@@ -135,7 +135,7 @@ public class Clients {
 		for (int i = 0; i < clients.size(); i++) {
 			if (clients.get(i).account.accessLevel() < Account.NORMAL_ACCESS) continue;
 			if (clients.get(i) == client) continue;
-			clients.get(i).sendLine("ADDUSER " + client.account.user + " " + client.country + " " + client.cpu + " ");
+			clients.get(i).sendLine("ADDUSER " + client.account.user + " " + client.country + " " + client.cpu);
 		}
 	}
 

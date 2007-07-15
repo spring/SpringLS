@@ -114,6 +114,46 @@ public class Accounts {
 	    }
 	}
 	
+	// returns 'null' if username is valid, or error description otherwise
+	public static String isUsernameValid(String username) {
+		if (username.length() > 20) return "Username too long";
+		if (username.length() < 2) return "Username too short";
+		if (!username.matches("^[A-Za-z0-9_]+$")) return "Username contains invalid characters";
+		// everything is OK:
+		return null; 
+	}
+	
+	// returns 'null' if password is valid, or error description otherwise
+	public static String isPasswordValid(String password) {
+		if (password.length() < 2) return "Password too short";
+		if (password.length() > 30) return "Password too long"; // md5-base64 encoded passwords require 24 chars
+		// we have to allow a bit wider range of possible chars as base64 can produce chars such as +, = and /
+		if (!password.matches("^[\\x2B-\\x7A]+$")) return "Password contains invalid characters";
+		// everything is OK:
+		return null; 
+	}
+	
+	// returns 'null' if password is valid, or error description otherwise. 'baseUsername' is used to test nickname against
+	// (nickname must contain part of username - it may only prefix and postfix the username)
+	public static String isNicknameValid(String nickname, String baseUsername) {
+		if (nickname.length() > 20) return "Username too long";
+		if (nickname.length() < 2) return "Username too short";
+
+		if (!nickname.matches("^[A-Za-z0-9_\\[\\]\\|]+$")) return "Nickname contains invalid characters";
+		
+		// check if prefix is valid:
+		if (!nickname.matches("^([A-Za-z0-9\\[\\]\\|]+[\\|\\]])?" + baseUsername)) return "Invalid prefix found in nickname: embed your prefix in [] brackets or separate it by a | character";
+
+		// check if postfix is valid:
+		if (!nickname.matches(baseUsername + "([\\|\\[][A-Za-z0-9\\[\\]\\|]+)?$")) return "Invalid postfix found in nickname: embed your postfix in [] brackets or separate it by a | character";
+		
+		// check if prefix and postfix are both valid in one shot:
+		if (!nickname.matches("^([A-Za-z0-9\\[\\]\\|]+[\\|\\]])?" + baseUsername + "([\\|\\[][A-Za-z0-9\\[\\]\\|]+)?$")) return "Nickname contains invalid prefix/postfix. Your username should be contained in your nickname!";
+
+		// everything is OK:
+		return null; 
+	}	
+	
 	/* WARNING: caller must check if username/password is valid etc. himself! */
 	public static void addAccount(Account acc) {
 		accounts.add(acc);
@@ -122,8 +162,8 @@ public class Accounts {
 	}	
 	
 	public static boolean addAccountWithCheck(Account acc) {
-		if (!Misc.isValidName(acc.user)) return false;
-		if (!Misc.isValidPass(acc.pass)) return false;
+		if (isUsernameValid(acc.user) != null) return false;
+		if (isPasswordValid(acc.pass) != null) return false;
 
 		// check for duplicate entries:
 		if (doesAccountExist(acc.user)) return false;

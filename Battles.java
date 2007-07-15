@@ -86,7 +86,7 @@ public class Battles {
 		if (parsed2.length != 3) return null;
 		
 		String pass = parsed[3];
-		if (!pass.equals("*")) if (!Misc.isValidName(pass)) return null;
+		if (!pass.equals("*")) if (!pass.matches("^[A-Za-z0-9_]+$")) return null; // invalid characters in the password
 		
 		int type;
 		int natType;
