@@ -126,7 +126,7 @@ public class Battles {
 		}
 		
 		if ((startPos < 0) || (startPos > 2)) return null;
-		if ((gameEndCondition < 0) || (gameEndCondition > 1)) return null;
+		if ((gameEndCondition < 0) || (gameEndCondition > 2)) return null;
 		if ((type < 0) || (type > 1)) return null;
 		if ((natType < 0) || (natType > 2)) return null;
 
