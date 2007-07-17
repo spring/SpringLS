@@ -25,7 +25,7 @@
 
     function displayLog($keyword, $mindate, $maxdate)
     {
-      $filename = "../../ChanServ/logs/#main.log";
+      $filename = "../ChanServ/logs/#main.log";
       print "<p>Using file {$filename}.</p>";
       print "<p>Time stamps are relative to CET - Central European Time.</p>";
       print "<br>";
