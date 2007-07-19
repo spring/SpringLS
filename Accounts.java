@@ -136,8 +136,8 @@ public class Accounts {
 	// returns 'null' if password is valid, or error description otherwise. 'baseUsername' is used to test nickname against
 	// (nickname must contain part of username - it may only prefix and postfix the username)
 	public static String isNicknameValid(String nickname, String baseUsername) {
-		if (nickname.length() > 20) return "Username too long";
-		if (nickname.length() < 2) return "Username too short";
+		if (nickname.length() > 20) return "Nickname too long";
+		if (nickname.length() < 2) return "Nickname too short";
 
 		if (!nickname.matches("^[A-Za-z0-9_\\[\\]\\|]+$")) return "Nickname contains invalid characters";
 		

@@ -546,7 +546,12 @@ public class TASServer {
 				    	while (pos+1 < line.length() && (line.charAt(pos+1) == '\r' || line.charAt(pos+1) == '\n')) ++pos;
 				    	client.recvBuf.delete(0, pos+1);
 				    	
+				    	long time = System.currentTimeMillis();
 				    	tryToExecCommand(command, client);
+				    	time = System.currentTimeMillis() - time;
+				    	if (time > 200) {
+				    		Clients.sendToAllAdministrators("SERVERMSG [broadcast to all admins]: (DEBUG) User <" + client.account.user + "> caused " + time + " ms load on the server. Command issued: " + command);
+				    	}
 
 				    	if (!client.alive) break; // in case client was killed within tryToExecCommand() method
 					    line = client.recvBuf.toString();
@@ -1499,7 +1504,17 @@ public class TASServer {
 				}
 
 				client.sendLine("SERVERMSG Last user ID for <" + commands[1] + "> was " + acc.lastUserID);
-			}					
+			}
+			else if (commands[0].equals("KILLALL")) {
+				if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
+
+				String reason = "";
+				if (commands.length > 1) reason = " (reason: " + Misc.makeSentence(commands, 1) + ")";
+
+				while (Clients.getClientsSize() > 0) {
+					Clients.killClient(Clients.getClient(0), (reason.length() == 0 ? "Disconnected by server" : "Disconnected by server: " + reason));
+				}
+			}			
 			else if (commands[0].equals("CHANNELS")) {
 				if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
 				
