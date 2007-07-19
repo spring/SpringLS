@@ -718,7 +718,7 @@ public class TASServer {
 				}
 
 				// validate username:
-				String valid = Accounts.isUsernameValid(commands[1]);
+				String valid = Accounts.isOldUsernameValid(commands[1]);
 				if (valid != null) {
 					client.sendLine("REGISTRATIONDENIED Invalid username (reason: " + valid + ")");
 					return false;
@@ -1680,7 +1680,7 @@ public class TASServer {
 				}
 				
 				// validate new username:
-				String valid = Accounts.isUsernameValid(commands[1]);
+				String valid = Accounts.isOldUsernameValid(commands[1]);
 				if (valid != null) {
 					client.sendLine("SERVERMSG RENAMEACCOUNT failed: Invalid username (reason: " + valid + ")");
 					return false;
@@ -2707,7 +2707,7 @@ public class TASServer {
 					lanAdminUsername = args[i+1];
 					lanAdminPassword = Misc.encodePassword(args[i+2]);
 						
-					if (Accounts.isUsernameValid(lanAdminUsername) != null) throw new Exception();
+					if (Accounts.isOldUsernameValid(lanAdminUsername) != null) throw new Exception();
 					if (Accounts.isPasswordValid(lanAdminPassword) != null) throw new Exception();
 					i += 2; // we must skip username and password parameters in next iteration
 				}

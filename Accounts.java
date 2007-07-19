@@ -133,6 +133,16 @@ public class Accounts {
 		return null; 
 	}
 	
+	// returns 'null' if username is valid, or error description otherwise.
+	// This is used with "old" format of usernames which could also contain "[" and "]" characters.
+	public static String isOldUsernameValid(String username) {
+		if (username.length() > 20) return "Username too long";
+		if (username.length() < 2) return "Username too short";
+		if (!username.matches("^[A-Za-z0-9_\\[\\]]+$")) return "Username contains invalid characters";
+		// everything is OK:
+		return null; 
+	}
+	
 	// returns 'null' if password is valid, or error description otherwise. 'baseUsername' is used to test nickname against
 	// (nickname must contain part of username - it may only prefix and postfix the username)
 	public static String isNicknameValid(String nickname, String baseUsername) {
