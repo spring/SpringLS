@@ -64,6 +64,10 @@ http://java.sun.com/j2se/1.5.0/download.jsp
   command-line arguments with the ones from the file (if duplicate args are specified, the last
   one will prevail).
 
+-LATESTSPRINGVERSION [version]
+  Will set latest Spring version to this string. By default no value is set (defaults to "*").
+  This is used to tell clients which version is the latest one so that they know when to update.
+
 
 Example of usage (main lobby server uses these arguments):
 java TASServer -DEBUG 1 -natport 8201 -logmain -port 8200 | tee ./logs/TASServer.log

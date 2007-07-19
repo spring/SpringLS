@@ -2728,6 +2728,9 @@ public class TASServer {
 						throw e;
 					}
 				}
+				else if (s.equals("LATESTSPRINGVERSION")) {
+					latestSpringVersion = args[i+1];
+				}
 				else throw new IOException();
 			} else throw new IOException();
 	}
@@ -2770,6 +2773,10 @@ public class TASServer {
 			System.out.println("  Will read command-line arguments from the specified file. You can freely combine actual\n");
 			System.out.println("  command-line arguments with the ones from the file (if duplicate args are specified, the last\n");
 			System.out.println("  one will prevail).");
+			System.out.println("");
+			System.out.println("-LATESTSPRINGVERSION [version]");
+			System.out.println("  Will set latest Spring version to this string. By default no value is set (defaults to \"*\").\n");
+			System.out.println("  This is used to tell clients which version is the latest one so that they know when to update.\n");
 			System.out.println("");
 						
 			closeServerAndExit();
