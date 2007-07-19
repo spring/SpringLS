@@ -2730,6 +2730,7 @@ public class TASServer {
 				}
 				else if (s.equals("LATESTSPRINGVERSION")) {
 					latestSpringVersion = args[i+1];
+					i++; // to skip Spring version argument
 				}
 				else throw new IOException();
 			} else throw new IOException();
