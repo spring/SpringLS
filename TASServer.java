@@ -262,6 +262,7 @@ public class TASServer {
 	static String[] reservedAccountNames = {"TASServer", "Server", "server"}; // accounts with these names cannot be registered (since they may be used internally by the server) 
 	static final long minSleepTimeBetweenMapGrades = 5; // minimum time (in seconds) required between two consecutive MAPGRADES command sent by the client. We need this to ensure that client doesn't send MAPGRADES command too often as it creates much load on the server.
 	private static int MAX_TEAMS = 16; // max. teams/allies numbers supported by Spring 
+	public static boolean initializationFinished = false; // we set this to 'true' just before we enter the main loop. We need this information when saving accounts for example, so that we don't dump empty accounts to disk when an error has occured before initialization has been completed
 	
     private static final int READ_BUFFER_SIZE = 256; // size of the ByteBuffer used to read data from the socket channel. This size doesn't really matter - server will work with any size (tested with READ_BUFFER_SIZE==1), but too small buffer size may impact the performance.
     private static final int SEND_BUFFER_SIZE = 65536; // socket's send buffer size
@@ -382,7 +383,7 @@ public class TASServer {
 	
 	public static void closeServerAndExit() {
 		System.out.println("Server stopped.");
-		if (!LAN_MODE) Accounts.saveAccounts(true);
+		if (!LAN_MODE && initializationFinished) Accounts.saveAccounts(true); // we need to check if initialization has completed so that we don't save empty accounts array and so overwrite actual accounts 
 		if (helpUDPsrvr.isAlive()) {
 			helpUDPsrvr.stopServer();
 			try {
@@ -2864,6 +2865,8 @@ public class TASServer {
 		ServerNotification sn = new ServerNotification("Server started");
 		sn.addLine("Server has been started on port " + serverPort + ". There are " + Accounts.getAccountsSize() + " accounts currently loaded. See server log for more info.");
 		ServerNotifications.addNotification(sn);
+		
+		initializationFinished = true; // we're through the initialization part
 		
 	    running = true;
 	    while (running) { // main loop
