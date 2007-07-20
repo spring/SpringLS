@@ -3,6 +3,8 @@
  * 
  * 
  * ---- INTERNAL CHANGELOG ----
+ * *** 0.35 ***
+ * * added 'servermode' argument to TASSERVER command
  * *** 0.34 ***
  * * message IDs are now actually working
  * * added TESTLOGIN, TESTLOGINACCEPT and TESTLOGINDENY commands

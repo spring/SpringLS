@@ -125,7 +125,7 @@ public class Client {
 	}
 
 	public void sendWelcomeMessage() {
-		sendLine("TASServer " + TASServer.VERSION + " " + TASServer.latestSpringVersion + " " + TASServer.NAT_TRAVERSAL_PORT);
+		sendLine("TASServer " + TASServer.VERSION + " " + TASServer.latestSpringVersion + " " + TASServer.NAT_TRAVERSAL_PORT + " " + (TASServer.LAN_MODE ? 1 : 0));
 	}
 	
 	/* should only be called by Clients.killClient() method! */
