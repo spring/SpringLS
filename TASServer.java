@@ -386,7 +386,7 @@ public class TASServer {
 	public static void closeServerAndExit() {
 		System.out.println("Server stopped.");
 		if (!LAN_MODE && initializationFinished) Accounts.saveAccounts(true); // we need to check if initialization has completed so that we don't save empty accounts array and so overwrite actual accounts 
-		if (helpUDPsrvr.isAlive()) {
+		if (helpUDPsrvr != null && helpUDPsrvr.isAlive()) {
 			helpUDPsrvr.stopServer();
 			try {
 				helpUDPsrvr.join(1000); // give it 1 second to shut down gracefully
@@ -2676,7 +2676,7 @@ public class TASServer {
 	public static void processCommandLineArguments(String[] args) throws IOException, Exception {
 		// process command line arguments:
 		String s;
-		for (int i = 0; i < args.length; i++)
+		for (int i = 0; i < args.length; i++) {
 			if (args[i].charAt(0) == '-') {
 				s = args[i].substring(1).toUpperCase();
 				if (s.equals("PORT")) {
@@ -2709,34 +2709,49 @@ public class TASServer {
 				else if (s.equals("LANADMIN")) {
 					lanAdminUsername = args[i+1];
 					lanAdminPassword = Misc.encodePassword(args[i+2]);
-						
-					if (Accounts.isOldUsernameValid(lanAdminUsername) != null) throw new Exception();
-					if (Accounts.isPasswordValid(lanAdminPassword) != null) throw new Exception();
+
+					if (Accounts.isOldUsernameValid(lanAdminUsername) != null) {
+						System.out.println("Lan admin username is not valid: " + Accounts.isUsernameValid(lanAdminUsername));
+						throw new Exception();
+					}
+					if (Accounts.isPasswordValid(lanAdminPassword) != null) {
+						System.out.println("Lan admin password is not valid: " + Accounts.isPasswordValid(lanAdminPassword));
+						throw new Exception();
+					}
 					i += 2; // we must skip username and password parameters in next iteration
 				}
 				else if (s.equals("LOADARGS")) {
 					try {
 						BufferedReader in = new BufferedReader(new FileReader(args[i+1]));
 						String line;
-			            while ((line = in.readLine()) != null) {
-			            	try {
-			            		processCommandLineArguments(line.split(" "));
-			            	} catch (Exception e) {
-			            		System.out.println("Error in reading " + args[i+1] + " (invalid line)");
-			            		throw e;
-			            	}
-				        }
-			            in.close();
+						while ((line = in.readLine()) != null) {
+							try{
+								processCommandLineArguments(line.split(" "));
+							} catch (Exception e) {
+								System.out.println("Error in reading " + args[i+1] + " (invalid line)");
+								System.out.println(e.getMessage());
+								throw e;
+							}
+						}
+		 				in.close();
 					} catch (IOException e) {
 						throw e;
 					}
+					i++; // we must skip filename parameter in the next iteration
 				}
 				else if (s.equals("LATESTSPRINGVERSION")) {
 					latestSpringVersion = args[i+1];
 					i++; // to skip Spring version argument
 				}
-				else throw new IOException();
-			} else throw new IOException();
+				else {
+					System.out.println("Invalid commandline argument");
+					throw new IOException();
+				}
+			} else {
+				System.out.println("Commandline argument does not start with a hyphen");
+				throw new IOException();
+			}
+		}
 	}
 	
 	public static void main(String[] args) {

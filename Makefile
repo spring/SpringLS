@@ -15,5 +15,5 @@ distclean:
 	rm -f *.class
 
 # Start the server in the background.
-start: all
-	java TASServer -lan -debug 2 &
+start:
+	umask 077 && java TASServer -lan -debug 2 -loadargs lanadmin.txt | grep -v -E '^(\[<-.*\] "PING"$$)|(\[->.*\])' | cronolog 'logs/%Y%m%d.log'
