@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 int main(int argc, char **argv)
 {
@@ -10,7 +11,8 @@ int main(int argc, char **argv)
     exit(1);
   }
 
-  FILE* file = fopen (argv[1], "a"); /* Append to a file. The file is created if it doesn't exist. */
+  /* Append to a file. The file is created if it doesn't exist. */
+  FILE* file = fopen (argv[1], "a");
   if (file==NULL)
   {
   	printf("Error: cannot open file\n");
