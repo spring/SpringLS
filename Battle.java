@@ -11,7 +11,7 @@
  * TODO To change the template for this generated type comment go to
  * Window - Preferences - Java - Code Style - Code Templates
  */
-import java.util.ArrayList;
+import java.util.*;
 
 public class Battle {
 	static int IDCounter; // this is the ID that the next battle will have
@@ -40,8 +40,9 @@ public class Battle {
 	public StartRect[] startRects;
 	public boolean limitDGun;
 	public boolean diminishingMMs;
-	public boolean ghostedBuildings; 
+	public boolean ghostedBuildings;
 	public boolean locked; // if true, battle is locked and noone can join it (until lock is released by founder)
+	public HashMap<String, String> scriptTags;
 	// following elements are used only with type=1:
 	public ArrayList<String> replayScript = new ArrayList<String>(); // contains lines of the script file
 	public ArrayList<String> tempReplayScript = new ArrayList<String>(); // here we save script lines until we receive SCRIPTEND command. Then we copy it to "replayScript" object and notify all clients about it. 
@@ -74,6 +75,7 @@ public class Battle {
 		this.disabledUnits = new ArrayList<String>();
 		this.startRects = new StartRect[10];
 		this.locked = false; // we assume this by default. Client must make sure it is unlocked.
+		this.scriptTags = new HashMap<String, String>();
 		for (int i = 0; i < startRects.length; i++) startRects[i] = new StartRect();
 	}
 	
@@ -276,6 +278,20 @@ public class Battle {
 	public void sendScriptToAllExceptFounder() {
 		for (int i = 0; i < clients.size(); i++) {
 			sendScriptToClient(clients.get(i));
+		} 
+	}
+	
+	public void sendScriptTagsToClient(Client client) {
+		Iterator it = scriptTags.entrySet().iterator();
+		while(it.hasNext()) {
+			Map.Entry e = (Map.Entry)it.next();
+			client.sendLine("SETSCRIPTTAG " + e.getKey() + " " + e.getValue());
+		}
+	}
+	
+	public void sendScriptTagsToAll() {
+		for (int i = 0; i < clients.size(); i++) {
+			sendScriptTagsToClient(clients.get(i));
 		} 
 	}
 	

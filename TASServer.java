@@ -1934,6 +1934,7 @@ public class TASServer {
 				client.sendLine("REQUESTBATTLESTATUS");
 				bat.sendDisabledUnitsListToClient(client);
 				bat.sendStartRectsListToClient(client);
+				bat.sendScriptTagsToClient(client);
 				
 				if (bat.type == 1) bat.sendScriptToClient(client);
 
@@ -2618,6 +2619,32 @@ public class TASServer {
 				
 				bat.sendScriptToAllExceptFounder();
 			} 				
+			else if (commands[0].equals("SETSCRIPTTAG")) {
+				if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
+				
+				if (client.battleID == -1) return false;
+				
+				Battle bat = Battles.getBattleByID(client.battleID);
+				if (bat == null) {
+					System.out.println("Serious error occured: Invalid battle ID. Server will now exit!");
+					closeServerAndExit();
+				}
+
+				if (bat.founder != client) return false;
+
+				if (commands.length < 3) return false;
+
+				String key = commands[1];
+				String value = Misc.makeSentence(commands, 2);
+
+				if (key.length() <= 0) return false;
+
+				// insert the tag data into the map
+				bat.scriptTags.put(key, value);
+				
+				// relay the message
+				bat.sendToAllClients("SETSCRIPTTAG " + key + " " + value);
+			}				
 			else if (commands[0].equals("MAPGRADES")) {
 				if (commands.length < 2) return false;
 				if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
