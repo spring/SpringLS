@@ -2172,7 +2172,7 @@ public class TASServer {
 				} catch (NumberFormatException e) {
 					return false; 
 				}
-				if ((startPos < 0) || (startPos > 2)) return false;
+				if ((startPos < 0) || (startPos > 3)) return false;
 				if ((gameEndCondition < 0) || (gameEndCondition > 2)) return false;
 				
 				bat.metal = Math.min(10000, Math.max(0, metal)); // force it to be in range [0..10000]
@@ -2738,7 +2738,7 @@ public class TASServer {
 					lanAdminPassword = Misc.encodePassword(args[i+2]);
 
 					if (Accounts.isOldUsernameValid(lanAdminUsername) != null) {
-						System.out.println("Lan admin username is not valid: " + Accounts.isUsernameValid(lanAdminUsername));
+						System.out.println("Lan admin username is not valid: " + Accounts.isOldUsernameValid(lanAdminUsername));
 						throw new Exception();
 					}
 					if (Accounts.isPasswordValid(lanAdminPassword) != null) {
