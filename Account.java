@@ -40,17 +40,20 @@ public class Account {
 	
 	/*
 	 * current rank categories:
-	 * < 5h = newbie
 	 * 5h - 15h = beginner
-	 * 15h - 30h = avarage player
-	 * 30h - 100h = experienced player
-	 * > 100h = highly experienced player
-	 * 
+	 * 15h - 30h = avarage
+	 * 30h - 100h = above avarage
+	 * 100h - 500h = experienced player
+	 * 500h - 1000h = highly experienced player
+	 * > 1000h = veteran
+	 *  
 	 * */
 	private static int rank1Limit = 60*5; // in minutes
 	private static int rank2Limit = 60*15; // in minutes
 	private static int rank3Limit = 60*30; // in minutes
 	private static int rank4Limit = 60*100; // in minutes
+	private static int rank5Limit = 60*300; // in minutes
+	private static int rank6Limit = 60*1000; // in minutes
 	
 	public static int NIL_ACCESS = 0; // for clients that haven't logged in yet
 	public static int NORMAL_ACCESS = 1;
@@ -137,7 +140,9 @@ public class Account {
 	} 
 	
 	public int getRank() {
-		if (getInGameTime() >= rank4Limit) return 4;
+		if (getInGameTime() >= rank6Limit) return 6;
+		else if (getInGameTime() > rank5Limit) return 5;
+		else if (getInGameTime() > rank4Limit) return 4;
 		else if (getInGameTime() > rank3Limit) return 3;
 		else if (getInGameTime() > rank2Limit) return 2;
 		else if (getInGameTime() > rank1Limit) return 1;
