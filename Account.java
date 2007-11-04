@@ -40,11 +40,12 @@ public class Account {
 	
 	/*
 	 * current rank categories:
+	 * < 5h = newbie
 	 * 5h - 15h = beginner
 	 * 15h - 30h = avarage
 	 * 30h - 100h = above avarage
-	 * 100h - 500h = experienced player
-	 * 500h - 1000h = highly experienced player
+	 * 100h - 300h = experienced player
+	 * 300h - 1000h = highly experienced player
 	 * > 1000h = veteran
 	 *  
 	 * */
