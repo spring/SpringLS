@@ -2577,7 +2577,7 @@ public class TASServer {
 				
 				bat.sendScriptToAllExceptFounder();
 			} 				
-			else if (commands[0].equals("SETSCRIPTTAG")) {
+			else if (commands[0].equals("SETSCRIPTTAGS")) {
 				if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
 				
 				if (client.battleID == -1) return false;
@@ -2590,18 +2590,25 @@ public class TASServer {
 
 				if (bat.founder != client) return false;
 
-				if (commands.length < 3) return false;
+				if ((commands.length < 3) || (commands.length % 2 != 1)) {
+					// kill client since it is not using this command correctly
+					client.sendLine("SERVERMSG Serious error: inconsistent data (" + commands[0] + " command). You will now be disconnected ...");
+					Clients.killClient(client, "Quit: inconsistent data");
+					return false;
+				}
 
-				String key = commands[1];
-				String value = Misc.makeSentence(commands, 2);
-
-				if (key.length() <= 0) return false;
-
-				// insert the tag data into the map
-				bat.scriptTags.put(key, value);
+				String[] pairs = Misc.makeSentence(commands, 1).split("\t");
+				for (int i = 0; i < pairs.length; i++) {
+					String s = pairs[i];
+					String key = s.substring(0, s.indexOf(' ')+1);
+					String value = s.substring(s.indexOf(' ')+1, s.length());
+					
+					// insert the tag data into the map
+					bat.scriptTags.put(key, value);
+				}
 				
 				// relay the message
-				bat.sendToAllClients("SETSCRIPTTAG " + key + " " + value);
+				bat.sendToAllClients("SETSCRIPTTAGS " + Misc.makeSentence(commands, 1));
 			}				
 			else if (commands[0].equals("MAPGRADES")) {
 				if (commands.length < 2) return false;

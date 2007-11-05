@@ -265,12 +265,22 @@ public class Battle {
 		} 
 	}
 	
-	public void sendScriptTagsToClient(Client client) {
+	/**
+	 * will put together all script tags in a single line to be taken as an argument to the SETSCRIPTTAGS command
+	 * */
+	private String joinScriptTags() {
+		String joined = "";
 		Iterator it = scriptTags.entrySet().iterator();
 		while(it.hasNext()) {
 			Map.Entry e = (Map.Entry)it.next();
-			client.sendLine("SETSCRIPTTAG " + e.getKey() + " " + e.getValue());
+			joined += joined + (joined.equals("") ? e.getKey() + " " + e.getValue() : "\t" + e.getKey() + " " + e.getValue()); 
 		}
+		return joined;
+	}
+	
+	public void sendScriptTagsToClient(Client client) {
+		if (scriptTags.size() == 0) return ; // nothing to send
+		client.sendLine("SETSCRIPTTAGS " + joinScriptTags());
 	}
 	
 	public void sendScriptTagsToAll() {
