@@ -81,8 +81,8 @@ public class Battles {
 	 * fails, it returns null as a result. */
 	public static Battle createBattleFromString(String s, Client founder) {
 		String[] parsed = s.split(" ");
-		if (parsed.length < 18) return null;
-		String[] parsed2 = Misc.makeSentence(parsed, 17).split("\t");
+		if (parsed.length < 10) return null;
+		String[] parsed2 = Misc.makeSentence(parsed, 9).split("\t");
 		if (parsed2.length != 3) return null;
 		
 		String pass = parsed[3];
@@ -92,14 +92,6 @@ public class Battles {
 		int natType;
 		int port;
 		int maxPlayers;
-		int startMetal;
-		int startEnergy;
-		int maxUnits;
-		int startPos;
-		int gameEndCondition;
-		boolean limitDGun;
-		boolean diminishingMMs;
-		boolean ghostedBuildings;
 		int hash;
 		int rank;
 		int maphash;
@@ -110,27 +102,17 @@ public class Battles {
 			// parsed[3] is password
 			port = Integer.parseInt(parsed[4]);
 			maxPlayers = Integer.parseInt(parsed[5]);
-			startMetal = Integer.parseInt(parsed[6]);
-			startEnergy = Integer.parseInt(parsed[7]);
-			maxUnits = Integer.parseInt(parsed[8]);
-			startPos = Integer.parseInt(parsed[9]);
-			gameEndCondition = Integer.parseInt(parsed[10]);
-			limitDGun = Misc.strToBool(parsed[11]);
-			diminishingMMs = Misc.strToBool(parsed[12]);
-			ghostedBuildings = Misc.strToBool(parsed[13]);			
-			hash = Integer.parseInt(parsed[14]);
-			rank = Integer.parseInt(parsed[15]);
-			maphash = Integer.parseInt(parsed[16]);
+			hash = Integer.parseInt(parsed[6]);
+			rank = Integer.parseInt(parsed[7]);
+			maphash = Integer.parseInt(parsed[8]);
 		} catch (NumberFormatException e) {
 			return null; 
 		}
 		
-		if ((startPos < 0) || (startPos > 2)) return null;
-		if ((gameEndCondition < 0) || (gameEndCondition > 2)) return null;
 		if ((type < 0) || (type > 1)) return null;
 		if ((natType < 0) || (natType > 2)) return null;
 
-		return new Battle(type, natType, founder, pass, port, maxPlayers, startMetal, startEnergy, maxUnits, startPos, gameEndCondition, limitDGun, diminishingMMs, ghostedBuildings, hash, rank, maphash, parsed2[0], parsed2[1], parsed2[2]);
+		return new Battle(type, natType, founder, pass, port, maxPlayers, hash, rank, maphash, parsed2[0], parsed2[1], parsed2[2]);
 	}
 	
 	/* will add this battle object to battle list */

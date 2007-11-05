@@ -231,7 +231,7 @@ import java.util.regex.*;
 
 public class TASServer {
 	
-	static final String VERSION = "0.34";
+	static final String VERSION = "0.35";
 	static byte DEBUG = 1; // 0 - no verbose, 1 - normal verbose, 2 - extensive verbose
 	static String MOTD = "Enjoy your stay :-)";
 	static String agreement = ""; // agreement which is sent to user upon first login. User must send CONFIRMAGREEMENT command to confirm the agreement before server allows him to log in. See LOGIN command implementation for more details.
@@ -1921,7 +1921,7 @@ public class TASServer {
 				client.battleStatus = 0; // reset client's battle status
 				client.battleID = battleID;
 				bat.addClient(client);
-			 	client.sendLine("JOINBATTLE " + bat.ID + " " + bat.metal + " " + bat.energy + " " + bat.units + " " + bat.startPos + " " + bat.gameEndCondition + " " + Misc.boolToStr(bat.limitDGun)+ " " + Misc.boolToStr(bat.diminishingMMs) + " " + Misc.boolToStr(bat.ghostedBuildings) + " " + bat.hashCode); // notify client that he has successfully joined the battle
+			 	client.sendLine("JOINBATTLE " + bat.ID + " " + bat.hashCode); // notify client that he has successfully joined the battle
 				Clients.notifyClientsOfNewClientInBattle(bat, client);
 				bat.notifyOfBattleStatuses(client);
 				bat.sendBotListToClient(client);
@@ -2142,48 +2142,6 @@ public class TASServer {
 				bat.locked = locked;
 				bat.mapHash = maphash;
 				Clients.sendToAllRegisteredUsers("UPDATEBATTLEINFO " + bat.ID + " " + spectatorCount + " " + Misc.boolToStr(bat.locked) + " " + maphash + " " + bat.mapName);
-			}
-			else if (commands[0].equals("UPDATEBATTLEDETAILS")) {
-				if (commands.length != 9) return false;
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
-				
-				if (client.battleID == -1) return false;
-				Battle bat = Battles.getBattleByID(client.battleID);
-				if (bat == null) return false;
-				if (bat.founder != client) return false; // only founder may change battle parameters!
-
-				int metal;
-				int energy;
-				int units;
-				int startPos;
-				int gameEndCondition;
-				boolean limitDGun;
-				boolean diminishingMMs;
-				boolean ghostedBuildings;
-				try {
-					metal = Integer.parseInt(commands[1]);
-					energy = Integer.parseInt(commands[2]);
-					units = Integer.parseInt(commands[3]); 
-					startPos = Integer.parseInt(commands[4]);
-					gameEndCondition = Integer.parseInt(commands[5]);
-					limitDGun = Misc.strToBool(commands[6]);
-					diminishingMMs = Misc.strToBool(commands[7]);
-					ghostedBuildings = Misc.strToBool(commands[8]);
-				} catch (NumberFormatException e) {
-					return false; 
-				}
-				if ((startPos < 0) || (startPos > 3)) return false;
-				if ((gameEndCondition < 0) || (gameEndCondition > 2)) return false;
-				
-				bat.metal = Math.min(10000, Math.max(0, metal)); // force it to be in range [0..10000]
-				bat.energy = Math.min(10000, Math.max(0, energy)); // force it to be in range [0..10000]
-				bat.units = Math.min(5000, Math.max(10, units)); // force it to be in range [10..5000]
-				bat.startPos = startPos;
-				bat.gameEndCondition = gameEndCondition;
-				bat.limitDGun = limitDGun;
-				bat.diminishingMMs = diminishingMMs;
-				bat.ghostedBuildings = ghostedBuildings;
-				bat.sendToAllClients("UPDATEBATTLEDETAILS " + bat.metal + " " + bat.energy + " " + bat.units + " " + bat.startPos + " " + bat.gameEndCondition + " " + Misc.boolToStr(bat.limitDGun) + " " + Misc.boolToStr(bat.diminishingMMs) + " " + Misc.boolToStr(bat.ghostedBuildings));
 			}
 			else if (commands[0].equals("HANDICAP")) {
 				if (commands.length != 3) return false;

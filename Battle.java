@@ -27,20 +27,12 @@ public class Battle {
 	public int maxPlayers;
 	public String password; // use restricted() method to find out if battle is password-protected
 	public int port;
-	public int metal; // starting metal
-	public int energy; // starting energy
-	public int units; // max. units
-	public int startPos; // 0 = fixed, 1 = random, 2 = choose in game, 3 = choose before game
-	public int gameEndCondition; // 0 = game continues if commander dies, 1 = game ends if commander dies, 2 = lineage mode
 	public int hashCode; // see notes for description!
 	public int rank; // if 0, no rank limit is set. If 1 or higher, only players with this rank (or higher) can join the battle (Note: rank index 1 means seconds rank, not the first one, since you can't limit game to players of the first rank because that means game is open to all players and you don't have to limit it in that case)
 	public int mapHash; // see protocol description for details!
 	public String modName;
 	public ArrayList<String> disabledUnits;
 	public StartRect[] startRects;
-	public boolean limitDGun;
-	public boolean diminishingMMs;
-	public boolean ghostedBuildings;
 	public boolean locked; // if true, battle is locked and noone can join it (until lock is released by founder)
 	public HashMap<String, String> scriptTags;
 	// following elements are used only with type=1:
@@ -48,7 +40,7 @@ public class Battle {
 	public ArrayList<String> tempReplayScript = new ArrayList<String>(); // here we save script lines until we receive SCRIPTEND command. Then we copy it to "replayScript" object and notify all clients about it. 
 	
 
-	public Battle(int type, int natType, Client founder, String password, int port, int maxPlayers, int startMetal, int startEnergy, int maxUnits, int startPos, int gameEndCondition, boolean limitDGun, boolean diminishingMMs, boolean ghostedBuildings, int hashCode, int rank, int mapHash, String mapName, String title, String modName) {
+	public Battle(int type, int natType, Client founder, String password, int port, int maxPlayers, int hashCode, int rank, int mapHash, String mapName, String title, String modName) {
 		this.ID = IDCounter++;
 		this.type = type;
 		this.natType = natType;
@@ -60,14 +52,6 @@ public class Battle {
 		this.maxPlayers = maxPlayers;
 		this.password = new String(password);
 		this.port = port;
-		this.metal = startMetal;
-		this.energy = startEnergy;
-		this.units = maxUnits;
-		this.startPos = startPos;
-		this.gameEndCondition = gameEndCondition;
-		this.limitDGun = limitDGun;
-		this.diminishingMMs = diminishingMMs;
-		this.ghostedBuildings = ghostedBuildings;
 		this.hashCode = hashCode;
 		this.rank = rank;
 		this.mapHash = mapHash;
