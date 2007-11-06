@@ -673,7 +673,6 @@ public class TASServer {
 	/* Note: this method is not synchronized! 
 	 * Note2: this method may be called recursively! */
 	public static boolean tryToExecCommand(String command, Client client) {
-		String untrimmed = command;
 		command = command.trim();
 		if (command.equals("")) return false;
 
@@ -2598,11 +2597,11 @@ public class TASServer {
 					return false;
 				}
 
-				int pairsStart = untrimmed.indexOf(' ');
+				int pairsStart = command.indexOf(' ');
 				if (pairsStart < 0) {
 					return false;
 				}
-				String[] pairs = untrimmed.substring(pairsStart + 1).split("\t");
+				String[] pairs = command.substring(pairsStart + 1).split("\t");
 				String validPairs = "";
 				
 				for (int i = 0; i < pairs.length; i++) {
@@ -2627,6 +2626,7 @@ public class TASServer {
 
 					// parse the value
 					String value = s.substring(equalPos + 1);
+					if (value != value.trim())    { continue; } // forbid trailing/leading spaces
 					if (value.indexOf(';')  >= 0) { continue; }
 					if (value.indexOf('}')  >= 0) { continue; }
 					if (value.indexOf('[')  >= 0) { continue; }
