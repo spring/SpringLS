@@ -2606,12 +2606,14 @@ public class TASServer {
 				String validPairs = "";
 				
 				for (int i = 0; i < pairs.length; i++) {
+
 					String s = pairs[i];
-					int spacePos = s.indexOf(' ');
-					if (spacePos < 1) { continue; }
+
+					int equalPos = s.indexOf('=');
+					if (equalPos < 1) { continue; }
 
 					// parse the key
-					String key   = s.substring(0, spacePos).toLowerCase();
+					String key = s.substring(0, equalPos).toLowerCase();
 					if (key.length() <= 0)      { continue; }
 					if (key.indexOf(' ')  >= 0) { continue; }
 					if (key.indexOf('=')  >= 0) { continue; }
@@ -2624,7 +2626,7 @@ public class TASServer {
 					if (key.indexOf('\r') >= 0) { continue; }
 
 					// parse the value
-					String value = s.substring(spacePos + 1);
+					String value = s.substring(equalPos + 1);
 					if (value.indexOf(';')  >= 0) { continue; }
 					if (value.indexOf('\n') >= 0) { continue; }
 					if (value.indexOf('\r') >= 0) { continue; }
@@ -2636,7 +2638,7 @@ public class TASServer {
 					if (validPairs.length() > 0) {
 						validPairs += "\t";
 					}
-					validPairs += key + " " + value; 
+					validPairs += key + "=" + value; 
 				}
 
 				// relay the valid pairs

@@ -276,7 +276,7 @@ public class Battle {
 			if (joined.length() > 0) {
 				joined += "\t";
 			}
-			joined += e.getKey() + " " + e.getValue(); 
+			joined += e.getKey() + "=" + e.getValue(); 
 		}
 		return joined;
 	}
