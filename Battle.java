@@ -273,7 +273,10 @@ public class Battle {
 		Iterator it = scriptTags.entrySet().iterator();
 		while(it.hasNext()) {
 			Map.Entry e = (Map.Entry)it.next();
-			joined += joined + (joined.equals("") ? e.getKey() + " " + e.getValue() : "\t" + e.getKey() + " " + e.getValue()); 
+			if (joined.length() > 0) {
+				joined += "\t";
+			}
+			joined += e.getKey() + " " + e.getValue(); 
 		}
 		return joined;
 	}

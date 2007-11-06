@@ -673,6 +673,7 @@ public class TASServer {
 	/* Note: this method is not synchronized! 
 	 * Note2: this method may be called recursively! */
 	public static boolean tryToExecCommand(String command, Client client) {
+		String untrimmed = command;
 		command = command.trim();
 		if (command.equals("")) return false;
 
@@ -2590,25 +2591,58 @@ public class TASServer {
 
 				if (bat.founder != client) return false;
 
-				if ((commands.length < 3) || (commands.length % 2 != 1)) {
+				if (commands.length < 2) {
 					// kill client since it is not using this command correctly
 					client.sendLine("SERVERMSG Serious error: inconsistent data (" + commands[0] + " command). You will now be disconnected ...");
 					Clients.killClient(client, "Quit: inconsistent data");
 					return false;
 				}
 
-				String[] pairs = Misc.makeSentence(commands, 1).split("\t");
+				int pairsStart = untrimmed.indexOf(' ');
+				if (pairsStart < 0) {
+					return false;
+				}
+				String[] pairs = untrimmed.substring(pairsStart + 1).split("\t");
+				String validPairs = "";
+				
 				for (int i = 0; i < pairs.length; i++) {
 					String s = pairs[i];
-					String key = s.substring(0, s.indexOf(' ')+1);
-					String value = s.substring(s.indexOf(' ')+1, s.length());
-					
+					int spacePos = s.indexOf(' ');
+					if (spacePos < 1) { continue; }
+
+					// parse the key
+					String key   = s.substring(0, spacePos).toLowerCase();
+					if (key.length() <= 0)      { continue; }
+					if (key.indexOf(' ')  >= 0) { continue; }
+					if (key.indexOf('=')  >= 0) { continue; }
+					if (key.indexOf(';')  >= 0) { continue; }
+					if (key.indexOf('{')  >= 0) { continue; }
+					if (key.indexOf('}')  >= 0) { continue; }
+					if (key.indexOf('[')  >= 0) { continue; }
+					if (key.indexOf(']')  >= 0) { continue; }
+					if (key.indexOf('\n') >= 0) { continue; }
+					if (key.indexOf('\r') >= 0) { continue; }
+
+					// parse the value
+					String value = s.substring(spacePos + 1);
+					if (value.indexOf(';')  >= 0) { continue; }
+					if (value.indexOf('\n') >= 0) { continue; }
+					if (value.indexOf('\r') >= 0) { continue; }
+
 					// insert the tag data into the map
 					bat.scriptTags.put(key, value);
+
+					// add to the validPairs string
+					if (validPairs.length() > 0) {
+						validPairs += "\t";
+					}
+					validPairs += key + " " + value; 
 				}
-				
-				// relay the message
-				bat.sendToAllClients("SETSCRIPTTAGS " + Misc.makeSentence(commands, 1));
+
+				// relay the valid pairs
+				if (validPairs.length() > 0) {
+					bat.sendToAllClients("SETSCRIPTTAGS " + validPairs);
+				}
 			}				
 			else if (commands[0].equals("MAPGRADES")) {
 				if (commands.length < 2) return false;
