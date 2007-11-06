@@ -2628,6 +2628,8 @@ public class TASServer {
 					// parse the value
 					String value = s.substring(equalPos + 1);
 					if (value.indexOf(';')  >= 0) { continue; }
+					if (value.indexOf('}')  >= 0) { continue; }
+					if (value.indexOf('[')  >= 0) { continue; }
 					if (value.indexOf('\n') >= 0) { continue; }
 					if (value.indexOf('\r') >= 0) { continue; }
 
@@ -2645,6 +2647,36 @@ public class TASServer {
 				if (validPairs.length() > 0) {
 					bat.sendToAllClients("SETSCRIPTTAGS " + validPairs);
 				}
+			}				
+			else if (commands[0].equals("REMOVESCRIPTTAGS")) {
+				if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
+				
+				if (client.battleID == -1) return false;
+				
+				Battle bat = Battles.getBattleByID(client.battleID);
+				if (bat == null) {
+					System.out.println("Serious error occured: Invalid battle ID. Server will now exit!");
+					closeServerAndExit();
+				}
+
+				if (bat.founder != client) return false;
+
+				if (commands.length < 2) {
+					// kill client since it is not using this command correctly
+					client.sendLine("SERVERMSG Serious error: inconsistent data (" + commands[0] + " command). You will now be disconnected ...");
+					Clients.killClient(client, "Quit: inconsistent data");
+					return false;
+				}
+
+				String loweyKeyCommand = "REMOVESCRIPTTAGS";
+				for (int i = 1; i < commands.length; i++) {
+					String lowerKey = commands[i].toLowerCase();
+					loweyKeyCommand += " " + lowerKey;
+					bat.scriptTags.remove(lowerKey);
+				}
+
+				// relay the command
+				bat.sendToAllClients(loweyKeyCommand);
 			}				
 			else if (commands[0].equals("MAPGRADES")) {
 				if (commands.length < 2) return false;
