@@ -265,6 +265,8 @@ public class TASServer {
 	static final long minSleepTimeBetweenMapGrades = 5; // minimum time (in seconds) required between two consecutive MAPGRADES command sent by the client. We need this to ensure that client doesn't send MAPGRADES command too often as it creates much load on the server.
 	private static int MAX_TEAMS = 16; // max. teams/allies numbers supported by Spring 
 	public static boolean initializationFinished = false; // we set this to 'true' just before we enter the main loop. We need this information when saving accounts for example, so that we don't dump empty accounts to disk when an error has occured before initialization has been completed
+	static ArrayList<FailedLoginAttempt> failedLoginAttempts = new ArrayList<FailedLoginAttempt>(); // here we store information on latest failed login attempts. We use it to block users from brute-forcing other accounts
+	static long lastFailedLoginsPurgeTime = System.currentTimeMillis(); // time when we last purged list of failed login attempts
 	
 	// database related:
 	public static DBInterface database;
@@ -639,6 +641,26 @@ public class TASServer {
 		if (acc == null) return null;
 		if (acc.pass.equals(pass)) return acc;
 		else return null;
+	}
+	
+	private static void recordFailedLoginAttempt(String username) {
+		FailedLoginAttempt attempt = findFailedLoginAttempt(username);
+		if (attempt == null) {
+			attempt = new FailedLoginAttempt(username, 0, 0);
+			failedLoginAttempts.add(attempt);
+		}
+		attempt.timeOfLastFailedAttempt = System.currentTimeMillis();
+		attempt.numOfFailedAttempts++;
+	}
+	
+	/** return null if no record found */
+	private static FailedLoginAttempt findFailedLoginAttempt(String username) {
+		for (int i = 0; i < failedLoginAttempts.size(); i++) {
+			if (failedLoginAttempts.get(i).username.equals(username)) {
+				return failedLoginAttempts.get(i);
+			}
+		}
+		return null;
 	}
 	
 	/* Sends "message of the day" (MOTD) to client */
@@ -1580,9 +1602,29 @@ public class TASServer {
 				}
 				
 				if (!LAN_MODE) { // "normal", non-LAN mode
-					Account acc = verifyLogin(commands[1], commands[2]);
+					String username = commands[1];
+					String password = commands[2];
+					
+					// protection from brute-forcing the account:
+					FailedLoginAttempt attempt = findFailedLoginAttempt(username);
+					if ((attempt != null) && (attempt.numOfFailedAttempts >= 3)) {
+						client.sendLine("DENIED Too many failed login attempts. Wait for 30 seconds before trying again!");
+						recordFailedLoginAttempt(username);
+						if (!attempt.logged) {
+							attempt.logged = true;
+							Clients.sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Too many failed login attempts for <" + username + "> from " + client.IP + ". Blocking for 30 seconds. Will not notify any longer.");
+							// add server notification:
+							ServerNotification sn = new ServerNotification("Excessive failed login attempts");
+							sn.addLine("Too many failed login attempts for <" + username + "> from " + client.IP + ". Blocking for 30 seconds.");
+							ServerNotifications.addNotification(sn);
+						}
+						return false;
+					}
+					
+					Account acc = verifyLogin(username, password);
 					if (acc == null) {
 						client.sendLine("DENIED Bad username/password");
+						recordFailedLoginAttempt(username);
 						return false;
 					}
 					if (Clients.isUserLoggedIn(acc)) {
@@ -1593,6 +1635,7 @@ public class TASServer {
 						String reason = Clients.banList.getReason(Clients.banList.getIndex(client.IP));
 						if (reason.equals("")) reason = "[not given]";
 						client.sendLine("DENIED You are banned from this server! (Reason: " + reason + "). Please contact server administrator.");
+						recordFailedLoginAttempt(username);
 						return false;
 					}
 					if ((!acc.getAgreement()) && (!client.account.getAgreement()) && (!agreement.equals(""))) {
@@ -3040,6 +3083,18 @@ public class TASServer {
 		    	lastMutesPurgeTime = System.currentTimeMillis();
 		    	for (int i = 0; i < Channels.getChannelsSize(); i++) {
 		    		Channels.getChannel(i).muteList.clearExpiredOnes();
+		    	}
+		    }
+		    
+		    // pure list of failed login attempts:
+		    if (System.currentTimeMillis() - lastFailedLoginsPurgeTime > 1000) {
+		    	lastFailedLoginsPurgeTime = System.currentTimeMillis();
+		    	for (int i = 0; i < failedLoginAttempts.size(); i++) {
+		    		FailedLoginAttempt attempt = failedLoginAttempts.get(i);
+		    		if (System.currentTimeMillis() - attempt.timeOfLastFailedAttempt > 30000) {
+		    			failedLoginAttempts.remove(i);
+		    			i--;
+		    		}
 		    	}
 		    }
 		    
