@@ -266,6 +266,12 @@ public class TASServer {
 	private static int MAX_TEAMS = 16; // max. teams/allies numbers supported by Spring 
 	public static boolean initializationFinished = false; // we set this to 'true' just before we enter the main loop. We need this information when saving accounts for example, so that we don't dump empty accounts to disk when an error has occured before initialization has been completed
 	
+	// database related:
+	public static DBInterface database;
+	private static String DB_URL = "jdbc:mysql://127.0.0.1/spring";
+	private static String DB_username = "";
+	private static String DB_password = "";
+	
     private static final int READ_BUFFER_SIZE = 256; // size of the ByteBuffer used to read data from the socket channel. This size doesn't really matter - server will work with any size (tested with READ_BUFFER_SIZE==1), but too small buffer size may impact the performance.
     private static final int SEND_BUFFER_SIZE = 65536; // socket's send buffer size
     private static final long CHANNEL_WRITE_SLEEP = 20L;
@@ -2803,6 +2809,18 @@ public class TASServer {
 					latestSpringVersion = args[i+1];
 					i++; // to skip Spring version argument
 				}
+				else if (s.equals("DBURL")) {
+					DB_URL = args[i+1];
+					i++; // to skip argument
+				}
+				else if (s.equals("DBUSERNAME")) {
+					DB_username = args[i+1];
+					i++; // to skip the argument
+				}
+				else if (s.equals("DBPASSWORD")) {
+					DB_password = args[i+1];
+					i++; // to skip the argument
+				}
 				else {
 					System.out.println("Invalid commandline argument");
 					throw new IOException();
@@ -2856,6 +2874,15 @@ public class TASServer {
 			System.out.println("-LATESTSPRINGVERSION [version]");
 			System.out.println("  Will set latest Spring version to this string. By default no value is set (defaults to \"*\").\n");
 			System.out.println("  This is used to tell clients which version is the latest one so that they know when to update.\n");
+			System.out.println("");
+			System.out.println("-DBURL [url]");
+			System.out.println("  Will set URL of the database (used only in \"normal mode\", not LAN mode).\n");
+			System.out.println("");
+			System.out.println("-DBUSERNAME [username]");
+			System.out.println("  Will set username for the database (used only in \"normal mode\", not LAN mode).\n");
+			System.out.println("");
+			System.out.println("-DBPASSWORD [password]");
+			System.out.println("  Will set password for the database (used only in \"normal mode\", not LAN mode).\n");
 			System.out.println("");
 						
 			closeServerAndExit();
@@ -2931,11 +2958,23 @@ public class TASServer {
 			
 		// construct global map grade list:	
 		MapGrading.reconstructGlobalMapGrades();	
+
+		// establish connection with database:
+		if (!LAN_MODE) {
+			database = new DBInterface();
+			if (!database.loadJDBCDriver()) {
+				closeServerAndExit();
+			}
+			if (!database.connectToDatabase(DB_URL, DB_username, DB_password)) {
+				closeServerAndExit();
+			}
+		}
 		
-		// start server:
+		// start "help UDP" server:
 		helpUDPsrvr = new NATHelpServer(NAT_TRAVERSAL_PORT);
 		helpUDPsrvr.start();
-
+		
+		// start server:
 		if (!startServer(serverPort)) closeServerAndExit();
 		
 		// add server notification:
