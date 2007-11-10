@@ -67,7 +67,7 @@ public class DBInterface {
 		}
 	}
 	
-	private void printSQLException(SQLException e) {
+	public void printSQLException(SQLException e) {
 		System.out.println("SQLException: " + e.getMessage());
 		System.out.println("SQLState: " + e.getSQLState());
 		System.out.println("VendorError: " + e.getErrorCode());

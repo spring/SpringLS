@@ -114,8 +114,16 @@ public class Misc {
 		} catch (Exception e) {
 			return -1;
 		}
-		
 	}
+	
+	public static String long2IP(long IP) {
+		String result = "";
+		result += (IP >> 24);
+		result += "." + ((IP & 0x00FFFFFF) >> 16);
+		result += "." + ((IP & 0x0000FFFF) >> 8);
+		result += "." + ((IP & 0x000000FF));
+		return result;
+	}	
 	
 	/* converts time (in milliseconds) to "<x> days, <y> hours and <z> minutes" string */
 	public static String timeToDHM(long duration) {

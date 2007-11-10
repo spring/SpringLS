@@ -1246,6 +1246,14 @@ public class TASServer {
 				client.sendLine("SERVERMSG Updating IP2country database ... Server will notify of success via server notification system.");
 				IP2Country.updateDatabase();
 			}
+			else if (commands[0].equals("RETRIEVELATESTBANLIST")) {
+				if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
+				if (commands.length != 1) return false;
+
+				client.sendLine("SERVERMSG Fetching ban entries from the database ...");
+				BanSystem.fetchLatestBanList();
+				client.sendLine("SERVERMSG Ban entries retrieved.");
+			}
 			else if (commands[0].equals("CHANGECHARSET")) {
 				if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
 				if (commands.length != 2) return false;
