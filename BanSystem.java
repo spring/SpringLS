@@ -21,6 +21,8 @@ public class BanSystem {
 	 * Will retrieve latest ban entries from the database
 	 * */
 	public static void fetchLatestBanList() {
+		System.out.println("Trying to update ban list ...");
+		
 		banEntries.clear();
 		
 		ResultSet rs = TASServer.database.execQuery("SELECT ExpirationDate, Username, IP_start, IP_end, userID, PublicReason FROM BanEntries WHERE Enabled=1");
@@ -34,11 +36,18 @@ public class BanSystem {
 				ban.IP_end = rs.getLong("IP_end");
 				ban.userID = rs.getInt("userID");
 				ban.publicReason = rs.getString("PublicReason");
+				
+				if (ban.expireDate < System.currentTimeMillis())
+					continue; // already expired
+				banEntries.add(ban);
 			}
 		} catch (SQLException e) {
 			System.out.println("Error reading ResultSet when reading ban entries!");
 			TASServer.database.printSQLException(e);
+			System.out.println("Error while trying to update ban list!");
+			return ;
 		}
+		System.out.println("Ban list successfully updated.");
 	}
 	
 	/**

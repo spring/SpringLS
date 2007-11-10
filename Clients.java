@@ -15,7 +15,6 @@ import java.util.ArrayList;
 public class Clients {
 
 	static private ArrayList<Client> clients = new ArrayList<Client>();
-	static public BanList banList = new BanList(); // list of banned clients
 	
 	static private ArrayList<Client> killList = new ArrayList<Client>(); // a list of clients waiting to be killed (disconnected)
 	/* killList is used when we want to kill a client but not immediately (within a loop, for example).

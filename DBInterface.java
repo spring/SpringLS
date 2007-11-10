@@ -33,14 +33,17 @@ public class DBInterface {
 	}
 
 	public boolean connectToDatabase(String url, String username, String password) {
+		System.out.println("Trying to connect to database ...");
 		try {
 			conn = DriverManager.getConnection(url, username, password);
 			stmt = conn.createStatement();
 		} catch (SQLException e) {
 			printSQLException(e);
+			System.out.println("Unable to connect to database!");
 			return false;
 		}
 		
+		System.out.println("Connection to database established.");
 		return true;
 	}
 	

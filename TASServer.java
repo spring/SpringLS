@@ -239,7 +239,6 @@ public class TASServer {
 	static String latestSpringVersion = "*"; // this is sent via welcome message to every new client who connects to the server
 	static final String MOTD_FILENAME = "motd.txt";
 	static final String AGREEMENT_FILENAME = "agreement.rtf";
-	static final String BAN_LIST_FILENAME = "banlist.txt";
 	static final String ACCOUNTS_INFO_FILEPATH = "accounts.txt";
 	static final String SERVER_NOTIFICATION_FOLDER = "./notifs";
 	static final String IP2COUNTRY_FILENAME = "ip2country.dat";
@@ -521,14 +520,13 @@ public class TASServer {
 					&& (((client.getBotModeFromStatus() == false) && (client.dataOverLastTimePeriod > TASServer.maxBytesAlert)) ||
 					((client.getBotModeFromStatus() == true) && (client.dataOverLastTimePeriod > TASServer.maxBytesAlertForBot)))) {
 					System.out.println("WARNING: Flooding detected from " + client.IP + " (" + client.account.user + ")");
-					Clients.sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Flooding has been detected from " + client.IP + " (" + client.account.user + "). User's IP has been auto-banned.");
-					Clients.banList.add(client.IP, "Auto-ban for flooding.");
+					Clients.sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Flooding has been detected from " + client.IP + " (" + client.account.user + "). User has been kicked.");
 					Clients.killClient(client, "Disconnected due to excessive flooding");
 
 					// add server notification:
 					ServerNotification sn = new ServerNotification("Flooding detected");
 					sn.addLine("Flooding detected from " + client.IP + " (" + client.account.user + ").");
-					sn.addLine("User has been automatically banned.");
+					sn.addLine("User has been kicked from the server.");
 					ServerNotifications.addNotification(sn);
 					
 					continue;
@@ -1087,39 +1085,6 @@ public class TASServer {
 				Battles.closeBattleAndNotifyAll(bat);
 				
 			}
-			else if (commands[0].equals("BANLISTADD")) {
-				if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) return false;
-				if (commands.length < 2) return false;
-				
-				String reason = "";
-				if (commands.length > 2) reason = Misc.makeSentence(commands, 2); 
-				Clients.banList.add(commands[1], reason);
-				Clients.banList.saveToFile(BAN_LIST_FILENAME);
-				client.sendLine("SERVERMSG IP " + commands[1] + " has been added to ban list. Use KICKUSER to kick user from server.");
-			}
-			else if (commands[0].equals("BANLISTREMOVE")) {
-				if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) return false;
-				if (commands.length != 2) return false;
-
-				if (Clients.banList.remove(commands[1])) {
-					Clients.banList.saveToFile(BAN_LIST_FILENAME);
-					client.sendLine("SERVERMSG IP " + commands[1] + " has been removed from ban list.");
-				} else {
-					client.sendLine("SERVERMSG IP " + commands[1] + " couldn't be found in ban list!");				
-				}
-			}
-			else if (commands[0].equals("BANLIST")) {
-				if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) return false;
-				if (commands.length != 1) return false;
-
-				if (Clients.banList.size() == 0) client.sendLine("SERVERMSG Ban list is empty!");
-				else {
-					client.sendLine("SERVERMSG Ban list (" + Clients.banList.size() + " entries):");
-					for (int i = 0; i < Clients.banList.size(); i++)
-						client.sendLine("SERVERMSG * " + Clients.banList.getIP(i) + " (Reason: " + Clients.banList.getReason(i) + ")");
-					client.sendLine("SERVERMSG End of ban list.");
-				}
-			}
 			else if (commands[0].equals("MUTE")) {
 				if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) return false;
 				if (commands.length < 4) return false;
@@ -1639,10 +1604,9 @@ public class TASServer {
 						client.sendLine("DENIED Already logged in");
 						return false;
 					}
-					if (Clients.banList.banned(client.IP)) {
-						String reason = Clients.banList.getReason(Clients.banList.getIndex(client.IP));
-						if (reason.equals("")) reason = "[not given]";
-						client.sendLine("DENIED You are banned from this server! (Reason: " + reason + "). Please contact server administrator.");
+					BanEntry ban = BanSystem.checkIfBanned(username, Misc.IP2Long(client.IP), userID);
+					if (ban != null) {
+						client.sendLine("DENIED You are banned from this server! (Reason: " + ban.publicReason + "). Please contact server administrator.");
 						recordFailedLoginAttempt(username);
 						return false;
 					}
@@ -2949,9 +2913,20 @@ public class TASServer {
 			}
 		}
 		
+		// establish connection with database:
+		if (!LAN_MODE) {
+			database = new DBInterface();
+			if (!database.loadJDBCDriver()) {
+				closeServerAndExit();
+			}
+			if (!database.connectToDatabase(DB_URL, DB_username, DB_password)) {
+				closeServerAndExit();
+			}
+		}
+		
 		if (!LAN_MODE) {
 			Accounts.loadAccounts();
-			Clients.banList.loadFromFile(BAN_LIST_FILENAME);
+			BanSystem.fetchLatestBanList();
 			readAgreement();
 		} else {
 			System.out.println("LAN mode enabled");
@@ -3010,17 +2985,6 @@ public class TASServer {
 		// construct global map grade list:	
 		MapGrading.reconstructGlobalMapGrades();	
 
-		// establish connection with database:
-		if (!LAN_MODE) {
-			database = new DBInterface();
-			if (!database.loadJDBCDriver()) {
-				closeServerAndExit();
-			}
-			if (!database.connectToDatabase(DB_URL, DB_username, DB_password)) {
-				closeServerAndExit();
-			}
-		}
-		
 		// start "help UDP" server:
 		helpUDPsrvr = new NATHelpServer(NAT_TRAVERSAL_PORT);
 		helpUDPsrvr.start();
