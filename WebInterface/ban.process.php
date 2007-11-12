@@ -79,7 +79,7 @@
     $insert .= ', FROM_UNIXTIME(' . $enddate . ')';
   }
   if ($_POST["C1"] == 1) $insert .= ', "' . $username . '"';
-  if ($_POST["C2"] == 1) $insert .= ', "' . $ip_start . '", "' . $ip_end . '"';
+  if ($_POST["C2"] == 1) $insert .= ', "' . IP2LONG_($ip_start) . '", "' . IP2LONG_($ip_end) . '"';
   if ($_POST["C3"] == 1) $insert .= ', "' . $user_id . '"';
   $insert .= ', "' . $priv_reason . '"';
   $insert .= ', "' . $pub_reason . '"';

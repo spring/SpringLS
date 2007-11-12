@@ -65,6 +65,28 @@
      return preg_match($ipPattern, $ip) == 1;
   }
   
+  // see comments on this page: http://si2.php.net/int
+  function IP2LONG_($ip)
+  {
+    $ipArr = explode('.', $ip);
+    $ipa = $ipArr[0] * 0x1000000 + $ipArr[1] * 0x10000 + $ipArr[2] * 0x100 + $ipArr[3];  
+    return $ipa;
+    return 1;
+  }
+  
+  
+  // see comments on this page: http://si2.php.net/int
+  function LONG2IP_($ipVal)
+  {
+    $ipArr = array(0 => floor($ipVal / 0x1000000));
+    $ipVint = $ipVal-($ipArr[0]*0x1000000); // for clarity
+    $ipArr[1] = ($ipVint & 0xFF0000) >> 16;
+    $ipArr[2] = ($ipVint & 0xFF00  ) >> 8;
+    $ipArr[3] =  $ipVint & 0xFF;
+    $ipDotted = implode('.', $ipArr);
+    return $ipDotted;
+  }
+  
   /* this will try to login current visitor assigning all needed session variables etc. 
      Some tutorials / sample code:
      * http://www.litfuel.net/tutorials/sockets/sockets.php
