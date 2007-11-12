@@ -231,6 +231,7 @@ table.table3 td + td {
   Table type 4. Used when table withouth any inner borders is needed (searchlog.php, userinfo.php, ...)
 **/
 .table4 {
+  background-color: #f5f5f5;
 	border: solid black 1px;
   /*border: solid #BBB 1px;*/
 	border-collapse: collapse;
@@ -271,6 +272,36 @@ a.button1:hover {
   background: #eeeeee;
 }
 a.button1:active {
+  border-bottom: 1px solid #eeeeee;
+  border-top: 1px solid black;
+  border-right: 1px solid #eeeeee;
+  border-left: 1px solid black;
+}
+
+/**
+  Standard button type 2. Modified button 1 type.
+  This button is a big larger than button 1 so that more text may fit in.
+**/
+a.button2:link, a.button2:visited {
+  display: block;
+/*  float: right; */
+  margin: 2px 5px 2px 5px;
+  padding: 2px;
+  width: 150px;
+  background: #cccccc;
+  color: black;
+  text-align: center;
+  text-decoration: none;
+  font: normal 12px Verdana;
+  border-top: 1px solid #cccccc;
+  border-bottom: 1px solid black;
+  border-left: 1px solid #cccccc;
+  border-right: 1px solid black;
+}
+a.button2:hover {
+  background: #eeeeee;
+}
+a.button2:active {
   border-bottom: 1px solid #eeeeee;
   border-top: 1px solid black;
   border-right: 1px solid #eeeeee;

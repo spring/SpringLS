@@ -53,6 +53,18 @@
     return substr($string, strlen($beginning));
   }
 
+  function isValidIP($ip)
+  {
+    // pattern copied from: http://smart-pad.blogspot.com/2006/07/regular-expression-for-valid-ip.html
+    $ipPattern = 
+     '/\b(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.' .
+     '(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.' .
+     '(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.' .
+     '(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/';
+
+     return preg_match($ipPattern, $ip) == 1;
+  }
+  
   /* this will try to login current visitor assigning all needed session variables etc. 
      Some tutorials / sample code:
      * http://www.litfuel.net/tutorials/sockets/sockets.php

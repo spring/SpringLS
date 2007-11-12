@@ -57,6 +57,7 @@
               page_link("stats.php", "Server stats");
               page_link("notifs.php", "Server notifications");
               page_link("searchlog.php", "Search logs");
+              page_link("ban.php", "Ban control");
               page_link("userinfo.php", "User information");
               page_link("updating.php", "Update manager");
               page_link("editmotd.php", "Edit MOTD");
