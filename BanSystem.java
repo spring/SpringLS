@@ -30,14 +30,14 @@ public class BanSystem {
 		try {
 			while (rs.next()) {
 				BanEntry ban = new BanEntry();
-				ban.expireDate = rs.getTimestamp("ExpirationDate").getTime();
+				ban.expireDate = (rs.getTimestamp("ExpirationDate") != null ? rs.getTimestamp("ExpirationDate").getTime() : 0);
 				ban.username = rs.getString("Username");
 				ban.IP_start = rs.getLong("IP_start");
 				ban.IP_end = rs.getLong("IP_end");
 				ban.userID = rs.getInt("userID");
 				ban.publicReason = rs.getString("PublicReason");
 				
-				if (ban.expireDate < System.currentTimeMillis())
+				if ((ban.expireDate != 0) && (ban.expireDate < System.currentTimeMillis()))
 					continue; // already expired
 				banEntries.add(ban);
 			}
@@ -56,6 +56,13 @@ public class BanSystem {
 	public static BanEntry checkIfBanned(String username, long IP, int userID) {
 		for (int i = 0; i < banEntries.size(); i++) {
 			BanEntry ban = banEntries.get(i);
+			// check if already expired:
+			if ((ban.expireDate != 0) && (ban.expireDate < System.currentTimeMillis())) {
+				// already expired, so lets remove it and skip it:
+				banEntries.remove(i);
+				i--;
+				continue;
+			}
 
 			// check if banned by user ID:
 			if ((ban.userID != 0) && (userID != 0)) {
