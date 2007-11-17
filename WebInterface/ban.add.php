@@ -10,9 +10,9 @@ http://www.pageresource.com/dhtml/jtut6.htm
 http://en.wikipedia.org/wiki/Image:Sample_web_form.png
 (example form with radio buttons, checkboxes and text area)
 -->
- <Script Language="JavaScript">
+<Script Language="JavaScript">
  
- function switchEnabled(what) {
+function switchEnabled(what) {
   switch(what) {
     case(1):
     if (document.getElementById('C1').checked) {
@@ -45,9 +45,9 @@ http://en.wikipedia.org/wiki/Image:Sample_web_form.png
     
     break;
   }
- }
- 
- function checkCheckBoxes() {
+}
+
+function checkCheckBoxes() {
   if (document.getElementById('C1').checked == false &&
       document.getElementById('C2').checked == false &&
       document.getElementById('C3').checked == false)
@@ -59,106 +59,121 @@ http://en.wikipedia.org/wiki/Image:Sample_web_form.png
   {
     return true;
   }
- }
+}
 
 </Script>
 
- <FORM method="post" onsubmit="return checkCheckBoxes();" action="ban.process.php">
-  
-  <!-- general info box --> 
-  <table class="table4">
-  <tr>
-    <TD>Ban duration</TD>
-    <TD>
-     <input type="radio" name="R_bandDuration" value="limited" onclick="document.getElementById('dur_day').disabled=false; document.getElementById('dur_hours').disabled=false" checked> Ban for limited time
-     <br />
-     <input type="text" name="dur_days" id="dur_day" style="margin-left: 30px"> days
-     <br />
-     <input type="text" name="dur_hours" id="dur_hours" style="margin-left: 30px"> hours
-     <br />
-     <input type="radio" name="R_bandDuration" value="unlimited" onclick="document.getElementById('dur_day').disabled=true; document.getElementById('dur_hours').disabled=true"> Ban for indefinite time
-    </TD>
-  </tr>
-  <tr>
-    <TD colspan="2">Private reason (seen only by other mods):<BR>
-     <textarea name="privatereason" cols="50" rows="5"></textarea>
-    </TD>
-  </tr>
-  <tr>
-    <TD colspan="2">Public reason (seen by the banned user):<BR>
-     <textarea name="publicreason" cols="50" rows="2"></textarea>
-    </TD>
-  </tr>
-  </table>   
+<FORM method="post" onsubmit="return checkCheckBoxes();" action="ban.process.php">
+ 
+  <table class="table5" cellspacing="0">
+    <tr>
+      <!-- top-left space: -->
+      <td>
+      
+        <p>1. General fields:</p>
+        
+        <!-- general info box --> 
+        <table class="table4" width="300">
+        <tr>
+          <TD>Ban duration</TD>
+          <TD>
+           <input type="radio" name="R_bandDuration" value="limited" onclick="document.getElementById('dur_day').disabled=false; document.getElementById('dur_hours').disabled=false" checked> Ban for limited time
+           <br />
+           <input type="text" name="dur_days" id="dur_day" size=3 style="margin-left: 30px"> days
+           <br />
+           <input type="text" name="dur_hours" id="dur_hours" size=3 style="margin-left: 30px"> hours
+           <br />
+           <input type="radio" name="R_bandDuration" value="unlimited" onclick="document.getElementById('dur_day').disabled=true; document.getElementById('dur_hours').disabled=true"> Ban for indefinite time
+          </TD>
+        </tr>
+        <tr>
+          <TD colspan="2">Private reason (seen only by other mods):<BR>
+           <textarea name="privatereason" cols="50" rows="5"></textarea>
+          </TD>
+        </tr>
+        <tr>
+          <TD colspan="2">Public reason (seen by the banned user):<BR>
+           <textarea name="publicreason" cols="50" rows="2"></textarea>
+          </TD>
+        </tr>
+        </table>   
+      
+      </td> <!-- top-left space -->
 
-  <br />
+      <!-- top-right space: -->
+      <td>
+      
+        <p>2. Select one or more ban criteria:</p>
 
-  <p>Select one or more ban criteria:</p>
-   
-  <!-- USERNAME box --> 
-  <table class="table4" id="T1" width="300">
-  <tr>
-    <td colspan="4">
-      <input type="checkbox" id="C1" name="C1" value="1" onclick="switchEnabled(1);">Ban by username</input>
-      <hr width="100%" border='1' noshade color="#C5C5C5" />
-    </td>
-  </tr>
-  <tr>
-    <td>
-      Username: <input type="text" name="username" id="username">
-    </td>
-  </tr>
-  </table>
+        <!-- USERNAME box --> 
+        <table class="table4" id="T1" width="300">
+        <tr>
+          <td colspan="4">
+            <input type="checkbox" id="C1" name="C1" value="1" onclick="switchEnabled(1);">Ban by username</input>
+            <hr width="100%" border='1' noshade color="#C5C5C5" />
+          </td>
+        </tr>
+        <tr>
+          <td>
+            Username: <input type="text" name="username" id="username">
+          </td>
+        </tr>
+        </table>
+        
+        <br />
+        
+        <!-- IP RANGE box --> 
+        <table class="table4" id="T2" width="300">
+        <tr>
+          <td colspan="2">
+            <input type="checkbox" id="C2" name="C2" value="1" onclick="switchEnabled(2);">Ban by IP or IP range</input>
+            <hr width="100%" border='1' noshade color="#C5C5C5" />
+          </td>
+        </tr>
+        <tr>
+          <td>
+           First IP:<br /> <input type="text" name="ip_start" id="ip_start" size="15">
+          </td>
+          <td>
+           Last IP:<br /> <input type="text" name="ip_end" id="ip_end" size="15">
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2">
+            Note: To ban by IP, simply enter same IP in both boxes
+          </td>
+        </tr>
+        </table>   
+         
+        <br />
+         
+        <!-- USER ID box --> 
+        <table class="table4" id="T3" width="300">
+        <tr>
+          <td colspan="4">
+            <input type="checkbox" id="C3" name="C3" value="1" onclick="switchEnabled(3);">Ban by user ID</input>
+            <hr width="100%" border='1' noshade color="#C5C5C5" />
+          </td>
+        </tr>
+        <tr>
+          <td>
+           User ID: <input type="text" name="userid" id="userid">
+          </td>
+        </tr>
+        </table>   
+      
+      </td> <!-- top-right space -->
+
+    </tr>
+    <tr>
+      <td colspan="2" style="text-align: left;">
+        <p>3. Finaly, add new ban entry:</p>
+        <input type="submit" value="--->     Add ban entry     <---" style="width: 200px">
+      </td>
+    </tr>
+  </table>  
   
-  <br />
-  
-  <!-- IP RANGE box --> 
-  <table class="table4" id="T2" width="300">
-  <tr>
-    <td colspan="2">
-      <input type="checkbox" id="C2" name="C2" value="1" onclick="switchEnabled(2);">Ban by IP or IP range</input>
-      <hr width="100%" border='1' noshade color="#C5C5C5" />
-    </td>
-  </tr>
-  <tr>
-    <td>
-     First IP:<br /> <input type="text" name="ip_start" id="ip_start" size="15">
-    </td>
-    <td>
-     Last IP:<br /> <input type="text" name="ip_end" id="ip_end" size="15">
-    </td>
-  </tr>
-  <tr>
-    <td colspan="2">
-      Note: To ban by IP, simply enter same IP in both boxes
-    </td>
-  </tr>
-  </table>   
-   
-  <br />
-   
-  <!-- USER ID box --> 
-  <table class="table4" id="T3" width="300">
-  <tr>
-    <td colspan="4">
-      <input type="checkbox" id="C3" name="C3" value="1" onclick="switchEnabled(3);">Ban by user ID</input>
-      <hr width="100%" border='1' noshade color="#C5C5C5" />
-    </td>
-  </tr>
-  <tr>
-    <td>
-     User ID: <input type="text" name="userid" id="userid">
-    </td>
-  </tr>
-  </table>   
-   
-  <br />
-  <br />
-  
-  <input type="submit" value="--->     Add ban entry     <---" width=100>
-  
-  
- </FORM>
+</FORM>
  
 <Script Language="JavaScript">
   var originalBackgroundColor = document.getElementById('T1').style.backgroundColor;

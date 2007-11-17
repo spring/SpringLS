@@ -249,6 +249,20 @@ table.table3 td + td {
 }
 
 /**
+  Table type 5. Used to provide an invisible frame (table) in which you can put other tables then.
+  Used with ban.add.php page.
+**/
+table.table5 { 
+  border: 0px none #000000;
+  border-collapse: collapse;
+}
+table.table5 td {
+	text-align: left;
+	vertical-align: top;
+	padding: 10px;
+}
+
+/**
   Standard button type 1. Used with "updating.php".
   Copied from: http://wellstyled.com/css-inline-buttons.html
 **/
