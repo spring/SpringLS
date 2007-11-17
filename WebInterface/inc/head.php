@@ -47,7 +47,8 @@
             <?php
               function page_link($link, $title)
               {
-                if (basename($_SERVER['PHP_SELF']) == $link)
+                $base = basename($_SERVER['PHP_SELF']);
+                if (substr($base, 0, strpos($base, '.')) == substr($link, 0, strpos($base, '.')))
                   echo '<li style="font-weight: bold"><a href="' . $link . '" title="' . $title . '">' . $title . '</a></li>';
                 else
                   echo '<li><a href="' . $link . '" title="' . $title . '">' . $title . '</a></li>';
