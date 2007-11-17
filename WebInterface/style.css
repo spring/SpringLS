@@ -1,3 +1,13 @@
+/*  Browser specific (not valid) styles to make preformatted text wrap.
+      Copied from: http://users.tkk.fi/~tkarvine/pre-wrap-css3-mozilla-opera-ie.html */
+pre { 
+ white-space: pre-wrap;       /* css-3 */
+ white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+ white-space: -pre-wrap;      /* Opera 4-6 */
+ white-space: -o-pre-wrap;    /* Opera 7 */
+ word-wrap: break-word;       /* Internet Explorer 5.5+ */
+}
+
 .waterbody {
 /**	background:#CCCCCC; **/
 	margin:0;
@@ -446,4 +456,20 @@ a.button2:active {
   border-bottom: 2px #fff8e6 solid;
   border-right: 2px #fff8e6 solid;
   background-color: #bfaf84;
+}
+
+/**
+  Standard font type 1. Use with ban.list.php, for example.
+**/
+.font1 {
+  color: blue;
+  font-family: courier, sans-serif;
+}
+
+/**
+  Standard font type 2. Use with ban.list.php, for example.
+**/
+.font2 {
+  color: green;
+  font-family: courier, sans-serif;
 }
