@@ -109,7 +109,7 @@
     echo "<p>Click <a href='". basename($_SERVER['PHP_SELF']) . "'>here</a> for full mode.</p>";
   }
   
-  $select = "SELECT ID, Owner, Date, ExpirationDate, Username, IP_start, IP_end, userID, PrivateReason, PublicReason FROM BanEntries WHERE Enabled=1";
+  $select = "SELECT ID, Owner, Date, ExpirationDate, Username, IP_start, IP_end, userID, PrivateReason, PublicReason FROM BanEntries WHERE (Enabled=1 AND (ExpirationDate IS NULL OR ExpirationDate > CURRENT_TIMESTAMP))";
     
   // connect to the database:
   // (Done after this tutorial: http://www.databasejournal.com/features/mysql/article.php/1469211)
