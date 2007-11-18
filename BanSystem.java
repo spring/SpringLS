@@ -25,7 +25,7 @@ public class BanSystem {
 		
 		banEntries.clear();
 		
-		ResultSet rs = TASServer.database.execQuery("SELECT ExpirationDate, Username, IP_start, IP_end, userID, PublicReason FROM BanEntries WHERE Enabled=1");
+		ResultSet rs = TASServer.database.execQuery("SELECT ExpirationDate, Username, IP_start, IP_end, userID, PublicReason FROM BanEntries WHERE (Enabled=1 AND (ExpirationDate IS NULL OR ExpirationDate > CURRENT_TIMESTAMP))");
 		
 		try {
 			while (rs.next()) {
