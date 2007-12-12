@@ -11,8 +11,10 @@
   $constants['database_username'] = "anonymous";
   $constants['database_password'] = "anonymous";
 
-  /* restrictions for various pages (0 means no restrictions (default), 1 means "normal user" (that is user must be logged in),
-     2 means moderator and 3 means administrator. Pages not listed in this array have default restriction of 0.
+  /* restrictions for various pages (0 means no restrictions (default) which can be overriden with $restrict_default identifier
+     to restrict such a page, 1 means "normal user" (user must be logged in to view the page),
+     2 means moderator and 3 means administrator. Pages not listed in this array have default restriction of 0 (which can mean
+     that anyone can view such a page, or noone can view it - depends on the value of $restrict_default)
   */
   $restrictions = array();
   $restrictions['notifs.php'] = 2;
@@ -29,4 +31,10 @@
   $restrictions['updating.append.php'] = 3;
   $restrictions['updating.apply.php'] = 3;
   $restrictions['phpinfo.php'] = 3;
+
+  /* if this is set to true, then all the pages that are not listed in $restrictions array are restricted by default (for security reasons).
+     This means that noone (not even administrator) can open the page. This way the developer of the site is forced to set up correct restrictions
+     for all pages - if he forgets to set up restriction level for some page, that page will be locked and it won't open (for any user).
+  */
+  $restrict_default = false;
 ?>

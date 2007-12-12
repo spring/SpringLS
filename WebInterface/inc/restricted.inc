@@ -9,7 +9,9 @@
 
   switch ($access) {
   case 0:
-     // this should not really happen - page is not restricted at all!
+     // This should not really happen - page is not restricted at all (we probably forgot to specify access level for this page)! 
+     // If we came here that must mean that global $restrict_default is set to true, hence we completely restrict any access to this page.
+     $append = " (if you are an administrator, please set up access level for this page)";
      break;
   case 1:
      $append = " (you need to be <span style='color: blue; font-weight: bold'>logged in</span>)";

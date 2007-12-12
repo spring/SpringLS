@@ -6,15 +6,18 @@
      Returns true if user is authorized to view it, or false otherwise. */
   function checkAccess()
   {
-    global $restrictions;
-    return (intval($restrictions[basename($_SERVER['PHP_SELF'])]) > intval($_SESSION['access'])) ? false : true;
+    global $restrictions, $restrict_default;
+    $level = intval($restrictions[basename($_SERVER['PHP_SELF'])]);
+    // restrict by default (if $restrict_default is set to true and no restriction level is specified for this page) 
+    // or when user has lower access level than required for this page:
+    return (($level == 0 && $restrict_default) || $level > intval($_SESSION['access'])) ? false : true;
   }
 
   // copied from http://www.php.net/header. Note that the script that calls this function shouldn't output any data before it calls it!
   function redirect($page) {
     /* Redirect to a different page in the current directory that was requested */
-    $host  = $_SERVER['HTTP_HOST'];
-    $uri  = rtrim(dirname($_SERVER['PHP_SELF']), '/\\');
+    $host = $_SERVER['HTTP_HOST'];
+    $uri = rtrim(dirname($_SERVER['PHP_SELF']), '/\\');
     header("Location: http://$host$uri/$page");
     exit; /* Make sure that code below does not get executed when we redirect. */
   }
@@ -73,7 +76,6 @@
     return $ipa;
     return 1;
   }
-  
   
   // see comments on this page: http://si2.php.net/int
   function LONG2IP_($ipVal)
