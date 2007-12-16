@@ -57,7 +57,7 @@ public class Battle {
 		this.mapHash = mapHash;
 		this.modName = new String(modName);
 		this.disabledUnits = new ArrayList<String>();
-		this.startRects = new StartRect[10];
+		this.startRects = new StartRect[16];
 		this.locked = false; // we assume this by default. Client must make sure it is unlocked.
 		this.scriptTags = new HashMap<String, String>();
 		for (int i = 0; i < startRects.length; i++) startRects[i] = new StartRect();
