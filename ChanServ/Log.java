@@ -22,7 +22,7 @@ public class Log {
 	private static boolean part = false; // if true, we're in the middle of "part" output
 	public static boolean useExternalLogging = false; // if set to true, then all logs will be saved to "externalLogFileName" file
 	public static String externalLogFileName = ""; // if enableExternalLogging is true, then this is the file to which log will be saved
-	
+
 	private static boolean logToDisk(String text, boolean newLine) {
 		return Misc.outputLog(externalLogFileName, text, newLine);		
 	}

@@ -30,6 +30,11 @@ public class Misc {
 		return datenewformat;
     }
 	
+	/* returns a unix-like timestamp */
+	public static String getTimestamp() {
+		return "" + (System.currentTimeMillis() / 1000);
+	}
+	
 	/* puts together strings from sl, starting at sl[startIndex] */
 	public static String makeSentence(String[] sl, int startIndex) {
 		if (startIndex > sl.length-1) return "";
@@ -168,15 +173,20 @@ public class Misc {
 	   }
 	   while (!isSorted);
 	}	
-	
-	public static boolean outputLog(String fname, String text) {
-		return outputLog(fname, text, true);
+
+	/* fname is file name withouth path ("./logs" path is automatically added).
+	 * Timestamp is automatically added in front of the line. */
+	public static boolean outputLog(String fname, String line, boolean newLine) {
+		return appendTextToFile("./logs/" + fname, getTimestamp() + " " + line, newLine);
+	}
+
+	public static boolean outputLog(String fname, String line) {
+		return outputLog(fname, line, true);
 	}
 	
-	/* fname is file name withouth path ("./logs" path is automatically added) */
-	public static boolean outputLog(String fname, String text, boolean newLine) {
+	public static boolean appendTextToFile(String fname, String text, boolean newLine) {
 		try {
-			PrintStream out = new PrintStream(new BufferedOutputStream(new FileOutputStream("./logs/" + fname, true)));
+			PrintStream out = new PrintStream(new BufferedOutputStream(new FileOutputStream(fname, true)));
 			if (newLine)
 				out.println(text);
 			else

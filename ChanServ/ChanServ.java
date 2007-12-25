@@ -503,7 +503,9 @@ public class ChanServ {
 			}
 		} else if (commands[0].equals("CLIENTSTATUS")) {
 			for (int i = 0; i < clients.size(); i++) if (((Client)clients.get(i)).name.equals(commands[1])) {
-				((Client)clients.get(i)).setStatus(Integer.parseInt(commands[2]));
+				Client client = (Client)clients.get(i); 
+				client.setStatus(Integer.parseInt(commands[2]));
+				AntiSpamSystem.processClientStatusChange(client);
 				break;
 			}
 		} else if (commands[0].equals("JOIN")) {
@@ -512,9 +514,6 @@ public class ChanServ {
 			if (chan == null) return false; // this could happen just after we unregistered the channel (since there is always some lag between us and the server)
 			chan.joined = true;
 			chan.clearClients();
-			// put "logging started" header in the log file:
-			Misc.outputLog(chan.logFileName, "");
-			Misc.outputLog(chan.logFileName, "Log started on " + Misc.easyDateFormat("dd/MM/yy"));
 			// set topic, lock channel, ... :
 			if (!chan.isStatic) {
 				if (!chan.key.equals(""))
@@ -534,12 +533,12 @@ public class ChanServ {
 			Channel chan = getChannel(commands[1]);
 			if (chan == null) return false; // this could happen just after we unregistered the channel (since there is always some lag between us and the server)
 			chan.addClient(commands[2]);
-			Misc.outputLog(chan.logFileName, Misc.easyDateFormat("[HH:mm:ss]") + " * " + commands[2] + " has joined " + "#" + chan.name);
+			Misc.outputLog(chan.logFileName, "* " + commands[2] + " has joined " + "#" + chan.name);
 		} else if (commands[0].equals("LEFT")) { 
 			Channel chan = getChannel(commands[1]);
 			if (chan == null) return false; // this could happen just after we unregistered the channel (since there is always some lag between us and the server)
 			chan.removeClient(commands[2]);
-			String out = Misc.easyDateFormat("[HH:mm:ss]") + " * " + commands[2] + " has left " + "#" + chan.name;
+			String out = "* " + commands[2] + " has left " + "#" + chan.name;
 			if (commands.length > 3)
 				out = out + " (" + Misc.makeSentence(commands, 3) + ")";
 			Misc.outputLog(chan.logFileName, out);
@@ -550,14 +549,14 @@ public class ChanServ {
 			Channel chan = getChannel(commands[1]);
 			if (chan == null) return false; // this could happen just after we unregistered the channel (since there is always some lag between us and the server)
 			chan.topic = Misc.makeSentence(commands, 4);
-			Misc.outputLog(chan.logFileName, Misc.easyDateFormat("[HH:mm:ss]") + " * Channel topic is '" + chan.topic + "' set by " + commands[2]);
+			Misc.outputLog(chan.logFileName, "* Channel topic is '" + chan.topic + "' set by " + commands[2]);
 		} else if (commands[0].equals("SAID")) {
 			Channel chan = getChannel(commands[1]);
 			if (chan == null) return false; // this could happen just after we unregistered the channel (since there is always some lag between us and the server)
 			String user = commands[2];
 			String msg = Misc.makeSentence(commands, 3);
 			if (chan.antispam) AntiSpamSystem.processUserMsg(chan.name, user, msg);
-			Misc.outputLog(chan.logFileName, Misc.easyDateFormat("[HH:mm:ss]") + " <" + user + "> " + msg);
+			Misc.outputLog(chan.logFileName, "<" + user + "> " + msg);
 			if ((msg.length() > 0) && (msg.charAt(0) == '!')) processUserCommand(msg.substring(1, msg.length()), getClient(user), chan);
 		} else if (commands[0].equals("SAIDEX")) {
 			Channel chan = getChannel(commands[1]);
@@ -565,13 +564,13 @@ public class ChanServ {
 			String user = commands[2];
 			String msg = Misc.makeSentence(commands, 3);
 			if (chan.antispam) AntiSpamSystem.processUserMsg(chan.name, user, msg);
-			Misc.outputLog(chan.logFileName, Misc.easyDateFormat("[HH:mm:ss]") + " * " + user + " " + msg);
+			Misc.outputLog(chan.logFileName, "* " + user + " " + msg);
 		} else if (commands[0].equals("SAIDPRIVATE")) {
 			
 			String user = commands[1];
 			String msg = Misc.makeSentence(commands, 2);
 			
-			Misc.outputLog(user + ".log", Misc.easyDateFormat("[dd/MM/yy HH:mm:ss]") + " <" + user + "> " + msg);
+			Misc.outputLog(user + ".log", "<" + user + "> " + msg);
 			if ((msg.length() > 0) && (msg.charAt(0)) == '!') processUserCommand(msg.substring(1, msg.length()), getClient(user), null);
 		} else if (commands[0].equals("SERVERMSG")) {
 			Log.log("Message from server: " + Misc.makeSentence(commands, 1));
@@ -581,7 +580,7 @@ public class ChanServ {
 		} else if (commands[0].equals("CHANNELMESSAGE")) {
 			Channel chan = getChannel(commands[1]);
 			if (chan != null) {
-				String out = Misc.easyDateFormat("[HH:mm:ss]") + " * Channel message: " + Misc.makeSentence(commands, 2);
+				String out = "* Channel message: " + Misc.makeSentence(commands, 2);
 				Misc.outputLog(chan.logFileName, out);
 			}
 		} else if (commands[0].equals("BROADCAST")) {
@@ -1311,7 +1310,7 @@ public class ChanServ {
 	
 	public static void sendPrivateMsg(Client client, String msg) {
 		sendLine("SAYPRIVATE " + client.name + " " + msg);
-		Misc.outputLog(client.name + ".log", Misc.easyDateFormat("[dd/MM/yy HH:mm:ss]") + " <" + username + "> " + msg);
+		Misc.outputLog(client.name + ".log", "<" + username + "> " + msg);
 	}
 
 	/* this method will send a message either to a client or a channel. This method decides what to do
