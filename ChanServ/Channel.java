@@ -106,4 +106,13 @@ public class Channel {
 		return clients.indexOf(client) != -1;
 	}
 	
+	// returns 'null' if channel name is valid, or error description otherwise
+	public static String isChanNameValid(String channame) {
+		if (channame.length() > 20) return "Channel name too long";
+		if (channame.length() < 1) return "Channel name too short";
+		if (!channame.matches("^[A-Za-z0-9_\\[\\]]+$")) return "Channel name contains invalid characters";
+		// everything is OK:
+		return null;
+	}	
+	
 }

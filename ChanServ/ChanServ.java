@@ -725,6 +725,11 @@ public class ChanServ {
 			}
 				
 			String chanName = params[1].substring(1, params[1].length());
+			String valid = Channel.isChanNameValid(chanName);
+			if (valid != null) {
+				sendMessage(client, channel, "Error: Bad channel name (" + valid + ")");
+				return ;
+			}
 			
 			for (int i = 0; i < channels.size(); i++) {
 				if (((Channel)channels.get(i)).name.equals(chanName)) {
