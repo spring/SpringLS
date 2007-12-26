@@ -31,7 +31,7 @@ public class Misc {
     }
 	
 	/* returns a unix-like timestamp */
-	public static String getTimestamp() {
+	public static String getUnixTimestamp() {
 		return "" + (System.currentTimeMillis() / 1000);
 	}
 	
@@ -174,16 +174,6 @@ public class Misc {
 	   while (!isSorted);
 	}	
 
-	/* fname is file name withouth path ("./logs" path is automatically added).
-	 * Timestamp is automatically added in front of the line. */
-	public static boolean outputLog(String fname, String line, boolean newLine) {
-		return appendTextToFile("./logs/" + fname, getTimestamp() + " " + line, newLine);
-	}
-
-	public static boolean outputLog(String fname, String line) {
-		return outputLog(fname, line, true);
-	}
-	
 	public static boolean appendTextToFile(String fname, String text, boolean newLine) {
 		try {
 			PrintStream out = new PrintStream(new BufferedOutputStream(new FileOutputStream(fname, true)));

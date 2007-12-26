@@ -87,7 +87,9 @@ public class ChanServ {
 	static Socket socket = null;
     static PrintWriter sockout = null;
     static BufferedReader sockin = null;
-    static Timer timer; // keep alive timer
+    static Timer keepAliveTimer;
+    static Timer logCleanerTimer;
+    static boolean timersStarted = false;
     
     static Semaphore configLock = new Semaphore(1, true); // we use it when there is a danger of config object being used by main and TaskTimer threads simultaneously
     
@@ -101,12 +103,25 @@ public class ChanServ {
     static String lastMuteListChannel; // name of channel for which we are currently receiving (or we already did receive) mute list from the server
 	static Vector/*MuteListRequest*/ forwardMuteList = new Vector(); // list of current requests for mute lists.
     
+	// database related:
+	public static DBInterface database;
+	private static String DB_URL = "jdbc:mysql://127.0.0.1/ChanServLogs";
+	private static String DB_username = "";
+	private static String DB_password = "";
+	
     public static void closeAndExit() {
     	closeAndExit(0);
     }
     	
 	public static void closeAndExit(int returncode) {
 		AntiSpamSystem.uninitialize();
+		if (timersStarted) {
+			try {
+				stopTimers();
+			} catch (Exception e) {
+				// ignore
+			}
+		}
 		Log.log("Program stopped.");
 		System.exit(returncode);
 	}
@@ -145,6 +160,11 @@ public class ChanServ {
            //node = (Node)xpath.evaluate("config/account/username", config, XPathConstants.NODE);
            //node.setTextContent("this is a test!");
 
+           // read database info:
+           DB_URL = (String)xpath.evaluate("config/database/url/text()", config, XPathConstants.STRING);
+           DB_username = (String)xpath.evaluate("config/database/username/text()", config, XPathConstants.STRING);
+           DB_password = (String)xpath.evaluate("config/database/password/text()", config, XPathConstants.STRING);
+           
            // load remote access accounts:
            node = (Node)xpath.evaluate("config/remoteaccessaccounts", config, XPathConstants.NODE);
            if (node == null) {
@@ -533,7 +553,7 @@ public class ChanServ {
 			Channel chan = getChannel(commands[1]);
 			if (chan == null) return false; // this could happen just after we unregistered the channel (since there is always some lag between us and the server)
 			chan.addClient(commands[2]);
-			Misc.outputLog(chan.logFileName, "* " + commands[2] + " has joined " + "#" + chan.name);
+			Log.toFile(chan.logFileName, "* " + commands[2] + " has joined " + "#" + chan.name);
 		} else if (commands[0].equals("LEFT")) { 
 			Channel chan = getChannel(commands[1]);
 			if (chan == null) return false; // this could happen just after we unregistered the channel (since there is always some lag between us and the server)
@@ -541,7 +561,7 @@ public class ChanServ {
 			String out = "* " + commands[2] + " has left " + "#" + chan.name;
 			if (commands.length > 3)
 				out = out + " (" + Misc.makeSentence(commands, 3) + ")";
-			Misc.outputLog(chan.logFileName, out);
+			Log.toFile(chan.logFileName, out);
 		} else if (commands[0].equals("JOINFAILED")) {
 			channels.add(new Channel(commands[1]));
 			Log.log("Failed to join #" + commands[1] + ". Reason: " + Misc.makeSentence(commands, 2));
@@ -549,14 +569,14 @@ public class ChanServ {
 			Channel chan = getChannel(commands[1]);
 			if (chan == null) return false; // this could happen just after we unregistered the channel (since there is always some lag between us and the server)
 			chan.topic = Misc.makeSentence(commands, 4);
-			Misc.outputLog(chan.logFileName, "* Channel topic is '" + chan.topic + "' set by " + commands[2]);
+			Log.toFile(chan.logFileName, "* Channel topic is '" + chan.topic + "' set by " + commands[2]);
 		} else if (commands[0].equals("SAID")) {
 			Channel chan = getChannel(commands[1]);
 			if (chan == null) return false; // this could happen just after we unregistered the channel (since there is always some lag between us and the server)
 			String user = commands[2];
 			String msg = Misc.makeSentence(commands, 3);
 			if (chan.antispam) AntiSpamSystem.processUserMsg(chan.name, user, msg);
-			Misc.outputLog(chan.logFileName, "<" + user + "> " + msg);
+			Log.toFile(chan.logFileName, "<" + user + "> " + msg);
 			if ((msg.length() > 0) && (msg.charAt(0) == '!')) processUserCommand(msg.substring(1, msg.length()), getClient(user), chan);
 		} else if (commands[0].equals("SAIDEX")) {
 			Channel chan = getChannel(commands[1]);
@@ -564,13 +584,13 @@ public class ChanServ {
 			String user = commands[2];
 			String msg = Misc.makeSentence(commands, 3);
 			if (chan.antispam) AntiSpamSystem.processUserMsg(chan.name, user, msg);
-			Misc.outputLog(chan.logFileName, "* " + user + " " + msg);
+			Log.toFile(chan.logFileName, "* " + user + " " + msg);
 		} else if (commands[0].equals("SAIDPRIVATE")) {
 			
 			String user = commands[1];
 			String msg = Misc.makeSentence(commands, 2);
 			
-			Misc.outputLog(user + ".log", "<" + user + "> " + msg);
+			Log.toFile(user + ".log", "<" + user + "> " + msg);
 			if ((msg.length() > 0) && (msg.charAt(0)) == '!') processUserCommand(msg.substring(1, msg.length()), getClient(user), null);
 		} else if (commands[0].equals("SERVERMSG")) {
 			Log.log("Message from server: " + Misc.makeSentence(commands, 1));
@@ -581,7 +601,7 @@ public class ChanServ {
 			Channel chan = getChannel(commands[1]);
 			if (chan != null) {
 				String out = "* Channel message: " + Misc.makeSentence(commands, 2);
-				Misc.outputLog(chan.logFileName, out);
+				Log.toFile(chan.logFileName, out);
 			}
 		} else if (commands[0].equals("BROADCAST")) {
 			Log.log("*** Broadcast from server: " + Misc.makeSentence(commands, 1));
@@ -1301,7 +1321,7 @@ public class ChanServ {
 			}
 			
 			// stop the program:
-			stopKeepAliveTimer();
+			stopTimers();
 			saveConfig(CONFIG_FILENAME);
 			closeAndExit();
 		}
@@ -1310,7 +1330,7 @@ public class ChanServ {
 	
 	public static void sendPrivateMsg(Client client, String msg) {
 		sendLine("SAYPRIVATE " + client.name + " " + msg);
-		Misc.outputLog(client.name + ".log", "<" + username + "> " + msg);
+		Log.toFile(client.name + ".log", "<" + username + "> " + msg);
 	}
 
 	/* this method will send a message either to a client or a channel. This method decides what to do
@@ -1348,16 +1368,24 @@ public class ChanServ {
 		return null;
 	}
 	
-	public static void startKeepAliveTimer() {
-		timer = new Timer();
-		timer.schedule(new KeepAliveTask(),
+	public static void startTimers() {
+		keepAliveTimer = new Timer();
+		keepAliveTimer.schedule(new KeepAliveTask(),
                 1000,        //initial delay
                 15*1000);  //subsequent rate
+		
+		logCleanerTimer = new Timer();
+		logCleanerTimer.schedule(new LogCleaner(),
+                2000,        //initial delay
+                10*1000);  //subsequent rate
+		
+		timersStarted = true;
 	}
 
-	public static void stopKeepAliveTimer() {
+	public static void stopTimers() {
 		try {
-			timer.cancel();
+			keepAliveTimer.cancel();
+			logCleanerTimer.cancel();
 		} catch (Exception e) {
 			//
 		}
@@ -1368,14 +1396,14 @@ public class ChanServ {
 		Log.externalLogFileName = "$main.log";
 		Log.useExternalLogging = true;
 
-		// check if "./logs" folder exists, if not then create it:
-		File file = new File("./logs");
+		// check if LOG_FOLDER folder exists, if not then create it:
+		File file = new File(Log.LOG_FOLDER);
 		if (!file.exists()) {
 			if (!file.mkdir()) {
-				Log.error("unable to create ./logs folder! Exiting ...");
+				Log.error("unable to create " + Log.LOG_FOLDER + " folder! Exiting ...");
 				closeAndExit(1);
 			} else {
-				Log.log("Folder ./logs has been created");
+				Log.log("Folder " + Log.LOG_FOLDER + " has been created");
 			}
 		}
 
@@ -1396,11 +1424,20 @@ public class ChanServ {
 		if (!tryToConnect())
 			closeAndExit(1);
 		else {
-			startKeepAliveTimer();
+			startTimers();
 			connected = true;
 			messageLoop();
 			connected = false;
-			stopKeepAliveTimer();
+			stopTimers();
+		}
+		
+		// establish connection with database:
+		database = new DBInterface();
+		if (!database.loadJDBCDriver()) {
+			closeAndExit(1);
+		}
+		if (!database.connectToDatabase(DB_URL, DB_username, DB_password)) {
+			closeAndExit(1);
 		}
 		
 		// we are out of the main loop (due to an error, for example), lets reconnect:
@@ -1412,11 +1449,11 @@ public class ChanServ {
 
 	    	Log.log("Trying to reconnect to the server ...");
 			if (!tryToConnect()) continue;
-			startKeepAliveTimer();
+			startTimers();
 			connected = true;
 			messageLoop();
 			connected = false;
-			stopKeepAliveTimer();
+			stopTimers();
 		}
 		
 		// AntiSpamSystem.uninitialize(); -> this code is unreachable. We call it in closeAndExit() method!
