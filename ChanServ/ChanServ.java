@@ -1421,6 +1421,15 @@ public class ChanServ {
 		remoteAccessServer = new RemoteAccessServer(remoteAccessPort);
 		remoteAccessServer.start();
 		
+		// establish connection with database:
+		database = new DBInterface();
+		if (!database.loadJDBCDriver()) {
+			closeAndExit(1);
+		}
+		if (!database.connectToDatabase(DB_URL, DB_username, DB_password)) {
+			closeAndExit(1);
+		}
+
 		if (!tryToConnect())
 			closeAndExit(1);
 		else {
@@ -1429,15 +1438,6 @@ public class ChanServ {
 			messageLoop();
 			connected = false;
 			stopTimers();
-		}
-		
-		// establish connection with database:
-		database = new DBInterface();
-		if (!database.loadJDBCDriver()) {
-			closeAndExit(1);
-		}
-		if (!database.connectToDatabase(DB_URL, DB_username, DB_password)) {
-			closeAndExit(1);
 		}
 		
 		// we are out of the main loop (due to an error, for example), lets reconnect:
