@@ -80,15 +80,16 @@ public class LogCleaner extends TimerTask {
 		File[] files = tempFolder.listFiles();
 		for(int i = 0; i < files.length; i++) {
 			File file = files[i];
+			String name = file.getName().substring(0, file.getName().length() - 4); // remove ".log" from the end of the file name
 
 			try {
-            	if (!ChanServ.database.doesTableExist(file.getName())) {
-            		boolean result= ChanServ.database.execUpdate("CREATE TABLE '" + file.getName() + "' (" + Misc.EOL + 
+            	if (!ChanServ.database.doesTableExist(name)) {
+            		boolean result= ChanServ.database.execUpdate("CREATE TABLE '" + name + "' (" + Misc.EOL + 
             													 "id INT NOT NULL AUTO_INCREMENT, " + Misc.EOL +
             													 "stamp timestamp NOT NULL, " + Misc.EOL +
             													 "line TEXT NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
             		if (!result) {
-            			Log.error("Unable to create table '" + file.getName() + "' in the database!");
+            			Log.error("Unable to create table '" + name + "' in the database!");
             			return ;
             		}
             	}
@@ -111,7 +112,7 @@ public class LogCleaner extends TimerTask {
 	            	}
 					
 	            	if (lineCount == 0) {
-		            	update += "INSERT INTO '" + file.getName() + "' (stamp, line) values (" + stamp + ", '" + line.substring(line.indexOf(' ')+1, line.length()) + "')";
+		            	update += "INSERT INTO '" + name + "' (stamp, line) values (" + stamp + ", '" + line.substring(line.indexOf(' ')+1, line.length()) + "')";
 	            	} else {
 	            		update += ","+ Misc.EOL + 
 	            				  "(" + stamp + ", '" + line.substring(line.indexOf(' ')+1, line.length()) + "')";	            		
