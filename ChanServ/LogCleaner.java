@@ -84,10 +84,11 @@ public class LogCleaner extends TimerTask {
 
 			try {
             	if (!ChanServ.database.doesTableExist(name)) {
-            		boolean result= ChanServ.database.execUpdate("CREATE TABLE '" + name + "' (" + Misc.EOL + 
+            		boolean result= ChanServ.database.execUpdate("CREATE TABLE `" + name + "` (" + Misc.EOL + 
             													 "id INT NOT NULL AUTO_INCREMENT, " + Misc.EOL +
             													 "stamp timestamp NOT NULL, " + Misc.EOL +
-            													 "line TEXT NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
+            													 "line TEXT NOT NULL, " + Misc.EOL +
+            													 "primary key(id)) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
             		if (!result) {
             			Log.error("Unable to create table '" + name + "' in the database!");
             			return ;
@@ -112,7 +113,7 @@ public class LogCleaner extends TimerTask {
 	            	}
 					
 	            	if (lineCount == 0) {
-		            	update += "INSERT INTO '" + name + "' (stamp, line) values (" + stamp + ", '" + line.substring(line.indexOf(' ')+1, line.length()) + "')";
+		            	update += "INSERT INTO `" + name + "` (stamp, line) values (" + stamp + ", '" + line.substring(line.indexOf(' ')+1, line.length()) + "')";
 	            	} else {
 	            		update += ","+ Misc.EOL + 
 	            				  "(" + stamp + ", '" + line.substring(line.indexOf(' ')+1, line.length()) + "')";	            		
