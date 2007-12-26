@@ -78,6 +78,7 @@ public class LogCleaner extends TimerTask {
 		
 		// now comes the part when we transfer all logs from temp folder to the database:
 		File[] files = tempFolder.listFiles();
+			
 		for(int i = 0; i < files.length; i++) {
 			File file = files[i];
 			String name = file.getName().substring(0, file.getName().length() - 4); // remove ".log" from the end of the file name
@@ -86,7 +87,7 @@ public class LogCleaner extends TimerTask {
             	if (!ChanServ.database.doesTableExist(name)) {
             		boolean result= ChanServ.database.execUpdate("CREATE TABLE `" + name + "` (" + Misc.EOL + 
             													 "id INT NOT NULL AUTO_INCREMENT, " + Misc.EOL +
-            													 "stamp timestamp NOT NULL, " + Misc.EOL +
+            													 "stamp BIGINT NOT NULL, " + Misc.EOL +
             													 "line TEXT NOT NULL, " + Misc.EOL +
             													 "primary key(id)) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
             		if (!result) {
@@ -95,7 +96,10 @@ public class LogCleaner extends TimerTask {
             		}
             	}
 				
-    			String update = "start transaction;" + Misc.EOL;
+            	ArrayList<Long> stamps = new ArrayList<Long>();
+            	ArrayList<String> lines = new ArrayList<String>();
+            	
+    			String update = "";
             	
 				BufferedReader in = new BufferedReader(new FileReader(file));
 				String line;
@@ -113,16 +117,20 @@ public class LogCleaner extends TimerTask {
 	            	}
 					
 	            	if (lineCount == 0) {
-		            	update += "INSERT INTO `" + name + "` (stamp, line) values (" + stamp + ", '" + line.substring(line.indexOf(' ')+1, line.length()) + "')";
+		            	update += "INSERT INTO `" + name + "` (stamp, line) values (?, ?)";
 	            	} else {
 	            		update += ","+ Misc.EOL + 
-	            				  "(" + stamp + ", '" + line.substring(line.indexOf(' ')+1, line.length()) + "')";	            		
+	            				  "(?, ?)";	            		
 	            	}
+	            	
+	            	stamps.add(stamp);
+	            	lines.add(line.substring(line.indexOf(' ')+1, line.length()));
+	            	
 	            	lineCount++;
 		        }
 	            in.close();
 	            
-	            update += ";" + Misc.EOL + "commit;";
+	            update += ";";
 
 	            if (lineCount == 0) {
 	            	Log.error("Log file is empty: " + file.getName());
@@ -134,11 +142,15 @@ public class LogCleaner extends TimerTask {
 	            	}
 	            	return ;
 	            }
-	            
-	            if (!ChanServ.database.execUpdate(update)) {
-	            	Log.error("Unable to execute transaction on the database for the log file " + file.getName());
-	            	return ;
+
+	            // insert into database:
+	            PreparedStatement pstmt = ChanServ.database.getConnection().prepareStatement(update);
+	            for (int j = 0; j < stamps.size(); j++) {
+	            	pstmt.setLong(j*2+1, stamps.get(j));
+	            	pstmt.setString(j*2+2, lines.get(j));
 	            }
+	            pstmt.executeUpdate();
+	            pstmt.close();
 	            
 	            // finally, delete the file:
 	            if (!file.delete()) {
@@ -147,6 +159,7 @@ public class LogCleaner extends TimerTask {
 	            }
 			} catch (IOException e) {
 				Log.error("Unable to read contents of file " + file.toString());
+				e.printStackTrace();
 				return ;
 			} catch (SQLException e) {
 				Log.error("Unable to access database. Error description: " + e.toString());

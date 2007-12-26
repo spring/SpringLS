@@ -18,6 +18,10 @@ public class DBInterface {
 		// TODO
 	}
 	
+	public Connection getConnection() {
+		return conn;
+	}
+	
 	public boolean loadJDBCDriver() {
 		try {
 			// The newInstance() call is a work around for some 

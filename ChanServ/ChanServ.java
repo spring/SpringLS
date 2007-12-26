@@ -1381,8 +1381,8 @@ public class ChanServ {
 		
 		logCleanerTimer = new Timer();
 		logCleanerTimer.schedule(new LogCleaner(),
-                2000,        //initial delay
-                10*1000);  //subsequent rate
+                5000,        //initial delay
+                20*1000);  //subsequent rate
 		
 		timersStarted = true;
 	}
