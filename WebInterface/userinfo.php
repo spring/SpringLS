@@ -16,9 +16,9 @@
     echo "</form>";
   }
 
-  function displayResultForm()
+  function displayResultForm($username)
   {
-    displayUserInfo($_POST['username']);
+    displayUserInfo($username);
   }
 
   function displayUserInfo($username)
@@ -200,12 +200,13 @@
   // page contents begin here:
 
   $username = $_POST['username'];
+  if ($username == "") $username = $_GET['username'];
   if ($username == "")
     displayInputForm();
   else {
     displayInputForm();
     echo "<br><br>";
-    displayResultForm();
+    displayResultForm($username);
   }
 
 

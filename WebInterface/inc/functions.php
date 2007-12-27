@@ -273,4 +273,8 @@
     echo "<span style='color: red; font-weight: bold;'>$error</span>";
   }
 
+  function microtime_float() {
+      list($usec, $sec) = explode(" ", microtime());
+      return ((float)$usec + (float)$sec);
+  }  
 ?>

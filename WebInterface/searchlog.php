@@ -4,8 +4,23 @@
 
     require("inc/searchlog.functions.php");
 
+    function goBackButton()
+    {
+      echo "<a class='button1' href='javascript:history.go(-1)'>Go back</a>";
+    }
+    
+    function returnError($err_msg) 
+    {
+      printError($err_msg);
+      echo "<br />";
+      echo "<br />";
+      goBackButton();
+      exit();
+    }
+  
     function displaySearchForm()
     {
+      print "<span style='color: blue; font-weight: bold;'>Important notice: On 2007/12/26 older logs were moved to an archive and new logs are available only through a database, so any logs from before that date are unavailable.</span>";
       print "<p> Select one or more criteria and click Submit: </p>";
 
       echo "  <form action='{$PHP_SELF}' method='post'>";
@@ -25,32 +40,46 @@
 
     function displayLog($keyword, $mindate, $maxdate)
     {
-      $filename = "../ChanServ/logs/#main.log";
-      print "<p>Using file {$filename}.</p>";
+      $logname = "#main";
+    
+      print "<p>Using channel log {$logname}.</p>";
       print "<p>Time stamps are relative to CET - Central European Time.</p>";
       print "<br>";
       print "Search results:";
       print '<div style="font-family: Fixedsys, "Lucida Console", monospace">';
       print "<hr />";
 
+      $timer = microtime_float();
+      
       $count = 0;
 
-      $command = "./searchlog " . $filename;
-      if (strlen($keyword) > 0) $command = $command . " k " . '"' . $keyword . '"';
-      if ($mindate != 0) $command = $command . " m " . $mindate;
-      if ($maxdate != 0) $command = $command . " M " . $maxdate;
-
-      $handle = popen($command, "r");
-      while (!feof($handle))
-      {
-        $read = fgets($handle, 1024);
-        if (feof($handle)) continue;
-//        echo "<i>" . htmlspecialchars(rtrim($read)) . "</i><br>";
-        echo htmlspecialchars(rtrim($read)) . "<br>";
-        $count += 1;
+      $dbh = mysql_connect($constants['database_url'], $constants['database_username'], $constants['database_password']) 
+        or returnError("Unable to connect to the database.");
+      $selected = mysql_select_db("ChanServLogs", $dbh) 
+        or returnError("Problems connecting to the database. Error: " . mysql_error());
+     
+      $select = "SELECT stamp, line FROM `" . $logname . "`";
+      if (($mindate != 0) && ($maxdate != 0)) {
+        $select .= " WHERE stamp > " . $mindate . " AND stamp < " . $maxdate;
+      } elseif (($mindate == 0) && ($maxdate != 0)) {
+        $select .= " WHERE stamp < " . $maxdate;
+      } elseif (($mindate != 0) && ($maxdate == 0)) {
+        $select .= " WHERE stamp > " . $mindate;
       }
-      pclose($handle);
+      
+      $result = mysql_query($select);
+      while($row = mysql_fetch_row($result))
+      {
+        if (strlen($keyword) > 0) 
+          if (strpos($row[1], $keyword) === false) 
+            continue;
 
+        echo "[" . date('Y-m-d H:i:s', $row[0]) . "] " . htmlspecialchars(rtrim($row[1])) . "<br>";
+        $count += 1;
+      }     
+      
+      mysql_close($dbh);
+        
       if ($count == 0)
       {
         echo "No mathing lines have been found! Try searching using different keyword.";
@@ -59,7 +88,8 @@
 
       print "<hr />";
       print "</div>";
-      echo "<br> $count lines mathing search criteria. <br> End of file.";
+      $timer = microtime_float() - $timer;
+      printf("<br> %d lines mathing search criteria. Query took %01.2f seconds <br> End of file.", $count, $timer);
     }
 
     // this is where execution of this script starts:
