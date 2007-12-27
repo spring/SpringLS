@@ -7,7 +7,7 @@
  * This is the procedure it follows:
  * 1) Check if temp_logs folder exists. If not, create it.
  * 2) Check if there are any files in temp_logs folder.
- *    If there are, skip to 4), or else continue with 4).
+ *    If there are, skip to 4), or else continue with 3).
  * 3) Lock access to logs globally in ChanServ, then move
  *    all log files to temp_logs folder.
  * 4) Transfer all logs from temp_logs folder to a database

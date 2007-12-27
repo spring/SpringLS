@@ -112,7 +112,7 @@ class AntiSpamTask extends TimerTask {
 public class AntiSpamSystem {
 
 	final static int CHECK_CLIENTSTATUSCHANGE_INTERVAL = 3000; // in milliseconds. Once every so milliseconds, we will reset the counter in Client class that counts how many CLIENTSTATUS command have been received from a user
-	final static float MAX_CLIENTSTATUSCHANGE_FREQUENCY = 4.0f; // max frequency of CLIENTSTATUS command (if we receive more than this times per second, we have a problem. We must still check MIN_CLIENTSTATUCCHANGE_COUNT_BEFORE_ALERT before taking actions, because a user might change status quickly (in few milliseconds) by accident (if spring crashes, for example)
+	final static float MAX_CLIENTSTATUSCHANGE_FREQUENCY = 5.0f; // max frequency of CLIENTSTATUS command (if we receive more than this times per second, we have a problem. We must still check MIN_CLIENTSTATUCCHANGE_COUNT_BEFORE_ALERT before taking actions, because a user might change status quickly (in few milliseconds) by accident (if spring crashes, for example)
 	final static int MIN_CLIENTSTATUCCHANGE_COUNT_BEFORE_ALERT = 5;
 	
 	// as a key in this list we use a combination of "channame:username"
