@@ -97,66 +97,55 @@
   function login($username, $password)
   {
     global $constants;
+    $password = md5_base64($password);
 
-    $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-    $result = socket_connect($socket, $constants['remote_address'], $constants['remote_port']);
-    if ($result === false) {
-      $_SESSION['error'] = "socket_connect() failed.\nReason: ($result) " . socket_strerror(socket_last_error($socket));
-      return;
+    $renewed = false; // has the account, to which this user is logging in, been renewed already?
+    
+    $dbh = mysql_connect($constants['database_url'], $constants['database_username'], $constants['database_password']) 
+      or printErrorAndDie("Unable to connect to the database. Error: " . mysql_error());
+    $selected = mysql_select_db("spring", $dbh) 
+      or printErrorAndDie("Problems connecting to the database. Error: " . mysql_error());
+    
+    $select = "SELECT * FROM `Accounts` WHERE Username = '" . $username . "'";
+    $result = mysql_query($select);
+    if (!$result) printErrorAndDie("Problems accessing the database. Error: " . mysql_error());
+    $row = mysql_fetch_row($result);
+    
+    if ($row === false) {
+      $select = "SELECT * FROM `OldAccounts` WHERE Username = '" . $username . "'";
+      $result = mysql_query($select);
+      if (!$result) printErrorAndDie("Problems accessing the database. Error: " . mysql_error());
+      $row = mysql_fetch_row($result);
+      
+      if ($row === false) {
+        // bad username
+        $_SESSION['error'] = "Bad username/password";
+        return;      
+      } elseif ($row[4] != $password) {
+        // bad password
+        $_SESSION['error'] = "Bad username/password";
+        return;      
+      }
+      
+      $renewed = false; // using old account
+    } else {
+      if ($row[4] != $password) {
+        // bad password
+        $_SESSION['error'] = "Bad username/password";
+        return;      
+      }
+      $renewed = true; // account has already been renewed (this is the new account)
     }
 
-    $in = "identify " . $constants['access_key'] . "\n";
-    socket_write($socket, $in, strlen($in));
+    mysql_close($dbh);
 
-    // read the response:
-//    while ($out = socket_read($socket, 2048)) {
-//      echo $out;
-//    }
-    $out = trim(socket_read($socket, 2048));
-    if ($out == 'FAILED') {
-      $_SESSION['error'] = "Unable to acquire link with the server";
-      return;
-    } else if ($out != 'PROCEED')
-    {
-      $_SESSION['error'] = "Error while trying to connect to server";
-      return;
-    }
-
-    $in = "TESTLOGIN " . $username . " " . md5_base64($password) . "\n";
-    socket_write($socket, $in, strlen($in));
-    $out = trim(socket_read($socket, 2048));
-    if ($out == 'LOGINBAD')
-    {
-      $_SESSION['error'] = "Bad username/password";
-      return;
-    } else if ($out != 'LOGINOK')
-    {
-      $_SESSION['error'] = "Error in communication with server";
-      return;
-    }
-
-    // get access level:
-    $in = "GETACCESS " . $username . "\n";
-    socket_write($socket, $in, strlen($in));
-    $out = trim(socket_read($socket, 2048));
-    if ($out == '0')
-    {
-      $_SESSION['error'] = "Error in communication with server (#2)";
-      return;
-    }
-    if ((intval($out) < 1) || (intval($out) > 3))
-    {
-      $_SESSION['error'] = "Error in communication with server (#3)";
-      return;
-    }
-    $access = $out;
-
-    socket_close($socket);
+    $access = $row[5] & 7;
 
     // ok everything seems fine, log the user in (create session data etc.):
     unset($_SESSION['error']);
     $_SESSION['username'] = $username;
     $_SESSION['access'] = $access;
+    $_SESSION['renewed'] = $renewed; // if true, then this account is the new account (renewed), or else it is an old account (not renewed yet)
     $_SESSION['last_timestamp'] = time(); // last time when user accessed some page. Used with manual timeout checking
   }
 
@@ -249,6 +238,11 @@
       echo "    <input type='submit' value='Logout'><br>";
       echo "    </form>";
       echo "  </td></tr>";
+      if (isset($_SESSION['renewed']) && $_SESSION['renewed'] == false) {
+        echo "  <tr><td>";
+        echo "<br><span style='color: blue'>Go <a href='renew.php'>here</a> to renew your account!</span>";
+        echo "  </td></tr>";
+      }
       echo "</table>";
 
     }
@@ -273,8 +267,30 @@
     echo "<span style='color: red; font-weight: bold;'>$error</span>";
   }
 
+  function printErrorAndDie($error) {
+    printError($error);
+    die();
+  }
+
+  function goBackButton($level = 1)
+  {
+    echo "<a class='button1' href='javascript:history.go(-" . $level . ")'>Go back</a>";
+  }  
+
   function microtime_float() {
       list($usec, $sec) = explode(" ", microtime());
       return ((float)$usec + (float)$sec);
-  }  
+  }
+  
+  function transaction_begin() {
+    @mysql_query("BEGIN");
+  }
+  
+  function transaction_commit() {
+    @mysql_query("COMMIT");
+  }
+  
+  function transaction_rollback() {
+    @mysql_query("ROLLBACK");
+  }
 ?>

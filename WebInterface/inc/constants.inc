@@ -3,7 +3,7 @@
   $constants['remote_address'] = "89.212.76.147";
   $constants['remote_port'] = "8205";
   $constants['access_key'] = "phpscript:pass"; // remote access key
-  $constants['session_timeout_time'] = 10 * 60; // in seconds. After so many seconds of inactivity, user will be automatically logged out
+  $constants['session_timeout_time'] = 20 * 60; // in seconds. After so many seconds of inactivity, user will be automatically logged out
   $constants['updates_file'] = "../updates.xml"; // file name (and path) to the updates.xml file
   $constants['motd_file'] = "../motd.txt"; // file name (and path) to the updates.xml file
   $constants['database_url'] = "127.0.0.1"; // database where ban entries are stored etc.
