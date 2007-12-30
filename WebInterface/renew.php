@@ -194,20 +194,6 @@
     $selected = mysql_select_db("spring", $dbh) 
       or returnError("Problems connecting to the database. Error: " . mysql_error());
    
-    $select = "SELECT * FROM `OldAccounts` WHERE Username = '" . $_SESSION['username'] . "'";
-    $result = mysql_query($select);
-    if (!$result) {
-      returnError("Problems accessing the database. Error: " . mysql_error());
-    }
-    $row = mysql_fetch_row($result);
-    if ($row === false) {
-      returnError("Problems accessing the database. Your username could not be found (this should not happen). Please report this error!");
-    }
-    
-    if ($row[2] == 1) {
-      returnError("Error: this account has already been renewed. Cancelling operation ...");
-    }
-    
     // really good introduction to mysql transactions: http://www.devshed.com/c/a/MySQL/Using-Transactions-In-MySQL-Part-1/
     
     transaction_begin();
@@ -234,6 +220,21 @@
       returnError("Error: account with username '" . $_SESSION['verified_new_username'] . "' already exists (but hasn't been renewed yet) - please choose another username. Operation cancelled.", 2);
     }
 
+    // now select our own record so that we can transfer it to new account:
+    $select = "SELECT * FROM `OldAccounts` WHERE Username = '" . $_SESSION['username'] . "'";
+    $result = mysql_query($select);
+    if (!$result) {
+      returnError("Problems accessing the database. Error: " . mysql_error());
+    }
+    $row = mysql_fetch_row($result);
+    if ($row === false) {
+      returnError("Problems accessing the database. Your username could not be found (this should not happen). Please report this error!");
+    }
+    
+    if ($row[2] == 1) {
+      returnError("Error: this account has already been renewed. Cancelling operation ...");
+    }
+    
     $insert = "INSERT INTO Accounts (Username, Nickname, Password, AccessBits, RegistrationDate) values (";
     $insert .= "'" . $_SESSION['verified_new_username'] . "', '" . $_SESSION['verified_new_nickname'] . "', '" . $row[4] . "', " . $row[5] . ", " . $row[6] . ");";
     $update = "UPDATE OldAccounts SET Transferred=1, NewUsername='" . $_SESSION['verified_new_username'] . "' WHERE Username='" . $_SESSION['username'] . "';";
