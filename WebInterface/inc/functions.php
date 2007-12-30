@@ -126,7 +126,13 @@
         $_SESSION['error'] = "Bad username/password";
         return;      
       }
-      
+
+      if ($row[1] == 1) {
+        // can't log in old account that has already been renewed
+        $_SESSION['error'] = "This account has been renewed";
+        return;      
+      }
+
       $renewed = false; // using old account
     } else {
       if ($row[4] != $password) {
