@@ -11,6 +11,37 @@
     exit();
   }
 
+  function forceUpdate()
+  {
+    $conn = new ServerConnection();
+    if (($res = $conn->connect()) !== true)
+    {
+      printError("<p style='color: black; font-weight: bold'>" . "Error: " . $res . "</p>");
+      return;
+    }
+    if (($conn->identify()) == false)
+    {
+      printError("<p style='color: black; font-weight: bold'>" . "Error while trying to authenticate with the server" . "</p>");
+      return;
+    }
+
+    if (($res = $conn->sendLine("queryserver RETRIEVELATESTBANLIST")) !== TRUE)
+    {
+      printError("<p style='color: black; font-weight: bold'>" . "Error while communicating with the server" . "</p>");
+      return;
+    }
+    if (($res = $conn->readLine()) === FALSE)
+    {
+      printError("<p style='color: black; font-weight: bold'>" . "Error while communicating with the server" . "</p>");
+      return;
+    }
+
+    $res = removeBeginning($res, 'SERVERMSG ');
+    echo "<p>Server has successfully updated ban records from the database.</p>";
+
+    // close connection with server:
+    $conn->close();
+  }  
     
   //$bandur; // ban duration. If 1, then we banned for limited time, if 2, we banned for indefinite time
   if ($_POST["R_bandDuration"] == "limited") $bandur = 1;
@@ -97,7 +128,8 @@
   
   mysql_close($dbh);
   
-  echo "<p>New ban entry has been successfully created.</p>";
+  echo "<p>New ban entry has been successfully created. Now forcing TASServer to fetch new ban entries from the database ... </p>";
+  forceUpdate();
   echo "<a class='button1' href='ban.php'>OK</a>";
   
 ?>
