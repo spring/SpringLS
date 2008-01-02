@@ -33,7 +33,7 @@
      	  <?php
      	    echo "<h1>TASServer Web Interface</h1>";
           echo "<span style='color: green; font-weight: bold;'>
-                Important notice: until Spring 0.76 release, this site will not be connected to actual lobby accounts
+                Important notice: until Spring 0.76b2 release, this site will not be connected to actual lobby accounts
                 but will rather be using temporary accounts that were transfered to a database from TASServer on 28.12.2007.
                 This will remain so until next release as this site is being updated to use new account database.
                 </span>

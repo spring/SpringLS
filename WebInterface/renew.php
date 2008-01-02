@@ -2,7 +2,7 @@
 
 <?php
 
-  $explanation = "Since Spring 0.76 (lobby server version 0.35), all accounts have been transferred
+  $explanation = "Since Spring 0.76b2 (lobby server version 0.36), all accounts have been transferred
                   to a database and need to be renewed in order to be reactivated again.
                   This is required because certain new restrictions have been applied to accounts.
                   After you will renew your account you won't be able to rename it anymore, however you will 
