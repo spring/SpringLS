@@ -39,7 +39,7 @@
  *   
  * * QUERYSERVER {server command}  
  *   This will forward the given command directly to server and then forward server's response back to the client.
- *   This command means potential security risc. Will be replaced in the future by a set of user specific commands.
+ *   This command means potential security risk. Will be replaced in the future by a set of user specific commands.
  *   Currently commands that may be passed to this function are limited - only some command are allowed. This is so
  *   in order to avoid some security risks with the command.
  *   If the operation fails for some reason, socket will simply get disconnected.   
@@ -65,6 +65,7 @@ public class RemoteAccessServer extends Thread {
 		"RELOADUPDATEPROPERTIES",
 		"GETLOBBYVERSION",
 		"UPDATEMOTD",
+		"RETRIEVELATESTBANLIST"
 		};
 	
 	public Vector threads = new Vector(); // here we keep a list of all currently running client threads
