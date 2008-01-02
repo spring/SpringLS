@@ -129,7 +129,7 @@
 
       if ($row[1] == 1) {
         // can't log in old account that has already been renewed
-        $_SESSION['error'] = "This account has been renewed";
+        $_SESSION['error'] = "This account has already been renewed";
         return;      
       }
 
