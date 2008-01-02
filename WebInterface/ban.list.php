@@ -3,11 +3,6 @@
 <?php
   // useful link: http://www.databasejournal.com/features/mysql/article.php/10897_1469211_2
   
-  function goBackButton()
-  {
-    echo "<a class='button1' href='javascript:history.go(-1)'>Go back</a>";
-  }
-  
   function deleteButton($id)
   {
     return "<a class='button1' href='ban.delete.php?id={$id}'>Delete</a>";

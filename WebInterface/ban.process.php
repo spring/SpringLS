@@ -1,10 +1,6 @@
 <?php require("inc/head.php") ?>
 
 <?php 
-  function goBackButton()
-  {
-    echo "<a class='button1' href='javascript:history.go(-1)'>Go back</a>";
-  }
   
   function returnError($err_msg) 
   {
