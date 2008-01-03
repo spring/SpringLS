@@ -36,6 +36,40 @@
     echo '  </table>';
     echo '</FORM>';
   }
+  
+  function forceUpdate()
+  {
+    $conn = new ServerConnection();
+    if (($res = $conn->connect()) !== true)
+    {
+      printError("<p style='color: black; font-weight: bold'>" . "Error: " . $res . "</p>");
+      return false;
+    }
+    if (($conn->identify()) == false)
+    {
+      printError("<p style='color: black; font-weight: bold'>" . "Error while trying to authenticate with the server" . "</p>");
+      return false;
+    }
+
+    if (($res = $conn->sendLine("queryserver RETRIEVELATESTBANLIST")) !== TRUE)
+    {
+      printError("<p style='color: black; font-weight: bold'>" . "Error while communicating with the server" . "</p>");
+      return false;
+    }
+    if (($res = $conn->readLine()) === FALSE)
+    {
+      printError("<p style='color: black; font-weight: bold'>" . "Error while communicating with the server" . "</p>");
+      return false;
+    }
+
+    $res = removeBeginning($res, 'SERVERMSG ');
+    echo "<p>Server has successfully updated ban records from the database.</p>";
+
+    // close connection with server:
+    $conn->close();
+    
+    return true;
+  }  
 
   if (!$_GET["id"]) {
     returnError("Ban ID is missing!");
@@ -71,7 +105,13 @@
     
     mysql_close($dbh);
     
-    echo "<p>Ban entry successfully deleted.</p>";
+    $temp = forceUpdate();
+    if ($temp === TRUE) {
+      echo "<p>Ban entry successfully deleted.</p>";
+    } else {
+      echo "<p>Ban entry has been successfuly deleted from the database, however when forcing server-side update, it failed. This should not happen, but it is not a critical error. You should force server-side update manually to correct it.</p>";
+    }
+    
     doneButton();
   }
 

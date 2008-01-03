@@ -4,12 +4,12 @@
 
   function displayInputForm()
   {
-    echo "<form action='{$PHP_SELF}' method='post'>";
+    echo "<form action='{$PHP_SELF}' method='get'>";
     echo '<table class="table4">';
     echo '<tr>';
     echo '  <td>';
-    echo "  Info for (type in username): <input type='text' name='username' />";
-    echo "  <input type='submit' value='Submit' name='submit' />";
+    echo "  Info for (type in username): <input type='text' name='username' value='" . (isset($_GET['username']) ? $_GET['username'] : "") . "' />";
+    echo "  <input type='submit' value='Submit' />";
     echo '  </td>';
     echo '</tr>';
     echo '</table>';
@@ -139,6 +139,25 @@
     default:
       $access = 'unknown (error?)';
     }
+    
+    if (($res = $conn->sendLine("queryserver GETUSERID " . $username)) !== TRUE)
+    {
+      echo "<p style='color: black; font-weight: bold'>" . "Error while communicating with the server" . "</p>";
+      return;
+    }
+    if (($res = $conn->readLine()) === FALSE)
+    {
+      echo "<p style='color: black; font-weight: bold'>" . "Error while communicating with the server" . "</p>";
+      return;
+    }
+    $res = removeBeginning($res, 'SERVERMSG ');
+    $temp = strpos($res, "Last user ID for <" . $username . "> was ");
+    if ($temp === FALSE)
+      $userid = "[Error querying server]";
+    else
+      $userid = removeBeginning($res, "Last user ID for <" . $username . "> was ");
+    if ($userid == "0")
+      $userid = "[UserID not installed]";
 
     // close connection with server:
     $conn->close();
@@ -193,20 +212,32 @@
     echo "      " . $lastLogin;
     echo "    </td>";
     echo "  </tr>";
+    echo "  <tr>";
+    echo "    <td>";
+    echo "      User ID: ";
+    echo "    </td>";
+    echo "    <td>";
+    echo "      " . $userid;
+    echo "    </td>";
+    echo "  </tr>";
     echo "</table>";
   }
 
 
   // page contents begin here:
 
-  $username = $_POST['username'];
-  if ($username == "") $username = $_GET['username'];
+  $username = $_GET['username'];
   if ($username == "")
     displayInputForm();
   else {
     displayInputForm();
     echo "<br><br>";
     displayResultForm($username);
+    
+    // install user ID button:
+    echo "<br><br>";
+    echo "<a class='button1' href='userid.php?username=" . $username . "'>Install user ID</a>";
+    
   }
 
 
