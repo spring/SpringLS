@@ -25,6 +25,7 @@
   $restrictions['ban.list.php'] = 2;
   $restrictions['ban.delete.php'] = 2;
   $restrictions['userinfo.php'] = 2;
+  $restrictions['userid.php'] = 2;
   $restrictions['editmotd.php'] = 3;
   $restrictions['updating.php'] = 3;
   $restrictions['updating.delete.php'] = 3;
