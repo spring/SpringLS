@@ -31,11 +31,28 @@
  * * LOGINBAD
  *   Sent by server as a response to a failed TESTLOGIN command.
  *   
+ * * OK
+ *   Sent by server as a response to commands that don't return anything else. 
+ *   Serves also as positive confirmation (also see "NOTOK" command).
+ *   
+ * * NOTOK
+ *   Sent by server as a response to commands that require some positive/negative response (in this case, the response is negative).
+ *   Also see "OK" command.  
+ *   
+ * * ISONLINE username
+ *   Queries the server trying to find out if user <username> is currently online.
+ *   Returns either OK or NOTOK (OK if user is online, NOTOK otherwise).  
+ *   
  * * GETACCESS username
  *   Sent by client trying to figure out access status of some user.
  *   Returns 1 for "normal", 2 for "moderator", 3 for "admin".
  *   If user is not found, returns 0 as a result.
  *   If the operation fails for some reason, socket will simply get disconnected.
+ *
+ * * GENERATEUSERID username
+ *   Will send acquireuserid command to <username>. This command doesn't return anything, you won't
+ *   be notified if the command succeeded or not (but new notification will be added to TASServer if
+ *   specified user responded with a USERID command properly).  
  *   
  * * QUERYSERVER {server command}  
  *   This will forward the given command directly to server and then forward server's response back to the client.
@@ -65,7 +82,8 @@ public class RemoteAccessServer extends Thread {
 		"RELOADUPDATEPROPERTIES",
 		"GETLOBBYVERSION",
 		"UPDATEMOTD",
-		"RETRIEVELATESTBANLIST"
+		"RETRIEVELATESTBANLIST",
+		"GETUSERID"
 		};
 	
 	public Vector threads = new Vector(); // here we keep a list of all currently running client threads
@@ -251,6 +269,33 @@ class RemoteClientThread extends Thread {
 				return ; 
 			}
 			sendLine("" + (access & 0x7));
+		} else if (params[0].equals("GENERATEUSERID")) {
+			if (!identified) return ;
+			if (params.length != 2) return ; // malformed command
+			if (!ChanServ.isConnected()) {
+				kill();
+				return ;
+			}
+			queryTASServer("FORGEMSG " + params[1] + " ACQUIREUSERID");
+			sendLine("OK");
+		} else if (params[0].equals("ISONLINE")) {
+			if (!identified) return ;
+			if (params.length != 2) return ; // malformed command
+			if (!ChanServ.isConnected()) {
+				kill();
+				return ;
+			}
+
+			boolean success = false;
+			synchronized(ChanServ.clients) {
+				for (int i = 0; i < ChanServ.clients.size(); i++) {
+					if (((Client)ChanServ.clients.get(i)).name.equals(params[1])) {
+						success = true;
+						break;
+					}
+				}
+			} // end of synchronized
+			sendLine(success ? "OK" : "NOTOK");
 		} else if (params[0].equals("QUERYSERVER")) {
 			if (!identified) return ;
 			if (params.length < 2) return ; // malformed command
