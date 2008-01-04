@@ -10,6 +10,8 @@
   $constants['database_name'] = "spring";
   $constants['database_username'] = "anonymous";
   $constants['database_password'] = "anonymous";
+  $constants['forumposter_username'] = "anonymous";
+  $constants['forumposter_password'] = "anonymous";
 
   /* restrictions for various pages (0 means no restrictions (default) which can be overriden with $restrict_default identifier
      to restrict such a page, 1 means "normal user" (user must be logged in to view the page),

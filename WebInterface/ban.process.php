@@ -1,6 +1,7 @@
 <?php require("inc/head.php") ?>
 
 <?php 
+  require_once('inc/curl_phpbb.class.php');
   
   function returnError($err_msg) 
   {
@@ -41,7 +42,39 @@
 
     // close connection with server:
     $conn->close();
-  }  
+  }
+
+  // will try to make a post in the private moderation forum to notify other moderators about this new ban entry
+  function postOnForum($message, &$errormsg) {
+    global $constants;
+  
+    $forum_id = 17;
+    $topic_id = 4091;
+    
+    // The ending backslash is required.
+    $phpbb = new curl_phpbb('http://spring.clan-sy.com/phpbb/');
+    
+    // Log in
+    $r = $phpbb->login($constants['forumposter_username'], $constants['forumposter_password']);
+    if (!$r) {
+      $errormsg = 'ErrCode: ' . implode(" - ", $phpbb->error);
+      return false;
+    }
+
+    // Post a topic reply
+    $r = $phpbb->topic_reply_advanced($topic_id, $forum_id, $message, &$errormsg);
+    if (!$r) {
+      return false;
+    }
+
+    // Log out
+    $r = $phpbb->logout();
+    if (!$r) {
+      // ignore! We were still successful
+    }
+    
+    return true;
+  }
     
   //$bandur; // ban duration. If 1, then we banned for limited time, if 2, we banned for indefinite time
   if ($_POST["R_bandDuration"] == "limited") $bandur = 1;
@@ -111,6 +144,22 @@
   $insert .= ', "' . $priv_reason . '"';
   $insert .= ', "' . $pub_reason . '"';
   $insert .= ")";
+  
+  // construct $forumpost, which is what we'll post on the forum:
+  $forumpost = "<" . $_SESSION['username'] . "> has just added new ban entry:\n\n[list]\n";
+  if ($_POST["C1"] == 1) $forumpost .= "[*]Banned username: [color=#0000FF]" . $username . "[/color]\n";
+  if ($bandur == 1) {
+    $forumpost .= "[*]Banned until " . date("Y-m-d, H:i:s", $enddate) . "\n";
+  } else {
+  $forumpost .= "[*]Banned indefinitely\n";
+  }
+  if ($_POST["C2"] == 1) $forumpost .= "[*]Banned IP: " . ($ip_start == $ip_end ? $ip_start : $ip_start . " - " . $ip_end) . "\n";
+  if ($_POST["C3"] == 1) $forumpost .= "[*]Banned User ID: " . $user_id . "\n";
+  $forumpost .= "[/list]\n\n";
+  $forumpost .= "When user tries to connect, he will see:\n";
+  $forumpost .= "[quote]".$pub_reason."[/quote]\n";
+  $forumpost .= "<" . $_SESSION['username'] . "> says this about it:\n";
+  $forumpost .= "[quote]".$priv_reason."[/quote]\n";
 
   
   // now connect to the database and add new ban entry:
@@ -129,7 +178,12 @@
   mysql_close($dbh);
   
   echo "<p>New ban entry has been successfully created. Now forcing TASServer to fetch new ban entries from the database ... </p>";
-  forceUpdate();
+  forceUpdate(); 
+  if (!postOnForum($forumpost, &$errormsg)) {
+    echo "<p style='color: red'>Unable to post on the forum, you will have to post it manually. (error: " . $errormsg . "</p>";
+  } else {
+    echo "<p>Post has been added to forum successfully.</p>";
+  }  
   echo "<a class='button1' href='ban.php'>OK</a>";
   
 ?>
