@@ -62,13 +62,16 @@
         $select .= " WHERE stamp > " . $mindate;
       }
       
+      if (strlen($keyword) > 0) {
+        if (($mindate != 0) || ($maxdate != 0))
+          $select .= " AND line LIKE '%" . $keyword . "%'";
+        else
+          $select .= " WHERE line LIKE '%" . $keyword . "%'";        
+      }
+      
       $result = mysql_query($select);
       while($row = mysql_fetch_row($result))
       {
-        if (strlen($keyword) > 0) 
-          if (strpos($row[1], $keyword) === false) 
-            continue;
-
         echo "[" . date('Y-m-d H:i:s', $row[0]) . "] " . htmlspecialchars(rtrim($row[1])) . "<br>";
         $count += 1;
       }     
