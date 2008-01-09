@@ -103,8 +103,8 @@ public class Battles {
 			port = Integer.parseInt(parsed[4]);
 			maxPlayers = Integer.parseInt(parsed[5]);
 			hash = Integer.parseInt(parsed[6]);
-			rank = Integer.parseInt(parsed[7]);
-			maphash = Integer.parseInt(parsed[8]);
+			rank = Integer.decode(parsed[7]);
+			maphash = Integer.decode(parsed[8]);
 		} catch (NumberFormatException e) {
 			return null; 
 		}
