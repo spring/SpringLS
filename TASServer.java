@@ -2154,7 +2154,7 @@ public class TASServer {
 				try {
 					spectatorCount = Integer.parseInt(commands[1]);
 					locked = Misc.strToBool(commands[2]);
-					maphash = Integer.parseInt(commands[3]);
+					maphash = Integer.decode(commands[3]);
 				} catch (NumberFormatException e) {
 					return false; 
 				}
