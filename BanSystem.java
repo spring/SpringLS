@@ -27,6 +27,11 @@ public class BanSystem {
 		
 		ResultSet rs = TASServer.database.execQuery("SELECT ExpirationDate, Username, IP_start, IP_end, userID, PublicReason FROM BanEntries WHERE (Enabled=1 AND (ExpirationDate IS NULL OR ExpirationDate > CURRENT_TIMESTAMP))");
 		
+		if (rs == null) {
+			System.out.println("Fetching of ban list failed (result set is null). Check your connection with the database!");
+			return ;
+		}
+		
 		try {
 			while (rs.next()) {
 				BanEntry ban = new BanEntry();
@@ -42,7 +47,7 @@ public class BanSystem {
 				banEntries.add(ban);
 			}
 		} catch (SQLException e) {
-			System.out.println("Error reading ResultSet when reading ban entries!");
+			System.out.println("Error reading ResultSet while reading ban entries!");
 			TASServer.database.printSQLException(e);
 			System.out.println("Error while trying to update ban list!");
 			return ;
