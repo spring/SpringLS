@@ -9,11 +9,9 @@
  */
 
 import java.sql.*;
-import java.io.*;
 
 public class DBInterface {
-	private Connection conn;
-	private Statement stmt;
+	private DBConnectionPool connPool;
 
 	// database information:
 	private String url;
@@ -24,7 +22,8 @@ public class DBInterface {
 		// TODO
 	}
 	
-	public boolean loadJDBCDriver() {
+	public boolean initialize(String url, String username, String password) {
+		// load JDBC driver:
 		try {
 			// The newInstance() call is a work around for some 
 			// broken Java implementations
@@ -35,18 +34,15 @@ public class DBInterface {
 			System.out.println("JDBC driver not found!");
 			return false;
 		}
-		return true;
-	}
 
-	public boolean connectToDatabase(String url, String username, String password) {
+		// create connection(s) to database, etc.:
 		this.url = url;
 		this.username = username;
 		this.password = password;
 		
 		System.out.println("Trying to connect to database ...");
 		try {
-			conn = DriverManager.getConnection(url, username, password);
-			stmt = conn.createStatement();
+			connPool = new DBConnectionPool(url, username, password); 
 		} catch (SQLException e) {
 			printSQLException(e);
 			System.out.println("Unable to connect to database!");
@@ -57,21 +53,31 @@ public class DBInterface {
 		return true;
 	}
 	
-	/** returns null if error occurs */
+	
+	/** returns null if error occurred */
 	public ResultSet execQuery(String query) {
+		ResultSet result = execQueryInternal(query);
+		// if it failed, lets retry it one more time (and then give up):
+		if (result == null) {
+			result = execQueryInternal(query);
+		}
+		
+		return result;
+	}
+	
+	/** returns null if error occurred */
+	private ResultSet execQueryInternal(String query) {
+		Connection conn = null;
+		boolean success = true;
 		try {
+			conn = connPool.checkout();
+			Statement stmt = conn.createStatement();
 			ResultSet rs = stmt.executeQuery(query);
 			return rs;
 		} catch (SQLException e) {
-			if (e.getMessage().equals("No operations allowed after statement closed."))
-				try {
-					stmt = conn.createStatement(); 
-				} catch (SQLException e2) {
-					System.out.println("Unable to recreate stmt object: " + e2.getMessage());
-				}
 			printSQLException(e);
 			System.out.println("SQLException getMessage() string: " + e.getMessage());
-			
+			success = false;
 			return null;
 		} catch (Exception e) {
 			Clients.sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Serious problem detected: connection to mysql has been broken. Will now attempt to reconnect ...");
@@ -85,53 +91,32 @@ public class DBInterface {
 
 			e.printStackTrace(); //*** DEBUG
 			
-			try {
-				long time = System.currentTimeMillis();
-				conn = DriverManager.getConnection(url, username, password);
-				stmt = conn.createStatement();
-				time = System.currentTimeMillis() - time;
-				
-				// add server notification:
-				ServerNotification sn2 = new ServerNotification("Connection to mysql reestablished");
-				sn2.addLine("Connection to mysql database has been successfully reestablished.");
-				sn2.addLine("Time taken: " + time + " milliseconds.");
-				ServerNotifications.addNotification(sn2);
-
-				// now try to execute given query again:
-				try {
-					ResultSet rs = stmt.executeQuery(query);
-					return rs;
-				} catch (Exception ex) {
-					ex.printStackTrace();
-					Clients.sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Serious problem: unable to execute query (1st retry failed). Query is: '" + query + "'. Exception: " + ex.toString());
-				}
-				
-			} catch (Exception ex) {
-				Clients.sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Serious problem detected: connection to mysql could not be reestablished. Check the notification log for details.");				
-
-				// add server notification:
-				ServerNotification sn2 = new ServerNotification("Connection to mysql cannot be reestablished");
-				sn2.addLine("Serious problem detected: connection to mysql cannot be reestablished.");
-				sn2.addLine("Exception description:");
-				sn2.addLine(ex.toString());
-				ServerNotifications.addNotification(sn2);
-
-				ex.printStackTrace(); //*** DEBUG
-			}
+			success = false;
 			
 			return null;
-		}
+		} finally {
+			// always return connection back to pool, no matter what!
+			connPool.checkin(conn, success);
+		}		
 	}
 	
-	/** use for only those SQL statements that do not return any result.
+	/** use only for those SQL statements that do not return any result.
 	 * Returns false in case of any error. */
 	public boolean execUpdate(String query) {
+		Connection conn = null;
+		boolean success = true;
 		try {
+			conn = connPool.checkout();
+			Statement stmt = conn.createStatement();
 			stmt.executeUpdate(query);
 			return true;
 		} catch (SQLException e) {
 			printSQLException(e);
+			success = false;
 			return false;
+		} finally {
+			// always return connection back to pool, no matter what!
+			connPool.checkin(conn, success);
 		}
 	}
 	

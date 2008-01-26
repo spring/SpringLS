@@ -212,7 +212,7 @@
  *
  * ---- PROTOCOL ----
  * 
- * [this section was moved to a separate file: "LobbyProtocol.txt" in the SVN repository]
+ * [this section was moved to the Documentation folder in SVN]
  * 
  */
 
@@ -1216,8 +1216,9 @@ public class TASServer {
 				if (commands.length != 1) return false;
 
 				client.sendLine("SERVERMSG Fetching ban entries from the database ...");
+				long time = System.currentTimeMillis();
 				BanSystem.fetchLatestBanList();
-				client.sendLine("SERVERMSG Ban entries retrieved.");
+				client.sendLine("SERVERMSG Ban entries retrieved (in " + (System.currentTimeMillis() - time) + " milliseconds).");
 			}
 			else if (commands[0].equals("CHANGECHARSET")) {
 				if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
@@ -1508,6 +1509,19 @@ public class TASServer {
 				}
 
 				client.sendLine("SERVERMSG Last user ID for <" + commands[1] + "> was " + acc.lastUserID);
+			}
+			else if (commands[0].equals("GENERATEUSERID")) {
+				if (commands.length != 2) return false;
+				if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
+
+				Client targetClient = Clients.getClient(commands[1]);
+				if (targetClient == null) {
+					client.sendLine("SERVERMSG <" + commands[1] + "> not found or is not currently online!");
+					return false;
+				}
+				targetClient.sendLine("ACQUIREUSERID");
+				
+				client.sendLine("SERVERMSG ACQUIREUSERID command was dispatched. Server will notify of response via notification system.");
 			}
 			else if (commands[0].equals("KILLALL")) {
 				if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
@@ -2916,10 +2930,7 @@ public class TASServer {
 		// establish connection with database:
 		if (!LAN_MODE) {
 			database = new DBInterface();
-			if (!database.loadJDBCDriver()) {
-				closeServerAndExit();
-			}
-			if (!database.connectToDatabase(DB_URL, DB_username, DB_password)) {
+			if (!database.initialize(DB_URL, DB_username, DB_password)) {
 				closeServerAndExit();
 			}
 		}
