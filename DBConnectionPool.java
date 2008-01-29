@@ -126,6 +126,7 @@ public class DBConnectionPool implements Runnable {
 			{
 				synchronized(this)
 				{
+					// remove any superfluous connections:
 					while(m_AvailableConnections.size() > m_InitialConnectionCount)
 					{
 						// Clean up extra available connections.
@@ -134,6 +135,16 @@ public class DBConnectionPool implements Runnable {
 
 						// Close the connection to the database.
 						c.close();
+					}
+					
+					// remove any dead connections (this doesn't detect invalid connections judging by the documentation, 
+					// however it should detect connections that were closed due to some fatal error):
+					for (int i = 0; i < m_AvailableConnections.size(); i++) {
+						if (m_AvailableConnections.get(i).isClosed()) {
+							m_AvailableConnections.remove(i);
+							i--;
+							continue;
+						}
 					}
 
 					// Clean up is done
