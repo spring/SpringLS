@@ -410,6 +410,11 @@ public class TASServer {
 		} catch(Exception e) {
 			// nevermind
 		}
+		try {
+			database.shutdownDriver();
+		} catch (Exception e) {
+			// ignore
+		}
 		running = false;
 		System.exit(0);
 	}
@@ -1532,6 +1537,13 @@ public class TASServer {
 				while (Clients.getClientsSize() > 0) {
 					Clients.killClient(Clients.getClient(0), (reason.length() == 0 ? "Disconnected by server" : "Disconnected by server: " + reason));
 				}
+			}
+			else if (commands[0].equals("OUTPUTDBDRIVERSTATUS")) {
+				if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
+				
+				database.printDriverStats();
+				
+				client.sendLine("SERVERMSG DB driver status was printed to the console.");
 			}			
 			else if (commands[0].equals("CHANNELS")) {
 				if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
@@ -3101,6 +3113,11 @@ public class TASServer {
 			mainChanLog.close();
 		} catch (Exception e) {
 		  // ignore
+		}
+		try {
+			database.shutdownDriver();
+		} catch (Exception e) {
+			// ignore
 		}
 	    
 		// add server notification:
