@@ -274,8 +274,7 @@ public class TASServer {
 	private static String DB_password = "";
 	
     private static final int READ_BUFFER_SIZE = 256; // size of the ByteBuffer used to read data from the socket channel. This size doesn't really matter - server will work with any size (tested with READ_BUFFER_SIZE==1), but too small buffer size may impact the performance.
-    private static final int SEND_BUFFER_SIZE = 65536; // socket's send buffer size
-    private static final long CHANNEL_WRITE_SLEEP = 20L;
+    private static final int SEND_BUFFER_SIZE = 8192; // socket's send buffer size
     private static final long MAIN_LOOP_SLEEP = 10L;
     public static final int NO_MSG_ID = -1; // meaning message isn't using an ID (see protocol description on message/command IDs)
     
@@ -432,6 +431,7 @@ public class TASServer {
 	    asciiDecoder.onMalformedInput(CodingErrorAction.REPLACE);
 	    
 		asciiEncoder = enc;
+		Client.asciiEncoder = enc;
 	    asciiEncoder.replaceWith(new byte[] { (byte)'?' });
 	    asciiEncoder.onUnmappableCharacter(CodingErrorAction.REPLACE);
 	    asciiEncoder.onMalformedInput(CodingErrorAction.REPLACE);
@@ -544,7 +544,7 @@ public class TASServer {
 					Clients.killClient(client); // will also close the socket channel 
 				} else {
 				    // use a CharsetDecoder to turn those bytes into a string
-				    // and append to client's StringBuffer
+				    // and append to client's StringBuilder
 				    readBuffer.flip();
 				    String str = asciiDecoder.decode(readBuffer).toString();
 				    readBuffer.clear();
@@ -588,57 +588,6 @@ public class TASServer {
 		}
 	}
 	
-	private static void channelWrite(SocketChannel channel, ByteBuffer writeBuffer) throws ChannelWriteTimeoutException {
-		long nbytes = 0;
-		long toWrite = writeBuffer.remaining();
-		long time = System.currentTimeMillis();
-
-		// loop on the channel.write() call since it will not necessarily
-		// write all bytes in one shot
-		try {
-		    while (nbytes != toWrite) {
-		    	long last = nbytes;
-		    	nbytes += channel.write(writeBuffer);
-		    	if (nbytes-last == 0) { // no bytes written
-		    		// sleep a bit to avoid creating 100% CPU usage peak:
-			    	try {
-			    		Thread.sleep(CHANNEL_WRITE_SLEEP);
-			    	} catch (InterruptedException e) {
-			    	}
-		    	}
-			
-		    	if (System.currentTimeMillis() - time > 1000) throw new ChannelWriteTimeoutException();
-		    }
-		} catch (ClosedChannelException cce) {
-			// do nothing
-		} catch (IOException io) {
-			// do nothing
-		}  
-		
-		// get ready for another write if needed
-		writeBuffer.rewind();
-	}
-	
-	public static boolean sendLineToSocketChannel(String line, SocketChannel channel) throws ChannelWriteTimeoutException {
-		String data = line + '\n';
-		
-		if ((channel == null) || (!channel.isConnected())) {
-			System.out.println("WARNING: SocketChannel is not ready to be written to. Ignoring ...");
-		    return false;
-		}
-		
-		ByteBuffer buf;
-		try{
-			buf = asciiEncoder.encode(CharBuffer.wrap(data));
-		} catch (CharacterCodingException e) {
-			return false;
-		}
-				
-		channelWrite(channel, buf);
-		
-		return true;
-	}
-	
 	private static Account verifyLogin(String user, String pass) {
 		Account acc = Accounts.getAccount(user);
 		if (acc == null) return null;
@@ -668,6 +617,7 @@ public class TASServer {
 	
 	/* Sends "message of the day" (MOTD) to client */
 	private static boolean sendMOTDToClient(Client client) {
+		client.beginFastWrite();
 		client.sendLine("MOTD Welcome, " + client.account.user + "!");
 		client.sendLine("MOTD There are currently " + (Clients.getClientsSize()-1) + " clients connected"); // -1 is because we shouldn't count the client to which we are sending MOTD
 		client.sendLine("MOTD to server talking in " + Channels.getChannelsSize() + " open channels and");
@@ -678,16 +628,18 @@ public class TASServer {
 		for (int i = 0; i < sl.length; i++) {
 			client.sendLine("MOTD " + sl[i]);
 		}
-
+		client.endFastWrite();
 		return true;
 	}
 
 	private static void sendAgreementToClient(Client client) {
+		client.beginFastWrite();
 		String[] sl = agreement.split("\n");
 		for (int i = 0; i < sl.length; i++) {
 			client.sendLine("AGREEMENT " + sl[i]);
 		}
 		client.sendLine("AGREEMENTEND");
+		client.endFastWrite();
 	}	
 	
 	public static boolean redirectAndKill(Socket socket) {
@@ -1679,11 +1631,11 @@ public class TASServer {
 				Clients.sendListOfAllUsersToClient(client);
 				Battles.sendInfoOnBattlesToClient(client);
 				Clients.sendInfoOnStatusesToClient(client);
-				Clients.notifyClientsOfNewClientOnServer(client);
 				// notify client that we've finished sending login info:
 				client.sendLine("LOGININFOEND");
 				
 				// notify everyone about client's status:
+				Clients.notifyClientsOfNewClientOnServer(client);
 				Clients.notifyClientsOfNewClientStatus(client);
 				
 				if (DEBUG > 0) System.out.println("User just logged in: " + client.account.user);

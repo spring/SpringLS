@@ -63,6 +63,7 @@ public class Battles {
 	
 	/* will send a list of all active battles and users participating in it to the given client */
 	public static void sendInfoOnBattlesToClient(Client client) {
+		client.beginFastWrite();
 		for (int i = 0; i < battles.size(); i++) {
 			Battle bat = battles.get(i);
 			// make sure that clients behind NAT get local IPs and not external ones:
@@ -74,6 +75,7 @@ public class Battles {
 				client.sendLine("JOINEDBATTLE " + bat.ID + " " + bat.getClient(j).account.user);
 			}
 		}
+		client.endFastWrite();
 	}
 
 	/* Creates new Battle object from a command that client sent to server. This method

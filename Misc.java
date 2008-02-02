@@ -40,12 +40,12 @@ public class Misc {
 	
 	/* puts together strings from 'a', starting at a[startIndex] 
 	 * see http://leepoint.net/notes-java/data/strings/96string_examples/example_arrayToString.html
-	 * on why StringBuffer is faster.
+	 * on why StringBuilder is faster.
 	 * */
 	public static String makeSentence(String[] a, int startIndex) {
 		if (startIndex > a.length-1) return "";
 		
-	    StringBuffer result = new StringBuffer();
+	    StringBuilder result = new StringBuilder();
         result.append(a[startIndex]);
         for (int i = startIndex+1; i < a.length; i++) {
             result.append(" ");
@@ -228,7 +228,7 @@ public class Misc {
 	    mdAlgorithm.update(plainText.getBytes());
 
 	    byte[] digest = mdAlgorithm.digest();
-	    StringBuffer hexString = new StringBuffer();
+	    StringBuilder hexString = new StringBuilder();
 
 	    for (int i = 0; i < digest.length; i++) {
 	    	plainText = Integer.toHexString(0xFF & digest[i]);

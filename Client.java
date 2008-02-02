@@ -12,13 +12,16 @@
  * Window - Preferences - Java - Code Style - Code Templates
  */
 
-//import java.io.*;
-//import java.net.*;
-
+import java.io.*;
+import java.nio.*;
 import java.nio.channels.*;
+import java.nio.charset.*;
 import java.util.*;
 
 public class Client {
+	public static CharsetEncoder asciiEncoder;
+	private static Queue<Client> delayWriteQue = new LinkedList<Client>();
+
 	public boolean alive = false;
 	
 	public Account account;
@@ -33,7 +36,7 @@ public class Client {
 	
 	public SocketChannel sockChan;
 	public SelectionKey selKey;
-	public StringBuffer recvBuf;
+	public StringBuilder recvBuf;
 	private int msgID = TASServer.NO_MSG_ID; // -1 means no ID is used (NO_MSG_ID constant). This is the message/command ID used when sending command as described in the "lobby protocol description" document. Use setSendMsgID and resetSendMsgID methods to manipulate it.
 	
 	public long inGameTime; // in milliseconds. Used internally to remember time when user entered game using System.currentTimeMillis().
@@ -44,7 +47,10 @@ public class Client {
 	public long timeOfLastReceive; // time (System.currentTimeMillis()) when we last heard from client (last data received)
 	public long lastMapGradesReceived = 0; // time when we last received MAPGRADES command from this user. This is needed to ensure user doesn't send this command too often as it creates much load on the server.
 	public String mapHashUponEnteringGame; // here we keep a hash of the map which was used at the moment this client changed his status to in-game. Its value is undefined (null) if client entered in-game withouth actually participating in a battle. We need this hash when updating map time info for this user (since this user could return from the game after battle host has closed the battle).
-	
+
+	private Queue<ByteBuffer> writeBuffer;
+	private StringBuilder fastWrite;
+
 	public Client(SocketChannel sockChan) {
 		alive = true;
 		
@@ -62,17 +68,19 @@ public class Client {
 		localIP = new String(IP); // will be changed later once client logs in
 		UDPSourcePort = 0; // yet unknown
 		selKey = null;
-		recvBuf = new StringBuffer("");
+		recvBuf = new StringBuilder();
 		status = 0;
 		country = IP2Country.getCountryCode(Misc.IP2Long(IP));
 		battleStatus = 0;
 		teamColor = 0;
 		inGameTime = 0;
-	    battleID = -1;
-	    cpu = 0;
-	    mapHashUponEnteringGame = null;
-	    
-	    timeOfLastReceive = System.currentTimeMillis();
+		battleID = -1;
+		cpu = 0;
+		mapHashUponEnteringGame = null;
+
+		timeOfLastReceive = System.currentTimeMillis();
+
+		writeBuffer = new LinkedList<ByteBuffer>();
 	}
 	
 	// any messages sent via sendLine() method will contain this ID. See "lobby protocol description" document for more info on message/command IDs.
@@ -100,25 +108,15 @@ public class Client {
 			if (account.accessLevel() != Account.NIL_ACCESS) System.out.println("[->" + account.user + "]" + " \"" + text + "\"");
 			else System.out.println("[->" + IP + "]" + " \"" + text + "\"");
 		try {
-			if (!TASServer.sendLineToSocketChannel(text, sockChan)) {
+			if (!sendLineToSocketChannel(text)) {
 				System.out.println("Error writing to socket. Line not sent! Killing the client next loop...");
 				Clients.killClientDelayed(this, "Quit: undefined connection error");
 				return false;
 			}
-		} catch (ChannelWriteTimeoutException e) {
-    		System.out.println("WARNING: channelWrite() timed out. Disconnecting client ...");
-			Clients.sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Serious problem: channelWrite() timed out [" + IP + ", <" + account.user + ">]");
-			
-			// add server notification:
-			ServerNotification sn = new ServerNotification("channelWrite() timeout");
-			sn.addLine("Serious problem detected: channelWrite() has timed out.");
-			sn.addLine("Client: " + IP + "(" + (account.user.equals("") ? "user not logged in" : account.user) + ")");
-			ServerNotifications.addNotification(sn);
-			Clients.killClientDelayed(this, "Quit: channelWrite() timed out");
-			
 		} catch (Exception e) {
 			System.out.println("Error writing to socket (exception). Line not sent! Killing the client next loop...");
 			Clients.killClientDelayed(this, "Quit: undefined connection error");
+			e.printStackTrace();
 			return false;
 		}
 		return true;
@@ -242,5 +240,76 @@ public class Client {
 	public void setBotModeToStatus(boolean isBot) {
 		status = (status & 0xFFFFFFBF) | ((isBot ? 1 : 0) << 6);
 	}
-	
+
+	public void beginFastWrite() {
+		fastWrite = new StringBuilder();
+	}
+
+	public void endFastWrite() {
+		String data = fastWrite.toString();
+		fastWrite = null;
+		sendLineToSocketChannel(data);
+	}
+
+	private boolean sendLineToSocketChannel(String line) {
+		if (fastWrite != null) {
+			fastWrite.append(line);
+			fastWrite.append('\n');
+			return true;
+		}
+
+		String data = line + '\n';
+
+		if ((sockChan == null) || (!sockChan.isConnected())) {
+			System.out.println("WARNING: SocketChannel is not ready to be written to. Ignoring ...");
+			return false;
+		}
+
+		ByteBuffer buf;
+		try {
+			buf = asciiEncoder.encode(CharBuffer.wrap(data));
+		} catch (CharacterCodingException e) {
+			return false;
+		}
+
+		writeBuffer.offer(buf);
+		flush();
+
+		// Flush one delayed client.
+		// technically this should be done at regular intervals in
+		// the main loop, but this should work for now.
+		Client client = delayWriteQue.poll();
+		if (client != null && client.sockChan != null && client.sockChan.isConnected()) {
+			client.flush();
+		}
+
+		return true;
+	}
+
+	public void flush() {
+		ByteBuffer buf;
+		int safety = 10;
+
+		while (--safety > 0 && (buf = writeBuffer.peek()) != null) {
+			try {
+				sockChan.write(buf);
+				if (buf.hasRemaining()) {
+					// break out of the loop if send buffer is full
+					break;
+				} else {
+					// remove element from queue if it was sent entirely
+					writeBuffer.poll();
+				}
+			} catch (ClosedChannelException cce) {
+				// no point sending the rest to the closed channel
+				writeBuffer.clear();
+			} catch (IOException io) {
+				// do nothing
+			}
+		}
+
+		if (writeBuffer.peek() != null) {
+			delayWriteQue.offer(this);
+		}
+	}
 }

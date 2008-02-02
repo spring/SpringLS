@@ -107,11 +107,13 @@ public class Clients {
 	
 	/* notifies client of all statuses, including his own (but only if they are different from 0) */
 	public static void sendInfoOnStatusesToClient(Client client) {
+		client.beginFastWrite();
 		for (int i = 0; i < clients.size(); i++) {
 			if (clients.get(i).account.accessLevel() < Account.NORMAL_ACCESS) continue;
 			if (clients.get(i).status != 0) // only send it if not 0. User assumes that every new user's status is 0, so we don't need to tell him that explicitly.
 				client.sendLine("CLIENTSTATUS " + clients.get(i).account.user + " " + clients.get(i).status);
 		}
+		client.endFastWrite();
 	}
 
 	/* notifies all logged-in clients (including this client) of the client's new status */
@@ -122,10 +124,12 @@ public class Clients {
 	/* sends a list of all users connected to the server to client (this list includes
 	 * the client itself, assuming he is already logged in and in the list) */
 	public static void sendListOfAllUsersToClient(Client client) {
+		client.beginFastWrite();
 		for (int i = 0; i < clients.size(); i++) {
 			if (clients.get(i).account.accessLevel() < Account.NORMAL_ACCESS) continue;
 			client.sendLine("ADDUSER " + clients.get(i).account.user + " " + clients.get(i).country + " " + clients.get(i).cpu);
 		}
+		client.endFastWrite();
 	}
 
 	/* notifies all registered clients of a new client who just logged in. The new client
