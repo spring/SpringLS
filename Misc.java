@@ -23,7 +23,7 @@ import java.net.*;
 import java.security.*;
 
 public class Misc {
- 	static public final String EOL = System.getProperty("line.separator");
+ 	static public final byte EOL = 13;
  	static private String hex = "0123456789ABCDEF"; 
 	
 	public static String easyDateFormat (String format) {
@@ -40,12 +40,12 @@ public class Misc {
 	
 	/* puts together strings from 'a', starting at a[startIndex] 
 	 * see http://leepoint.net/notes-java/data/strings/96string_examples/example_arrayToString.html
-	 * on why StringBuilder is faster.
+	 * on why StringBuffer is faster.
 	 * */
 	public static String makeSentence(String[] a, int startIndex) {
 		if (startIndex > a.length-1) return "";
 		
-	    StringBuilder result = new StringBuilder();
+	    StringBuffer result = new StringBuffer();
         result.append(a[startIndex]);
         for (int i = startIndex+1; i < a.length; i++) {
             result.append(" ");
@@ -228,7 +228,7 @@ public class Misc {
 	    mdAlgorithm.update(plainText.getBytes());
 
 	    byte[] digest = mdAlgorithm.digest();
-	    StringBuilder hexString = new StringBuilder();
+	    StringBuffer hexString = new StringBuffer();
 
 	    for (int i = 0; i < digest.length; i++) {
 	    	plainText = Integer.toHexString(0xFF & digest[i]);

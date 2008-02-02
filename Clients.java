@@ -10,7 +10,7 @@
 
 import java.io.IOException;
 import java.nio.channels.*;
-import java.util.*;
+import java.util.ArrayList;
 
 public class Clients {
 
@@ -23,12 +23,7 @@ public class Clients {
 	 * removed (client will be killed only once), so no additional logic for
 	 * consistency is required. */
 	static private ArrayList<String>reasonList = new ArrayList<String>(); // used with killList list (gives reason for each scheduled kill) 
-
-	/* here we keep a list (actually a set) of clients who have their send queues not empty.
-	 * This collection is not synchronized! Use Collections.synchronizedSet to wrap it if synchronized
-	 * access is needed. (http://java.sun.com/j2se/1.5.0/docs/api/java/util/Collections.html#synchronizedSet(java.util.Set))
-	 * */
-	static private Set<Client> sendQueue = new HashSet<Client>();
+	
 	
 	/* will create new Client object and add it to the 'clients' list
 	 * and will also register it's socket channel with 'readSelector'.
@@ -112,13 +107,11 @@ public class Clients {
 	
 	/* notifies client of all statuses, including his own (but only if they are different from 0) */
 	public static void sendInfoOnStatusesToClient(Client client) {
-		client.beginFastWrite();
 		for (int i = 0; i < clients.size(); i++) {
 			if (clients.get(i).account.accessLevel() < Account.NORMAL_ACCESS) continue;
 			if (clients.get(i).status != 0) // only send it if not 0. User assumes that every new user's status is 0, so we don't need to tell him that explicitly.
 				client.sendLine("CLIENTSTATUS " + clients.get(i).account.user + " " + clients.get(i).status);
 		}
-		client.endFastWrite();
 	}
 
 	/* notifies all logged-in clients (including this client) of the client's new status */
@@ -129,12 +122,10 @@ public class Clients {
 	/* sends a list of all users connected to the server to client (this list includes
 	 * the client itself, assuming he is already logged in and in the list) */
 	public static void sendListOfAllUsersToClient(Client client) {
-		client.beginFastWrite();
 		for (int i = 0; i < clients.size(); i++) {
 			if (clients.get(i).account.accessLevel() < Account.NORMAL_ACCESS) continue;
 			client.sendLine("ADDUSER " + clients.get(i).account.user + " " + clients.get(i).country + " " + clients.get(i).cpu);
 		}
-		client.endFastWrite();
 	}
 
 	/* notifies all registered clients of a new client who just logged in. The new client
@@ -220,20 +211,5 @@ public class Clients {
 	    	killList.remove(0);
 	    	reasonList.remove(0);
 	    }
-	}
-	
-	/* this will go through all clients that still have pending data to be sent
-	 * and will try to send it. */
-	public static void flushData() {
-		Iterator<Client> i = sendQueue.iterator();
-		while (i.hasNext()) {
-			Client client = i.next();
-			if (client.tryToFlushData()) i.remove(); // all data from this client has been flushed so remove him from the queue
-		}			
-	}
-	
-	/* adds client to the queue of clients who have more data to be sent */
-	public static void enqueueDelayedData(Client client) {
-		sendQueue.add(client);
 	}
 }

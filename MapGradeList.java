@@ -59,12 +59,11 @@ public class MapGradeList {
 	public synchronized String toString() {
 		if (list.size() == 0) return "";
 		else {
-			StringBuilder result = new StringBuilder();
+			String result = "";
 			for (int i = 0; i < list.size(); i++) {
-				result.append(list.get(i).toString());
-				result.append(i == list.size()-1 ? "" : " ");
+				result = result + list.get(i).toString() + (i == list.size()-1 ? "" : " ");
 			}
-			return result.toString();
+			return result;
 		}
 	}
 	
