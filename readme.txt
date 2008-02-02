@@ -71,3 +71,14 @@ http://java.sun.com/j2se/1.5.0/download.jsp
 
 Example of usage (main lobby server uses these arguments):
 java TASServer -DEBUG 1 -natport 8201 -logmain -port 8200 | tee ./logs/TASServer.log
+
+ Running server in normal mode
+-----------------------------------
+For LAN mode, this section is not relevant.
+
+When you want to run normal server, some external .jar files have to be added
+to classpath. Here is the current list with links where to get them:
+
+* mysql-connector-java-5.1.5-bin.jar (http://www.mysql.com/products/connector/j/)
+* commons-pool-1.4.jar (http://commons.apache.org/pool/)
+* commons-dbcp-1.2.2.jar (http://commons.apache.org/dbcp/)

@@ -8,9 +8,16 @@
  * 
  * See this example:
  * http://svn.apache.org/viewvc/commons/proper/dbcp/trunk/doc/ManualPoolingDriverExample.java?view=markup
+ * 
+ * Useful links:
+ * http://wiki.apache.org/jakarta-commons/DBCP
+ * http://commons.apache.org/pool/apidocs/org/apache/commons/pool/impl/GenericObjectPool.html
+ * http://commons.apache.org/pool/apidocs/org/apache/commons/pool/impl/GenericObjectPool.Config.html
+ * 
  */
 
 import java.sql.*;
+
 import org.apache.commons.pool.*;
 import org.apache.commons.pool.impl.GenericObjectPool;
 import org.apache.commons.dbcp.*;
@@ -105,7 +112,31 @@ public class DBInterface {
 		// to access our pool of Connections.
 		//        
 
-		System.out.println("Connection to database has been set up.");
+		System.out.println("Database interface has been initialized successfully.");
+		return true;
+	}
+	
+	/* returns true if it can connect to the database and issue a dummy query, or false otherwise */
+	public boolean testConnection() {
+		Connection conn = null;
+		Statement stmt = null;
+		ResultSet rset = null;
+
+		try {
+			conn = DriverManager.getConnection(TASServer.database.getConnectionURL());
+			stmt = conn.createStatement();
+			rset = stmt.executeQuery(validationQuery);
+			if (rset == null)
+				return false;
+		} catch (Exception e) {
+			return false;
+		} finally {
+			// always return connection back to pool, no matter what!
+			try { rset.close(); } catch(Exception e) { }
+			try { stmt.close(); } catch(Exception e) { }
+			try { conn.close(); } catch(Exception e) { }
+		}		
+		
 		return true;
 	}
 
