@@ -45,37 +45,33 @@ public class Channels {
 	public static boolean removeChannel(Channel chan) {
 		return channels.remove(chan);
 	}
-	
+
 	/* sends information on all clients in a channel (and the topic if it is set) to the client */
 	public static boolean sendChannelInfoToClient(Channel chan, Client client) {
 		client.beginFastWrite();
 		// it always sends info about at least one client - the one to whom this list must be sent
 		StringBuilder sb = new StringBuilder();
-		sb.append("CLIENTS ");
-		sb.append(chan.name);
+		sb.append("CLIENTS ").append(chan.name);
 		int c = 0;
-		
+
 		for (int i = 0; i < chan.getClientsSize(); i++) {
-			sb.append(' ');
-			sb.append(chan.getClient(i).account.user);
+			sb.append(' ').append(chan.getClient(i).account.user);
 			c++;
-			// 45 is the maximum number of users in a single line
-			// this results in a line of at most 1k characters (with 20 char usernames)
-			if (c > 45) {
+			// 10 is the maximum number of users in a single line (we would like to avoid too long lines, but it is not vital)
+			if (c > 10) {
 				client.sendLine(sb.toString());
 				sb = new StringBuilder();
-				sb.append("CLIENTS ");
-				sb.append(chan.name);
+				sb.append("CLIENTS ").append(chan.name);
 				c = 0;
 			}
 		}
 		if (c > 0) {
 			client.sendLine(sb.toString());
 		}
-			
+
 		// send the topic:
 		if (chan.isTopicSet()) client.sendLine("CHANNELTOPIC " + chan.name + " " + chan.getTopicAuthor() + " " + chan.getTopicChangedTime() + " " + chan.getTopic());
-		
+
 		client.endFastWrite();
 		return true;
 	}

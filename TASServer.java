@@ -274,7 +274,7 @@ public class TASServer {
 	private static String DB_password = "";
 	
     private static final int READ_BUFFER_SIZE = 256; // size of the ByteBuffer used to read data from the socket channel. This size doesn't really matter - server will work with any size (tested with READ_BUFFER_SIZE==1), but too small buffer size may impact the performance.
-    private static final int SEND_BUFFER_SIZE = 8192; // socket's send buffer size
+    private static final int SEND_BUFFER_SIZE = 8192*2; // socket's send buffer size
     private static final long MAIN_LOOP_SLEEP = 10L;
     public static final int NO_MSG_ID = -1; // meaning message isn't using an ID (see protocol description on message/command IDs)
     
@@ -291,8 +291,8 @@ public class TASServer {
     //***private static SelectionKey selectKey;
     private static boolean running;
     private static ByteBuffer readBuffer = ByteBuffer.allocateDirect(READ_BUFFER_SIZE); // see http://java.sun.com/j2se/1.5.0/docs/api/java/nio/ByteBuffer.html for difference between direct and non-direct buffers. In this case we should use direct buffers, this is also used by the author of java.nio chat example (see links) upon which this code is built on.
-    private static CharsetDecoder asciiDecoder;
-    private static CharsetEncoder asciiEncoder;
+    public static CharsetDecoder asciiDecoder;
+    public static CharsetEncoder asciiEncoder;
     
     /* in 'updateProperties' we store a list of Spring versions and server responses to them.
      * We use it when client doesn't have the latest Spring version or the lobby program 
@@ -431,7 +431,6 @@ public class TASServer {
 	    asciiDecoder.onMalformedInput(CodingErrorAction.REPLACE);
 	    
 		asciiEncoder = enc;
-		Client.asciiEncoder = enc;
 	    asciiEncoder.replaceWith(new byte[] { (byte)'?' });
 	    asciiEncoder.onUnmappableCharacter(CodingErrorAction.REPLACE);
 	    asciiEncoder.onMalformedInput(CodingErrorAction.REPLACE);
@@ -1634,7 +1633,7 @@ public class TASServer {
 				// notify client that we've finished sending login info:
 				client.sendLine("LOGININFOEND");
 				
-				// notify everyone about client's status:
+				// notify everyone about new client:
 				Clients.notifyClientsOfNewClientOnServer(client);
 				Clients.notifyClientsOfNewClientStatus(client);
 				
@@ -2897,6 +2896,11 @@ public class TASServer {
 			if (!database.initialize(DB_URL, DB_username, DB_password)) {
 				closeServerAndExit();
 			}
+			if (!database.testConnection()) {
+				System.out.println("Connection to database could not be established. Shutting down ...");
+				closeServerAndExit();
+			}
+			System.out.println("Connection to database has been established.");
 		}
 		
 		if (!LAN_MODE) {
@@ -2980,8 +2984,11 @@ public class TASServer {
 	    	// check for new client connections
 		    acceptNewConnections();
 		    
-		    // check for incoming msgs
+		    // check for incoming messages
 		    readIncomingMessages();
+		    
+		    // flush any data that is waiting to be sent
+		    Clients.flushData();
 		    
 		    // reset received bytes count every n seconds
 		    if (System.currentTimeMillis() - lastFloodCheckedTime > recvRecordPeriod * 1000) {
@@ -3033,7 +3040,7 @@ public class TASServer {
 		    	}
 		    }
 		    
-		    // pure list of failed login attempts:
+		    // purge list of failed login attempts:
 		    if (System.currentTimeMillis() - lastFailedLoginsPurgeTime > 1000) {
 		    	lastFailedLoginsPurgeTime = System.currentTimeMillis();
 		    	for (int i = 0; i < failedLoginAttempts.size(); i++) {

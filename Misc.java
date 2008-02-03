@@ -23,7 +23,7 @@ import java.net.*;
 import java.security.*;
 
 public class Misc {
- 	static public final byte EOL = 13;
+ 	static public final String EOL = System.getProperty("line.separator");
  	static private String hex = "0123456789ABCDEF"; 
 	
 	public static String easyDateFormat (String format) {

@@ -10,7 +10,7 @@
 
 import java.io.IOException;
 import java.nio.channels.*;
-import java.util.ArrayList;
+import java.util.*;
 
 public class Clients {
 
@@ -23,7 +23,12 @@ public class Clients {
 	 * removed (client will be killed only once), so no additional logic for
 	 * consistency is required. */
 	static private ArrayList<String>reasonList = new ArrayList<String>(); // used with killList list (gives reason for each scheduled kill) 
-	
+
+	/* here we keep a list of clients who have their send queues not empty.
+	 * This collection is not synchronized! Use Collections.synchronizedList to wrap it if synchronized
+	 * access is needed. (http://java.sun.com/j2se/1.5.0/docs/api/java/util/Collections.html#synchronizedList(java.util.List))
+	 * */
+	static private Queue<Client> sendQueue = new LinkedList<Client>();
 	
 	/* will create new Client object and add it to the 'clients' list
 	 * and will also register it's socket channel with 'readSelector'.
@@ -215,5 +220,23 @@ public class Clients {
 	    	killList.remove(0);
 	    	reasonList.remove(0);
 	    }
+	}
+	
+	/* this will try to go through the list of clients that still have pending data to be sent
+	 * and will try to send it. When it encounters first client that can't flush data, it will add
+	 * him to the queue's tail and break the loop. */
+	public static void flushData() {
+		Client client;
+		while ((client = sendQueue.poll()) != null) {
+			if (!client.tryToFlushData()) {
+				sendQueue.add(client); // add client to the tail of the queue
+				break;
+			}
+		}
+	}
+	
+	/* adds client to the queue of clients who have more data to be sent */
+	public static void enqueueDelayedData(Client client) {
+		sendQueue.add(client);
 	}
 }

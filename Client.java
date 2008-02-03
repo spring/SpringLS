@@ -12,21 +12,21 @@
  * Window - Preferences - Java - Code Style - Code Templates
  */
 
-import java.io.*;
+//import java.io.*;
+//import java.net.*;
+
+import java.io.IOException;
 import java.nio.*;
 import java.nio.channels.*;
-import java.nio.charset.*;
+import java.nio.charset.CharacterCodingException;
 import java.util.*;
 
 public class Client {
-	public static CharsetEncoder asciiEncoder;
-	private static Queue<Client> delayWriteQue = new LinkedList<Client>();
-
-	public boolean alive = false;
+	public boolean alive = false; // if false, then this client is not "valid" anymore (we already killed him and closed his socket).
 	
 	public Account account;
 	public String IP;
-	public String localIP; // client's local IP which has to be send with LOGIN command (server can't figure out his local IP himself ofcourse) 
+	public String localIP; // client's local IP which has to be send with LOGIN command (server can't figure out his local IP himself of course) 
 	public int UDPSourcePort; // client's public UDP source port used with some NAT traversal techniques (e.g. "hole punching")
 	public int status; // see MYSTATUS command for actual values of status
 	public int battleStatus; // see MYBATTLESTATUS command for actual values of battleStatus
@@ -38,6 +38,8 @@ public class Client {
 	public SelectionKey selKey;
 	public StringBuilder recvBuf;
 	private int msgID = TASServer.NO_MSG_ID; // -1 means no ID is used (NO_MSG_ID constant). This is the message/command ID used when sending command as described in the "lobby protocol description" document. Use setSendMsgID and resetSendMsgID methods to manipulate it.
+	private Queue<ByteBuffer> sendQueue = new LinkedList<ByteBuffer>(); // queue of "delayed data". We failed sending this the first time, so we'll have to try sending it again some time.
+	private StringBuilder fastWrite; // temporary StringBuilder used with beginFastWrite() and endFastWrite() methods.
 	
 	public long inGameTime; // in milliseconds. Used internally to remember time when user entered game using System.currentTimeMillis().
 	public String country;
@@ -47,10 +49,7 @@ public class Client {
 	public long timeOfLastReceive; // time (System.currentTimeMillis()) when we last heard from client (last data received)
 	public long lastMapGradesReceived = 0; // time when we last received MAPGRADES command from this user. This is needed to ensure user doesn't send this command too often as it creates much load on the server.
 	public String mapHashUponEnteringGame; // here we keep a hash of the map which was used at the moment this client changed his status to in-game. Its value is undefined (null) if client entered in-game withouth actually participating in a battle. We need this hash when updating map time info for this user (since this user could return from the game after battle host has closed the battle).
-
-	private Queue<ByteBuffer> writeBuffer;
-	private StringBuilder fastWrite;
-
+	
 	public Client(SocketChannel sockChan) {
 		alive = true;
 		
@@ -79,8 +78,6 @@ public class Client {
 		mapHashUponEnteringGame = null;
 
 		timeOfLastReceive = System.currentTimeMillis();
-
-		writeBuffer = new LinkedList<ByteBuffer>();
 	}
 	
 	// any messages sent via sendLine() method will contain this ID. See "lobby protocol description" document for more info on message/command IDs.
@@ -100,23 +97,54 @@ public class Client {
 	/* the 'msgID' param overrides any previously set ID (via setSendMsgID method). Use NO_MSG_ID (which should equal to -1) for none.  */
 	public boolean sendLine(String text, int msgID) {
 		if (!alive) return false;
-		
+
 		// prefix message with a message ID:
 		if (msgID != TASServer.NO_MSG_ID) text = "#" + msgID + " " + text;
-		
+
+		if (fastWrite != null) {
+			if (fastWrite.length() != 0)
+				fastWrite.append(Misc.EOL);
+			fastWrite.append(text);
+			return true;
+		}
+
 		if (TASServer.DEBUG > 1) 
 			if (account.accessLevel() != Account.NIL_ACCESS) System.out.println("[->" + account.user + "]" + " \"" + text + "\"");
 			else System.out.println("[->" + IP + "]" + " \"" + text + "\"");
+
 		try {
-			if (!sendLineToSocketChannel(text)) {
-				System.out.println("Error writing to socket. Line not sent! Killing the client next loop...");
+			// prepare data and add it to the send queue
+
+			String data = text + Misc.EOL;
+
+			if ((sockChan == null) || (!sockChan.isConnected())) {
+				System.out.println("WARNING: SocketChannel is not ready to be written to. Killing the client next loop ...");
 				Clients.killClientDelayed(this, "Quit: undefined connection error");
 				return false;
 			}
+
+			ByteBuffer buf;
+			try{
+				buf = TASServer.asciiEncoder.encode(CharBuffer.wrap(data));
+			} catch (CharacterCodingException e) {
+				System.out.println("WARNING: Unable to encode message. Killing the client next loop ...");
+				Clients.killClientDelayed(this, "Quit: undefined encoder error");
+				return false;
+			}
+
+			if (sendQueue.size() != 0) {
+				sendQueue.add(buf);
+			} else {
+				sendQueue.add(buf);
+				boolean empty = tryToFlushData();
+				if (!empty) {
+					Clients.enqueueDelayedData(this);
+				}
+			}
 		} catch (Exception e) {
-			System.out.println("Error writing to socket (exception). Line not sent! Killing the client next loop...");
+			System.out.println("Error sending data (undefined). Killing the client next loop ...");
 			Clients.killClientDelayed(this, "Quit: undefined connection error");
-			e.printStackTrace();
+			e.printStackTrace(); //*** DEBUG
 			return false;
 		}
 		return true;
@@ -197,8 +225,65 @@ public class Client {
 		}
 		return null;		
 	}
+
+	/* tries to send the data from the sendQueue. Returns true if all data has been flushed or false otherwise. */
+	public boolean tryToFlushData() {
+		if (!alive) {
+			// disregard any other scheduled writes:
+			while (sendQueue.size() != 0)
+				sendQueue.remove();
+			return true; // no more data left to be flushed, so return true
+		}
+
+		ByteBuffer buf;
+		while ((buf = sendQueue.peek()) != null) {
+			try {
+				sockChan.write(buf);
+
+				if (buf.hasRemaining()) // this happens when send buffer is full and no more data can be written to it
+					break; // lets just skip it without removing the packet from the send queue (we will retry sending it later)
+
+				// remove element from queue (it was sent entirely)
+				sendQueue.remove();
+			} catch (ClosedChannelException cce) {
+				// no point sending the rest to the closed channel
+				if (alive) {
+					Clients.killClientDelayed(this, "Quit: socket channel closed exception");
+				}
+				break;
+			} catch (IOException io) {
+				if (alive) {
+					Clients.killClientDelayed(this, "Quit: socket channel closed exception");
+				}
+				break;
+			}
+		}
+
+		return sendQueue.size() == 0;
+	}
 	
-	
+	public void beginFastWrite() {
+		if (fastWrite != null) {
+			System.out.println("Serious error detected: invalid use of beginFastWrite(). Check your code! Shutting down the server ...");
+			TASServer.closeServerAndExit();
+		}
+		
+		fastWrite = new StringBuilder();
+	}
+
+	public void endFastWrite() {
+		if (fastWrite == null) {
+			System.out.println("Serious error detected: invalid use of endFastWrite(). Check your code! Shutting down the server ...");
+			TASServer.closeServerAndExit();
+		}
+		
+		String data = fastWrite.toString();
+		fastWrite = null;
+		if (data.equals("")) return ;
+		sendLine(data);
+	}	
+
+
 	/* various methods dealing with client status: */
 	
 	public boolean getInGameFromStatus() {
@@ -240,76 +325,5 @@ public class Client {
 	public void setBotModeToStatus(boolean isBot) {
 		status = (status & 0xFFFFFFBF) | ((isBot ? 1 : 0) << 6);
 	}
-
-	public void beginFastWrite() {
-		fastWrite = new StringBuilder();
-	}
-
-	public void endFastWrite() {
-		String data = fastWrite.toString();
-		fastWrite = null;
-		sendLineToSocketChannel(data);
-	}
-
-	private boolean sendLineToSocketChannel(String line) {
-		if (fastWrite != null) {
-			fastWrite.append(line);
-			fastWrite.append('\n');
-			return true;
-		}
-
-		String data = line + '\n';
-
-		if ((sockChan == null) || (!sockChan.isConnected())) {
-			System.out.println("WARNING: SocketChannel is not ready to be written to. Ignoring ...");
-			return false;
-		}
-
-		ByteBuffer buf;
-		try {
-			buf = asciiEncoder.encode(CharBuffer.wrap(data));
-		} catch (CharacterCodingException e) {
-			return false;
-		}
-
-		writeBuffer.offer(buf);
-		flush();
-
-		// Flush one delayed client.
-		// technically this should be done at regular intervals in
-		// the main loop, but this should work for now.
-		Client client = delayWriteQue.poll();
-		if (client != null && client.sockChan != null && client.sockChan.isConnected()) {
-			client.flush();
-		}
-
-		return true;
-	}
-
-	public void flush() {
-		ByteBuffer buf;
-		int safety = 10;
-
-		while (--safety > 0 && (buf = writeBuffer.peek()) != null) {
-			try {
-				sockChan.write(buf);
-				if (buf.hasRemaining()) {
-					// break out of the loop if send buffer is full
-					break;
-				} else {
-					// remove element from queue if it was sent entirely
-					writeBuffer.poll();
-				}
-			} catch (ClosedChannelException cce) {
-				// no point sending the rest to the closed channel
-				writeBuffer.clear();
-			} catch (IOException io) {
-				// do nothing
-			}
-		}
-
-		if (writeBuffer.peek() != null) {
-			delayWriteQue.offer(this);
-		}
-	}
+	
 }
