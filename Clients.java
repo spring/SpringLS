@@ -209,6 +209,7 @@ public class Clients {
 	public static void killClientDelayed(Client client, String reason) {
 		killList.add(client);
 		reasonList.add(reason);
+		client.halfDead = true;
 	}
 	
 	/* this will kill all clients in the current kill list and empty it.

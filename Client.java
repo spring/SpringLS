@@ -23,6 +23,7 @@ import java.util.*;
 
 public class Client {
 	public boolean alive = false; // if false, then this client is not "valid" anymore (we already killed him and closed his socket).
+	public boolean halfDead = false; // when we schedule client for kill (via Clients.killClientDelayed, for example) this flag is set to true. When true, we don't read or send any data to this client.
 	
 	public Account account;
 	public String IP;
@@ -97,6 +98,7 @@ public class Client {
 	/* the 'msgID' param overrides any previously set ID (via setSendMsgID method). Use NO_MSG_ID (which should equal to -1) for none.  */
 	public boolean sendLine(String text, int msgID) {
 		if (!alive) return false;
+		if (halfDead) return false;
 
 		// prefix message with a message ID:
 		if (msgID != TASServer.NO_MSG_ID) text = "#" + msgID + " " + text;

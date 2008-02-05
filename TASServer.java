@@ -510,7 +510,8 @@ public class TASServer {
 				SelectionKey key = (SelectionKey)i.next();
 				i.remove();
 				SocketChannel channel = (SocketChannel)key.channel();
-				client = (Client)key.attachment(); 
+				client = (Client)key.attachment();
+				if (client.halfDead) continue;
 				readBuffer.clear();
 
 				client.timeOfLastReceive = System.currentTimeMillis();
@@ -3002,9 +3003,8 @@ public class TASServer {
 		    	long now = System.currentTimeMillis();
 		    	for (int i = 0; i < Clients.getClientsSize(); i++) {
 		    		if (now - Clients.getClient(i).timeOfLastReceive > TIMEOUT_LENGTH) {
-		    			System.out.println("Timeout detected from " + Clients.getClient(i).account.user + " (" + Clients.getClient(i).IP + "). Killing client ...");
-		    			Clients.killClient(Clients.getClient(i), "Quit: timeout");		
-		    			i--;
+		    			System.out.println("Timeout detected from " + Clients.getClient(i).account.user + " (" + Clients.getClient(i).IP + "). Client has been scheduled for kill ...");
+		    			Clients.killClientDelayed(Clients.getClient(i), "Quit: timeout");		
 		    		}
 		    	}
 		    }
