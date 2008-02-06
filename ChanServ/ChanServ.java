@@ -666,7 +666,7 @@ public class ChanServ {
 			// force the message to be sent to private chat rather than to the channel (to avoid unneccessary bloating the channel):
 			sendMessage(client, null, "Hello, " + client.name + "!");
 			sendMessage(client, null, "I am an automated channel service bot,");
-			sendMessage(client, null, "for the full list of commands, see http://taspring.clan-sy.com/dl/ChanServCommands.html");
+			sendMessage(client, null, "for the full list of commands, see http://spring.clan-sy.com/dl/ChanServCommands.html");
 			sendMessage(client, null, "If you want to go ahead and register a new channel, please contact one of the server moderators!");
 		} else if (params[0].equals("INFO")) {
 			// if the command was issued from a channel:
