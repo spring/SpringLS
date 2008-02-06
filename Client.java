@@ -230,7 +230,7 @@ public class Client {
 
 	/* tries to send the data from the sendQueue. Returns true if all data has been flushed or false otherwise. */
 	public boolean tryToFlushData() {
-		if (!alive) {
+		if (!alive || halfDead) {
 			// disregard any other scheduled writes:
 			while (sendQueue.size() != 0)
 				sendQueue.remove();

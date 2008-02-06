@@ -3002,6 +3002,7 @@ public class TASServer {
 		    	lastTimeoutCheck = System.currentTimeMillis();
 		    	long now = System.currentTimeMillis();
 		    	for (int i = 0; i < Clients.getClientsSize(); i++) {
+		    		if (Clients.getClient(i).halfDead) continue; // already scheduled for kill
 		    		if (now - Clients.getClient(i).timeOfLastReceive > TIMEOUT_LENGTH) {
 		    			System.out.println("Timeout detected from " + Clients.getClient(i).account.user + " (" + Clients.getClient(i).IP + "). Client has been scheduled for kill ...");
 		    			Clients.killClientDelayed(Clients.getClient(i), "Quit: timeout");		
