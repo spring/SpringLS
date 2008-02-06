@@ -750,6 +750,45 @@ public class ChanServ {
 			chan.antispamSettings = SpamSettings.spamSettingsToString(SpamSettings.DEFAULT_SETTINGS);
 			sendLine("JOIN " + chan.name);
 			sendMessage(client, channel, "Channel #" + chanName + " successfully registered to " + params[2]);
+		} else if (params[0].equals("CHANGEFOUNDER")) {
+			// if the command was issued from a channel:
+			if (channel != null) { // insert <channame> parameter so we don't have to handle two different situations for each command
+				params = (String[])Misc.insertIntoObjectArray("#" + channel.name, 1, params);
+			}
+			
+			if (params.length != 3) {
+				sendMessage(client, channel, "Error: Invalid params!");
+				return ;
+			}
+			
+			if (params[1].charAt(0) != '#') {
+				sendMessage(client, channel, "Error: Bad channel name (forgot #?)");
+				return ;
+			}
+			
+			String chanName = params[1].substring(1, params[1].length());
+			Channel chan = getChannel(chanName);
+			if ((chan == null) || (chan.isStatic)) {
+				sendMessage(client, channel, "Channel #" + chanName + " is not registered!");
+				return ;
+			}
+			
+			if (!(client.isModerator() || client.name.equals(chan.founder))) {
+				sendMessage(client, channel, "Insufficient access to execute " + params[0] + " command!");
+				return ;
+			}
+			
+			// just to protect from flooding the bot with long usernames:
+			if (params[2].length() > 30) {
+				sendMessage(client, channel, "Error: Too long username!");
+				return ;
+			}
+			
+			// set founder:
+			chan.founder = params[2];
+			
+			sendMessage(client, channel, "You've successfully set founder of #" + chanName + " to <" + params[2] + ">");
+			sendLine("CHANNELMESSAGE " + chan.name + " <" + params[2] + "> has just been set as this channel's founder");
 		} else if (params[0].equals("UNREGISTER")) {
 			if (params.length != 2) {
 				sendMessage(client, channel, "Error: Invalid params!");

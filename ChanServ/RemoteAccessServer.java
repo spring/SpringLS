@@ -316,6 +316,12 @@ class RemoteClientThread extends Thread {
 			queryTASServer(Misc.makeSentence(params, 1));
 			String reply = waitForReply();
 			sendLine(reply);
+
+			// quick fix for ChanServ crash on adding ban entry in the web interface:
+			if (Misc.makeSentence(params, 1).equalsIgnoreCase("RETRIEVELATESTBANLIST")) {
+				reply = waitForReply(); // wait for the second line of reply	
+			}
+			
 		} else {
 			// unknown command!
 		}
