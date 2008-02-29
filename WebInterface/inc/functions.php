@@ -103,7 +103,7 @@
     
     $dbh = mysql_connect($constants['database_url'], $constants['database_username'], $constants['database_password']) 
       or printErrorAndDie("Unable to connect to the database. Error: " . mysql_error());
-    $selected = mysql_select_db("spring", $dbh) 
+    $selected = mysql_select_db($constants['database_name'], $dbh) 
       or printErrorAndDie("Problems connecting to the database. Error: " . mysql_error());
     
     $select = "SELECT * FROM `Accounts` WHERE Username = '" . $username . "'";
