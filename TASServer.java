@@ -1911,11 +1911,6 @@ public class TASServer {
 					return false; 
 				}
 				
-				if (bat.inGame()) {
-					client.sendLine("JOINBATTLEFAILED " + "Battle is already in-game!");
-					return false; 
-				}
-
 				// do the actually joining and notifying:
 				client.battleStatus = 0; // reset client's battle status
 				client.battleID = battleID;
