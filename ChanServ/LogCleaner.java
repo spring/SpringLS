@@ -99,7 +99,7 @@ public class LogCleaner extends TimerTask {
             	ArrayList<Long> stamps = new ArrayList<Long>();
             	ArrayList<String> lines = new ArrayList<String>();
             	
-    			String update = "";
+    			StringBuilder update = new StringBuilder();
             	
 				BufferedReader in = new BufferedReader(new FileReader(file));
 				String line;
@@ -117,10 +117,9 @@ public class LogCleaner extends TimerTask {
 	            	}
 					
 	            	if (lineCount == 0) {
-		            	update += "INSERT INTO `" + name + "` (stamp, line) values (?, ?)";
+		        	update.append( "INSERT INTO `" + name + "` (stamp, line) values (?, ?)" );
 	            	} else {
-	            		update += ","+ Misc.EOL + 
-	            				  "(?, ?)";	            		
+	            		update.append( ","+ Misc.EOL + "(?, ?)" );
 	            	}
 	            	
 	            	stamps.add(stamp);
@@ -130,7 +129,7 @@ public class LogCleaner extends TimerTask {
 		        }
 	            in.close();
 	            
-	            update += ";";
+	            update.append( ";" );
 
 	            if (lineCount == 0) {
 	            	Log.error("Log file is empty: " + file.getName());
@@ -144,7 +143,7 @@ public class LogCleaner extends TimerTask {
 	            }
 
 	            // insert into database:
-	            PreparedStatement pstmt = ChanServ.database.getConnection().prepareStatement(update);
+	            PreparedStatement pstmt = ChanServ.database.getConnection().prepareStatement(update.toString());
 	            for (int j = 0; j < stamps.size(); j++) {
 	            	pstmt.setLong(j*2+1, stamps.get(j));
 	            	pstmt.setString(j*2+2, lines.get(j));
