@@ -1314,20 +1314,6 @@ public class TASServer {
 				target.sendLine("FORCELEAVECHANNEL " + chan.name + " " + client.account.user + reason);
 				target.leaveChannel(chan, "kicked from channel");
 			}
-			else if (commands[0].equals("LAUNCHPROCESS")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
-				if (commands.length < 2) {
-					client.sendLine("SERVERMSG Error: arguments missing (LAUNCHPROCESS command)");
-					return false;
-				}
-				try {
-					Runtime.getRuntime().exec(Misc.makeSentence(commands, 1));
-				} catch (IOException e) {
-					client.sendLine("SERVERMSG LAUNCHPROCESS failed: IOException occured (" + e.toString() + ")");
-					return false;
-				}
-				client.sendLine("SERVERMSG Process started: \"" + Misc.makeSentence(commands, 1) + "\"");
-			}
 			else if (commands[0].equals("ADDNOTIFICATION")) {
 				if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
 				if (commands.length < 2) {
