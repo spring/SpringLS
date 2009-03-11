@@ -730,7 +730,7 @@ public class TASServer {
 						return false;
 					}
 
-				acc = new Account(commands[1], commands[2], Account.NORMAL_ACCESS, Account.NO_USER_ID, System.currentTimeMillis(), client.IP, System.currentTimeMillis(), client.country, new MapGradeList());
+				acc = new Account(commands[1], commands[2], Account.NORMAL_ACCESS, Account.NO_USER_ID, System.currentTimeMillis(), client.IP, System.currentTimeMillis(), client.country);
 				Accounts.addAccount(acc);
 				Accounts.saveAccounts(false); // let's save new accounts info to disk
 				client.sendLine("REGISTRATIONACCEPTED");
@@ -1594,8 +1594,8 @@ public class TASServer {
 						client.sendLine("DENIED Player with same name already logged in");
 						return false;
 					}
-					if ((commands[1].equals(lanAdminUsername)) && (commands[2].equals(lanAdminPassword))) acc = new Account(commands[1], commands[2], Account.ADMIN_ACCESS, Account.NO_USER_ID, 0, "?", 0, "XX", new MapGradeList());
-					else acc = new Account(commands[1], commands[2], Account.NORMAL_ACCESS, Account.NO_USER_ID, 0, "?", 0, "XX", new MapGradeList());
+					if ((commands[1].equals(lanAdminUsername)) && (commands[2].equals(lanAdminPassword))) acc = new Account(commands[1], commands[2], Account.ADMIN_ACCESS, Account.NO_USER_ID, 0, "?", 0, "XX");
+					else acc = new Account(commands[1], commands[2], Account.NORMAL_ACCESS, Account.NO_USER_ID, 0, "?", 0, "XX");
 					Accounts.addAccount(acc);
 					client.account = acc;
 				}
@@ -1688,7 +1688,7 @@ public class TASServer {
 					Channels.getChannel(i).muteList.rename(client.account.user, commands[1]);
 				}
 
-				acc = new Account(commands[1], client.account.pass, client.account.access, client.account.lastUserID, System.currentTimeMillis(), client.IP, client.account.registrationDate, client.account.lastCountry, client.account.mapGrades);
+				acc = new Account(commands[1], client.account.pass, client.account.access, client.account.lastUserID, System.currentTimeMillis(), client.IP, client.account.registrationDate, client.account.lastCountry);
 				client.sendLine("SERVERMSG Your account has been renamed to <" + commands[1] + ">. Reconnect with new account (you will now be automatically disconnected)!");
 				Clients.killClient(client, "Quit: renaming account");
 				Accounts.replaceAccount(client.account, acc);
@@ -2048,17 +2048,13 @@ public class TASServer {
 							// tell clients to replace battle port with founder's public UDP source port:
 							bat.sendToAllExceptFounder("HOSTPORT " + client.UDPSourcePort);
 						}
-						if (bat != null) client.mapHashUponEnteringGame = Misc.intToHex(bat.mapHash);
 					} else { // back from game
 						if (client.inGameTime != 0) { // we won't update clients who play by themselves (or with bots only), since some try to exploit the system by leaving computer alone in-battle for hours to increase their ranks
 							int diff = new Long((System.currentTimeMillis() - client.inGameTime) / 60000).intValue(); // in minutes
 							if (client.account.addMinsToInGameTime(diff)) {
 								client.setRankToStatus(client.account.getRank());
 							}
-							// we will also update map in-game time for this client here:
-							if(client.mapHashUponEnteringGame != null) MapGrading.updateLocalMapGradeMins(client, client.mapHashUponEnteringGame, diff);
 						}
-						client.mapHashUponEnteringGame = null;
 					}
 				}
 				Clients.notifyClientsOfNewClientStatus(client);
@@ -2661,47 +2657,6 @@ public class TASServer {
 				// relay the command
 				bat.sendToAllClients(loweyKeyCommand);
 			}
-			else if (commands[0].equals("MAPGRADES")) {
-				if (commands.length < 2) return false;
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
-
-				if (LAN_MODE) {
-					client.sendLine("MAPGRADESFAILED Unable to synchronize map grades - server is running in LAN mode!");
-					return false;
-				}
-
-				String[] tokens = Misc.makeSentence(commands, 1).split(" ");
-				if (tokens.length % 2 != 0) {
-					client.sendLine("MAPGRADESFAILED Invalid params to MAPGRADES command!");
-					return false;
-				}
-
-				if (System.currentTimeMillis() - client.lastMapGradesReceived < minSleepTimeBetweenMapGrades * 1000) {
-					client.sendLine("MAPGRADESFAILED Less than " + minSleepTimeBetweenMapGrades + " seconds have passed since your last synchronization, try again later!");
-					return false;
-				}
-
-				String respond = "MAPGRADES"; // message that we will send back to the client
-				try {
-					for (int i = 0; i < tokens.length / 2; i++) {
-						String hash = tokens[i*2].toUpperCase();
-						int grade;
-						try {
-							Long.parseLong(hash, 16);
-							grade = Integer.parseInt(tokens[i*2+1]);
-						} catch (NumberFormatException e) {
-							return false;
-						}
-						if ((grade < 0) || (grade > 10)) return false;
-						MapGrading.updateLocalAndGlobalGrade(client, hash, grade);
-						respond += " " + hash + " " + MapGrading.getAvarageMapGrade(hash) + " " + MapGrading.getNumberOfMapVotes(hash);
-					}
-					client.sendLine(respond);
-					client.lastMapGradesReceived = System.currentTimeMillis();
-				} catch (Exception e) {
-					return false;
-				}
-			}
 			else {
 				// unknown command!
 				return false;
@@ -2945,9 +2900,6 @@ public class TASServer {
 			tempTime = System.currentTimeMillis() - tempTime;
 			System.out.println("<IP2Country> loaded in " + tempTime + " ms.");
 		}
-
-		// construct global map grade list:
-		MapGrading.reconstructGlobalMapGrades();
 
 		// start "help UDP" server:
 		helpUDPsrvr = new NATHelpServer(NAT_TRAVERSAL_PORT);
