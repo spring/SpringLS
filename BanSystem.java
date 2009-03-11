@@ -1,6 +1,6 @@
 /*
  * Created on 2007.11.10
- * 
+ *
  */
 
 /**
@@ -28,7 +28,7 @@ public class BanSystem {
 
 		banEntries.clear();
 
-		String query = "SELECT ExpirationDate, Username, IP_start, IP_end, userID, PublicReason FROM BanEntries WHERE (Enabled=1 AND (ExpirationDate IS NULL OR ExpirationDate > CURRENT_TIMESTAMP))"; 
+		String query = "SELECT ExpirationDate, Username, IP_start, IP_end, userID, PublicReason FROM BanEntries WHERE (Enabled=1 AND (ExpirationDate IS NULL OR ExpirationDate > CURRENT_TIMESTAMP))";
 
 		Connection conn = null;
 		Statement stmt = null;
@@ -68,13 +68,13 @@ public class BanSystem {
 			try { rset.close(); } catch(Exception e) { }
 			try { stmt.close(); } catch(Exception e) { }
 			try { conn.close(); } catch(Exception e) { }
-		}		
+		}
 
 		System.out.println("Ban list successfully updated.");
 	}
 
 	/**
-	 * returns null if IP/username/userID is not banned, or corresponding BanEntry object otherwise 
+	 * returns null if IP/username/userID is not banned, or corresponding BanEntry object otherwise
 	 * */
 	public static BanEntry checkIfBanned(String username, long IP, int userID) {
 		for (int i = 0; i < banEntries.size(); i++) {
@@ -106,37 +106,6 @@ public class BanSystem {
 			}
 		}
 		return null;
-	}
-
-	/**
-	 * returns true if this IP is within the given range
-	 * */
-	private static boolean checkIPAgainstRange(String IP, String IP_start, String IP_end) {
-		String[] ip = IP.split("\\.");
-		String[] start = IP_start.split("\\.");
-		String[] end = IP_end.split("\\.");
-
-		if (Integer.parseInt(ip[0]) < Integer.parseInt(start[0])) return false;
-		else if (Integer.parseInt(ip[0]) == Integer.parseInt(start[0]))
-			if (Integer.parseInt(ip[1]) < Integer.parseInt(start[1])) return false;
-			else if (Integer.parseInt(ip[1]) == Integer.parseInt(start[1]))
-				if (Integer.parseInt(ip[2]) < Integer.parseInt(start[2])) return false;
-				else if (Integer.parseInt(ip[2]) == Integer.parseInt(start[2]))
-					if (Integer.parseInt(ip[3]) < Integer.parseInt(start[3])) return false;
-					else if (Integer.parseInt(ip[3]) == Integer.parseInt(start[3]))
-						if (Integer.parseInt(ip[4]) < Integer.parseInt(start[4])) return false;
-
-		if (Integer.parseInt(ip[0]) > Integer.parseInt(end[0])) return false;
-		else if (Integer.parseInt(ip[0]) == Integer.parseInt(end[0]))
-			if (Integer.parseInt(ip[1]) > Integer.parseInt(end[1])) return false;
-			else if (Integer.parseInt(ip[1]) == Integer.parseInt(end[1]))
-				if (Integer.parseInt(ip[2]) > Integer.parseInt(end[2])) return false;
-				else if (Integer.parseInt(ip[2]) == Integer.parseInt(end[2]))
-					if (Integer.parseInt(ip[3]) > Integer.parseInt(end[3])) return false;
-					else if (Integer.parseInt(ip[3]) == Integer.parseInt(end[3]))
-						if (Integer.parseInt(ip[4]) > Integer.parseInt(end[4])) return false;
-
-		return true; // IP is obviously within the range
 	}
 
 	/**
