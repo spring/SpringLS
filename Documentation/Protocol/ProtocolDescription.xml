@@ -8,7 +8,7 @@
 
   <Intro>
   <p>
-  <i>NOTE: This document is available in a HTML form at the following address: 
+  <i>NOTE: This document is available in a HTML form at the following address:
   <url>http://spring.clan-sy.com:8202/lobby/protocol/ProtocolDescription.xml</url></i>
   </p>
   <p>
@@ -66,9 +66,9 @@
   <p>
   As of version 0.33, command syntax has been slightly changed. Messages may now contain IDs:
   Any message may be prefixed with a message ID. For an example:
-  "#123 SAY main hello!" <br /> 
+  "#123 SAY main hello!" <br />
   Server will use this ID with a reply, for an example:
-  "#123 SAID main Betalord hello!" <br /> 
+  "#123 SAID main Betalord hello!" <br />
   The message ID has only one function: to ease tracking server responses for the client.
   Using message IDs means that client can also use synchronous communication (with certain commands),
   which makes it easier to implement certain commands that require multiple responses in both directions.
@@ -86,9 +86,9 @@
     <li>[] = denotes an optional argument</li>
   </ul>
   </p>
-  
+
   </Intro>
-  
+
   <RecentChanges>
   <p>
 
@@ -125,11 +125,11 @@
     <li>TASSERVER command has been modified, see documentation bellow for further details.
         Note that clients should now acquire local Spring version by running "spring.exe /version"
         (they need this info to compare local Spring version to the server's).</li>
-    <li>REQUESTUPDATEFILE command has been modified, see documentation bellow for further details</li>    
+    <li>REQUESTUPDATEFILE command has been modified, see documentation bellow for further details</li>
     <li>Note that MsgIDs (as described in the "Introduction" part) aren't fully supported yet - server will
         parse IDs, but won't include them in the response.</li>
   </ul>
-    
+
   </p>
   </RecentChanges>
 
@@ -162,8 +162,8 @@
         <clink name="REQUESTUPDATEFILE"/> command).
         </Argument>
         <Argument Name="spring_version" Optional="no" Sentence="no">
-        This is the latest Spring version which user needs in order to play with other players on this server. 
-        Client should check if it has this Spring version before attempting to log in. If it does not have it, 
+        This is the latest Spring version which user needs in order to play with other players on this server.
+        Client should check if it has this Spring version before attempting to log in. If it does not have it,
         it should send a <clink name="REQUESTUPDATEFILE"/> command.
         <br />
         Note that if the value of this parameter is "*", client should simply ignore it since this means that
@@ -179,7 +179,7 @@
         Tells what mode server is in. Currently valid are:
         <ul>
           <li>0 - normal mode</li>
-          <li>1 - LAN mode</li>          
+          <li>1 - LAN mode</li>
         </ul>
         </Argument>
       </Arguments>
@@ -216,7 +216,7 @@
       <Examples>
         <Example>REQUESTUPDATEFILE Spring 0.72b1</Example>
         <Example>REQUESTUPDATEFILE TASClient 0.30</Example>
-      </Examples>      
+      </Examples>
     </Command>
 
     <Command Name="REGISTER" Source="client">
@@ -464,7 +464,7 @@
         <Example>UDPSOURCEPORT 52361</Example>
       </Examples>
     </Command>
-    
+
     <Command Name="CLIENTIPPORT" Source="server">
       <Arguments>
         <Argument Name="username" Optional="no" Sentence="no" />
@@ -494,7 +494,7 @@
       when he initialy started the battle (with <clink name="OPENBATTLE"/> command).
       </Description>
     </Command>
-    
+
     <Command Name="SERVERMSG" Source="server">
       <Arguments>
         <Argument Name="message" Optional="no" Sentence="yes" />
@@ -582,7 +582,7 @@
         <Example>JOIN main</Example>
       </Examples>
     </Command>
-    
+
     <Command Name="JOINFAILED" Source="server">
       <Arguments>
         <Argument Name="channame" Optional="no" Sentence="no"/>
@@ -605,8 +605,8 @@
       <Examples>
         <Example>JOIN main</Example>
       </Examples>
-    </Command>   
-    
+    </Command>
+
     <Command Name="CHANNEL" Source="server">
     <Arguments>
       <Argument Name="channame" Optional="no" Sentence="no" />
@@ -615,13 +615,13 @@
       </Argument>
     </Arguments>
     <Description>
-    Sent by server to client who requested channel list via <clink name="CHANNELS" /> command. 
-    A series of these commands will be sent to user, one for each open channel. Topic parameter 
+    Sent by server to client who requested channel list via <clink name="CHANNELS" /> command.
+    A series of these commands will be sent to user, one for each open channel. Topic parameter
     may be omited if topic is not set for the channel. A series of CHANNEL commands is ended
-    by <clink name="ENDOFCHANNELS" /> command. 
+    by <clink name="ENDOFCHANNELS" /> command.
     </Description>
     </Command>
-    
+
     <Command Name="ENDOFCHANNELS" Source="server">
       <Description>
       Sent to client who previously requested channel list, after a
@@ -640,17 +640,17 @@
         <Example>MUTELIST main</Example>
       </Examples>
     </Command>
-    
+
     <Command Name="MUTELISTBEGIN" Source="server">
       <Arguments>
         <Argument Name="channame" Optional="no" Sentence="no" />
       </Arguments>
       <Description>
       Sent by server when sending channel's mute list to the client. This command is immediately followed
-      by 0 or more MUTELIST commands and finally by a MUTELISTEND command.      
+      by 0 or more MUTELIST commands and finally by a MUTELISTEND command.
       </Description>
       <Response>
-      Followed by 0 or more <clink name="MUTELIST:server"/> commands and finally by a <clink name="MUTELISTEND"/> command. 
+      Followed by 0 or more <clink name="MUTELIST:server"/> commands and finally by a <clink name="MUTELISTEND"/> command.
       </Response>
     </Command>
 
@@ -670,14 +670,14 @@
         <Example>MUTELIST rabbit, indefinite time remaining</Example>
       </Examples>
     </Command>
-    
+
     <Command Name="MUTELISTEND" Source="server">
       <Description>
       Sent by server after it has finished sending the list of mutes for a channel.
       Also see <clink name="MUTELIST:server"/> and <clink name="MUTELISTBEGIN"/> commands.
       </Description>
     </Command>
-    
+
     <Command Name="CHANNELTOPIC" Source="server">
       <Arguments>
         <Argument Name="channame" Optional="no" Sentence="no"/>
@@ -702,7 +702,7 @@
       to disable it.
       </Description>
     </Command>
-    
+
     <Command Name="CLIENTS" Source="server">
       <Arguments>
         <Argument Name="channame" Optional="no" Sentence="no"/>
@@ -713,7 +713,7 @@
       kind can be sent in a row. Server takes the list of clients in a channel and separates
       it into several lines and sends each line seperately. This ensures no line is too long,
       because client may have some limit set on the maximum length of the line and it could
-      ignore it if it was too long. Also note that the client itself (his username) is sent in 
+      ignore it if it was too long. Also note that the client itself (his username) is sent in
       this list too! So when client receives JOIN command he should not add his name in the clients
       list of the channel - he should wait for CLIENTS command which will contain his name too
       and he will add himself then automatically.
@@ -730,7 +730,7 @@
       joins the channel.
       </Description>
     </Command>
-    
+
     <Command Name="LEAVE" Source="client">
       <Arguments>
         <Argument Name="channame" Optional="no" Sentence="no"/>
@@ -766,7 +766,7 @@
       User will be notified with <clink name="FORCELEAVECHANNEL:server"/> command.
       </Description>
     </Command>
-    
+
     <Command Name="FORCELEAVECHANNEL" Source="server">
       <Arguments>
         <Argument Name="channame" Optional="no" Sentence="no"/>
@@ -779,7 +779,7 @@
       as he was removed from the clients list of #channame on server side)
       </Description>
     </Command>
-    
+
     <Command Name="CHANNELMESSAGE" Source="server">
       <Arguments>
         <Argument Name="channame" Optional="no" Sentence="no"/>
@@ -790,7 +790,7 @@
       in the channel.
       </Description>
     </Command>
-    
+
     <Command Name="SAY" Source="client">
       <Arguments>
         <Argument Name="channame" Optional="no" Sentence="no"/>
@@ -812,7 +812,7 @@
         <Argument Name="message" Optional="no" Sentence="yes"/>
       </Arguments>
       <Description>
-      Sent by server to all clients participating in this channel when one of the clients 
+      Sent by server to all clients participating in this channel when one of the clients
       sent a message to it (including the author of this message).
       </Description>
     </Command>
@@ -838,7 +838,7 @@
       Sent by server when client said something using <clink name="SAYEX:client"/> command.
       </Description>
     </Command>
-    
+
     <Command Name="SAYPRIVATE" Source="client">
       <Arguments>
         <Argument Name="username" Optional="no" Sentence="no"/>
@@ -872,7 +872,7 @@
       Sent by server when some client sent this client a private message.
       </Description>
     </Command>
-    
+
 
     <Command Name="OPENBATTLE" Source="client">
       <Arguments>
@@ -907,7 +907,7 @@
       Client is notified about this command's success via <clink name="OPENBATTLE:server"/>/<clink name="OPENBATTLEFAILED:server"/> commands.
       </Response>
     </Command>
-    
+
     <Command Name="OPENBATTLE" Source="server">
       <Arguments>
         <Argument Name="BATTLE_ID" Optional="no" Sentence="no"/>
@@ -956,7 +956,7 @@
       Use Battle.createBattleOpenedCommand method to create this command in a String (when modifying TASServer source).
       </Description>
     </Command>
-    
+
     <Command Name="BATTLECLOSED" Source="server">
       <Arguments>
         <Argument Name="BATTLE_ID" Optional="no" Sentence="no"/>
@@ -965,7 +965,7 @@
       Sent when founder has closed a battle (or if he was disconnected).
       </Description>
     </Command>
-    
+
     <Command Name="JOINBATTLE" Source="client">
       <Arguments>
         <Argument Name="BATTLE_ID" Optional="no" Sentence="no"/>
@@ -1117,7 +1117,7 @@
       uses SAYBATTLEEX saying founder kicked a user).
       </Description>
     </Command>
-    
+
     <Command Name="SAIDBATTLEEX" Source="server">
       <Arguments>
         <Argument Name="username" Optional="no" Sentence="no"/>
@@ -1144,11 +1144,11 @@
           <li>b6 = bot mode (0 - normal user, 1 - automated bot). This bit is copied from user's account
               and can not be changed by the client himself. Bots differ from human players in that
               they are fully automated and that some anti-flood limitations do not apply to them.</li>
-        </ul>        
+        </ul>
         </Argument>
       </Arguments>
       <Description>
-      Sent by client to server telling him his status changed. 
+      Sent by client to server telling him his status changed.
       To figure out if battle is "in-game", client must check in-game status of the host.
       </Description>
     </Command>
@@ -1166,7 +1166,7 @@
       when you logon, server sends only statuses of those clients whose statuses differ
       from 0, to save the bandwidth).
       </Description>
-    </Command>    
+    </Command>
 
     <Command Name="MYBATTLESTATUS" Source="client">
       <Arguments>
@@ -1226,7 +1226,7 @@
       since he knows battle statuses of other clients already.
       </Description>
       <Response>
-      When client receives this command, he must send MYBATTLESTATUS command to the server so that 
+      When client receives this command, he must send MYBATTLESTATUS command to the server so that
       server can synchronize battle status with user's.
       </Response>
     </Command>
@@ -1242,8 +1242,8 @@
       Sent by founder of the battle changing username's handicap value (of his battle status).
       Only founder can change other users handicap values (even they themselves can't change it).
       </Description>
-    </Command>    
-    
+    </Command>
+
     <Command Name="KICKFROMBATTLE" Source="client">
       <Arguments>
         <Argument Name="username" Optional="no" Sentence="no"/>
@@ -1252,8 +1252,8 @@
       Sent by founder of the battle when he kicks the client out of the battle. Server remove client
       from the battle and notify him about it via <clink name="FORCEQUITBATTLE:server"/> command.
       </Description>
-    </Command>    
-    
+    </Command>
+
     <Command Name="FORCEQUITBATTLE" Source="server">
       <Description>
       Sent to client for whom founder requested kick with KICKFROMBATTLE command.
@@ -1262,8 +1262,8 @@
       the battle. Note that client should close the battle internally, since he is no longer
       a part of it (or he can do that once he receives LEFTBATTLE command containing his username).
       </Description>
-    </Command>    
-    
+    </Command>
+
     <Command Name="FORCETEAMNO" Source="client">
       <Arguments>
         <Argument Name="username" Optional="no" Sentence="no"/>
@@ -1274,7 +1274,7 @@
       to 'teamno'. Server will update client's battle status automatically.
       </Description>
     </Command>
-    
+
     <Command Name="FORCEALLYNO" Source="client">
       <Arguments>
         <Argument Name="username" Optional="no" Sentence="no"/>
@@ -1282,18 +1282,18 @@
       </Arguments>
       <Description>
       Sent by founder of the battle when he is trying to force some other client's ally number
-      to 'allyno'. Server will update client's battle status automatically.  
+      to 'allyno'. Server will update client's battle status automatically.
       </Description>
-    </Command> 
-    
+    </Command>
+
     <Command Name="FORCETEAMCOLOR" Source="client">
       <Arguments>
         <Argument Name="username" Optional="no" Sentence="no"/>
         <Argument Name="color" Optional="no" Sentence="no">
         Should be a 32-bit signed integer in decimal form (e.g. 255 and not FF)
         where each color channel should occupy 1 byte (e.g. in hexdecimal: $00BBGGRR,
-        B = blue, G = green, R  = red). 
-        Example: 255 stands for $000000FF.  
+        B = blue, G = green, R  = red).
+        Example: 255 stands for $000000FF.
         </Argument>
       </Arguments>
       <Description>
@@ -1301,7 +1301,7 @@
       to 'color'. Server will update client's battle status automatically.
       </Description>
     </Command>
-    
+
     <Command Name="FORCESPECTATORMODE" Source="client">
       <Arguments>
         <Argument Name="username" Optional="no" Sentence="no"/>
@@ -1374,7 +1374,7 @@
       the disabled units list.
       </Description>
     </Command>
-    
+
     <Command Name="ENABLEALLUNITS" Source="server">
       <Description>
       Sent by server to all clients in the battle except for the founder, telling them that
@@ -1418,7 +1418,7 @@
         REDIRECT 87.96.164.14
         </Example>
       </Examples>
-    </Command>    
+    </Command>
 
     <Command Name="BROADCAST" Source="server">
       <Arguments>
@@ -1490,7 +1490,7 @@
       Sent by server.
       </Description>
     </Command>
-    
+
     <Command Name="UPDATEBOT" Source="client">
       <Arguments>
         <Argument Name="name" Optional="no" Sentence="no"/>
@@ -1540,7 +1540,7 @@
         <Argument Name="bottom" Optional="no" Sentence="no"/>
       </Arguments>
       <Description>
-      Sent by host of the battle adding a start rectangle for 'allyno' ally team. See lobby client 
+      Sent by host of the battle adding a start rectangle for 'allyno' ally team. See lobby client
       implementation and Spring docs for more info on this one.
       "left", "top", "right" and "bottom" refer to a virtual rectangle that is 200x200 in size,
       where coordinates should be in interval [0, 200].
@@ -1582,58 +1582,6 @@
       </Description>
     </Command>
 
-    <Command Name="MAPGRADES" Source="client">
-      <Arguments>
-        <Argument Name="hashlist" Optional="no" Sentence="no">
-        This is a list containing map hashes (32-bit unsigned, in hexadecimal form. Use unitsync.dll to
-        retrieve map hashes!) followed by an integer in range [0..10], where 0 means user hasn't graded the
-        map yet and 1 to 10 means user's map grade. Server will return MAPGRADES command containing
-        global grades for all the maps specified with this command.
-        Note that only grades from players with rank greater than "beginner" will get written to
-        global grades (this is to avoid exploiting of this system - anyone could register multiple
-        accounts and vote for some map).
-        </Argument>
-      </Arguments>
-      <Description>
-      Sent by client when trying to commit his local map grade list and retrieve public one.
-      </Description>
-      <Response>
-      Server will respond with either a <clink name="MAPGRADES:server"/> or <clink name="MAPGRADESFAILED:server"/> command.
-      </Response>
-      <Examples>
-        <Example>
-        MAPGRADES 3008EC6D 0 D1F52CD2 0 6BCC6FFD 7 A3D0DA60 0
-        </Example>
-      </Examples>
-    </Command>
-    
-    <Command Name="MAPGRADES" Source="server">
-      <Arguments>
-        <Argument Name="hashlist" Optional="no" Sentence="no">
-        Has a similar format as <clink name="MAPGRADES:client"/> command sent by the client, containing hash code
-        of the map followed by the avarage grade (real number with "." as decimal separator in
-        range [1.0, 10.0], or 0 if noone has graded it yet) and number of votes (integer).
-        </Argument>
-      </Arguments>
-      <Description>
-      Sent by server as a response to <clink name="MAPGRADES:client"/> command sent by the client.
-      </Description>
-      <Examples>
-        <Example>
-        MAPGRADES 3008EC6D 7.181818 22 D1F52CD2 4.5833335 12 6BCC6FFD 7.638889 72 A3D0DA60 6.0 1
-        </Example>
-      </Examples>
-    </Command>
-
-    <Command Name="MAPGRADESFAILED" Source="server">
-      <Arguments>
-        <Argument Name="reason" Optional="no" Sentence="yes"/>
-      </Arguments>
-      <Description>
-      Sent by server if it could not respond to MAPGRADES command for some reason.
-      </Description>
-    </Command>
-    
     <Command Name="SCRIPTSTART" Source="client">
       <Description>
       Sent by client who is hosting a battle replay game indicating he is now sending us the game script
@@ -1645,8 +1593,8 @@
         <li>3) SCRIPTEND command</li>
       </ul>
       </Description>
-    </Command>    
-    
+    </Command>
+
     <Command Name="SCRIPTSTART" Source="server">
       <Description>
       Sent by server to clients participating in a battle replay indicating that server will now begin
@@ -1694,7 +1642,7 @@
       (also see comments for SCRIPTSTART command).
       </Description>
     </Command>
-    
+
     <Command Name="SETSCRIPTTAGS" Source="client">
       <Arguments>
         <Argument Name="pair1" Optional="no"  Sentence="yes"/>
@@ -1726,7 +1674,7 @@
         <Example>SETSCRIPTTAGS GAME/MODOPTIONS/TEST=true</Example>
         <Example>SETSCRIPTTAGS GAME/StartMetal=1000	GAME/StartEnergy=1000</Example>
         <Example>See whitespaces: SETSCRIPTTAGS GAME/StartMetal=1000<b>[TAB]</b>GAME/StartEnergy=1000</Example>
-      </Examples>      
+      </Examples>
     </Command>
 
     <Command Name="SETSCRIPTTAGS" Source="server">
@@ -1745,7 +1693,7 @@
         <Example>SETSCRIPTTAGS GAME/MODOPTIONS/TEST=true</Example>
         <Example>SETSCRIPTTAGS GAME/StartMetal=1000	GAME/StartEnergy=1000</Example>
         <Example>See whitespaces: SETSCRIPTTAGS GAME/StartMetal=1000<b>[TAB]</b>GAME/StartEnergy=1000</Example>
-      </Examples>      
+      </Examples>
     </Command>
 
     <Command Name="REMOVESCRIPTTAGS" Source="client">
@@ -1760,7 +1708,7 @@
       </Description>
       <Examples>
         <Example>REMOVESCRIPTTAGS GAME/MODOPTIONS/TEST1 GAME/MODOPTIONS/TEST2</Example>
-      </Examples>      
+      </Examples>
     </Command>
 
     <Command Name="REMOVESCRIPTTAGS" Source="server">
@@ -1776,7 +1724,7 @@
       </Description>
       <Examples>
         <Example>REMOVESCRIPTTAGS GAME/MODOPTIONS/TEST1 GAME/MODOPTIONS/TEST2</Example>
-      </Examples>      
+      </Examples>
     </Command>
 
     <Command Name="TESTLOGIN" Source="client">
@@ -1791,24 +1739,24 @@
       for web interface to the server).
       </Description>
       <Response>
-      Server will respond with either <clink name="TESTLOGINACCEPT" /> or <clink name="TESTLOGINDENY" /> 
+      Server will respond with either <clink name="TESTLOGINACCEPT" /> or <clink name="TESTLOGINDENY" />
       command.
       </Response>
     </Command>
-    
+
     <Command Name="TESTLOGINACCEPT" Source="server">
       <Description>
-      Used as a response to a <clink name="TESTLOGIN" /> command in case username/password pair is not valid. 
+      Used as a response to a <clink name="TESTLOGIN" /> command in case username/password pair is not valid.
       Use message ID to bind response to a request.
       </Description>
-    </Command>    
+    </Command>
 
     <Command Name="TESTLOGINDENY" Source="server">
       <Description>
-      Used as a response to a <clink name="TESTLOGIN" /> command in case username/password pair is valid. 
+      Used as a response to a <clink name="TESTLOGIN" /> command in case username/password pair is valid.
       Use message ID to bind response to a request.
       </Description>
-    </Command>    
+    </Command>
 
     <Command Name="ACQUIREUSERID" Source="server">
       <Description>
@@ -1817,7 +1765,7 @@
       and save it permanently as his user ID. He will then provide this user ID each time he logs on to the server
       via <clink name="LOGIN"/> command.
       </Description>
-    </Command>    
+    </Command>
 
     <Command Name="USERID" Source="client">
       <Arguments>
@@ -1831,7 +1779,7 @@
       <Examples>
         <Example>USERID FA23BB4A</Example>
       </Examples>
-    </Command>    
+    </Command>
 
   </CommandList>
 
