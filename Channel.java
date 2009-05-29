@@ -109,7 +109,7 @@ public class Channel {
 	}
 	
 	public boolean isLocked() {
-		return !(key.equals("*"));
+		return !(key.equals("*") || key.equals(""));
 	}
 	
 	public void setKey(String key) {

@@ -246,7 +246,8 @@ public class TASServer {
 	static final int DEFAULT_SERVER_PORT = 8200; // default server (TCP) port
 	static int serverPort = DEFAULT_SERVER_PORT; // actual server (TCP) port to be used (or currently in use)
 	static int NAT_TRAVERSAL_PORT = 8201; // default UDP port used with some NAT traversal technique. If this port is not forwarded, hole punching technique will not work.
-	static final int TIMEOUT_LENGTH = 30000; // in milliseconds
+	static final int TIMEOUT_CHECK = 10000;
+	static int timeoutLength = 30000; // in milliseconds
 	static boolean LAN_MODE = false;
 	static boolean redirect = false; // if true, server is redirection clients to new IP
 	static String redirectToIP = ""; // new IP to which clients are redirected if (redirected==true)
@@ -258,6 +259,8 @@ public class TASServer {
 	static PrintStream mainChanLog;
 	static String lanAdminUsername = "admin"; // default lan admin account. Can be overwritten with -LANADMIN switch. Used only when server is running in lan mode!
 	static String lanAdminPassword = Misc.encodePassword("admin");
+	private static HashMap<String,Integer>registrationTimes = new HashMap<String, Integer>();
+	private static LinkedList<String> whiteList=new LinkedList<String>();
 	static long purgeMutesInterval = 1000 * 3; // in miliseconds. On this interval, all channels' mute lists will be checked for expirations and purged accordingly.
 	static long lastMutesPurgeTime = System.currentTimeMillis(); // time when we last purged mute lists of all channels
 	static String[] reservedAccountNames = {"TASServer", "Server", "server"}; // accounts with these names cannot be registered (since they may be used internally by the server)
@@ -266,7 +269,7 @@ public class TASServer {
 	public static boolean initializationFinished = false; // we set this to 'true' just before we enter the main loop. We need this information when saving accounts for example, so that we don't dump empty accounts to disk when an error has occured before initialization has been completed
 	static ArrayList<FailedLoginAttempt> failedLoginAttempts = new ArrayList<FailedLoginAttempt>(); // here we store information on latest failed login attempts. We use it to block users from brute-forcing other accounts
 	static long lastFailedLoginsPurgeTime = System.currentTimeMillis(); // time when we last purged list of failed login attempts
-
+	
 	// database related:
 	public static DBInterface database;
 	private static String DB_URL = "jdbc:mysql://127.0.0.1/spring";
@@ -278,11 +281,15 @@ public class TASServer {
     private static final long MAIN_LOOP_SLEEP = 10L;
     public static final int NO_MSG_ID = -1; // meaning message isn't using an ID (see protocol description on message/command IDs)
 
-    private static final int recvRecordPeriod = 10; // in seconds. Length of time period for which we keep record of bytes received from client. Used with anti-flood protection.
-    private static final int maxBytesAlert = 20000; // maximum number of bytes received in the last recvRecordPeriod seconds from a single client before we raise "flood alert". Used with anti-flood protection.
-    private static final int maxBytesAlertForBot = 50000; // same as 'maxBytesAlert' but is used for clients in "bot mode" only (see client.status bits)
+    private static int recvRecordPeriod = 10; // in seconds. Length of time period for which we keep record of bytes received from client. Used with anti-flood protection.
+    private static int maxBytesAlert = 20000; // maximum number of bytes received in the last recvRecordPeriod seconds from a single client before we raise "flood alert". Used with anti-flood protection.
+    private static int maxBytesAlertForBot = 50000; // same as 'maxBytesAlert' but is used for clients in "bot mode" only (see client.status bits)
     private static long lastFloodCheckedTime = System.currentTimeMillis(); // time (in same format as System.currentTimeMillis) when we last updated it. Used with anti-flood protection.
     private static long maxChatMessageLength = 1024; // used with basic anti-flood protection. Any chat messages (channel or private chat messages) longer than this are considered flooding. Used with following commands: SAY, SAYEX, SAYPRIVATE, SAYBATTLE, SAYBATTLEEX
+
+	
+	public static boolean regEnabled=true;
+	public static boolean loginEnabled=true;
 
     private static long lastTimeoutCheck = System.currentTimeMillis(); // time (System.currentTimeMillis()) when we last checked for timeouts from clients
 
@@ -687,9 +694,47 @@ public class TASServer {
 
 				client.sendLine("PONG");
 			}
+			if(commands[0].equals("CREATEACCOUNT")) {
+				if(client.account.accessLevel() != Account.ADMIN_ACCESS) return false;
+				if(commands.length!=3) {
+					client.sendLine("SERVERMSG bad params");
+					return false;
+				}
+				String valid = Accounts.isOldUsernameValid(commands[1]);
+				if (valid != null) {
+					client.sendLine("SERVERMSG Invalid username (reason: " + valid + ")");
+					return false;
+				}
+
+				// validate password:
+				valid = Accounts.isPasswordValid(commands[2]);
+				if (valid != null) {
+					client.sendLine("SERVERMSG Invalid password (reason: " + valid + ")");
+					return false;
+				}
+				Account acc = Accounts.findAccountNoCase(commands[1]);
+				if (acc != null) {
+					client.sendLine("SERVERMSG Account already exists");
+					return false;
+				}
+				for (int i = 0; i < TASServer.reservedAccountNames.length; i++)
+					if (TASServer.reservedAccountNames[i].equals(commands[1])) {
+						client.sendLine("SERVERMSG Invalid account name - you are trying to register a reserved account name");
+						return false;
+					}
+				acc = new Account(commands[1], commands[2], Account.NORMAL_ACCESS, Account.NO_USER_ID, System.currentTimeMillis(), client.IP, System.currentTimeMillis(), client.country);
+				Accounts.addAccount(acc);
+				Accounts.saveAccounts(false); // let's save new accounts info to disk
+				client.sendLine("SERVERMSG Account created.");
+			}
 			if (commands[0].equals("REGISTER")) {
 				if (commands.length != 3) {
 					client.sendLine("REGISTRATIONDENIED Bad command arguments");
+					return false;
+				}
+				
+				if(!regEnabled) {
+					client.sendLine("REGISTRATIONDENIED Sorry, account registration is currently disabled");
 					return false;
 				}
 
@@ -716,7 +761,6 @@ public class TASServer {
 					client.sendLine("REGISTRATIONDENIED Invalid password (reason: " + valid + ")");
 					return false;
 				}
-
 				Account acc = Accounts.findAccountNoCase(commands[1]);
 				if (acc != null) {
 					client.sendLine("REGISTRATIONDENIED Account already exists");
@@ -724,12 +768,33 @@ public class TASServer {
 				}
 
 				// check for reserved names:
-				for (int i = 0; i < reservedAccountNames.length; i++)
-					if (reservedAccountNames[i].equals(commands[1])) {
+				for (int i = 0; i < TASServer.reservedAccountNames.length; i++)
+					if (TASServer.reservedAccountNames[i].equals(commands[1])) {
 						client.sendLine("REGISTRATIONDENIED Invalid account name - you are trying to register a reserved account name");
 						return false;
 					}
-
+				if(!whiteList.contains(client.IP)) {
+					/*if (registrationTimes.containsKey(client.IP) 
+					&& (int)(registrationTimes.get(client.IP)) + 3600 > (System.currentTimeMillis()/1000)) {
+						client.sendLine("REGISTRATIONDENIED This ip has already registered an account recently");
+						Clients.sendToAllAdministrators("SERVERMSG Client at " + client.IP + "'s registration of " + commands[1] + " was blocked due to register spam");
+						return false;
+					}
+					registrationTimes.put(client.IP, (int)(System.currentTimeMillis()/1000));*/
+					/*String proxyDNS = "dnsbl.dronebl.org"; //Bot checks this with the broadcast, no waiting for a response
+					String[] ipChunks = client.IP.split("\\.");
+					for (int i = 0; i < 4; i++) {
+						proxyDNS = ipChunks[i] + "." + proxyDNS;
+					}
+					try {
+						InetAddress.getByName(proxyDNS);
+						client.sendLine("REGISTRATIONDENIED Using a known proxy ip");
+						Clients.sendToAllAdministrators("SERVERMSG Client at " + client.IP + "'s registration of " + commands[1] + " was blocked as it is a proxy IP");
+						return false;
+					} catch (UnknownHostException e) {
+					}*/
+				}
+				Clients.sendToAllAdministrators("SERVERMSG New registration of <" + commands[1] +  "> at " + client.IP);
 				acc = new Account(commands[1], commands[2], Account.NORMAL_ACCESS, Account.NO_USER_ID, System.currentTimeMillis(), client.IP, System.currentTimeMillis(), client.country);
 				Accounts.addAccount(acc);
 				Accounts.saveAccounts(false); // let's save new accounts info to disk
@@ -758,6 +823,86 @@ public class TASServer {
 				target.sendLine("SERVERMSG You've been kicked from server by <" + client.account.user + ">" + reason);
 				Clients.killClient(target, "Quit: kicked from server");
 			}
+			else if (commands[0].equals("FLOODLEVEL")) {
+				if(client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
+				if(commands.length==3) {
+					if(commands[1].toUpperCase().equals("PERIOD")) {
+						recvRecordPeriod = Integer.parseInt(commands[2]);
+						client.sendLine("SERVERMSG The antiflood period is now " + commands[2] + " seconds.");
+					} else if(commands[1].toUpperCase().equals("USER")) {
+						maxBytesAlert = Integer.parseInt(commands[2]);
+						client.sendLine("SERVERMSG The antiflood amount for a normal user is now " + commands[2] + " bytes.");
+					} else if(commands[1].toUpperCase().equals("BOT")) {
+						maxBytesAlertForBot = Integer.parseInt(commands[2]);
+						client.sendLine("SERVERMSG The antiflood amount for a bot is now " + commands[2] + " bytes.");
+					}
+				}
+			}
+			else if (commands[0].equals("KILL")) {
+				if(client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
+				if(commands.length<2) return false;
+				
+				Client target=Clients.getClient(commands[1]);
+				if(target==null) return false;
+				Clients.killClient(target);
+			}
+			else if (commands[0].equals("KILLIP")) {
+				if(client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
+				if(commands.length!=2) return false;
+				String IP = commands[1];
+				String[] sp1 = IP.split("\\.");
+				if (sp1.length != 4) {
+					client.sendLine("SERVERMSG Invalid IP address/range: " + IP);
+					return false;
+				}
+				for (int i = 0; i < Clients.getClientsSize(); i++) {
+					String[] sp2 = Clients.getClient(i).IP.split("\\.");
+
+					if (!sp1[0].equals("*")) if (!sp1[0].equals(sp2[0])) continue;
+					if (!sp1[1].equals("*")) if (!sp1[1].equals(sp2[1])) continue;
+					if (!sp1[2].equals("*")) if (!sp1[2].equals(sp2[2])) continue;
+					if (!sp1[3].equals("*")) if (!sp1[3].equals(sp2[3])) continue;
+					Clients.killClient(Clients.getClient(i));
+				}				
+			}
+			else if (commands[0].equals("WHITELIST")) {
+				if(client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
+				if(commands.length==2) {
+					whiteList.add(commands[1]);
+					client.sendLine("SERVERMSG IP successfully whitelisted from REGISTER constraints");
+				}
+				else
+					client.sendLine("SERVERMSG Whitelist is: " + whiteList.toString());
+			}
+			else if (commands[0].equals("UNWHITELIST")) {
+				if(client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
+				if(commands.length==2) {
+					client.sendLine((whiteList.remove(commands[1]))?"SERVERMSG IP removed from whitelist":"SERVERMSG IP not in whitelist");
+				}
+				else
+					client.sendLine("SERVERMSG Bad command- UNWHITELIST IP");
+			}
+			else if (commands[0].equals("ENABLELOGIN")) {
+				if(client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
+				if(commands.length==2)
+					loginEnabled=(commands[1].equals("1"));
+				client.sendLine("SERVERMSG The LOGIN command is " + (loginEnabled?"enabled":"disabled") + " for non-moderators");
+			}
+			else if (commands[0].equals("ENABLEREGISTER")) {
+				if(client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
+				if(commands.length==2)
+					regEnabled=(commands[1].equals("1"));
+				client.sendLine("SERVERMSG The REGISTER command is " + (regEnabled?"enabled":"disabled"));
+			}
+
+			else if (commands[0].equals("SETTIMEOUT")) {
+				if(client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
+				if(commands.length==2) {
+					timeoutLength = Integer.parseInt(commands[1]) * 1000;
+					client.sendLine("SERVERMSG Timeout length is now " + commands[1] + " seconds.");
+				}
+			}
+
 			else if (commands[0].equals("REMOVEACCOUNT")) {
 				if (client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
 				if (commands.length != 2) return false;
@@ -828,12 +973,13 @@ public class TASServer {
 				acc.access = value;
 
 				Accounts.saveAccounts(false); // save changes
-				 // just in case if rank got changed:
-				client.setRankToStatus(client.account.getRank());
+				// just in case if rank got changed: FIXME?
+				//Client target=Clients.getClient(commands[1]);
+				//target.setRankToStatus(client.account.getRank());
+				//if(target.alive)
+				//	Clients.notifyClientsOfNewClientStatus(target);
 
-				Clients.notifyClientsOfNewClientStatus(client);
-
-				client.sendLine("SERVERMSG You have changed password for <" + commands[1] + "> successfully.");
+				client.sendLine("SERVERMSG You have changed ACCESS for <" + commands[1] + "> successfully.");
 
 				// add server notification:
 				ServerNotification sn = new ServerNotification("Account access changed by admin");
@@ -1513,6 +1659,11 @@ public class TASServer {
 					client.sendLine("DENIED Already logged in");
 					return false; // user with accessLevel > 0 cannot re-login
 				}
+				
+				if(!loginEnabled && Accounts.getAccount(commands[1]).accessLevel() < Account.PRIVILEGED_ACCESS) {
+					client.sendLine("DENIED Sorry, logging in is currently disabled");
+					return false;
+				}
 
 				if (commands.length < 6) {
 					client.sendLine("DENIED Bad command arguments");
@@ -1584,9 +1735,13 @@ public class TASServer {
 						acc.setAgreement(true);
 						Accounts.saveAccounts(false);
 					}
+					if (acc.lastLogin + 5000 > System.currentTimeMillis()) {
+						client.sendLine("DENIED This account has already connected in the last 5 seconds");
+						return false;
+					}
 					client.account = acc;
 				} else { // LAN_MODE == true
-					if (commands[1] == "") {
+					if (commands[1].equals("")) {
 						client.sendLine("DENIED Cannot login with null username");
 					}
 					Account acc = Accounts.getAccount(commands[1]);
@@ -1678,7 +1833,7 @@ public class TASServer {
 				}
 
 				Account acc = Accounts.findAccountNoCase(commands[1]);
-				if (acc != null) {
+				if (acc != null && acc != client.account) {
 					client.sendLine("SERVERMSG RENAMEACCOUNT failed: Account with same username already exists!");
 					return false;
 				}
@@ -2934,12 +3089,12 @@ public class TASServer {
 		    }
 
 		    // check for timeouts:
-		    if (System.currentTimeMillis() - lastTimeoutCheck > TIMEOUT_LENGTH) {
+		    if (System.currentTimeMillis() - lastTimeoutCheck > TIMEOUT_CHECK) {
 		    	lastTimeoutCheck = System.currentTimeMillis();
 		    	long now = System.currentTimeMillis();
 		    	for (int i = 0; i < Clients.getClientsSize(); i++) {
 		    		if (Clients.getClient(i).halfDead) continue; // already scheduled for kill
-		    		if (now - Clients.getClient(i).timeOfLastReceive > TIMEOUT_LENGTH) {
+		    		if (now - Clients.getClient(i).timeOfLastReceive > timeoutLength) {
 		    			System.out.println("Timeout detected from " + Clients.getClient(i).account.user + " (" + Clients.getClient(i).IP + "). Client has been scheduled for kill ...");
 		    			Clients.killClientDelayed(Clients.getClient(i), "Quit: timeout");
 		    		}
@@ -3024,3 +3179,4 @@ public class TASServer {
         System.out.println("Server closed gracefully!");
 	}
 }
+
