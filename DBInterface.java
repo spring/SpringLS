@@ -129,6 +129,11 @@ public class DBInterface {
 			if (rset == null)
 				return false;
 		} catch (Exception e) {
+			Throwable t = e;
+			while (t != null) {
+				System.out.println(t.getMessage());
+				t = t.getCause();
+			}
 			return false;
 		} finally {
 			// always return connection back to pool, no matter what!
