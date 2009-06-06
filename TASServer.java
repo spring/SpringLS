@@ -246,8 +246,8 @@ public class TASServer {
 	static final int DEFAULT_SERVER_PORT = 8200; // default server (TCP) port
 	static int serverPort = DEFAULT_SERVER_PORT; // actual server (TCP) port to be used (or currently in use)
 	static int NAT_TRAVERSAL_PORT = 8201; // default UDP port used with some NAT traversal technique. If this port is not forwarded, hole punching technique will not work.
-	static final int TIMEOUT_CHECK = 10000;
-	static int timeoutLength = 30000; // in milliseconds
+	static final int TIMEOUT_CHECK = 5000;
+	static int timeoutLength = 50000; // in milliseconds
 	static boolean LAN_MODE = false;
 	static boolean redirect = false; // if true, server is redirection clients to new IP
 	static String redirectToIP = ""; // new IP to which clients are redirected if (redirected==true)
