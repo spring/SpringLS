@@ -149,8 +149,8 @@ public class Battle {
 	public int spectatorCount() {
 		int count = 0;
 		for (int i = 0; i < clients.size(); i++)
-			if (Misc.getModeFromBattleStatus(clients.get(i).battleStatus) == 0) count++;
-		if (Misc.getModeFromBattleStatus(founder.battleStatus) == 0) count++;
+			if (clients.get(i).battleStatus.Mode == 0) count++;
+		if (founder.battleStatus.Mode == 0) count++;
 		return count;
 	}
 	
