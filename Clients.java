@@ -132,7 +132,11 @@ public class Clients {
 		client.beginFastWrite();
 		for (int i = 0; i < clients.size(); i++) {
 			if (clients.get(i).account.accessLevel() < Account.NORMAL_ACCESS) continue;
-			client.sendLine("ADDUSER " + clients.get(i).account.user + " " + clients.get(i).country + " " + clients.get(i).cpu);
+			if(client.acceptAccountIDs) {
+				client.sendLine("ADDUSER " + clients.get(i).account.user + " " + clients.get(i).country + " " + clients.get(i).cpu + " " + clients.get(i).account.accountID);
+			}else{
+				client.sendLine("ADDUSER " + clients.get(i).account.user + " " + clients.get(i).country + " " + clients.get(i).cpu);
+			}
 		}
 		client.endFastWrite();
 	}
@@ -143,7 +147,11 @@ public class Clients {
 		for (int i = 0; i < clients.size(); i++) {
 			if (clients.get(i).account.accessLevel() < Account.NORMAL_ACCESS) continue;
 			if (clients.get(i) == client) continue;
-			clients.get(i).sendLine("ADDUSER " + client.account.user + " " + client.country + " " + client.cpu);
+			if(clients.get(i).acceptAccountIDs) {
+				clients.get(i).sendLine("ADDUSER " + client.account.user + " " + client.country + " " + client.cpu + " " + client.account.accountID);
+			}else{
+				clients.get(i).sendLine("ADDUSER " + client.account.user + " " + client.country + " " + client.cpu);
+			}
 		}
 	}
 

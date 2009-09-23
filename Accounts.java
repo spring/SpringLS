@@ -19,6 +19,7 @@ import java.util.*;
 public class Accounts {
 	private static ArrayList<Account> accounts = new ArrayList<Account>(); // note: ArrayList is not synchronized! Use Vector class instead if multiple threads are going to access it.
 	private static SaveAccountsThread saveAccountsThread = null;
+	private static int biggestAccountId = 1000;
 
 	// 'map' is used to speed up searching for accounts by username (TreeMap class implements efficient Red-Black trees)
 	private static TreeMap<String, Account> map = new TreeMap<String, Account>(
@@ -62,7 +63,11 @@ public class Accounts {
             while ((line = in.readLine()) != null) {
             	if (line.equals("")) continue;
             	tokens = line.split(" ");
-            	addAccount(new Account(tokens[0], tokens[1], Integer.parseInt(tokens[2], 2), Integer.parseInt(tokens[3]), Long.parseLong(tokens[4]), tokens[5], Long.parseLong(tokens[6]), tokens[7]));
+            	if(tokens.length < 9) {
+            		addAccount(new Account(tokens[0], tokens[1], Integer.parseInt(tokens[2], 2), Integer.parseInt(tokens[3]), Long.parseLong(tokens[4]), tokens[5], Long.parseLong(tokens[6]), tokens[7], Account.NEW_ACCOUNT_ID));
+            	}else{
+            		addAccount(new Account(tokens[0], tokens[1], Integer.parseInt(tokens[2], 2), Integer.parseInt(tokens[3]), Long.parseLong(tokens[4]), tokens[5], Long.parseLong(tokens[6]), tokens[7], Integer.parseInt(tokens[8])));
+            	}
 	        }
 
             in.close();
@@ -159,6 +164,11 @@ public class Accounts {
 
 	/* WARNING: caller must check if username/password is valid etc. himself! */
 	public static void addAccount(Account acc) {
+		if(acc.accountID == Account.NEW_ACCOUNT_ID) {
+			acc.accountID=++biggestAccountId;
+		}else if(acc.accountID > biggestAccountId) {
+			biggestAccountId=acc.accountID;
+		}
 		accounts.add(acc);
 		map.put(acc.user, acc);
 		mapNoCase.put(acc.user, acc);

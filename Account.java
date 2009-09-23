@@ -62,6 +62,8 @@ public class Account {
 	public static int ADMIN_ACCESS = 3;
 
 	public static int NO_USER_ID = 0;
+	public static int NO_ACCOUNT_ID = 0;
+	public static int NEW_ACCOUNT_ID = -1;
 
 	public String user;
 	public String pass;
@@ -71,8 +73,9 @@ public class Account {
 	public String lastIP; // the most recent IP used to log into this account
 	public long registrationDate; // date when user registered this account. In miliseconds (refers to System.currentTimeMillis()). 0 means registration date is unknown (clients who registered in some early version when this field was not yet implemented. Note that this field was first introduced with Spring 0.67b3, Dec 18 2005).
 	public String lastCountry; // resolved country code for this user's IP when he last logged on. If country could not be resolved, "XX" is used for country code, otherwise a 2-char country code is used
+	public int accountID; // unique account identifier number
 
-	public Account(String user, String pass, int access, int lastUserID, long lastLogin, String lastIP, long registrationDate, String lastCountry)
+	public Account(String user, String pass, int access, int lastUserID, long lastLogin, String lastIP, long registrationDate, String lastCountry, int accountID)
 	{
 		this.user = user;
 		this.pass = pass;
@@ -82,6 +85,7 @@ public class Account {
 		this.lastIP = lastIP;
 		this.registrationDate = registrationDate;
 		this.lastCountry = lastCountry;
+		this.accountID = accountID;
 	}
 
 	public Account(Account acc) {
@@ -96,7 +100,7 @@ public class Account {
 	}
 
 	public String toString() {
-		return user + " " + pass + " " + Integer.toString(access, 2) + " " + lastUserID + " " + lastLogin + " " + lastIP + " " + registrationDate + " " + lastCountry;
+		return user + " " + pass + " " + Integer.toString(access, 2) + " " + lastUserID + " " + lastLogin + " " + lastIP + " " + registrationDate + " " + lastCountry + " " + accountID;
 	}
 
 	public boolean equals(Object o) {

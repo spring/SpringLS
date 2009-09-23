@@ -722,7 +722,7 @@ public class TASServer {
 						client.sendLine("SERVERMSG Invalid account name - you are trying to register a reserved account name");
 						return false;
 					}
-				acc = new Account(commands[1], commands[2], Account.NORMAL_ACCESS, Account.NO_USER_ID, System.currentTimeMillis(), client.IP, System.currentTimeMillis(), client.country);
+				acc = new Account(commands[1], commands[2], Account.NORMAL_ACCESS, Account.NO_USER_ID, System.currentTimeMillis(), client.IP, System.currentTimeMillis(), client.country, Account.NEW_ACCOUNT_ID);
 				Accounts.addAccount(acc);
 				Accounts.saveAccounts(false); // let's save new accounts info to disk
 				client.sendLine("SERVERMSG Account created.");
@@ -795,7 +795,7 @@ public class TASServer {
 					}*/
 				}
 				Clients.sendToAllAdministrators("SERVERMSG New registration of <" + commands[1] +  "> at " + client.IP);
-				acc = new Account(commands[1], commands[2], Account.NORMAL_ACCESS, Account.NO_USER_ID, System.currentTimeMillis(), client.IP, System.currentTimeMillis(), client.country);
+				acc = new Account(commands[1], commands[2], Account.NORMAL_ACCESS, Account.NO_USER_ID, System.currentTimeMillis(), client.IP, System.currentTimeMillis(), client.country, Account.NEW_ACCOUNT_ID);
 				Accounts.addAccount(acc);
 				Accounts.saveAccounts(false); // let's save new accounts info to disk
 				client.sendLine("REGISTRATIONACCEPTED");
@@ -1680,6 +1680,11 @@ public class TASServer {
 					client.sendLine("DENIED <userID> field should be an integer");
 					return false;
 				}
+				if(args2.length > 2 && args2[2].indexOf('a') >= 0) {
+					client.acceptAccountIDs=true;
+				}else{
+					client.acceptAccountIDs=false;
+				}
 
 				int cpu;
 				try {
@@ -1749,8 +1754,8 @@ public class TASServer {
 						client.sendLine("DENIED Player with same name already logged in");
 						return false;
 					}
-					if ((commands[1].equals(lanAdminUsername)) && (commands[2].equals(lanAdminPassword))) acc = new Account(commands[1], commands[2], Account.ADMIN_ACCESS, Account.NO_USER_ID, 0, "?", 0, "XX");
-					else acc = new Account(commands[1], commands[2], Account.NORMAL_ACCESS, Account.NO_USER_ID, 0, "?", 0, "XX");
+					if ((commands[1].equals(lanAdminUsername)) && (commands[2].equals(lanAdminPassword))) acc = new Account(commands[1], commands[2], Account.ADMIN_ACCESS, Account.NO_USER_ID, 0, "?", 0, "XX", Account.NO_ACCOUNT_ID);
+					else acc = new Account(commands[1], commands[2], Account.NORMAL_ACCESS, Account.NO_USER_ID, 0, "?", 0, "XX", Account.NO_ACCOUNT_ID);
 					Accounts.addAccount(acc);
 					client.account = acc;
 				}
@@ -1843,7 +1848,7 @@ public class TASServer {
 					Channels.getChannel(i).muteList.rename(client.account.user, commands[1]);
 				}
 
-				acc = new Account(commands[1], client.account.pass, client.account.access, client.account.lastUserID, System.currentTimeMillis(), client.IP, client.account.registrationDate, client.account.lastCountry);
+				acc = new Account(commands[1], client.account.pass, client.account.access, client.account.lastUserID, System.currentTimeMillis(), client.IP, client.account.registrationDate, client.account.lastCountry, client.account.accountID);
 				client.sendLine("SERVERMSG Your account has been renamed to <" + commands[1] + ">. Reconnect with new account (you will now be automatically disconnected)!");
 				Clients.killClient(client, "Quit: renaming account");
 				Accounts.replaceAccount(client.account, acc);

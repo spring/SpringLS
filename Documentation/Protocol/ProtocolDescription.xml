@@ -309,6 +309,14 @@
         if needed. However, if client-side lobby program was using user ID before, it
         should send it along with LOGIN command.
         </Argument>
+        <Argument Name="compFlags" Optional="yes" Sentence="yes">
+        When connecting, the lobby client can tell the lobby server it is compatible with some
+        optional functionalities that break backward compatibility. Each character of the
+        compFlags parameter indicates a specific functionality (like IRC user/channel flags).
+        By default, all the optional functionalities are considered as not supported by the client.
+        Currently there is only one compatibility flag:<br />
+        'a': client supports accountIDs sent in <clink name="ADDUSER"/> command
+        </Argument>
       </Arguments>
       <Description>
       Sent by client when he is trying to log on the server. Server may respond with
@@ -530,6 +538,11 @@
         </Argument>
         <Argument Name="cpu" Optional="no" Sentence="no">
         See <clink name="LOGIN"/> command for CPU field.
+        </Argument>
+        <Argument Name="accountID" Optional="yes" Sentence="no">
+        Unique ID bound to the account (can be used to track renammed accounts).
+        This field is only provided if the lobby client sent the accountID compatibility flag ('a') in the
+        <clink name="LOGIN"/> command.
         </Argument>
       </Arguments>
       <Description>

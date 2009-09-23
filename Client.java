@@ -48,11 +48,12 @@ public class Client {
 	public String lobbyVersion; // e.g. "TASClient 1.0" (gets updated when server receives LOGIN command)
 	public long dataOverLastTimePeriod = 0; // how many bytes did client send over last recvRecordPeriod seconds. This is used with anti-flood protection.
 	public long timeOfLastReceive; // time (System.currentTimeMillis()) when we last heard from client (last data received)
+	public boolean acceptAccountIDs; // does the client accept accountIDs in ADDUSER command ?
 
 	public Client(SocketChannel sockChan) {
 		alive = true;
 
-		account = new Account("", "", Account.NIL_ACCESS, Account.NO_USER_ID, 0, "?", 0, "XX"); // no info on user/pass, zero access
+		account = new Account("", "", Account.NIL_ACCESS, Account.NO_USER_ID, 0, "?", 0, "XX", Account.NO_ACCOUNT_ID); // no info on user/pass, zero access
 		this.sockChan = sockChan;
 		IP = sockChan.socket().getInetAddress().getHostAddress();
 		// this fixes the issue with local user connecting to server as "127.0.0.1" (he can't host battles with that IP):
