@@ -97,14 +97,37 @@ public class Account {
 
 	@Override
 	public String toString() {
-		return user + " " + pass + " " + Integer.toString(access, 2) + " " + lastUserID + " " + lastLogin + " " + lastIP + " " + registrationDate + " " + lastCountry + " " + accountID;
+		return new StringBuilder(user).append(" ")
+				.append(pass).append(" ")
+				.append(Integer.toString(access, 2)).append(" ")
+				.append(lastUserID).append(" ")
+				.append(lastLogin).append(" ")
+				.append(lastIP).append(" ")
+				.append(registrationDate).append(" ")
+				.append(lastCountry).append(" ")
+				.append(accountID).toString();
 	}
 
 	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof Account)) return false;
-		return this.user.equals(((Account)o).user);
+	public int hashCode() {
+		int hash = 7;
+		hash = 97 * hash + (this.user != null ? this.user.hashCode() : 0);
+		return hash;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		final Account other = (Account) obj;
+		if ((this.user == null) ? (other.user != null) : !this.user.equals(other.user)) {
+			return false;
+		}
+		return true;
 	}
 
 	public int accessLevel() {

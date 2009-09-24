@@ -17,6 +17,7 @@ public class Bot {
 	public int teamColor;
 
 	public Bot(String name, String ownerName, String AIDll, int battleStatus, int teamColor) {
+
 		this.name = new String(name);
 		this.ownerName = new String(ownerName);
 		this.AIDll = new String(AIDll);

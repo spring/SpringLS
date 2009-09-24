@@ -32,4 +32,9 @@ public class GlobalMapGrade {
 		}
 		return this.mapHash.equals(((GlobalMapGrade)obj).mapHash);
 	}
+
+	@Override
+	public int hashCode() {
+		return this.mapHash.hashCode();
+	}
 }

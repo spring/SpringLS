@@ -59,19 +59,24 @@ public class Clients {
 		return client;
 	}
 
-	/* returns number of clients (including those who haven't logged in yet) */
+	/** Returns number of clients (including those who haven't logged in yet) */
 	public static int getClientsSize() {
 		return clients.size();
 	}
 
 	public static Client getClient(String username) {
-		for (int i = 0; i < clients.size(); i++)
-			if (clients.get(i).account.user.equals(username)) return clients.get(i);
+
+		for (int i = 0; i < clients.size(); i++) {
+			if (clients.get(i).account.user.equals(username)) {
+				return clients.get(i);
+			}
+		}
 		return null;
 	}
 
-	/* returns null if index is out of bounds */
+	/** Returns null if index is out of bounds */
 	public static Client getClient(int index) {
+
 		try {
 			return clients.get(index);
 		} catch (IndexOutOfBoundsException e) {
@@ -79,7 +84,7 @@ public class Clients {
 		}
 	}
 
-	/* returns true if user is logged in */
+	/** Returns true if user is logged in */
 	public static boolean isUserLoggedIn(Account acc) {
 		for (int i = 0; i < clients.size(); i++) {
 			if (clients.get(i).account.user.equals(acc.user)) return true;
@@ -94,48 +99,84 @@ public class Clients {
 		}
 	}
 
-	/* sends text to all registered users except for the client */
+	/** Sends text to all registered users except for the client */
 	public static void sendToAllRegisteredUsersExcept(Client client, String s) {
+
 		for (int i = 0; i < clients.size(); i++) {
-			if (clients.get(i).account.accessLevel() < Account.NORMAL_ACCESS) continue;
-			if (clients.get(i) == client) continue;
+			if ((clients.get(i).account.accessLevel() < Account.NORMAL_ACCESS)
+					|| clients.get(i) == client) {
+				continue;
+			}
 			clients.get(i).sendLine(s);
 		}
 	}
 
 	public static void sendToAllAdministrators(String s) {
+
 		for (int i = 0; i < clients.size(); i++) {
-			if (clients.get(i).account.accessLevel() < Account.ADMIN_ACCESS) continue;
+			if (clients.get(i).account.accessLevel() < Account.ADMIN_ACCESS) {
+				continue;
+			}
 			clients.get(i).sendLine(s);
 		}
 	}
 
-	/* notifies client of all statuses, including his own (but only if they are different from 0) */
+	/**
+	 * Notifies client of all statuses, including his own
+	 * (but only if they are different from 0)
+	 */
 	public static void sendInfoOnStatusesToClient(Client client) {
+
 		client.beginFastWrite();
 		for (int i = 0; i < clients.size(); i++) {
-			if (clients.get(i).account.accessLevel() < Account.NORMAL_ACCESS) continue;
-			if (clients.get(i).status != 0) // only send it if not 0. User assumes that every new user's status is 0, so we don't need to tell him that explicitly.
-				client.sendLine("CLIENTSTATUS " + clients.get(i).account.user + " " + clients.get(i).status);
+			if (clients.get(i).account.accessLevel() < Account.NORMAL_ACCESS) {
+				continue;
+			}
+			if (clients.get(i).status != 0) {
+				// only send it if not 0.
+				// The user assumes that every new user's status is 0,
+				// so we don't need to tell him that explicitly.
+				client.sendLine(new StringBuilder("CLIENTSTATUS ")
+						.append(clients.get(i).account.user).append(" ")
+						.append(clients.get(i).status).toString());
+			}
 		}
 		client.endFastWrite();
 	}
 
-	/* notifies all logged-in clients (including this client) of the client's new status */
+	/**
+	 * Notifies all logged-in clients (including this client)
+	 * of the client's new status
+	 */
 	public static void notifyClientsOfNewClientStatus(Client client) {
-		sendToAllRegisteredUsers("CLIENTSTATUS " + client.account.user + " " + client.status);
+
+		sendToAllRegisteredUsers(new StringBuilder("CLIENTSTATUS ")
+				.append(client.account.user).append(" ")
+				.append(client.status).toString());
 	}
 
-	/* sends a list of all users connected to the server to client (this list includes
-	 * the client itself, assuming he is already logged in and in the list) */
+	/**
+	 * Sends a list of all users connected to the server to client (this list includes
+	 * the client itself, assuming he is already logged in and in the list)
+	 */
 	public static void sendListOfAllUsersToClient(Client client) {
+
 		client.beginFastWrite();
 		for (int i = 0; i < clients.size(); i++) {
-			if (clients.get(i).account.accessLevel() < Account.NORMAL_ACCESS) continue;
-			if(client.acceptAccountIDs) {
-				client.sendLine("ADDUSER " + clients.get(i).account.user + " " + clients.get(i).country + " " + clients.get(i).cpu + " " + clients.get(i).account.accountID);
-			}else{
-				client.sendLine("ADDUSER " + clients.get(i).account.user + " " + clients.get(i).country + " " + clients.get(i).cpu);
+			if (clients.get(i).account.accessLevel() < Account.NORMAL_ACCESS) {
+				continue;
+			}
+			if (client.acceptAccountIDs) {
+				client.sendLine(new StringBuilder("ADDUSER ")
+						.append(clients.get(i).account.user).append(" ")
+						.append(clients.get(i).country).append(" ")
+						.append(clients.get(i).cpu).append(" ")
+						.append(clients.get(i).account.accountID).toString());
+			} else {
+				client.sendLine(new StringBuilder("ADDUSER ")
+						.append(clients.get(i).account.user).append(" ")
+						.append(clients.get(i).country).append(" ")
+						.append(clients.get(i).cpu).toString());
 			}
 		}
 		client.endFastWrite();
@@ -148,9 +189,16 @@ public class Clients {
 			if (clients.get(i).account.accessLevel() < Account.NORMAL_ACCESS) continue;
 			if (clients.get(i) == client) continue;
 			if(clients.get(i).acceptAccountIDs) {
-				clients.get(i).sendLine("ADDUSER " + client.account.user + " " + client.country + " " + client.cpu + " " + client.account.accountID);
+				clients.get(i).sendLine(new StringBuilder("ADDUSER ")
+						.append(client.account.user).append(" ")
+						.append(client.country).append(" ")
+						.append(client.cpu).append(" ")
+						.append(client.account.accountID).toString());
 			}else{
-				clients.get(i).sendLine("ADDUSER " + client.account.user + " " + client.country + " " + client.cpu);
+				clients.get(i).sendLine(new StringBuilder("ADDUSER ")
+						.append(client.account.user).append(" ")
+						.append(client.country).append(" ")
+						.append(client.cpu).toString());
 			}
 		}
 	}
@@ -160,7 +208,9 @@ public class Clients {
 	public static void notifyClientsOfNewClientInBattle(Battle battle, Client client) {
 		for (int i = 0; i < clients.size(); i++)  {
 			if (clients.get(i).account.accessLevel() < Account.NORMAL_ACCESS) continue;
-			clients.get(i).sendLine("JOINEDBATTLE " + battle.ID + " " + client.account.user);
+			clients.get(i).sendLine(new StringBuilder("JOINEDBATTLE ")
+					.append(battle.ID).append(" ")
+					.append(client.account.user).toString());
 		}
 	}
 
@@ -175,13 +225,17 @@ public class Clients {
 	 * notify other users on same channel of this client's departure
 	 * reason (it may be left blank ("") to give no reason). */
 	public static boolean killClient(Client client, String reason) {
+
 		int index = clients.indexOf(client);
-		if (index == -1) return false;
-		if (!client.alive) return false;
+		if (index == -1 || !client.alive) {
+			return false;
+		}
 		client.disconnect();
 		clients.remove(index);
 		client.alive = false;
-		if (reason.trim().equals("")) reason = "Quit";
+		if (reason.trim().equals("")) {
+			reason = "Quit";
+		}
 
 		// let's remove client from all channels he is participating in:
 		client.leaveAllChannels(reason);
@@ -196,10 +250,14 @@ public class Clients {
 		}
 
 		if (client.account.accessLevel() != Account.NIL_ACCESS) {
-			sendToAllRegisteredUsers("REMOVEUSER " + client.account.user);
-			if (TASServer.DEBUG > 0) System.out.println("Registered user killed: " + client.account.user);
+			sendToAllRegisteredUsers("REMOVEUSER %s" + client.account.user);
+			if (TASServer.DEBUG > 0) {
+				System.out.println("Registered user killed: " + client.account.user);
+			}
 		} else {
-			if (TASServer.DEBUG > 0) System.out.println("Unregistered user killed");
+			if (TASServer.DEBUG > 0) {
+				System.out.println("Unregistered user killed");
+			}
 		}
 
 		if (TASServer.LAN_MODE) {

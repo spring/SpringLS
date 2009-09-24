@@ -21,13 +21,13 @@ public class Client {
 
 	public Account account;
 	public String IP;
-	public String localIP; // client's local IP which has to be send with LOGIN command (server can't figure out his local IP himself of course)
+	public String localIP; // client's local IP which has to be sent with LOGIN command (server can't figure out his local IP himself of course)
 	public int UDPSourcePort; // client's public UDP source port used with some NAT traversal techniques (e.g. "hole punching")
 	public int status; // see MYSTATUS command for actual values of status
 	public int battleStatus; // see MYBATTLESTATUS command for actual values of battleStatus
 	public int teamColor; // see MYBATTLESTATUS for info on this one
 	public int battleID; // battle ID in which client is participating. Must be -1 if not participating in any battle.
-	public ArrayList<Channel> channels = new ArrayList<Channel>(); // list of channels user is participating in
+	public List<Channel> channels = new ArrayList<Channel>(); // list of channels user is participating in
 
 	public SocketChannel sockChan;
 	public SelectionKey selKey;
@@ -53,7 +53,9 @@ public class Client {
 		// this fixes the issue with local user connecting to server as "127.0.0.1" (he can't host battles with that IP):
 		if (IP.equals("127.0.0.1") || IP.equals("localhost")) {
 			String newIP = Misc.getLocalIPAddress();
-			if (newIP != null) IP = newIP; else {
+			if (newIP != null) {
+				IP = newIP;
+			} else {
 				System.out.println("Could not resolve local IP address. User may have problems \n" +
 								   "with hosting battles.");
 			}
@@ -73,7 +75,34 @@ public class Client {
 		timeOfLastReceive = System.currentTimeMillis();
 	}
 
-	// any messages sent via sendLine() method will contain this ID. See "lobby protocol description" document for more info on message/command IDs.
+
+	@Override
+	public int hashCode() {
+		int hash = 5;
+		hash = 67 * hash + (this.sockChan != null ? this.sockChan.hashCode() : 0);
+		return hash;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		final Client other = (Client) obj;
+		if (this.sockChan != other.sockChan && (this.sockChan == null || !this.sockChan.equals(other.sockChan))) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Any messages sent via sendLine() method will contain this ID.
+	 * See "lobby protocol description" document for more info
+	 * on message/command IDs.
+	 */
 	public void setSendMsgID(int ID) {
 		this.msgID = ID;
 	}
@@ -82,18 +111,28 @@ public class Client {
 		this.msgID = ID;
 	}
 
-	/* will prefix the message with a msgID value, if it was previously set via setSendMsgID() method. */
+	/**
+	 * Will prefix the message with a msgID value, if it was previously
+	 * set via setSendMsgID() method.
+	 */
 	public boolean sendLine(String text) {
 		return sendLine(text, msgID);
 	}
 
-	/* the 'msgID' param overrides any previously set ID (via setSendMsgID method). Use NO_MSG_ID (which should equal to -1) for none.  */
+	/**
+	 * The 'msgID' param overrides any previously set ID
+	 * (via setSendMsgID method).
+	 * Use NO_MSG_ID (which should equal to -1) for none.
+	 */
 	public boolean sendLine(String text, int msgID) {
-		if (!alive) return false;
-		if (halfDead) return false;
+		if (!alive || halfDead) {
+			return false;
+		}
 
 		// prefix message with a message ID:
-		if (msgID != TASServer.NO_MSG_ID) text = "#" + msgID + " " + text;
+		if (msgID != TASServer.NO_MSG_ID) {
+			text = "#" + msgID + " " + text;
+		}
 
 		if (fastWrite != null) {
 			if (fastWrite.length() != 0)
@@ -102,9 +141,13 @@ public class Client {
 			return true;
 		}
 
-		if (TASServer.DEBUG > 1)
-			if (account.accessLevel() != Account.NIL_ACCESS) System.out.println("[->" + account.user + "]" + " \"" + text + "\"");
-			else System.out.println("[->" + IP + "]" + " \"" + text + "\"");
+		if (TASServer.DEBUG > 1) {
+			if (account.accessLevel() != Account.NIL_ACCESS) {
+				System.out.println("[->" + account.user + "]" + " \"" + text + "\"");
+			} else {
+				System.out.println("[->" + IP + "]" + " \"" + text + "\"");
+			}
+		}
 
 		try {
 			// prepare data and add it to the send queue
@@ -145,10 +188,14 @@ public class Client {
 	}
 
 	public void sendWelcomeMessage() {
-		sendLine("TASServer " + TASServer.VERSION + " " + TASServer.latestSpringVersion + " " + TASServer.NAT_TRAVERSAL_PORT + " " + (TASServer.LAN_MODE ? 1 : 0));
+		sendLine(new StringBuilder("TASServer ")
+				.append(TASServer.VERSION).append(" ")
+				.append(TASServer.latestSpringVersion).append(" ")
+				.append(TASServer.NAT_TRAVERSAL_PORT).append(" ")
+				.append(TASServer.LAN_MODE ? 1 : 0).toString());
 	}
 
-	/* should only be called by Clients.killClient() method! */
+	/** Should only be called by Clients.killClient() method! */
 	public void disconnect() {
 		if (!alive) {
 			System.out.println("PROBLEM DETECTED: disconnecting dead client. Skipping ...");
@@ -165,14 +212,17 @@ public class Client {
 		selKey = null;
 	}
 
-	/* joins client to <chanName> channel. If channel with that name
+	/**
+	 * joins client to <chanName> channel. If channel with that name
 	 * does not exist, it is created. Method returns channel object as a result.
 	 * If client is already in the channel, it returns null as a result.
 	 * This method does not check for a correct key in case the channel is locked,
 	 * caller of this method should do that before calling it.
 	 * This method also doesn't do any notificating of other clients in the channel,
-	 * caller must do all that. */
+	 * caller must do all that
+	 */
 	public Channel joinChannel(String chanName) {
+
 		Channel chan = Channels.getChannel(chanName);
 		if (chan == null) {
 			chan = new Channel(chanName);
@@ -185,43 +235,73 @@ public class Client {
 		return chan;
 	}
 
-	/* removes client from the channel and notifies all other clients in the channel about it.
+	/**
+	 * Removes client from the channel and notifies all other clients in the channel about it.
 	 * If this was the last client in the channel, then channel is removed from channels list.
-	 * "reason" may be left blank ("") if no reason is to be given. */
+	 * "reason" may be left blank ("") if no reason is to be given.
+	 */
 	public boolean leaveChannel(Channel chan, String reason) {
+
 		boolean result = chan.removeClient(this);
 
 		if (result) {
-			if (chan.getClientsSize() == 0) Channels.removeChannel(chan); // since channel is empty there is no point in keeping it in a channels list. If we would keep it, the channels list would grow larger and larger in time. We don't want that!
-			else for (int i = 0; i < chan.getClientsSize(); i++) chan.getClient(i).sendLine("LEFT " + chan.name + " " + this.account.user + (reason.equals("") ? "" : " " + reason));
+			if (chan.getClientsSize() == 0) {
+				// since channel is empty, there is no point in keeping it
+				// in a channels list. If we would keep it, the channels list
+				// would grow larger and larger in time.
+				// We don't want that!
+				Channels.removeChannel(chan);
+			} else {
+				if (!reason.equals("")) {
+					reason = " " + reason;
+				}
+				for (int i = 0; i < chan.getClientsSize(); i++) {
+					chan.getClient(i).sendLine(new StringBuilder("LEFT ")
+							.append(chan.name).append(" ")
+							.append(this.account.user)
+							.append(reason).toString());
+				}
+			}
 			this.channels.remove(chan);
 		}
 
 		return result;
 	}
 
-	/* calls leaveChannel() for every channel client is participating in.
+	/**
+	 * Calls leaveChannel() for every channel client is participating in.
 	 * Also notifies all clients of his departure.
-	 * Also see comments for leaveChannel() method. */
+	 * Also see comments for leaveChannel() method.
+	 */
 	public void leaveAllChannels(String reason) {
+
 		while (channels.size() != 0) {
 			leaveChannel(channels.get(0), reason);
 		}
 		this.channels.clear();
 	}
 
-	/* will search the list of channels this user is participating in
-	 * and return the specified channel or null if client is not participating
-	 * in this channel. */
+	/**
+	 * Will search the list of channels this user is participating in
+	 * and return the specified channel or 'null' if client is not participating
+	 * in this channel.
+	 */
 	public Channel getChannel(String chanName) {
+
 		for (int i = 0; i < channels.size(); i++) {
-			if (channels.get(i).name.equals(chanName)) return channels.get(i);
+			if (channels.get(i).name.equals(chanName)) {
+				return channels.get(i);
+			}
 		}
 		return null;
 	}
 
-	/* tries to send the data from the sendQueue. Returns true if all data has been flushed or false otherwise. */
+	/**
+	 * Tries to send the data from the sendQueue.
+	 * @return true if all data has been flushed; false otherwise.
+	 */
 	public boolean tryToFlushData() {
+
 		if (!alive || halfDead) {
 			// disregard any other scheduled writes:
 			while (sendQueue.size() != 0)
@@ -257,6 +337,7 @@ public class Client {
 	}
 
 	public void beginFastWrite() {
+
 		if (fastWrite != null) {
 			System.out.println("Serious error detected: invalid use of beginFastWrite(). Check your code! Shutting down the server ...");
 			TASServer.closeServerAndExit();
@@ -266,6 +347,7 @@ public class Client {
 	}
 
 	public void endFastWrite() {
+
 		if (fastWrite == null) {
 			System.out.println("Serious error detected: invalid use of endFastWrite(). Check your code! Shutting down the server ...");
 			TASServer.closeServerAndExit();
@@ -273,7 +355,9 @@ public class Client {
 
 		String data = fastWrite.toString();
 		fastWrite = null;
-		if (data.equals("")) return ;
+		if (data.equals("")) {
+			return;
+		}
 		sendLine(data);
 	}
 

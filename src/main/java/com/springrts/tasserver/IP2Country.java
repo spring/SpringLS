@@ -29,9 +29,11 @@ public class IP2Country {
 		return true;
 	}
 
-	/* will download appropriate IP2COUNTRY database from the internet
+	/**
+	 * Will download appropriate IP2COUNTRY database from the internet
 	 * and update local database. Returns immediately (updating is done
-	 * in a background thread). */
+	 * in a background thread).
+	 */
 	public static void updateDatabase() {
 		if (UpdateIP2CountryThread.inProgress()) return; // update already in progress. Let's just skip it ...
 
@@ -40,9 +42,11 @@ public class IP2Country {
 		tmp.start();
 	}
 
-	/* will build IP2Country database from a custom format IP2Country file which is
+	/**
+	 * Will build IP2Country database from a custom format IP2Country file which is
 	 * produced by the UpdateIP2CountryThread class. Results are saved into 'resolveTable'
-	 * and 'countries' objects. */
+	 * and 'countries' objects.
+	 */
 	public static void buildDatabase(String fromFile, TreeMap<IPRange, IPRange> resolveTable, TreeSet<String> countries) throws IOException {
 		BufferedReader in = new BufferedReader(new FileReader(fromFile));
 
@@ -62,9 +66,11 @@ public class IP2Country {
 		in.close();
 	}
 
-	/* same as buildDatabase() except that it uses several check for consistency and
+	/**
+	 * Same as buildDatabase() except that it uses several check for consistency and
 	 * automatic merging / filtering of duplicate entries, which makes it much slower.
-	 * Should be called only from a separate thread when updating the database. */
+	 * Should be called only from a separate thread when updating the database.
+	 */
 	public static void buildDatabaseSafe(String fromFile, TreeMap<IPRange, IPRange> resolveTable, TreeSet<String> countries) throws IOException {
 		BufferedReader in = new BufferedReader(new FileReader(fromFile));
 
@@ -152,7 +158,7 @@ public class IP2Country {
 		in.close();
 	}
 
-	/* will save given IP2County table to disk */
+	/** Will save given IP2County table to disk */
 	public static void saveDatabase(TreeMap resolveTable, String fileName) throws IOException {
 		PrintWriter out = null;
 		try {
@@ -168,13 +174,13 @@ public class IP2Country {
 		}
 	}
 
-	/* will replace current "resolve" and "countries" tables with new ones */
+	/** Will replace current "resolve" and "countries" tables with new ones */
 	public static void assignDatabase(TreeMap<IPRange, IPRange> newResolveTable, TreeSet<String> newCountries) {
 		resolveTable = newResolveTable;
 		countries = newCountries;
 	}
 
-	/* for a given IP address it returns corresponding country code (2-chars wide) */
+	/** For a given IP address it returns corresponding country code (2-chars wide) */
 	public static String getCountryCode(long IP) {
 		String result = "XX";
 		try {
