@@ -63,7 +63,8 @@ public class Battle {
 
 	/* creates BATTLEOPENED command from this battle and returns it as a result */
 	public String createBattleOpenedCommand() {
-		return "BATTLEOPENED " + ID + " " + type + " " + natType + " " + founder.account.user + " " + founder.IP + " "+ port + " " + maxPlayers + " " + Misc.boolToStr(restricted()) + " " + rank + " " + mapHash + " " + mapName + "\t" + title + "\t" + modName;
+		return
+				"BATTLEOPENED " + ID + " " + type + " " + natType + " " + founder.account.user + " " + founder.IP + " "+ port + " " + maxPlayers + " " + Misc.boolToStr(restricted()) + " " + rank + " " + mapHash + " " + mapName + "\t" + title + "\t" + modName;
 	}
 
 	/* same as createBattleOpenedCommand() but requires sender to tell what IP to use (local or external) */

@@ -15,7 +15,8 @@ import java.util.*;
  */
 public class Accounts {
 
-	private static ArrayList<Account> accounts = new ArrayList<Account>(); // note: ArrayList is not synchronized! Use Vector class instead if multiple threads are going to access it.
+	// note: ArrayList is not synchronized! Use Vector class instead if multiple threads are going to access it
+	private static List<Account> accounts = new ArrayList<Account>();
 	private static SaveAccountsThread saveAccountsThread = null;
 	private static int biggestAccountId = 1000;
 
@@ -43,7 +44,10 @@ public class Accounts {
 		return accounts.size();
 	}
 
-	/* (re)loads accounts from disk */
+	/**
+	 * (Re-)Loads accounts from disk.
+	 * @return false if loading failed, true otherwise
+	 */
 	public static boolean loadAccounts() {
 		long time = System.currentTimeMillis();
 		try {
@@ -79,37 +83,47 @@ public class Accounts {
 		return true;
 	}
 
-	/* if block==false, this method will spawn a new thread which will save the accounts,
-	 * so this method can return immediately (non-blocking mode). If block==true, it will
-	 * not return until accounts have been saved to disk. */
+	/**
+	 * Saves accounts to permanent storage.
+	 * @param block if false, this method will spawn a new thread,
+	 *              so this method can return immediately (non-blocking mode).
+	 *              If true, it will not return until the accounts have been saved.
+	 */
 	public static void saveAccounts(boolean block) {
 		if ((saveAccountsThread != null) && (saveAccountsThread.isAlive())) {
 			return; // already in progress. Let's just skip it ...
 		}
 		lastSaveAccountsTime = System.currentTimeMillis();
-		saveAccountsThread = new SaveAccountsThread((List) accounts.clone());
+		List<Account> accounts_cpy = new ArrayList<Account>(accounts.size());
+		Collections.copy(accounts_cpy, accounts);
+		saveAccountsThread = new SaveAccountsThread(accounts_cpy);
 		saveAccountsThread.start();
 
 		if (block) {
 			try {
 				saveAccountsThread.join(); // wait until thread returns
 			} catch (InterruptedException e) {
+				// do nothing
 			}
 		}
 
 		lastSaveAccountsTime = System.currentTimeMillis();
 	}
 
-	/* will call saveAccounts() only if they haven't been saved for some time.
-	 * This method should be called periodically! */
+	/**
+	 * Will call saveAccounts() only if they haven't been saved for some time.
+	 * This method should be called periodically!
+	 */
 	public static void saveAccountsIfNeeded() {
 		if ((!TASServer.LAN_MODE) && (System.currentTimeMillis() - lastSaveAccountsTime > saveAccountInfoInterval)) {
 			saveAccounts(false);
-		// note: lastSaveAccountsTime will get updated in saveAccounts() method!
+			// note: lastSaveAccountsTime will get updated in saveAccounts() method!
 		}
 	}
 
-	// returns 'null' if username is valid, or error description otherwise
+	/**
+	 * Returns 'null' if username is valid; an error description otherwise.
+	 */
 	public static String isUsernameValid(String username) {
 		if (username.length() > 20) {
 			return "Username too long";
@@ -124,7 +138,9 @@ public class Accounts {
 		return null;
 	}
 
-	// returns 'null' if password is valid, or error description otherwise
+	/**
+	 * Returns 'null' if password is valid; an error description otherwise.
+	 */
 	public static String isPasswordValid(String password) {
 		if (password.length() < 2) {
 			return "Password too short";
@@ -139,8 +155,10 @@ public class Accounts {
 		return null;
 	}
 
-	// returns 'null' if username is valid, or error description otherwise.
-	// This is used with "old" format of usernames which could also contain "[" and "]" characters.
+	/**
+	 * Returns 'null' if username is valid; an error description otherwise.
+	 * This is used with "old" format of usernames which could also contain "[" and "]" characters.
+	 */
 	public static String isOldUsernameValid(String username) {
 		if (username.length() > 20) {
 			return "Username too long";
@@ -155,8 +173,11 @@ public class Accounts {
 		return null;
 	}
 
-	// returns 'null' if password is valid, or error description otherwise. 'baseUsername' is used to test nickname against
-	// (nickname must contain part of username - it may only prefix and postfix the username)
+	/**
+	 * Returns 'null' if password is valid; an error description otherwise.
+	 * The nickname must contain part of username - it may only prefix and postfix the username.
+	 * @param baseUsername used to test nickname against
+	 */
 	public static String isNicknameValid(String nickname, String baseUsername) {
 		if (nickname.length() > 20) {
 			return "Nickname too long";
@@ -188,7 +209,7 @@ public class Accounts {
 		return null;
 	}
 
-	/* WARNING: caller must check if username/password is valid etc. himself! */
+	/** WARNING: caller must check if username/password is valid etc. himself! */
 	public static void addAccount(Account acc) {
 		if (acc.accountID == Account.NEW_ACCOUNT_ID) {
 			acc.accountID = ++biggestAccountId;
@@ -232,12 +253,12 @@ public class Accounts {
 		return removeAccount(acc);
 	}
 
-	// returns null if account is not found:
+	/** Returns null if account is not found */
 	public static Account getAccount(String username) {
 		return map.get(username);
 	}
 
-	/* returns null if index is out of bounds */
+	/** Returns null if index is out of bounds */
 	public static Account getAccount(int index) {
 		try {
 			return accounts.get(index);
@@ -254,7 +275,7 @@ public class Accounts {
 		return getAccount(username) != null;
 	}
 
-	/* will delete account 'oldAcc' and insert 'newAcc' into his position */
+	/** Will delete account 'oldAcc' and insert 'newAcc' into his position */
 	public static boolean replaceAccount(Account oldAcc, Account newAcc) {
 		int index = accounts.indexOf(oldAcc);
 		if (index == -1) {
