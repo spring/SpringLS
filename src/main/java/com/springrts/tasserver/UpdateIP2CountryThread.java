@@ -35,9 +35,9 @@ public class UpdateIP2CountryThread extends Thread {
 		return inProgress;
 	}
 
-    public void run() {
+	public void run() {
 
-    	String tempZippedFile1 = "./temp_ip2country_1z.dat";
+		String tempZippedFile1 = "./temp_ip2country_1z.dat";
 		String tempZippedFile2 = "./temp_ip2country_2z.dat";
 		String tempUnzippedFile1 = "./temp_ip2country_1u.dat";
 		String tempUnzippedFile2 = "./temp_ip2country_2u.dat";
@@ -47,87 +47,97 @@ public class UpdateIP2CountryThread extends Thread {
 		BufferedReader in = null;
 		String line = null;
 
-    	try {
-        	if (inProgress) throw new Exception("Update already in progress") ;
-    		inProgress = true;
+		try {
+			if (inProgress) {
+				throw new Exception("Update already in progress");
+			}
+			inProgress = true;
 
-    		long time1; // time taken to download 1st ip2country archive
-    		long time2; // time taken to download 2nd ip2country archive
-    		long time3; // time taken to decompress 1st ip2country acrhive
-    		long time4; // time taken to decompress 2nd ip2country acrhive
-    		long time5; // time taken to merge both files and write result to new file
-    		long time6; // time taken to build IP2Country database from the merged file, clean it up and save it back to disk
-    		long bytes1; // byted downloaded from 1st URL
-    		long bytes2; // bytes downloaded from 2nd URL
+			long time1; // time taken to download 1st ip2country archive
+			long time2; // time taken to download 2nd ip2country archive
+			long time3; // time taken to decompress 1st ip2country acrhive
+			long time4; // time taken to decompress 2nd ip2country acrhive
+			long time5; // time taken to merge both files and write result to new file
+			long time6; // time taken to build IP2Country database from the merged file, clean it up and save it back to disk
+			long bytes1; // byted downloaded from 1st URL
+			long bytes2; // bytes downloaded from 2nd URL
 
-   	    	time1 = System.currentTimeMillis();
-   	    	bytes1 = Misc.download("http://ip-to-country.webhosting.info/downloads/ip-to-country.csv.zip", tempZippedFile1, DOWNLOAD_LIMIT);
-   	    	time1 = System.currentTimeMillis() - time1;
+			time1 = System.currentTimeMillis();
+			bytes1 = Misc.download("http://ip-to-country.webhosting.info/downloads/ip-to-country.csv.zip", tempZippedFile1, DOWNLOAD_LIMIT);
+			time1 = System.currentTimeMillis() - time1;
 
-   	    	time2 = System.currentTimeMillis();
-   	    	bytes2 = Misc.download("http://software77.net/cgi-bin/ip-country/geo-ip.pl?action=downloadZ", tempZippedFile2, DOWNLOAD_LIMIT);
- 	    	time2 = System.currentTimeMillis() - time2;
+			time2 = System.currentTimeMillis();
+			bytes2 = Misc.download("http://software77.net/cgi-bin/ip-country/geo-ip.pl?action=downloadZ", tempZippedFile2, DOWNLOAD_LIMIT);
+			time2 = System.currentTimeMillis() - time2;
 
-   	    	time3 = System.currentTimeMillis();
-   	    	Misc.unzipSingleArchive(tempZippedFile1, tempUnzippedFile1);
-   	    	time3 = System.currentTimeMillis() - time3;
+			time3 = System.currentTimeMillis();
+			Misc.unzipSingleArchive(tempZippedFile1, tempUnzippedFile1);
+			time3 = System.currentTimeMillis() - time3;
 
-   	    	time4 = System.currentTimeMillis();
-   	    	Misc.unzipSingleArchive(tempZippedFile2, tempUnzippedFile2);
-   	    	time4 = System.currentTimeMillis() - time4;
+			time4 = System.currentTimeMillis();
+			Misc.unzipSingleArchive(tempZippedFile2, tempUnzippedFile2);
+			time4 = System.currentTimeMillis() - time4;
 
-   	    	time5 = System.currentTimeMillis();
+			time5 = System.currentTimeMillis();
 
-   	    	// we will now merge both databases into a single file. Later on we will remove all duplicate entries and any inconsistencies
-   	    	out = new PrintWriter(new BufferedWriter(new FileWriter(tempIP2CountryFile)));
+			// we will now merge both databases into a single file. Later on we will remove all duplicate entries and any inconsistencies
+			out = new PrintWriter(new BufferedWriter(new FileWriter(tempIP2CountryFile)));
 
 			// read first file:
-   	    	in = new BufferedReader(new FileReader(tempUnzippedFile1));
+			in = new BufferedReader(new FileReader(tempUnzippedFile1));
 
-            while ((line = in.readLine()) != null) {
-            	if (line.equals("")) continue;
-            	if (line.charAt(0) == '#') continue;
-            	String[] tokens = line.split(",");
+			while ((line = in.readLine()) != null) {
+				if (line.equals("")) {
+					continue;
+				}
+				if (line.charAt(0) == '#') {
+					continue;
+				}
+				String[] tokens = line.split(",");
 
-            	out.println(
-            			tokens[0].substring(1, tokens[0].length()-1) + "," + // IP FROM field
-            			tokens[1].substring(1, tokens[1].length()-1) + "," + // IP TO field
-            			tokens[2].substring(1, tokens[2].length()-1)         // COUNTRY_CHAR2 field
-            			);
-	        }
+				out.println(
+						tokens[0].substring(1, tokens[0].length() - 1) + "," + // IP FROM field
+						tokens[1].substring(1, tokens[1].length() - 1) + "," + // IP TO field
+						tokens[2].substring(1, tokens[2].length() - 1) // COUNTRY_CHAR2 field
+						);
+			}
 
-            in.close();
+			in.close();
 
-            // read second file:
+			// read second file:
 			in = new BufferedReader(new FileReader(tempUnzippedFile2));
 
-            while ((line = in.readLine()) != null) {
-            	if (line.equals("")) continue;
-            	if (line.charAt(0) == '#') continue;
-            	String[] tokens = line.split(",");
+			while ((line = in.readLine()) != null) {
+				if (line.equals("")) {
+					continue;
+				}
+				if (line.charAt(0) == '#') {
+					continue;
+				}
+				String[] tokens = line.split(",");
 
-            	out.println(
-            			tokens[0].substring(1, tokens[0].length()-1) + "," + // IP FROM field
-            			tokens[1].substring(1, tokens[1].length()-1) + "," + // IP TO field
-            			tokens[4].substring(1, tokens[4].length()-1)         // COUNTRY_CHAR2 field
-            			);
-	        }
+				out.println(
+						tokens[0].substring(1, tokens[0].length() - 1) + "," + // IP FROM field
+						tokens[1].substring(1, tokens[1].length() - 1) + "," + // IP TO field
+						tokens[4].substring(1, tokens[4].length() - 1) // COUNTRY_CHAR2 field
+						);
+			}
 
-            in.close();
-	   	   	out.close();
+			in.close();
+			out.close();
 
-            time5 = System.currentTimeMillis() - time5;
+			time5 = System.currentTimeMillis() - time5;
 
-            time6 = System.currentTimeMillis();
-            TreeMap<IPRange, IPRange> iptable = new TreeMap<IPRange, IPRange>();
-            TreeSet<String> countries = new TreeSet<String>();
-            IP2Country.buildDatabaseSafe(tempIP2CountryFile, iptable, countries);
-            IP2Country.assignDatabase(iptable, countries);
-            IP2Country.saveDatabase(iptable, TASServer.IP2COUNTRY_FILENAME);
-            time6 = System.currentTimeMillis() - time6;
+			time6 = System.currentTimeMillis();
+			TreeMap<IPRange, IPRange> iptable = new TreeMap<IPRange, IPRange>();
+			TreeSet<String> countries = new TreeSet<String>();
+			IP2Country.buildDatabaseSafe(tempIP2CountryFile, iptable, countries);
+			IP2Country.assignDatabase(iptable, countries);
+			IP2Country.saveDatabase(iptable, TASServer.IP2COUNTRY_FILENAME);
+			time6 = System.currentTimeMillis() - time6;
 
-            // add notification:
-            ServerNotification sn = new ServerNotification("IP2Country database updated");
+			// add notification:
+			ServerNotification sn = new ServerNotification("IP2Country database updated");
 			sn.addLine("IP2Country database has just been successfully updated from these addresses:");
 			sn.addLine("");
 			sn.addLine("- http://ip-to-country.webhosting.info/downloads/ip-to-country.csv.zip");
@@ -146,21 +156,21 @@ public class UpdateIP2CountryThread extends Thread {
 			ServerNotifications.addNotification(sn);
 
 			System.out.println("IP2Country has just been successfully updated.");
-    	} catch (Exception e) {
+		} catch (Exception e) {
 			ServerNotification sn = new ServerNotification("Unable to update IP2Country database");
 			sn.addLine("Attempt to update from online IP2Country database failed. Stack trace: ");
 			sn.addLine(Misc.exceptionToFullString(e));
 			ServerNotifications.addNotification(sn);
-	    } finally {
-	    	inProgress = false;
+		} finally {
+			inProgress = false;
 
-   	    	// clean up:
-   	    	Misc.deleteFile(tempZippedFile1);
-   	    	Misc.deleteFile(tempUnzippedFile1);
-   	    	Misc.deleteFile(tempZippedFile2);
-   	    	Misc.deleteFile(tempUnzippedFile2);
-   	    	Misc.deleteFile(tempIP2CountryFile);
-	    }
+			// clean up:
+			Misc.deleteFile(tempZippedFile1);
+			Misc.deleteFile(tempUnzippedFile1);
+			Misc.deleteFile(tempZippedFile2);
+			Misc.deleteFile(tempUnzippedFile2);
+			Misc.deleteFile(tempIP2CountryFile);
+		}
 
-    }
+	}
 }

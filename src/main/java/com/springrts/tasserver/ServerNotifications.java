@@ -16,10 +16,15 @@ public class ServerNotifications {
 
 	// note that this method may be called from multiple threads simultaneously (don't remove the 'synchronized' identifier!)
 	public static synchronized boolean addNotification(ServerNotification sn) {
-		if (TASServer.LAN_MODE) return false; // ignore notifications if server is running in lan mode!
+
+		if (TASServer.LAN_MODE) {
+			return false; // ignore notifications if server is running in lan mode!
+		}
 		String fname = TASServer.SERVER_NOTIFICATION_FOLDER + "/" + Misc.easyDateFormat("yyyyMMdd");
 		int counter = 1;
-		while ((new File(fname + "_" + counter)).exists()) counter++;
+		while ((new File(fname + "_" + counter)).exists()) {
+			counter++;
+		}
 		fname += "_" + counter;
 		try {
 			BufferedWriter out = new BufferedWriter(new FileWriter(fname, true));

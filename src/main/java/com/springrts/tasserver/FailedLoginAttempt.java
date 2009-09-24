@@ -4,6 +4,7 @@
 
 package com.springrts.tasserver;
 
+
 /**
  * @author Betalord
  */
@@ -15,6 +16,7 @@ public class FailedLoginAttempt {
 	public boolean logged; // did we log the repeated failed login attempt already?
 
 	public FailedLoginAttempt(String username, int numOfFailedAttempts, long timeOfLastFailedAttempt) {
+
 		this.username = username;
 		this.numOfFailedAttempts = numOfFailedAttempts;
 		this.timeOfLastFailedAttempt = timeOfLastFailedAttempt;

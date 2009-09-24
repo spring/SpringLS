@@ -319,5 +319,4 @@ public class Client {
 	public void setBotModeToStatus(boolean isBot) {
 		status = (status & 0xFFFFFFBF) | ((isBot ? 1 : 0) << 6);
 	}
-
 }

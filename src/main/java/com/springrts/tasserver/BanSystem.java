@@ -22,7 +22,7 @@ public class BanSystem {
 
 	/**
 	 * Will retrieve latest ban entries from the database
-	 * */
+	 */
 	public static void fetchLatestBanList() {
 		System.out.println("Trying to update ban list ...");
 
@@ -75,7 +75,7 @@ public class BanSystem {
 
 	/**
 	 * returns null if IP/username/userID is not banned, or corresponding BanEntry object otherwise
-	 * */
+	 */
 	public static BanEntry checkIfBanned(String username, long IP, int userID) {
 		for (int i = 0; i < banEntries.size(); i++) {
 			BanEntry ban = banEntries.get(i);
@@ -110,10 +110,8 @@ public class BanSystem {
 
 	/**
 	 * returns true if this IP is within the given range
-	 * */
+	 */
 	private static boolean checkIPAgainstRange(long IP, long IP_start, long IP_end) {
 		return ((IP >= IP_start) && (IP <= IP_end));
 	}
-
-
 }

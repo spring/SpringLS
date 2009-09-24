@@ -35,28 +35,28 @@ public class Clients {
 	 * Use 'sendBufferSize' to specify socket's send buffer size. */
 	public static Client addNewClient(SocketChannel chan, Selector readSelector, int sendBufferSize) {
 
-    	Client client = new Client(chan);
-    	clients.add(client);
+		Client client = new Client(chan);
+		clients.add(client);
 
-       	// register the channel with the selector
-       	// store a new Client as the Key's attachment
-       	try {
-       	    chan.configureBlocking(false);
-       	    chan.socket().setSendBufferSize(sendBufferSize);
-       	    //***chan.socket().setSoTimeout(TIMEOUT_LENGTH); -> this doesn't seem to have an effect with java.nio
-       	    client.selKey = chan.register(readSelector, SelectionKey.OP_READ, client);
-       	} catch (ClosedChannelException cce) {
-       		killClient(client);
-       		return null;
-       	} catch (IOException ioe) {
-       		killClient(client);
-       		return null;
-       	} catch (Exception e) {
-       		killClient(client);
-       		return null;
-       	}
+		// register the channel with the selector
+		// store a new Client as the Key's attachment
+		try {
+			chan.configureBlocking(false);
+			chan.socket().setSendBufferSize(sendBufferSize);
+			//***chan.socket().setSoTimeout(TIMEOUT_LENGTH); -> this doesn't seem to have an effect with java.nio
+			client.selKey = chan.register(readSelector, SelectionKey.OP_READ, client);
+		} catch (ClosedChannelException cce) {
+			killClient(client);
+			return null;
+		} catch (IOException ioe) {
+			killClient(client);
+			return null;
+		} catch (Exception e) {
+			killClient(client);
+			return null;
+		}
 
-       	return client;
+		return client;
 	}
 
 	/* returns number of clients (including those who haven't logged in yet) */
@@ -224,11 +224,11 @@ public class Clients {
 	 * Must only be called from the main server loop (at the end of it)!
 	 * Any redundant entries are ignored (cleared). */
 	public static void processKillList() {
-	    for (; killList.size() > 0;) {
-	    	killClient(killList.get(0), reasonList.get(0));
-	    	killList.remove(0);
-	    	reasonList.remove(0);
-	    }
+		for (; killList.size() > 0;) {
+			killClient(killList.get(0), reasonList.get(0));
+			killList.remove(0);
+			reasonList.remove(0);
+		}
 	}
 
 	/* this will try to go through the list of clients that still have pending data to be sent

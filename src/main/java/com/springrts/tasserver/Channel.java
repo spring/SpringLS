@@ -44,6 +44,7 @@ public class Channel {
 	}
 
 	public boolean setTopic(String newTopic, String author) {
+
 		if (newTopic.trim().equals("*")) {
 			topic = "";
 			topicAuthor = author;
@@ -53,7 +54,9 @@ public class Channel {
 		topic = newTopic.trim();
 		topicAuthor = author;
 		topicChangedTime = System.currentTimeMillis();
-		if (TASServer.DEBUG > 1) System.out.println("* Topic for #" + name + " changed to '" + topic + "' (set by <" + author + ">)");
+		if (TASServer.DEBUG > 1) {
+			System.out.println("* Topic for #" + name + " changed to '" + topic + "' (set by <" + author + ">)");
+		}
 		return true;
 	}
 

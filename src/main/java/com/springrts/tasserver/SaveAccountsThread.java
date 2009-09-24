@@ -31,12 +31,12 @@ public class SaveAccountsThread extends Thread {
 	private List dupAccounts; // duplicated accounts. Needed to ensure thread safety as well as accounts state consistency
 
 	public SaveAccountsThread(List dupAccounts) {
-    	this.dupAccounts = dupAccounts;
+		this.dupAccounts = dupAccounts;
 	}
 
-    public void run() {
-    	System.out.println("Dumping accounts to disk in a separate thread ...");
-    	long time = System.currentTimeMillis();
+	public void run() {
+		System.out.println("Dumping accounts to disk in a separate thread ...");
+		long time = System.currentTimeMillis();
 
 		try {
 			PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(TASServer.ACCOUNTS_INFO_FILEPATH)));
@@ -59,7 +59,7 @@ public class SaveAccountsThread extends Thread {
 
 		System.out.println(dupAccounts.size() + " accounts information written to " + TASServer.ACCOUNTS_INFO_FILEPATH + " successfully (" + (System.currentTimeMillis() - time) + " ms).");
 
-        // let garbage collector free the duplicate accounts list:
-        dupAccounts = null;
-    }
+		// let garbage collector free the duplicate accounts list:
+		dupAccounts = null;
+	}
 }

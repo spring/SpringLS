@@ -18,14 +18,14 @@ import java.security.*;
  */
 public class Misc {
 
- 	static public final String EOL = "\n";
- 	static private String hex = "0123456789ABCDEF";
+	static public final String EOL = "\n";
+	static private String hex = "0123456789ABCDEF";
 
-	public static String easyDateFormat (String format) {
+	public static String easyDateFormat(String format) {
 		Date today = new Date();
 		SimpleDateFormat formatter = new SimpleDateFormat(format);
 		return formatter.format(today);
-    }
+	}
 
 	public static String easyDateFormat(long date, String format) {
 		Date d = new Date(date);
@@ -38,24 +38,34 @@ public class Misc {
 	 * on why StringBuilder is faster.
 	 * */
 	public static String makeSentence(String[] a, int startIndex) {
-		if (startIndex > a.length-1) return "";
+		if (startIndex > a.length - 1) {
+			return "";
+		}
 
-	    StringBuilder result = new StringBuilder();
-        result.append(a[startIndex]);
-        for (int i = startIndex+1; i < a.length; i++) {
-            result.append(" ");
-            result.append(a[i]);
-        }
+		StringBuilder result = new StringBuilder();
+		result.append(a[startIndex]);
+		for (int i = startIndex + 1; i < a.length; i++) {
+			result.append(" ");
+			result.append(a[i]);
+		}
 
-	    return result.toString();
+		return result.toString();
 	}
 
 	public static String boolToStr(boolean b) {
-		if (b) return "1"; else return "0";
+		if (b) {
+			return "1";
+		} else {
+			return "0";
+		}
 	}
 
 	public static boolean strToBool(String s) {
-		if (s.equals("1")) return true; else return false;
+		if (s.equals("1")) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	public static char[] byteToHex(byte b) {
@@ -74,38 +84,38 @@ public class Misc {
 	 * Found it here: http://forum.java.sun.com/thread.jspa?threadID=619056&messageID=3477258
 	 *  */
 	public static String getLocalIPAddress() {
-		try
-	    {
+		try {
 			Enumeration e = NetworkInterface.getNetworkInterfaces();
 
-	        while(e.hasMoreElements()) {
-	        	NetworkInterface netface = (NetworkInterface) e.nextElement();
-	            Enumeration e2 = netface.getInetAddresses();
+			while (e.hasMoreElements()) {
+				NetworkInterface netface = (NetworkInterface) e.nextElement();
+				Enumeration e2 = netface.getInetAddresses();
 
-	            while (e2.hasMoreElements()) {
-	            	InetAddress ip = (InetAddress) e2.nextElement();
-			        if(!ip.isLoopbackAddress() && ip.getHostAddress().indexOf(":")==-1) {
-			        	return ip.getHostAddress();
-		    	    }
-                }
-	        }
-	    }
-	    catch (Exception e) {
-	    	return null;
-	    }
-	    return null;
+				while (e2.hasMoreElements()) {
+					InetAddress ip = (InetAddress) e2.nextElement();
+					if (!ip.isLoopbackAddress() && ip.getHostAddress().indexOf(":") == -1) {
+						return ip.getHostAddress();
+					}
+				}
+			}
+		} catch (Exception e) {
+			return null;
+		}
+		return null;
 	}
 
 	public static long IP2Long(String IP) {
 		long f1, f2, f3, f4;
 		String tokens[] = IP.split("\\.");
-		if (tokens.length != 4) return -1;
+		if (tokens.length != 4) {
+			return -1;
+		}
 		try {
 			f1 = Long.parseLong(tokens[0]) << 24;
 			f2 = Long.parseLong(tokens[1]) << 16;
 			f3 = Long.parseLong(tokens[2]) << 8;
 			f4 = Long.parseLong(tokens[3]);
-			return f1+f2+f3+f4;
+			return f1 + f2 + f3 + f4;
 		} catch (Exception e) {
 			return -1;
 		}
@@ -134,118 +144,108 @@ public class Misc {
 	}
 
 	/*
-	* copied from: http://www.source-code.biz/snippets/java/3.htm
-	*
-	* Reallocates an array with a new size, and copies the contents
-	* of the old array to the new array.
-	* @param oldArray  the old array, to be reallocated.
-	* @param newSize   the new array size.
-	* @return          A new array with the same contents.
-	*/
-	public static Object resizeArray (Object oldArray, int newSize) {
-	   int oldSize = java.lang.reflect.Array.getLength(oldArray);
-	   Class elementType = oldArray.getClass().getComponentType();
-	   Object newArray = java.lang.reflect.Array.newInstance(
-	         elementType,newSize);
-	   int preserveLength = Math.min(oldSize,newSize);
-	   if (preserveLength > 0)
-	      System.arraycopy (oldArray,0,newArray,0,preserveLength);
-	   return newArray;
+	 * copied from: http://www.source-code.biz/snippets/java/3.htm
+	 *
+	 * Reallocates an array with a new size, and copies the contents
+	 * of the old array to the new array.
+	 * @param oldArray  the old array, to be reallocated.
+	 * @param newSize   the new array size.
+	 * @return          A new array with the same contents.
+	 */
+	public static Object resizeArray(Object oldArray, int newSize) {
+		int oldSize = java.lang.reflect.Array.getLength(oldArray);
+		Class elementType = oldArray.getClass().getComponentType();
+		Object newArray = java.lang.reflect.Array.newInstance(
+				elementType, newSize);
+		int preserveLength = Math.min(oldSize, newSize);
+		if (preserveLength > 0) {
+			System.arraycopy(oldArray, 0, newArray, 0, preserveLength);
+		}
+		return newArray;
 	}
 
 	/* sorts an array of integers using simple bubble sort algorithm.
 	 * Copied from http://en.wikisource.org/wiki/Bubble_sort
 	 * */
-	public static void bubbleSort(int data[])
-	{
-	   boolean isSorted;
-	   int tempVariable;
-	   int numberOfTimesLooped = 0;
+	public static void bubbleSort(int data[]) {
+		boolean isSorted;
+		int tempVariable;
+		int numberOfTimesLooped = 0;
 
-	   do
-	   {
-	      isSorted = true;
+		do {
+			isSorted = true;
 
-	      for (int i = 1; i < data.length - numberOfTimesLooped; i++)
-	      {
-	         if (data[i] > data[i - 1])
-	         {
-	            tempVariable = data[i];
-	            data[i] = data[i - 1];
-	            data[i - 1] = tempVariable;
+			for (int i = 1; i < data.length - numberOfTimesLooped; i++) {
+				if (data[i] > data[i - 1]) {
+					tempVariable = data[i];
+					data[i] = data[i - 1];
+					data[i - 1] = tempVariable;
 
-	            isSorted = false;
-	         }
-	      }
+					isSorted = false;
+				}
+			}
 
-	      numberOfTimesLooped++;
-	   }
-	   while (!isSorted);
+			numberOfTimesLooped++;
+		} while (!isSorted);
 	}
 
 	/* sorts an array of integers plus a parallel List of objects
 	 * using simple bubble sort. This is a generic method:
 	 * http://java.sun.com/docs/books/tutorial/extra/generics/methods.html */
-	public static <T> void bubbleSort(int data[], List<T> list)
-	{
-	   boolean isSorted;
-	   int tempInt;
-	   T tempObj;
-	   int numberOfTimesLooped = 0;
+	public static <T> void bubbleSort(int data[], List<T> list) {
+		boolean isSorted;
+		int tempInt;
+		T tempObj;
+		int numberOfTimesLooped = 0;
 
-	   do
-	   {
-	      isSorted = true;
+		do {
+			isSorted = true;
 
-	      for (int i = 1; i < data.length - numberOfTimesLooped; i++)
-	      {
-	         if (data[i] > data[i - 1])
-	         {
-	            tempInt = data[i];
-	            tempObj = list.get(i);
-	            data[i] = data[i - 1];
-	            list.set(i, list.get(i - 1));
-	            data[i - 1] = tempInt;
-	            list.set(i - 1, tempObj);
+			for (int i = 1; i < data.length - numberOfTimesLooped; i++) {
+				if (data[i] > data[i - 1]) {
+					tempInt = data[i];
+					tempObj = list.get(i);
+					data[i] = data[i - 1];
+					list.set(i, list.get(i - 1));
+					data[i - 1] = tempInt;
+					list.set(i - 1, tempObj);
 
-	            isSorted = false;
-	         }
-	      }
+					isSorted = false;
+				}
+			}
 
-	      numberOfTimesLooped++;
-	   }
-	   while (!isSorted);
+			numberOfTimesLooped++;
+		} while (!isSorted);
 	}
 
 	public static String getHashText(String plainText, String algorithm) throws NoSuchAlgorithmException {
 		MessageDigest mdAlgorithm = MessageDigest.getInstance(algorithm);
 
-	    mdAlgorithm.update(plainText.getBytes());
+		mdAlgorithm.update(plainText.getBytes());
 
-	    byte[] digest = mdAlgorithm.digest();
-	    StringBuilder hexString = new StringBuilder();
+		byte[] digest = mdAlgorithm.digest();
+		StringBuilder hexString = new StringBuilder();
 
-	    for (int i = 0; i < digest.length; i++) {
-	    	plainText = Integer.toHexString(0xFF & digest[i]);
+		for (int i = 0; i < digest.length; i++) {
+			plainText = Integer.toHexString(0xFF & digest[i]);
 
-	        if (plainText.length() < 2) {
-	            plainText = "0" + plainText;
-	        }
+			if (plainText.length() < 2) {
+				plainText = "0" + plainText;
+			}
 
-	        hexString.append(plainText);
-	    }
+			hexString.append(plainText);
+		}
 
-	    return hexString.toString();
+		return hexString.toString();
 	}
 
-	public static byte[] getMD5(String plainText) throws NoSuchAlgorithmException
-	{
-	    MessageDigest mdAlgorithm = MessageDigest.getInstance("md5");
+	public static byte[] getMD5(String plainText) throws NoSuchAlgorithmException {
+		MessageDigest mdAlgorithm = MessageDigest.getInstance("md5");
 
-	    mdAlgorithm.update(plainText.getBytes());
+		mdAlgorithm.update(plainText.getBytes());
 
-	    byte[] digest = mdAlgorithm.digest();
-	    return digest;
+		byte[] digest = mdAlgorithm.digest();
+		return digest;
 	}
 
 	// this method encodes plain-text password to md5 hashed one in base-64 form:
@@ -267,7 +267,7 @@ public class Misc {
 		ZipInputStream zin = new ZipInputStream(new BufferedInputStream(new FileInputStream(fileName)));
 		ZipEntry e;
 
-		while((e = zin.getNextEntry()) != null) {
+		while ((e = zin.getNextEntry()) != null) {
 			// unzip specific file from the archive:
 			unzipSingleEntry(zin, e.getName());
 		}
@@ -279,14 +279,16 @@ public class Misc {
 	 * If no file is found inside the archive, it will simply ignore it. */
 	public static void unzipSingleArchive(String fileName, String localFileName) throws IOException {
 		ZipInputStream zin = new ZipInputStream(new BufferedInputStream(new FileInputStream(fileName)));
-		if (zin.getNextEntry() != null) unzipSingleEntry(zin, localFileName);
+		if (zin.getNextEntry() != null) {
+			unzipSingleEntry(zin, localFileName);
+		}
 		zin.close();
 	}
 
 	/* will unzip next entry from given ZipInputStream */
 	public static void unzipSingleEntry(ZipInputStream zin, String toFile) throws IOException {
 		FileOutputStream out = new FileOutputStream(toFile);
-		byte [] b = new byte[512];
+		byte[] b = new byte[512];
 		int len = 0;
 		while ((len = zin.read(b)) != -1) {
 			out.write(b, 0, len);
@@ -320,7 +322,7 @@ public class Misc {
 		try {
 			URL url = new URL(address);
 			out = new BufferedOutputStream(
-				new FileOutputStream(localFileName));
+					new FileOutputStream(localFileName));
 			conn = url.openConnection();
 			in = conn.getInputStream();
 			byte[] buffer = new byte[1024];
@@ -332,12 +334,14 @@ public class Misc {
 					bytesSinceLastTimeStamp += numRead;
 					long timeDiff = System.nanoTime() / 1000000 - lastTimeStamp;
 					if (timeDiff > 0) { // to avoid division by zero
-						double rate = (double)bytesSinceLastTimeStamp / (double)timeDiff * 1000.0;
-						if (rate > downloadLimit)
+						double rate = (double) bytesSinceLastTimeStamp / (double) timeDiff * 1000.0;
+						if (rate > downloadLimit) {
 							try {
-						    	// sleep a bit:
-								Thread.sleep(Math.round((double)bytesSinceLastTimeStamp / (double)downloadLimit * 1000.0 - timeDiff));
-							} catch (InterruptedException ie) { }
+								// sleep a bit:
+								Thread.sleep(Math.round((double) bytesSinceLastTimeStamp / (double) downloadLimit * 1000.0 - timeDiff));
+							} catch (InterruptedException ie) {
+							}
+						}
 
 						// check if we must start a new time frame:
 						if (timeDiff > 1000) {
@@ -345,8 +349,12 @@ public class Misc {
 							lastTimeStamp = System.nanoTime() / 1000000;
 							bytesSinceLastTimeStamp = 0;
 						}
-					} else try { Thread.sleep(1); } catch (InterruptedException ie) { } // we need this because we don't check time between 0 and 1st millisecond in a time frame, but in the first millisecond a lot of data may be read from the socket buffer which we don't want because we can't regulate download speed accurately in that case
-
+					} else {
+						try {
+							Thread.sleep(1);
+						} catch (InterruptedException ie) {
+						} // we need this because we don't check time between 0 and 1st millisecond in a time frame, but in the first millisecond a lot of data may be read from the socket buffer which we don't want because we can't regulate download speed accurately in that case
+					}
 				}
 
 				// write received data to file:
@@ -379,14 +387,14 @@ public class Misc {
 		String res = e.toString();
 
 		StackTraceElement[] trace = e.getStackTrace();
-		for (int i = 0; i < trace.length; i++)
+		for (int i = 0; i < trace.length; i++) {
 			res += "\r\n\tat " + trace[i];
+		}
 
 		return res;
 	}
 
 	/* various methods dealing with battleStatus: */
-
 	public static int getReadyStatusFromBattleStatus(int battleStatus) {
 		return (battleStatus & 0x2) >> 1;
 	}
@@ -400,7 +408,7 @@ public class Misc {
 	}
 
 	public static int getModeFromBattleStatus(int battleStatus) {
-		  return (battleStatus & 0x400) >> 10;
+		return (battleStatus & 0x400) >> 10;
 	}
 
 	public static int getHandicapFromBattleStatus(int battleStatus) {
@@ -442,5 +450,4 @@ public class Misc {
 	public static int setSideOfBattleStatus(int battleStatus, int side) {
 		return (battleStatus & 0xF0FFFFFF) | (side << 24);
 	}
-
 }

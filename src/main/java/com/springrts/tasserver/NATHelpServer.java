@@ -30,40 +30,43 @@ public class NATHelpServer extends Thread {
 			socket = new DatagramSocket(port);
 		} catch (Exception e) {
 			System.out.println("Unable to start UDP server on port " + port + ". Ignoring ...");
-			return ;
+			return;
 		}
 
 		System.out.println("UDP server started on port " + port);
 
 		while (true) {
-	        try {
-	        	if (isInterrupted()) break;
-	            byte[] buf = new byte[256];
+			try {
+				if (isInterrupted()) {
+					break;
+				}
+				byte[] buf = new byte[256];
 
-	            // receive packet
-	            DatagramPacket packet = new DatagramPacket(buf, buf.length);
-	            socket.receive(packet);
-	            msgList.add(packet);
-	        } catch (InterruptedIOException e) {
-	        	break;
-	        } catch (IOException e) {
-	            if (e.getMessage().equalsIgnoreCase("socket closed")) {
-	            	// server stopped gracefully!
-	            } else {
-		        	System.out.println("ERROR in UDP server. Stack trace:");
-		            e.printStackTrace();
-	            }
-	        }
+				// receive packet
+				DatagramPacket packet = new DatagramPacket(buf, buf.length);
+				socket.receive(packet);
+				msgList.add(packet);
+			} catch (InterruptedIOException e) {
+				break;
+			} catch (IOException e) {
+				if (e.getMessage().equalsIgnoreCase("socket closed")) {
+					// server stopped gracefully!
+				} else {
+					System.out.println("ERROR in UDP server. Stack trace:");
+					e.printStackTrace();
+				}
+			}
 		}
 
 		socket.close();
-    	System.out.println("UDP NAT server closed.");
+		System.out.println("UDP NAT server closed.");
 	}
 
 	public void stopServer() {
-		if (isInterrupted()) return; // already in process of shutting down
+		if (isInterrupted()) {
+			return; // already in process of shutting down
+		}
 		interrupt();
 		socket.close();
 	}
-
 }

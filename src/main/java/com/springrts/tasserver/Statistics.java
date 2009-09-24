@@ -36,35 +36,42 @@ public class Statistics {
 	/* returns -1 if unsuccessful, or else returns time taken to save the statistics file (in milliseconds) */
 	public static int saveStatisticsToDisk() {
 		long taken;
-    	try {
-	    	lastStatisticsUpdate = System.currentTimeMillis();
-	    	taken = Statistics.autoUpdateStatisticsFile();
-			if (taken == -1) return -1;
-	    	Statistics.createAggregateFile(); // to simplify parsing
-	    	Statistics.generatePloticusImages();
-	    	System.out.println("*** Statistics saved to disk. Time taken: " + taken + " ms.");
-    	} catch (Exception e) {
-    		System.out.println("*** Error while saving statistics... Stack trace:");
-    		e.printStackTrace();
-    		return -1;
-    	}
-    	return new Long(taken).intValue();
+		try {
+			lastStatisticsUpdate = System.currentTimeMillis();
+			taken = Statistics.autoUpdateStatisticsFile();
+			if (taken == -1) {
+				return -1;
+			}
+			Statistics.createAggregateFile(); // to simplify parsing
+			Statistics.generatePloticusImages();
+			System.out.println("*** Statistics saved to disk. Time taken: " + taken + " ms.");
+		} catch (Exception e) {
+			System.out.println("*** Error while saving statistics... Stack trace:");
+			e.printStackTrace();
+			return -1;
+		}
+		return new Long(taken).intValue();
 	}
 
 	/* will append statistics file (or create one if it doesn't exist) and add latest statistics to it.
 	 * Returns milliseconds taken to calculate statistics, or -1 if it fails. */
-	private static long autoUpdateStatisticsFile()
-	{
+	private static long autoUpdateStatisticsFile() {
 		String fname = TASServer.STATISTICS_FOLDER + now("ddMMyy") + ".dat";
 		long startTime = System.currentTimeMillis();
 
 		int activeBattlesCount = 0;
-		for (int i = 0; i < Battles.getBattlesSize(); i++)
-			if ((Battles.getBattleByIndex(i).getClientsSize() >= 1 /* at least 1 client + founder == 2 players */) && (Battles.getBattleByIndex(i).inGame())) activeBattlesCount++;
+		for (int i = 0; i < Battles.getBattlesSize(); i++) {
+			if ((Battles.getBattleByIndex(i).getClientsSize() >= 1 /* at least 1 client + founder == 2 players */) && (Battles.getBattleByIndex(i).inGame())) {
+				activeBattlesCount++;
+			}
+		}
 
 		int activeAccounts = 0;
-		for (int i = 0; i < Accounts.getAccountsSize(); i++)
-			if ((Accounts.getAccount(i).getInGameTime() > 300) && (Accounts.getAccount(i).lastLogin > System.currentTimeMillis() - 1000*60*60*24*7)) activeAccounts++;
+		for (int i = 0; i < Accounts.getAccountsSize(); i++) {
+			if ((Accounts.getAccount(i).getInGameTime() > 300) && (Accounts.getAccount(i).lastLogin > System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 7)) {
+				activeAccounts++;
+			}
+		}
 
 		String topMods = currentlyPopularModsList();
 
@@ -95,13 +102,13 @@ public class Statistics {
 			// get file names for last 7 days (that is today + last 6 days):
 			for (int i = 7; i > 0; i--) {
 				Date temp = new Date();
-				temp.setTime(today.getTime() - (i-1)*1000*60*60*24);
+				temp.setTime(today.getTime() - (i - 1) * 1000 * 60 * 60 * 24);
 				try {
 					BufferedReader in = new BufferedReader(new FileReader(TASServer.STATISTICS_FOLDER + formatter.format(temp) + ".dat"));
 					//***System.out.println("--- Found: <" + TASServer.STATISTICS_FOLDER + formatter.format(temp) + ".dat>");
-		            while ((line = in.readLine()) != null) {
-		            	out.write(formatter.format(temp) + " " + line + "\r\n");
-		            }
+					while ((line = in.readLine()) != null) {
+						out.write(formatter.format(temp) + " " + line + "\r\n");
+					}
 				} catch (IOException e) {
 					// just skip the file ...
 					//***System.out.println("--- Skipped: <" + TASServer.STATISTICS_FOLDER + formatter.format(temp) + ".dat>");
@@ -125,7 +132,7 @@ public class Statistics {
 			SimpleDateFormat lastUpdateFormatter = new SimpleDateFormat("dd/MM/yyyy, HH:mm:ss (z)");
 			Date endDate = formatter.parse(now("ddMMyy"));
 			Date startDate = new Date();
-			startDate.setTime(endDate.getTime() - 6*1000*60*60*24);
+			startDate.setTime(endDate.getTime() - 6 * 1000 * 60 * 60 * 24);
 
 			// generate "server stats diagram":
 			cmds = new String[8];
@@ -160,9 +167,13 @@ public class Statistics {
 			cmds[3] = "-o";
 			cmds[4] = TASServer.STATISTICS_FOLDER + "mods.png";
 			cmds[5] = "count=" + Integer.parseInt(params[0]);
-			for (int i = 1; i < params.length; i++)
-				if (i % 2 == 1) cmds[i+5] = "mod" + ((i+1)/2) + "=" + params[i];
-				else cmds[i+5] = "modfreq" + (i/2) + "=" + params[i];
+			for (int i = 1; i < params.length; i++) {
+				if (i % 2 == 1) {
+					cmds[i + 5] = "mod" + ((i + 1) / 2) + "=" + params[i];
+				} else {
+					cmds[i + 5] = "modfreq" + (i / 2) + "=" + params[i];
+				}
+			}
 			Runtime.getRuntime().exec(cmds).waitFor();
 
 		} catch (Exception e) {
@@ -177,7 +188,7 @@ public class Statistics {
 	/* will return list of mods being played right now (top 5 mods only) with frequencies.
 	 * format: listlen "modname1" freq1 "modname2" freq" ...
 	 * where delimiter is TAB (not SPACE). An empty list is denoted by 0 value for listlen.
-     */
+	 */
 	private static String currentlyPopularModsList() {
 		ArrayList<String> mods = new ArrayList<String>();
 		int[] freq = new int[0];
@@ -188,24 +199,27 @@ public class Statistics {
 				// add to list or update in list:
 
 				found = false;
-				for (int j = 0; j < mods.size(); j++)
+				for (int j = 0; j < mods.size(); j++) {
 					if (mods.get(j).equals(Battles.getBattleByIndex(i).modName)) {
 						// mod already in the list. Just increase it's frequency:
 						freq[j]++;
 						found = true;
 						break;
 					}
+				}
 
 				if (!found) {
 					mods.add(new String(Battles.getBattleByIndex(i).modName));
-					freq = (int[])Misc.resizeArray(freq, freq.length + 1);
-					freq[freq.length-1] = 1;
+					freq = (int[]) Misc.resizeArray(freq, freq.length + 1);
+					freq[freq.length - 1] = 1;
 				}
 			}
 		}
 
 		// now generate a list of top 5 mods with frequencies:
-		if (mods.size() == 0) return "0";
+		if (mods.size() == 0) {
+			return "0";
+		}
 		String result = "" + Math.min(5, mods.size()); // return 5 or less mods
 		Misc.bubbleSort(freq, mods);
 		for (int i = 0; i < Math.min(5, mods.size()); i++) {
@@ -229,31 +243,38 @@ public class Statistics {
 			String line;
 			String sHour;
 			BufferedReader in = new BufferedReader(new FileReader(TASServer.STATISTICS_FOLDER + date + ".dat"));
-            while ((line = in.readLine()) != null) {
-            	sHour = line.substring(0, 2); // 00 .. 23
-            	if (lastHour == Integer.parseInt(sHour)) continue; // skip this line
-            	lastHour = Integer.parseInt(sHour);
-            	String temp = Misc.makeSentence(line.split(" "), 5);
-            	String[] temp2 = temp.split("\t");
-            	if (temp2.length % 2 != 1) throw new Exception("Bad mod list format"); // number of arguments must be odd
-            	int noMods = Integer.parseInt(temp2[0]);
-            	if (temp2.length != noMods*2+1) throw new Exception("Bad mod list format");
-            	for (int i = 0; i < noMods; i++) {
-    				found = false;
-    				for (int j = 0; j < mods.size(); j++)
-    					if (mods.get(j).equals(temp2[1+i*2])) {
-    						// mod already in the list. Just increase it's frequency:
-    						freq[j]+= Integer.parseInt(temp2[2+i*2]);
-    						found = true;
-    						break;
-    					}
-    				if (!found) {
-    					mods.add(new String(temp2[1+i*2]));
-    					freq = (int[])Misc.resizeArray(freq, freq.length + 1);
-    					freq[freq.length-1] = Integer.parseInt(temp2[2+i*2]);
-    				}
-            	}
-            }
+			while ((line = in.readLine()) != null) {
+				sHour = line.substring(0, 2); // 00 .. 23
+				if (lastHour == Integer.parseInt(sHour)) {
+					continue; // skip this line
+				}
+				lastHour = Integer.parseInt(sHour);
+				String temp = Misc.makeSentence(line.split(" "), 5);
+				String[] temp2 = temp.split("\t");
+				if (temp2.length % 2 != 1) {
+					throw new Exception("Bad mod list format"); // number of arguments must be odd
+				}
+				int noMods = Integer.parseInt(temp2[0]);
+				if (temp2.length != noMods * 2 + 1) {
+					throw new Exception("Bad mod list format");
+				}
+				for (int i = 0; i < noMods; i++) {
+					found = false;
+					for (int j = 0; j < mods.size(); j++) {
+						if (mods.get(j).equals(temp2[1 + i * 2])) {
+							// mod already in the list. Just increase it's frequency:
+							freq[j] += Integer.parseInt(temp2[2 + i * 2]);
+							found = true;
+							break;
+						}
+					}
+					if (!found) {
+						mods.add(new String(temp2[1 + i * 2]));
+						freq = (int[]) Misc.resizeArray(freq, freq.length + 1);
+						freq[freq.length - 1] = Integer.parseInt(temp2[2 + i * 2]);
+					}
+				}
+			}
 		} catch (Exception e) {
 			System.out.println("*** Error in getPopularModsList(). Skipping ...");
 			e.printStackTrace(); //*** DEBUG
@@ -261,7 +282,9 @@ public class Statistics {
 		}
 
 		// now generate a list of top 5 mods with frequencies:
-		if (mods.size() == 0) return "0";
+		if (mods.size() == 0) {
+			return "0";
+		}
 		int k = Math.min(5, mods.size()); // return 5 or less mods
 		String result = "" + k;
 		Misc.bubbleSort(freq, mods); // Note: don't cut the array by k, or sorting won't have any effect!
@@ -276,15 +299,15 @@ public class Statistics {
 	 * Usage (some examples):
 	 *
 	 * System.out.println(now("dd MMMMM yyyy"));
-     * System.out.println(now("yyyyMMdd"));
-     * System.out.println(now("dd.MM.yy"));
-     * System.out.println(now("MM/dd/yy"));
-     * System.out.println(now("yyyy.MM.dd G 'at' hh:mm:ss z"));
-     * System.out.println(now("EEE, MMM d, ''yy"));
-     * System.out.println(now("h:mm a"));
-     * System.out.println(now("H:mm:ss:SSS"));
-     * System.out.println(now("K:mm a,z"));
-     * System.out.println(now("yyyy.MMMMM.dd GGG hh:mm aaa"));
+	 * System.out.println(now("yyyyMMdd"));
+	 * System.out.println(now("dd.MM.yy"));
+	 * System.out.println(now("MM/dd/yy"));
+	 * System.out.println(now("yyyy.MM.dd G 'at' hh:mm:ss z"));
+	 * System.out.println(now("EEE, MMM d, ''yy"));
+	 * System.out.println(now("h:mm a"));
+	 * System.out.println(now("H:mm:ss:SSS"));
+	 * System.out.println(now("K:mm a,z"));
+	 * System.out.println(now("yyyy.MMMMM.dd GGG hh:mm aaa"));
 	 *
 	 * Taken from http://www.rgagnon.com/javadetails/java-0106.html.
 	 *
@@ -298,5 +321,4 @@ public class Statistics {
 		String current = formatter.format(today);
 		return current;
 	}
-
 }

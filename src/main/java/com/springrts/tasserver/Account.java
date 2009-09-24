@@ -154,5 +154,4 @@ public class Account {
 		setInGameTime(getInGameTime() + mins);
 		return tmp != getRank();
 	}
-
 }
