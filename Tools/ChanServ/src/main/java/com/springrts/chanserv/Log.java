@@ -1,23 +1,19 @@
 /*
  * Created on 28.12.2005
- *
- * TODO To change the template for this generated file go to
- * Window - Preferences - Java - Code Style - Code Templates
- *
- * Use methods of this static class rather than System.out.println()!
  */
 
-/**
- * @author Betalord
- *
- * TODO To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Style - Code Templates
- */
+package com.springrts.chanserv;
+
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.Semaphore;
 
+/**
+ * Use methods of this static class rather than System.out.println()!
+ *
+ * @author Betalord
+ */
 public class Log {
 
 	static final String LOG_FOLDER = "./logs"; // folder where log files are put

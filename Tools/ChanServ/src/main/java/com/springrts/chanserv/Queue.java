@@ -14,6 +14,9 @@
  *  limitations under the License.
  */
 
+package com.springrts.chanserv;
+
+
 import java.util.Vector;
 
 /**

@@ -1,16 +1,9 @@
 /*
  * Created on 5.1.2006
- *
- * TODO To change the template for this generated file go to
- * Window - Preferences - Java - Code Style - Code Templates
  */
 
-/**
- * @author Betalord
- *
- * TODO To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Style - Code Templates
- */
+package com.springrts.chanserv;
+
 
 import java.util.*;
 import java.io.BufferedOutputStream;
@@ -19,6 +12,10 @@ import java.io.PrintStream;
 import java.text.*;
 import java.lang.reflect.*;
 
+
+/**
+ * @author Betalord
+ */
 public class Misc {
  	static public final String EOL = "\n";
  	static private String hex = "0123456789ABCDEF";

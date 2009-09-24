@@ -1,35 +1,9 @@
 /*
  * Created on 4.3.2006
- *
- * TODO To change the template for this generated file go to
- * Window - Preferences - Java - Code Style - Code Templates
- *
- *
- * For the list of commands, see commands.html!
- *
- * *** LINKS ****
- * * http://java.sun.com/docs/books/tutorial/extra/regex/test_harness.html
- *   (how to use regex in java to match a pattern)
- *
- * * http://www.regular-expressions.info/floatingpoint.html
- *   (how to properly match a floating value in regex)
- *
- * *** NOTES ***
- * * ChanServ MUST use account with admin privileges (not just moderator privileges)
- *   or else it won't be able to join locked channels and won't work correct!
- * * Use Vector for thread-safe list (ArrayList and similar classes aren't thread-safe!)
- *
- * *** TODO QUICK NOTES ***
- * * diff between synchronized(object) {...} and using a Semaphore... ?
- *
  */
 
-/**
- * @author Betalord
- *
- * TODO To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Style - Code Templates
- */
+package com.springrts.chanserv;
+
 
 import java.io.*;
 import java.net.*;
@@ -56,6 +30,9 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 
+/**
+ * @author Betalord
+ */
 class KeepAliveTask extends TimerTask {
 	public void run() {
 		try {
@@ -73,6 +50,26 @@ class KeepAliveTask extends TimerTask {
 	}
 }
 
+/**
+ * For the list of commands, see commands.html!
+ *
+ * *** LINKS ****
+ * * http://java.sun.com/docs/books/tutorial/extra/regex/test_harness.html
+ *   (how to use regex in java to match a pattern)
+ *
+ * * http://www.regular-expressions.info/floatingpoint.html
+ *   (how to properly match a floating value in regex)
+ *
+ * *** NOTES ***
+ * * ChanServ MUST use account with admin privileges (not just moderator privileges)
+ *   or else it won't be able to join locked channels and won't work correct!
+ * * Use Vector for thread-safe list (ArrayList and similar classes aren't thread-safe!)
+ *
+ * *** TODO QUICK NOTES ***
+ * * diff between synchronized(object) {...} and using a Semaphore... ?
+ *
+ * @author Betalord
+ */
 public class ChanServ {
 
 	static final String VERSION = "0.1";

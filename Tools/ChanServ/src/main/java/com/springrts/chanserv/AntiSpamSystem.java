@@ -1,31 +1,15 @@
 /*
  * Created on 25.2.2006
- *
- * TODO To change the template for this generated file go to
- * Window - Preferences - Java - Code Style - Code Templates
- *
- * Here are included all the routines needed with the anti-spam protection.
- * This system is separated from the rest of the bot code, however it does call
- * back the bot when it detects spamming.
- *
- * Its current functionality is very basic - it is based on assigning penalty
- * points to users based on message length and message repetition. It is possible
- * to set penalty points for events per channel basis.
- *
- * 25x12x2007: Added detection of "CLIENTSTATUS spam" exploit, which could freeze
- * all players on the server who are using TASClient.
- *
  */
 
-/**
- * @author Betalord
- *
- * TODO To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Style - Code Templates
- */
+package com.springrts.chanserv;
+
 
 import java.util.*;
 
+/**
+ * @author Betalord
+ */
 class SpamRecord {
 	public double penaltyPoints; // cumulative penalty points
 	public long timeOfLastMsg; // time of last line sent to the channel by this user
@@ -38,6 +22,20 @@ class SpamRecord {
 	}
 }
 
+/**
+ * Here are included all the routines needed with the anti-spam protection.
+ * This system is separated from the rest of the bot code, however it does call
+ * back the bot when it detects spamming.
+ *
+ * Its current functionality is very basic - it is based on assigning penalty
+ * points to users based on message length and message repetition. It is possible
+ * to set penalty points for events per channel basis.
+ *
+ * 25x12x2007: Added detection of "CLIENTSTATUS spam" exploit, which could freeze
+ * all players on the server who are using TASClient.
+ *
+ * @author Betalord
+ */
 class SpamSettings {
 	public static final SpamSettings DEFAULT_SETTINGS = new SpamSettings(5, 200, 1.0, 0.5, 0.5);
 

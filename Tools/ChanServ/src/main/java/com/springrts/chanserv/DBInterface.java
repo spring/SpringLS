@@ -1,15 +1,15 @@
 /*
  * Created on 2007.11.9
- *
  */
 
-/**
- * @author Betalord
- *
- */
+package com.springrts.chanserv;
+
 
 import java.sql.*;
 
+/**
+ * @author Betalord
+ */
 public class DBInterface {
 	private Connection conn;
 	private Statement stmt;
@@ -86,5 +86,4 @@ public class DBInterface {
 		ResultSet rs = stmt.getResultSet();
 		return rs.next();
 	}
-
 }

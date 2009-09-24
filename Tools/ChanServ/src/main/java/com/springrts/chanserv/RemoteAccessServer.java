@@ -1,6 +1,15 @@
 /*
  * Created on 2006.11.17
- *
+ */
+
+package com.springrts.chanserv;
+
+
+import java.io.*;
+import java.net.*;
+import java.util.*;
+
+/**
  * Protocol description:
  *
  * - communication is meant to be short - 1 or 2 commands and then connection should be terminated
@@ -61,11 +70,6 @@
  *   in order to avoid some security risks with the command.
  *   If the operation fails for some reason, socket will simply get disconnected.
  */
-
-import java.io.*;
-import java.net.*;
-import java.util.*;
-
 public class RemoteAccessServer extends Thread {
 
 	final static int TIMEOUT = 30000; // in milliseconds
@@ -326,5 +330,4 @@ class RemoteClientThread extends Thread {
 			// unknown command!
 		}
     }
-
 }

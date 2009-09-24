@@ -1,6 +1,16 @@
 /*
  * Created on 25.12.2007
- *
+ */
+
+package com.springrts.chanserv;
+
+
+import java.sql.SQLException;
+import java.util.*;
+import java.io.*;
+import java.sql.*;
+
+/**
  * This class is involved in moving logs from files on disk to a database,
  * where they can be more easily accessed by TASServer web interface.
  *
@@ -13,18 +23,8 @@
  * 4) Transfer all logs from temp_logs folder to a database
  *    and remove them from disk.
  *
- */
-
-/**
  * @author Betalord
- *
  */
-
-import java.sql.SQLException;
-import java.util.*;
-import java.io.*;
-import java.sql.*;
-
 public class LogCleaner extends TimerTask {
 
 	final static String TEMP_LOGS_FOLDER = "./temp_logs";
@@ -166,7 +166,5 @@ public class LogCleaner extends TimerTask {
 				return ;
 			}
 		}
-
 	}
-
 }

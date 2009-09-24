@@ -1,23 +1,18 @@
 /*
  * Created on 6.3.2006
- *
- * TODO To change the template for this generated file go to
- * Window - Preferences - Java - Code Style - Code Templates
- *
- * Static channels are those for which we don't want ChanServ to moderate them,
- * only idle there so it logs all chats (for example, #main).
- *
  */
 
-/**
- * @author Betalord
- *
- * TODO To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Style - Code Templates
- */
+package com.springrts.chanserv;
+
 
 import java.util.*;
 
+/**
+ * Static channels are those for which we don't want ChanServ to moderate them,
+ * only idle there so it logs all chats (for example, #main).
+ *
+ * @author Betalord
+ */
 public class Channel {
 	public String name;
 	public String topic = ""; // "" means topic is disabled
@@ -114,5 +109,4 @@ public class Channel {
 		// everything is OK:
 		return null;
 	}
-
 }
