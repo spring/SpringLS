@@ -97,6 +97,7 @@ public class RemoteAccessServer extends Thread {
 		this.port = port;
 	}
 
+	@Override
 	public void run() {
 		try {
 			ServerSocket ss = new ServerSocket(port);
@@ -182,6 +183,7 @@ class RemoteClientThread extends Thread {
 		parent.threads.remove(this);
 	}
 
+	@Override
 	public void run() {
 		String input;
 

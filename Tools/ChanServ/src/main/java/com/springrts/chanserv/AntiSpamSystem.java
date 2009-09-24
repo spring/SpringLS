@@ -60,6 +60,7 @@ class SpamSettings {
 		this(DEFAULT_SETTINGS.penaltyLimit, DEFAULT_SETTINGS.longMsgLength, DEFAULT_SETTINGS.normalMsgPenalty, DEFAULT_SETTINGS.longMsgPenalty, DEFAULT_SETTINGS.doubleMsgPenalty);
 	}
 
+	@Override
 	public String toString() {
 		return penaltyLimit + " " + longMsgLength + " " + normalMsgPenalty + " " + longMsgPenalty + " " + doubleMsgPenalty;
 	}

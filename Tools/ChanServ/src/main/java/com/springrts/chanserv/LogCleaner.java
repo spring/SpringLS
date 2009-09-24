@@ -5,7 +5,6 @@
 package com.springrts.chanserv;
 
 
-import java.sql.SQLException;
 import java.util.*;
 import java.io.*;
 import java.sql.*;
