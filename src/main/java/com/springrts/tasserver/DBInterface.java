@@ -1,7 +1,15 @@
 /*
  * Created on 2007.11.9
- *
  */
+
+package com.springrts.tasserver;
+
+
+import java.sql.*;
+
+import org.apache.commons.pool.*;
+import org.apache.commons.pool.impl.GenericObjectPool;
+import org.apache.commons.dbcp.*;
 
 /**
  * @author Betalord
@@ -13,15 +21,7 @@
  * http://wiki.apache.org/jakarta-commons/DBCP
  * http://commons.apache.org/pool/apidocs/org/apache/commons/pool/impl/GenericObjectPool.html
  * http://commons.apache.org/pool/apidocs/org/apache/commons/pool/impl/GenericObjectPool.Config.html
- *
  */
-
-import java.sql.*;
-
-import org.apache.commons.pool.*;
-import org.apache.commons.pool.impl.GenericObjectPool;
-import org.apache.commons.dbcp.*;
-
 public class DBInterface {
 
 	// database information:

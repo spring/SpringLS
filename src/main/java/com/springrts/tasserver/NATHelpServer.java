@@ -1,25 +1,20 @@
 /*
  * Created on 14.1.2006
- *
- * TODO To change the template for this generated file go to
- * Window - Preferences - Java - Code Style - Code Templates
- *
- * This is a simple UDP server that helps detecting source ports with some
- * NAT traversal techniques (e.g. "hole punching").
- *
  */
 
-/**
- * @author Betalord
- *
- * TODO To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Style - Code Templates
- */
+package com.springrts.tasserver;
+
 
 import java.io.*;
 import java.net.*;
 import java.util.*;
 
+/**
+ * This is a simple UDP server that helps detecting source ports with some
+ * NAT traversal techniques (e.g. "hole punching").
+ *
+ * @author Betalord
+ */
 public class NATHelpServer extends Thread {
 
 	private DatagramSocket socket = null;

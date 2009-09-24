@@ -1,17 +1,17 @@
 /*
  * Created on 2006.11.2
- *
  */
 
-/**
- * @author Betalord
- *
- */
+package com.springrts.tasserver;
+
 
 import java.io.IOException;
 import java.nio.channels.*;
 import java.util.*;
 
+/**
+ * @author Betalord
+ */
 public class Clients {
 
 	static private ArrayList<Client> clients = new ArrayList<Client>();

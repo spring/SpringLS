@@ -1,18 +1,9 @@
 /*
  * Created on 2005.6.16
- *
- * TODO To change the template for this generated file go to
- * Window - Preferences - Java - Code Style - Code Templates
- *
- *
  */
 
-/**
- * @author Betalord
- *
- * TODO To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Style - Code Templates
- */
+package com.springrts.tasserver;
+
 
 import java.util.*;
 import java.util.zip.ZipEntry;
@@ -22,7 +13,11 @@ import java.io.*;
 import java.net.*;
 import java.security.*;
 
+/**
+ * @author Betalord
+ */
 public class Misc {
+
  	static public final String EOL = "\n";
  	static private String hex = "0123456789ABCDEF";
 

@@ -1,6 +1,14 @@
 /*
  * Created on 2006.10.29
- *
+ */
+
+package com.springrts.tasserver;
+
+
+import java.io.*;
+import java.util.*;
+
+/**
  * This thread will download IP2Country database (csv) files from two different
  * URL locations, unzip them, and then read and merge them together and create
  * local IP2Country file from which it will update current IP2Country info
@@ -16,16 +24,8 @@
  * memory the server needs to run smoothly (using -Xms -Xmx java switches),
  * count that in as well.
  *
- */
-
-/**
  * @author Betalord
- *
  */
-
-import java.io.*;
-import java.util.*;
-
 public class UpdateIP2CountryThread extends Thread {
 
 	private static boolean inProgress; // true if updating is already in progress

@@ -1,19 +1,9 @@
 /*
  * Created on 2005.6.17
- *
- * TODO To change the template for this generated file go to
- * Window - Preferences - Java - Code Style - Code Templates
  */
 
-/**
- * @author Betalord
- *
- * TODO To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Style - Code Templates
- */
+package com.springrts.tasserver;
 
-//import java.io.*;
-//import java.net.*;
 
 import java.io.IOException;
 import java.nio.*;
@@ -21,7 +11,11 @@ import java.nio.channels.*;
 import java.nio.charset.CharacterCodingException;
 import java.util.*;
 
+/**
+ * @author Betalord
+ */
 public class Client {
+
 	public boolean alive = false; // if false, then this client is not "valid" anymore (we already killed him and closed his socket).
 	public boolean halfDead = false; // when we schedule client for kill (via Clients.killClientDelayed, for example) this flag is set to true. When true, we don't read or send any data to this client.
 

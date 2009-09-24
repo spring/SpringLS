@@ -1,18 +1,15 @@
 /*
  * Created on 2006.9.30
- *
- * TODO To change the template for this generated file go to
- * Window - Preferences - Java - Code Style - Code Templates
- *
  */
 
-/**
- * @author Betalord
- *
- */
+package com.springrts.tasserver;
+
 
 import java.io.*;
 
+/**
+ * @author Betalord
+ */
 public class ServerNotifications {
 
 	public static final String NOTIFICATION_SYSTEM_VERSION = "1.0"; // this will also get saved with notifications just in case format of notification files change in the future
@@ -40,5 +37,4 @@ public class ServerNotifications {
 
 		return true;
 	}
-
 }

@@ -1,9 +1,19 @@
 /*
  * Created on 24.12.2005
- *
- * TODO To change the template for this generated file go to
- * Window - Preferences - Java - Code Style - Code Templates
- *
+ */
+
+package com.springrts.tasserver;
+
+
+import java.util.*;
+import java.text.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+
+/**
  * Statistics file format:
  * <time> <# of active clients> <# of active battles> <# of accounts> <# of active accounts> <list of mods>
  * where <time> is of form: "hhmmss"
@@ -17,23 +27,8 @@
  * where <date> is of form: "ddMMyy"
  * and all other fields are of same format as those from normal statistics file.
  *
- */
-
-/**
  * @author Betalord
- *
- * TODO To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Style - Code Templates
  */
-
-import java.util.*;
-import java.text.*;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-
 public class Statistics {
 
 	public static long lastStatisticsUpdate = System.currentTimeMillis(); // time (System.currentTimeMillis()) when we last updated statistics

@@ -1,20 +1,17 @@
 /*
  * Created on 2005.6.19
- *
- * TODO To change the template for this generated file go to
- * Window - Preferences - Java - Code Style - Code Templates
  */
 
-/**
- * @author Betalord
- *
- * TODO To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Style - Code Templates
- */
+package com.springrts.tasserver;
+
 
 import java.util.ArrayList;
 
+/**
+ * @author Betalord
+ */
 public class Channel {
+
 	public String name;
 	private String topic; // "" represents no topic (topic is disabled for this channel)
 	private String topicAuthor;

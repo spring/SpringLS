@@ -1,20 +1,17 @@
 /*
  * Created on 3.12.2005
- *
- * TODO To change the template for this generated file go to
- * Window - Preferences - Java - Code Style - Code Templates
  */
 
-/**
- * @author Betalord
- *
- * TODO To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Style - Code Templates
- */
+package com.springrts.tasserver;
+
 
 import java.util.ArrayList;
 
+/**
+ * @author Betalord
+ */
 public class MuteList {
+
 	private ArrayList<String> usernames;
 	private ArrayList<Long> mutedUntil; // time (in milliseconds, refers to System.currentTimeMillis()) when it will expire. Expired records are automatically removed in certain methods. Use 0 to mute user for indefinite time.
 	private ArrayList<String> IPs; // IPs of the muted users. If user is not muted by IP (but only by username), corresponding IP in this list is set to 'null'
@@ -127,5 +124,4 @@ public class MuteList {
 		}
 		return false;
 	}
-
 }

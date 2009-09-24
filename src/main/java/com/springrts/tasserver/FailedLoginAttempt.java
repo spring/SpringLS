@@ -1,14 +1,14 @@
 /*
  * Created on 2007.11.9
- *
  */
+
+package com.springrts.tasserver;
 
 /**
  * @author Betalord
- *
  */
-
 public class FailedLoginAttempt {
+
 	public String username;
 	public int numOfFailedAttempts;
 	public long timeOfLastFailedAttempt; // timestamp, relates to System.currentTimeMillis()

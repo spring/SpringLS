@@ -1,14 +1,15 @@
 /*
  * Created on 2007.11.10
- *
  */
+
+package com.springrts.tasserver;
+
 
 /**
  * @author Betalord
- *
  */
-
 public class BanEntry {
+
 //	public String owner; // person who issued the ban
 //	public long banDate; // timestamp of when ban was issued
 	public long expireDate; // timestamp of when ban will expire. Equals 0 when ban was issued for indefinite time

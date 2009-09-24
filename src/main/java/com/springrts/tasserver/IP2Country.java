@@ -1,20 +1,16 @@
 /*
  * Created on 2005.9.1
- *
- * TODO To change the template for this generated file go to
- * Window - Preferences - Java - Code Style - Code Templates
  */
 
-/**
- * @author Betalord
- *
- * TODO To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Style - Code Templates
- */
+package com.springrts.tasserver;
+
 
 import java.util.*;
 import java.io.*;
 
+/**
+ * @author Betalord
+ */
 public class IP2Country {
 
  	static private TreeSet<String> countries = new TreeSet<String>();

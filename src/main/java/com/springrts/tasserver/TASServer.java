@@ -213,13 +213,10 @@
  * ---- PROTOCOL ----
  *
  * [this section was moved to the Documentation folder in SVN]
- *
  */
 
-/**
- * @author Betalord
- *
- */
+package com.springrts.tasserver;
+
 
 import java.util.*;
 import java.io.*;
@@ -229,6 +226,9 @@ import java.nio.channels.*;
 import java.nio.charset.*;
 import java.util.regex.*;
 
+/**
+ * @author Betalord
+ */
 public class TASServer {
 
 	static final String VERSION = "0.35";

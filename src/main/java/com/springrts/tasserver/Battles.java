@@ -1,15 +1,15 @@
 /*
  * Created on 2006.11.2
- *
  */
 
-/**
- * @author Betalord
- *
- */
+package com.springrts.tasserver;
+
 
 import java.util.ArrayList;
 
+/**
+ * @author Betalord
+ */
 public class Battles {
 
 	private static ArrayList<Battle> battles = new ArrayList<Battle>();

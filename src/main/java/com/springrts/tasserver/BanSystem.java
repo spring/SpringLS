@@ -1,12 +1,9 @@
 /*
  * Created on 2007.11.10
- *
  */
 
-/**
- * @author Betalord
- *
- */
+package com.springrts.tasserver;
+
 
 import java.util.*;
 import java.sql.Connection;
@@ -16,6 +13,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 
+/**
+ * @author Betalord
+ */
 public class BanSystem {
 
 	private static ArrayList<BanEntry> banEntries = new ArrayList<BanEntry>();

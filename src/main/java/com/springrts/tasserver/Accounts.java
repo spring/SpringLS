@@ -1,22 +1,20 @@
 /*
  * Created on 2006.10.15
- *
- * TODO To change the template for this generated file go to
- * Window - Preferences - Java - Code Style - Code Templates
- *
  */
 
-/**
- * @author Betalord
- *
- */
+package com.springrts.tasserver;
+
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 
+/**
+ * @author Betalord
+ */
 public class Accounts {
+
 	private static ArrayList<Account> accounts = new ArrayList<Account>(); // note: ArrayList is not synchronized! Use Vector class instead if multiple threads are going to access it.
 	private static SaveAccountsThread saveAccountsThread = null;
 	private static int biggestAccountId = 1000;

@@ -1,6 +1,17 @@
 /*
  * Created on 2006.10.21
- *
+ */
+
+package com.springrts.tasserver;
+
+
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.*;
+
+/**
  * Note that it is vital that everything here is synchronized with main server thread.
  * Currently dupAccounts list is cloned from original accounts list so we don't have
  * to worry about thread-safety here (this is the easiest way since otherwise we would
@@ -13,19 +24,8 @@
  * in accounts file as it is used right now). So it is essential to ensure that MapGrading
  * class is thread-safe (or at least its toString() method is).
  *
- */
-
-/**
  * @author Betalord
- *
  */
-
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.*;
-
 public class SaveAccountsThread extends Thread {
 
 	private List dupAccounts; // duplicated accounts. Needed to ensure thread safety as well as accounts state consistency
@@ -62,5 +62,4 @@ public class SaveAccountsThread extends Thread {
         // let garbage collector free the duplicate accounts list:
         dupAccounts = null;
     }
-
 }

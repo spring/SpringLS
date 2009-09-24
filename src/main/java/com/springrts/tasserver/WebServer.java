@@ -1,4 +1,12 @@
-/*
+
+package com.springrts.tasserver;
+
+
+import java.io.*;
+import java.net.*;
+import java.util.*;
+
+/**
  * This web server code was copied from sun's simple web server tutorial:
  *   http://java.sun.com/developer/technicalArticles/Networking/Webserver/
  *
@@ -8,11 +16,6 @@
  * Implementation notes are in WebServer.html, and also
  * as comments in the source code.
  */
-
-import java.io.*;
-import java.net.*;
-import java.util.*;
-
 class WebServer implements HttpConstants {
 
     /* static class data/methods */
