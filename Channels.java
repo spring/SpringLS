@@ -11,7 +11,7 @@
 import java.util.ArrayList;
 
 public class Channels {
-	
+
 	static private ArrayList<Channel> channels = new ArrayList<Channel>();
 
 	public static int getChannelsSize() {
@@ -25,7 +25,7 @@ public class Channels {
 		}
 		return null;
 	}
-	
+
 	/* returns null if index is out of bounds */
 	public static Channel getChannel(int index) {
 		try {
@@ -33,14 +33,14 @@ public class Channels {
 		} catch (IndexOutOfBoundsException e) {
 			return null;
 		}
-	}	
+	}
 
 	public static boolean addChannel(Channel chan) {
 		if (getChannel(chan.name) != null) return false; // channel already exists!
 		channels.add(chan);
 		return true;
 	}
-	
+
 	/* removes channel from channel list. Returns true if channel was found. */
 	public static boolean removeChannel(Channel chan) {
 		return channels.remove(chan);
@@ -75,11 +75,11 @@ public class Channels {
 		client.endFastWrite();
 		return true;
 	}
-	
+
 	/* sends a list of all open channels to client */
 	public static void sendChannelListToClient(Client client) {
 		if (channels.size() == 0) return ; // nothing to send
-		
+
 		client.beginFastWrite();
 		for (int i = 0; i < channels.size(); i++) {
 			client.sendLine("CHANNEL " + channels.get(i).name + " " + channels.get(i).getClientsSize() + (channels.get(i).isTopicSet() ? " " + channels.get(i).getTopic() : ""));
@@ -87,14 +87,14 @@ public class Channels {
 		client.sendLine("ENDOFCHANNELS");
 		client.endFastWrite();
 	}
-	
+
 	public static void notifyClientsOfNewClientInChannel(Channel chan, Client client) {
 		for (int i = 0; i < chan.getClientsSize(); i++) {
 			if (chan.getClient(i) == client) continue;
 			chan.getClient(i).sendLine("JOINED " + chan.name + " " + client.account.user);
 		}
 	}
-	
+
 	// returns 'null' if channel name is valid, or error description otherwise
 	public static String isChanNameValid(String channame) {
 		if (channame.length() > 20) return "Channel name too long";
@@ -102,6 +102,6 @@ public class Channels {
 		if (!channame.matches("^[A-Za-z0-9_\\[\\]]+$")) return "Channel name contains invalid characters";
 		// everything is OK:
 		return null;
-	}	
+	}
 
 }

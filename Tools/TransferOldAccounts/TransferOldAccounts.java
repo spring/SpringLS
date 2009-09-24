@@ -1,9 +1,9 @@
 /**
- * Class that transfers old accounts (that were stored in 
+ * Class that transfers old accounts (that were stored in
  * accounts.txt on the hard disk) to a database.
- * 
+ *
  * Created on 2007/12/28
- *  
+ *
  */
 
 /**
@@ -22,11 +22,11 @@ public class TransferOldAccounts {
 	private static String DB_URL = "jdbc:mysql://127.0.0.1/spring";
 	private static String DB_username = "";
 	private static String DB_password = "";
-	
+
 	public static void closeAndExit() {
 		closeAndExit(null);
 	}
-	
+
 	public static void closeAndExit(String reason) {
 		if (reason != null) {
 			System.out.println("Shuting down. Reason: " + reason);
@@ -39,7 +39,7 @@ public class TransferOldAccounts {
 		SimpleDateFormat formatter = new SimpleDateFormat(format);
 		return formatter.format(d);
 	}
-	
+
 	public static void main(String[] args) {
 
 		if (args.length != 2) {
@@ -59,7 +59,7 @@ public class TransferOldAccounts {
 		if (!database.connectToDatabase(DB_URL, DB_username, DB_password)) {
 			closeAndExit();
 		}
-		
+
 		System.out.println("Loading accounts from disk ...");
 		System.out.flush();
 		Accounts.loadAccounts();
@@ -78,7 +78,7 @@ public class TransferOldAccounts {
 
 		System.out.println("After cleaning accounts, " + Accounts.getAccountsSize() + " valid accounts remain.");
 		System.out.flush();
-		
+
 		// we will do INSERT in chunks, each of max size of 1000 entries
 		for (int k = 0; k < Accounts.getAccountsSize() / 1000 + 1; k++) {
 			StringBuffer insert = new StringBuffer("INSERT INTO OldAccounts (Username, Password, AccessBits, RegistrationDate, LastCountry) values ");
@@ -92,9 +92,9 @@ public class TransferOldAccounts {
 					insert.append(", (?, ?, ?, ?, ?)");
 				count++;
 			}
-			
+
 			insert.append(";");
-			
+
 			// set up the INSERT command:
 			PreparedStatement pstmt = null;
 			try {
@@ -118,7 +118,7 @@ public class TransferOldAccounts {
 				closeAndExit("Error while accessing database.");
 			}
 		}
-		
+
 		System.out.println("Done.");
 	}
 

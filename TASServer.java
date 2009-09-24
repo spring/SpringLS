@@ -269,7 +269,7 @@ public class TASServer {
 	public static boolean initializationFinished = false; // we set this to 'true' just before we enter the main loop. We need this information when saving accounts for example, so that we don't dump empty accounts to disk when an error has occured before initialization has been completed
 	static ArrayList<FailedLoginAttempt> failedLoginAttempts = new ArrayList<FailedLoginAttempt>(); // here we store information on latest failed login attempts. We use it to block users from brute-forcing other accounts
 	static long lastFailedLoginsPurgeTime = System.currentTimeMillis(); // time when we last purged list of failed login attempts
-	
+
 	// database related:
 	public static DBInterface database;
 	private static String DB_URL = "jdbc:mysql://127.0.0.1/spring";
@@ -287,7 +287,7 @@ public class TASServer {
     private static long lastFloodCheckedTime = System.currentTimeMillis(); // time (in same format as System.currentTimeMillis) when we last updated it. Used with anti-flood protection.
     private static long maxChatMessageLength = 1024; // used with basic anti-flood protection. Any chat messages (channel or private chat messages) longer than this are considered flooding. Used with following commands: SAY, SAYEX, SAYPRIVATE, SAYBATTLE, SAYBATTLEEX
 
-	
+
 	public static boolean regEnabled=true;
 	public static boolean loginEnabled=true;
 
@@ -732,7 +732,7 @@ public class TASServer {
 					client.sendLine("REGISTRATIONDENIED Bad command arguments");
 					return false;
 				}
-				
+
 				if(!regEnabled) {
 					client.sendLine("REGISTRATIONDENIED Sorry, account registration is currently disabled");
 					return false;
@@ -774,7 +774,7 @@ public class TASServer {
 						return false;
 					}
 				if(!whiteList.contains(client.IP)) {
-					/*if (registrationTimes.containsKey(client.IP) 
+					/*if (registrationTimes.containsKey(client.IP)
 					&& (int)(registrationTimes.get(client.IP)) + 3600 > (System.currentTimeMillis()/1000)) {
 						client.sendLine("REGISTRATIONDENIED This ip has already registered an account recently");
 						Clients.sendToAllAdministrators("SERVERMSG Client at " + client.IP + "'s registration of " + commands[1] + " was blocked due to register spam");
@@ -841,7 +841,7 @@ public class TASServer {
 			else if (commands[0].equals("KILL")) {
 				if(client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
 				if(commands.length<2) return false;
-				
+
 				Client target=Clients.getClient(commands[1]);
 				if(target==null) return false;
 				Clients.killClient(target);
@@ -863,7 +863,7 @@ public class TASServer {
 					if (!sp1[2].equals("*")) if (!sp1[2].equals(sp2[2])) continue;
 					if (!sp1[3].equals("*")) if (!sp1[3].equals(sp2[3])) continue;
 					Clients.killClient(Clients.getClient(i));
-				}				
+				}
 			}
 			else if (commands[0].equals("WHITELIST")) {
 				if(client.account.accessLevel() < Account.ADMIN_ACCESS) return false;
@@ -1659,7 +1659,7 @@ public class TASServer {
 					client.sendLine("DENIED Already logged in");
 					return false; // user with accessLevel > 0 cannot re-login
 				}
-				
+
 				if(!loginEnabled && Accounts.getAccount(commands[1]).accessLevel() < Account.PRIVILEGED_ACCESS) {
 					client.sendLine("DENIED Sorry, logging in is currently disabled");
 					return false;

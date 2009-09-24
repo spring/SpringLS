@@ -21,34 +21,34 @@ import java.lang.reflect.*;
 
 public class Misc {
  	static public final String EOL = "\n";
- 	static private String hex = "0123456789ABCDEF"; 
-	
+ 	static private String hex = "0123456789ABCDEF";
+
 	public static String easyDateFormat (String format) {
 		Date today = new Date();
 		SimpleDateFormat formatter = new SimpleDateFormat(format);
 		String datenewformat = formatter.format(today);
 		return datenewformat;
     }
-	
+
 	/* returns a unix-like timestamp */
 	public static String getUnixTimestamp() {
 		return "" + (System.currentTimeMillis() / 1000);
 	}
-	
+
 	/* puts together strings from sl, starting at sl[startIndex] */
 	public static String makeSentence(String[] sl, int startIndex) {
 		if (startIndex > sl.length-1) return "";
-		
+
 		String res = new String(sl[startIndex]);
 		for (int i = startIndex+1; i < sl.length; i++) res = res.concat(" " + sl[i]);
-		
+
 		return res;
 	}
-	
+
 	public static String boolToStr(boolean b) {
 		if (b) return "1"; else return "0";
 	}
-	
+
 	public static boolean strToBool(String s) {
 		if (s.equals("1")) return true; else return false;
 	}
@@ -72,7 +72,7 @@ public class Misc {
 		res += temp + " minutes";
 		return res;
 	}
-	
+
 	/*
 	* copied from: http://www.source-code.biz/snippets/java/3.htm
 	*
@@ -90,9 +90,9 @@ public class Misc {
 	   int preserveLength = Math.min(oldSize,newSize);
 	   if (preserveLength > 0)
 	      System.arraycopy (oldArray,0,newArray,0,preserveLength);
-	   return newArray; 
+	   return newArray;
 	}
-	
+
 	/* this method will insert an element into an array of objects and return it. Rather
 	 * than this approach use Vector class! */
 	public static Object[] insertIntoObjectArray(Object elem, int pos, Object[] array) {
@@ -100,7 +100,7 @@ public class Misc {
 		vec.add(pos, elem);
 		return vec.toArray(array);
 	}
-	
+
 
 	/* this method will remove an element from an array of objects and return it. Rather
 	 * than this approach use Vector class! */
@@ -110,7 +110,7 @@ public class Misc {
 		return vec.toArray((Object[])Array.newInstance(array.getClass().getComponentType(), 0));
 		// note: doing vec.toArray(array) won't work here since array won't shrink but rather set any redundant elements to null!
 	}
-    
+
 	/* sorts an array of integers using simple bubble sort algorithm.
 	 * Copied from http://en.wikisource.org/wiki/Bubble_sort
 	 * */
@@ -119,11 +119,11 @@ public class Misc {
 	   boolean isSorted;
 	   int tempVariable;
 	   int numberOfTimesLooped = 0;
-	   
+
 	   do
 	   {
 	      isSorted = true;
-	      
+
 	      for (int i = 1; i < data.length - numberOfTimesLooped; i++)
 	      {
 	         if (data[i] > data[i - 1])
@@ -140,7 +140,7 @@ public class Misc {
 	   }
 	   while (!isSorted);
 	}
-	
+
 	/* sorts an array of integers plus a parallel Vector of objects
 	 * using simple bubble sort. */
 	public static void bubbleSort(int data[], Vector list)
@@ -149,11 +149,11 @@ public class Misc {
 	   int tempInt;
 	   Object tempObj;
 	   int numberOfTimesLooped = 0;
-	   
+
 	   do
 	   {
 	      isSorted = true;
-	      
+
 	      for (int i = 1; i < data.length - numberOfTimesLooped; i++)
 	      {
 	         if (data[i] > data[i - 1])
@@ -172,7 +172,7 @@ public class Misc {
 	      numberOfTimesLooped++;
 	   }
 	   while (!isSorted);
-	}	
+	}
 
 	public static boolean appendTextToFile(String fname, String text, boolean newLine) {
 		try {
@@ -186,14 +186,14 @@ public class Misc {
 			return false;
 		}
 		return true;
-	}	
-	
+	}
+
 	public static String enumSpaces(int len) {
 		String result = "";
 		for (int i = 0; i < len; i++) result += " ";
 		return result;
 	}
-	
+
 	/* returns false if char is not an allowed character in the name of a channel, username, ... */
 	public static boolean isValidChar(char c) {
 		if (
@@ -205,11 +205,11 @@ public class Misc {
 		   (c == 93)    // right bracket "]"
 		   ) return true; else return false;
 	}
-	
+
 	/* returns false if name (of a channel, username, ...) is invalid */
 	public static boolean isValidName(String name) {
 		for (int i = 0; i < name.length(); i++) if (!isValidChar(name.charAt(i))) return false;
 		return true;
 	}
-	
+
 }

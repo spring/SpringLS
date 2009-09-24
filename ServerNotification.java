@@ -3,7 +3,7 @@
  *
  * Correct use of ServerNotification is to first create the object and then
  * add message lines to it. Finally, add it to server notifications by
- * calling ServerNotifications.addNotification(). 
+ * calling ServerNotifications.addNotification().
  */
 
 /**
@@ -17,7 +17,7 @@ public class ServerNotification {
 	String author;
 	String message;
 	String title;
-	
+
 	public ServerNotification(String title) {
 		this(title, "$TASServer");
 	}
@@ -33,7 +33,7 @@ public class ServerNotification {
 		this(title, author);
 		this.addLine(firstLine);
 	}
-	
+
 	public void addLine(String line) {
 		message += (message.equals("") ? line : "\r\n" + line);
 	}

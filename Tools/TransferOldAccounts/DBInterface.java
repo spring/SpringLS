@@ -13,20 +13,20 @@ import java.sql.*;
 public class DBInterface {
 	private Connection conn;
 	private Statement stmt;
-	
+
 	public DBInterface() {
 		// TODO
 	}
-	
+
 	public Connection getConnection() {
 		return conn;
 	}
-	
+
 	public boolean loadJDBCDriver() {
 		try {
-			// The newInstance() call is a work around for some 
+			// The newInstance() call is a work around for some
 			// broken Java implementations
-			
+
 			Class.forName("com.mysql.jdbc.Driver").newInstance();
 			System.out.println("JDBC driver loaded.");
 		} catch (Exception e) {
@@ -46,11 +46,11 @@ public class DBInterface {
 			System.out.println("Unable to connect to database!");
 			return false;
 		}
-		
+
 		System.out.println("Connection to database established.");
 		return true;
 	}
-	
+
 	/** returns null if error occurs */
 	public ResultSet execQuery(String query) {
 		try {
@@ -61,7 +61,7 @@ public class DBInterface {
 			return null;
 		}
 	}
-	
+
 	/** use for only those SQL statements that do not return any result.
 	 * Returns false in case of any error. */
 	public boolean execUpdate(String query) {
@@ -73,7 +73,7 @@ public class DBInterface {
 			return false;
 		}
 	}
-	
+
 	public void printSQLException(SQLException e) {
 		System.out.println("SQLException: " + e.getMessage());
 		System.out.println("SQLState: " + e.getSQLState());

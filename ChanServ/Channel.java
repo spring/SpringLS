@@ -3,10 +3,10 @@
  *
  * TODO To change the template for this generated file go to
  * Window - Preferences - Java - Code Style - Code Templates
- * 
+ *
  * Static channels are those for which we don't want ChanServ to moderate them,
  * only idle there so it logs all chats (for example, #main).
- * 
+ *
  */
 
 /**
@@ -30,59 +30,59 @@ public class Channel {
 	private Vector/*String*/ clients = new Vector();
 	public boolean antispam; // if true, users will be automatically muted if spamming is detected from them
 	public String antispamSettings; // anti-spam settings for this channel, used with AntiSpamSystem
-	
+
 	public Channel(String name) {
 		this.name = name;
 		logFileName = "#" + name + ".log";
 	}
-	
+
 	public boolean isFounder(String name) {
 		return name.equals(founder);
 	}
-	
+
 	public boolean isOperator(String name) {
 		return (operators.indexOf(name) != -1);
 	}
-	
+
 	public boolean addOperator(String name) {
 		if (isOperator(name)) return false;
 		operators.add(name);
 		return true;
 	}
-	
+
 	public boolean removeOperator(String name) {
 		if (!isOperator(name)) return false;
 		operators.remove(name);
 		return true;
 	}
-	
+
 	public void renameFounder(String newFounder) {
 		founder = newFounder;
 	}
-	
+
 	public boolean renameOperator(String oldOp, String newOp) {
 		int index = operators.indexOf(oldOp);
 		if (index == -1) return false; // operator does not exist!
 		operators.set(index, newOp);
 		return true;
 	}
-	
+
 	public Vector getOperatorList() {
 		return operators;
 	}
-	
+
 	public void sendMessage(String msg) {
 		ChanServ.sendLine("SAY " + name + " " + msg);
 	}
-	
+
 	public int clientCount() {
 		return clients.size();
 	}
-	
+
 	public void clearClients() {
 		clients.clear();
 	}
-	
+
 	public String getClient(int index) {
 		try{
 			return (String)clients.get(index);
@@ -90,22 +90,22 @@ public class Channel {
 			return null;
 		}
 	}
-	
+
 	public void addClient(String client) {
 		clients.add(client);
 		int tmp = 0;
 	}
-	
+
 	public void removeClient(String client) {
 		int i = clients.indexOf(client);
 		if (i == -1) return ; // should not happen!
 		clients.remove(i);
 	}
-	
+
 	public boolean clientExists(String client) {
 		return clients.indexOf(client) != -1;
 	}
-	
+
 	// returns 'null' if channel name is valid, or error description otherwise
 	public static String isChanNameValid(String channame) {
 		if (channame.length() > 20) return "Channel name too long";
@@ -113,6 +113,6 @@ public class Channel {
 		if (!channame.matches("^[A-Za-z0-9_\\[\\]]+$")) return "Channel name contains invalid characters";
 		// everything is OK:
 		return null;
-	}	
-	
+	}
+
 }

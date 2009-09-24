@@ -1,5 +1,5 @@
 /*
- * This web server code was copied from sun's simple web server tutorial: 
+ * This web server code was copied from sun's simple web server tutorial:
  *   http://java.sun.com/developer/technicalArticles/Networking/Webserver/
  *
  * Use "www.server.properties" file for server config.

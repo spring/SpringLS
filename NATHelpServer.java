@@ -3,10 +3,10 @@
  *
  * TODO To change the template for this generated file go to
  * Window - Preferences - Java - Code Style - Code Templates
- * 
+ *
  * This is a simple UDP server that helps detecting source ports with some
  * NAT traversal techniques (e.g. "hole punching").
- * 
+ *
  */
 
 /**
@@ -25,11 +25,11 @@ public class NATHelpServer extends Thread {
 	private DatagramSocket socket = null;
 	private int port;
 	static public Vector<DatagramPacket> msgList = new Vector<DatagramPacket>(); // must be thread-safe
-	
+
 	public NATHelpServer(int port) {
 		this.port = port;
 	}
-	
+
 	public void run() {
 		try {
 			socket = new DatagramSocket(port);
@@ -37,9 +37,9 @@ public class NATHelpServer extends Thread {
 			System.out.println("Unable to start UDP server on port " + port + ". Ignoring ...");
 			return ;
 		}
-		
+
 		System.out.println("UDP server started on port " + port);
-		
+
 		while (true) {
 	        try {
 	        	if (isInterrupted()) break;
@@ -64,7 +64,7 @@ public class NATHelpServer extends Thread {
 		socket.close();
     	System.out.println("UDP NAT server closed.");
 	}
-	
+
 	public void stopServer() {
 		if (isInterrupted()) return; // already in process of shutting down
 		interrupt();

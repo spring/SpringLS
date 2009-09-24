@@ -22,7 +22,7 @@ public class IPRange implements Comparable {
 		this.IP_TO = IP_TO;
 		this.COUNTRY_CODE2 = COUNTRY_CODE2;
 	}
-	
+
 	/* we need this to be able to "naturally" sort IPRange objects
 	 * in a TreeMap list. */
 	public int compareTo(Object obj) {
@@ -36,7 +36,7 @@ public class IPRange implements Comparable {
 			}
 		}
 	}
-	
+
 	/* needed to fulfil "consistent with equals" criterion,
 	 * i.e. compareTo(x) == 0 is true if and only if equals(x) == true. */
 	public boolean equals(Object obj) {
@@ -44,9 +44,9 @@ public class IPRange implements Comparable {
 	     if (!(obj instanceof IPRange)) return false;
 	     return (this.IP_FROM == ((IPRange)obj).IP_FROM) && (this.IP_TO == ((IPRange)obj).IP_TO) && (this.COUNTRY_CODE2.equals(((IPRange)obj).COUNTRY_CODE2));
 	}
-	
+
 	public String toString() {
 		return IP_FROM + "," + IP_TO + "," + COUNTRY_CODE2;
 	}
-	
+
 }

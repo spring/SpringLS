@@ -5,15 +5,15 @@
 
 /**
  * @author Betalord
- * 
+ *
  * See this example:
  * http://svn.apache.org/viewvc/commons/proper/dbcp/trunk/doc/ManualPoolingDriverExample.java?view=markup
- * 
+ *
  * Useful links:
  * http://wiki.apache.org/jakarta-commons/DBCP
  * http://commons.apache.org/pool/apidocs/org/apache/commons/pool/impl/GenericObjectPool.html
  * http://commons.apache.org/pool/apidocs/org/apache/commons/pool/impl/GenericObjectPool.Config.html
- * 
+ *
  */
 
 import java.sql.*;
@@ -43,7 +43,7 @@ public class DBInterface {
 
 		// load JDBC driver:
 		try {
-			// The newInstance() call is a work around for some 
+			// The newInstance() call is a work around for some
 			// broken Java implementations
 
 			Class.forName("com.mysql.jdbc.Driver").newInstance();
@@ -57,7 +57,7 @@ public class DBInterface {
 
 		// Lets prepare config for our pool ...
 		// Useful links:
-		// http://commons.apache.org/pool/apidocs/org/apache/commons/pool/impl/GenericObjectPool.html 
+		// http://commons.apache.org/pool/apidocs/org/apache/commons/pool/impl/GenericObjectPool.html
 		// http://commons.apache.org/pool/apidocs/org/apache/commons/pool/impl/GenericObjectPool.Config.html
 		GenericObjectPool.Config config = new GenericObjectPool.Config();
 		config.maxWait = 3000; // never wait more than 3 seconds. After that time, return NoSuchElementException
@@ -110,12 +110,12 @@ public class DBInterface {
 		//
 		// Now we can just use the connect string "jdbc:apache:commons:dbcp:TAS_DB_Pool"
 		// to access our pool of Connections.
-		//        
+		//
 
 		System.out.println("Database interface has been initialized successfully.");
 		return true;
 	}
-	
+
 	/* returns true if it can connect to the database and issue a dummy query, or false otherwise */
 	public boolean testConnection() {
 		Connection conn = null;
@@ -140,8 +140,8 @@ public class DBInterface {
 			try { rset.close(); } catch(Exception e) { }
 			try { stmt.close(); } catch(Exception e) { }
 			try { conn.close(); } catch(Exception e) { }
-		}		
-		
+		}
+
 		return true;
 	}
 

@@ -27,12 +27,12 @@ public class Queue {
     private Vector vector = new Vector();
     private boolean stopWaiting=false;
     private boolean waiting=false;
-    
-    /** 
+
+    /**
      * Put the object into the queue.
-     * 
+     *
      * @param	object		the object to be appended to the
-     * 				queue. 
+     * 				queue.
      */
     public synchronized void put(Object object) {
 	vector.addElement(object);
@@ -43,10 +43,10 @@ public class Queue {
      */
     public synchronized void stop() {
 	stopWaiting=true;
-	// just a hack to stop waiting 
+	// just a hack to stop waiting
 	if( waiting ) notify();
     }
-    
+
     /**
      * Pull the first object out of the queue. Wait if the queue is
      * empty.
@@ -66,7 +66,7 @@ public class Queue {
 
     /**
      * Get the first object out of the queue. Return null if the queue
-     * is empty. 
+     * is empty.
      */
     public synchronized Object get() {
 	Object object = peek();
@@ -83,7 +83,7 @@ public class Queue {
 	    return null;
 	return vector.elementAt(0);
     }
-    
+
     /**
      * Is the queue empty?
      */

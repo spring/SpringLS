@@ -13,19 +13,19 @@ import java.util.ArrayList;
 public class Battles {
 
 	private static ArrayList<Battle> battles = new ArrayList<Battle>();
-	
+
 	public static int getBattlesSize() {
 		return battles.size();
 	}
-	
+
 	/* if battle with ID 'battleID' exist, it is returned,
 	 * or else null is returned. */
 	public static Battle getBattleByID(int battleID) {
 		for (int i = 0; i < battles.size(); i++)
 			if (battles.get(i).ID == battleID) return battles.get(i);
-		return null;	
+		return null;
 	}
-	
+
 	/* returns null if index is out of bounds */
 	public static Battle getBattleByIndex(int index) {
 		try {
@@ -34,7 +34,7 @@ public class Battles {
 			return null;
 		}
 	}
-	
+
 	/* will close given battle and notify all clients about it */
 	public static void closeBattleAndNotifyAll(Battle battle) {
 		for (int i = 0; i < battle.getClientsSize(); i++) {
@@ -44,10 +44,10 @@ public class Battles {
 		Clients.sendToAllRegisteredUsers("BATTLECLOSED " + battle.ID);
 		battles.remove(battle);
 	}
-	
-	/* Removes client from a battle and notifies everyone. Also automatically checks if 
+
+	/* Removes client from a battle and notifies everyone. Also automatically checks if
 	 * client is founder and closes the battle in that case. All client's bots in this
-	 * battle are removed as well. */	
+	 * battle are removed as well. */
 	public static boolean leaveBattle(Client client, Battle battle) {
 		if (battle.founder == client) closeBattleAndNotifyAll(battle);
 		else {
@@ -57,10 +57,10 @@ public class Battles {
 			battle.removeClientBots(client);
 			Clients.sendToAllRegisteredUsers("LEFTBATTLE " + battle.ID + " " + client.account.user);
 		}
-		
+
 		return true;
 	}
-	
+
 	/* will send a list of all active battles and users participating in it to the given client */
 	public static void sendInfoOnBattlesToClient(Client client) {
 		client.beginFastWrite();
@@ -86,10 +86,10 @@ public class Battles {
 		if (parsed.length < 10) return null;
 		String[] parsed2 = Misc.makeSentence(parsed, 9).split("\t");
 		if (parsed2.length != 3) return null;
-		
+
 		String pass = parsed[3];
 		if (!pass.equals("*")) if (!pass.matches("^[A-Za-z0-9_]+$")) return null; // invalid characters in the password
-		
+
 		int type;
 		int natType;
 		int port;
@@ -97,7 +97,7 @@ public class Battles {
 		int hash;
 		int rank;
 		int maphash;
-		
+
 		try {
 			type = Integer.parseInt(parsed[1]);
 			natType = Integer.parseInt(parsed[2]);
@@ -108,15 +108,15 @@ public class Battles {
 			rank = Integer.decode(parsed[7]);
 			maphash = Integer.decode(parsed[8]);
 		} catch (NumberFormatException e) {
-			return null; 
+			return null;
 		}
-		
+
 		if ((type < 0) || (type > 1)) return null;
 		if ((natType < 0) || (natType > 2)) return null;
 
 		return new Battle(type, natType, founder, pass, port, maxPlayers, hash, rank, maphash, parsed2[0], parsed2[1], parsed2[2]);
 	}
-	
+
 	/* will add this battle object to battle list */
 	public static void addBattle(Battle battle) {
 		battles.add(battle);

@@ -3,8 +3,8 @@
  *
  * TODO To change the template for this generated file go to
  * Window - Preferences - Java - Code Style - Code Templates
- * 
- * Use methods of this static class rather than System.out.println()! 
+ *
+ * Use methods of this static class rather than System.out.println()!
  */
 
 /**
@@ -19,19 +19,19 @@ import java.util.Date;
 import java.util.concurrent.Semaphore;
 
 public class Log {
-	
+
 	static final String LOG_FOLDER = "./logs"; // folder where log files are put
 
 	static Semaphore logToDiskLock = new Semaphore(1, true);
-	
+
 	private static boolean part = false; // if true, we're in the middle of "part" output
 	public static boolean useExternalLogging = false; // if set to true, then all logs will be saved to "externalLogFileName" file
 	public static String externalLogFileName = ""; // if enableExternalLogging is true, then this is the file to which log will be saved
 
 	private static boolean logToDisk(String text, boolean newLine) {
-		return toFile(externalLogFileName, text, newLine);		
+		return toFile(externalLogFileName, text, newLine);
 	}
-	
+
 	/* fname is file name without path ("./logs" path is automatically added).
 	 * Timestamp is automatically added in front of the line. */
 	public static boolean toFile(String fname, String line, boolean newLine) {
@@ -41,15 +41,15 @@ public class Log {
 		} catch (InterruptedException e) {
 			return false;
 		} finally {
-			logToDiskLock.release();	
+			logToDiskLock.release();
 		}
 	}
 
 	public static boolean toFile(String fname, String line) {
 		return toFile(fname, line, true);
 	}
-	
-	
+
+
 	public static void log(String s) {
 		if (part) {
 			part = false;
@@ -57,11 +57,11 @@ public class Log {
 			if (useExternalLogging) logToDisk("", true);
 		}
 		Date date = new Date();
-		String out = new SimpleDateFormat("<HH:mm:ss> ").format(date) + s; 
+		String out = new SimpleDateFormat("<HH:mm:ss> ").format(date) + s;
 		System.out.println(out);
 		if (useExternalLogging) logToDisk(out, true);
 	}
-	
+
 	public static void logPartBegin(String s) {
 		if (part) {
 			System.out.println();
@@ -73,12 +73,12 @@ public class Log {
 		System.out.print(out);
 		if (useExternalLogging) logToDisk(out, true);
 	}
-	
+
 	public static void logPartContinue(String s) {
 		if (!part) {
 			//*** this should not happen. Ignore it?
 		}
-		
+
 		System.out.print(s);
 		if (useExternalLogging) logToDisk(s, false);
 	}
@@ -107,7 +107,7 @@ public class Log {
 			System.out.println();
 			if (useExternalLogging) logToDisk("", true);
 		}
-		String out = "<$DEBUG " + Misc.easyDateFormat("HH:mm:ss") + "> " + s; 
+		String out = "<$DEBUG " + Misc.easyDateFormat("HH:mm:ss") + "> " + s;
 		System.out.println(out);
 		if (useExternalLogging) logToDisk(out, true);
 	}
