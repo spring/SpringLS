@@ -2765,12 +2765,12 @@ public class TASServer {
 
 					// parse the value
 					String value = s.substring(equalPos + 1);
-					if (value != value.trim())    { continue; } // forbid trailing/leading spaces
-					if (value.indexOf(';')  >= 0) { continue; }
-					if (value.indexOf('}')  >= 0) { continue; }
-					if (value.indexOf('[')  >= 0) { continue; }
-					if (value.indexOf('\n') >= 0) { continue; }
-					if (value.indexOf('\r') >= 0) { continue; }
+					if (value.equals(value.trim())) { continue; } // forbid trailing/leading spaces
+					if (value.indexOf(';')  >= 0)   { continue; }
+					if (value.indexOf('}')  >= 0)   { continue; }
+					if (value.indexOf('[')  >= 0)   { continue; }
+					if (value.indexOf('\n') >= 0)   { continue; }
+					if (value.indexOf('\r') >= 0)   { continue; }
 
 					// insert the tag data into the map
 					bat.scriptTags.put(key, value);
