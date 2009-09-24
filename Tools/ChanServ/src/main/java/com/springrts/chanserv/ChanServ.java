@@ -82,22 +82,22 @@ public class ChanServ {
 	static String username = "";
 	static String password = "";
 	static Socket socket = null;
-    static PrintWriter sockout = null;
-    static BufferedReader sockin = null;
-    static Timer keepAliveTimer;
-    static Timer logCleanerTimer;
-    static boolean timersStarted = false;
+	static PrintWriter sockout = null;
+	static BufferedReader sockin = null;
+	static Timer keepAliveTimer;
+	static Timer logCleanerTimer;
+	static boolean timersStarted = false;
 
-    static Semaphore configLock = new Semaphore(1, true); // we use it when there is a danger of config object being used by main and TaskTimer threads simultaneously
+	static Semaphore configLock = new Semaphore(1, true); // we use it when there is a danger of config object being used by main and TaskTimer threads simultaneously
 
-    static RemoteAccessServer remoteAccessServer;
-    static int remoteAccessPort;
+	static RemoteAccessServer remoteAccessServer;
+	static int remoteAccessPort;
 
-    static Vector/*Client*/ clients = new Vector();
-    static Vector/*Channel*/ channels = new Vector();
+	static Vector/*Client*/ clients = new Vector();
+	static Vector/*Channel*/ channels = new Vector();
 
-    static Vector/*String*/ lastMuteList = new Vector(); // list of mute entries for a specified channel (see lastMuteListChannel)
-    static String lastMuteListChannel; // name of channel for which we are currently receiving (or we already did receive) mute list from the server
+	static Vector/*String*/ lastMuteList = new Vector(); // list of mute entries for a specified channel (see lastMuteListChannel)
+	static String lastMuteListChannel; // name of channel for which we are currently receiving (or we already did receive) mute list from the server
 	static Vector/*MuteListRequest*/ forwardMuteList = new Vector(); // list of current requests for mute lists.
 
 	// database related:
@@ -106,9 +106,9 @@ public class ChanServ {
 	private static String DB_username = "";
 	private static String DB_password = "";
 
-    public static void closeAndExit() {
-    	closeAndExit(0);
-    }
+	public static void closeAndExit() {
+		closeAndExit(0);
+	}
 
 	public static void closeAndExit(int returncode) {
 		AntiSpamSystem.uninitialize();
@@ -137,76 +137,76 @@ public class ChanServ {
 
 	private static void loadConfig(String fname)
 	{
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        //factory.setValidating(true);
-        //factory.setNamespaceAware(true);
-        try {
-           DocumentBuilder builder = factory.newDocumentBuilder();
-           config = builder.parse(new File(fname));
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		//factory.setValidating(true);
+		//factory.setNamespaceAware(true);
+		try {
+			DocumentBuilder builder = factory.newDocumentBuilder();
+			config = builder.parse(new File(fname));
 
-           XPath xpath = XPathFactory.newInstance().newXPath();
-           Node node, node2;
+			XPath xpath = XPathFactory.newInstance().newXPath();
+			Node node, node2;
 
-           //node = (Node)xpath.evaluate("config/account/username", config, XPathConstants.NODE);
-           serverAddress = (String)xpath.evaluate("config/account/serveraddress/text()", config, XPathConstants.STRING);
-           serverPort = Integer.parseInt((String)xpath.evaluate("config/account/serverport/text()", config, XPathConstants.STRING));
-           remoteAccessPort = Integer.parseInt((String)xpath.evaluate("config/account/remoteaccessport/text()", config, XPathConstants.STRING));
-           username = (String)xpath.evaluate("config/account/username/text()", config, XPathConstants.STRING);
-           password = (String)xpath.evaluate("config/account/password/text()", config, XPathConstants.STRING);
+			//node = (Node)xpath.evaluate("config/account/username", config, XPathConstants.NODE);
+			serverAddress = (String)xpath.evaluate("config/account/serveraddress/text()", config, XPathConstants.STRING);
+			serverPort = Integer.parseInt((String)xpath.evaluate("config/account/serverport/text()", config, XPathConstants.STRING));
+			remoteAccessPort = Integer.parseInt((String)xpath.evaluate("config/account/remoteaccessport/text()", config, XPathConstants.STRING));
+			username = (String)xpath.evaluate("config/account/username/text()", config, XPathConstants.STRING);
+			password = (String)xpath.evaluate("config/account/password/text()", config, XPathConstants.STRING);
 
-           //node = (Node)xpath.evaluate("config/account/username", config, XPathConstants.NODE);
-           //node.setTextContent("this is a test!");
+			//node = (Node)xpath.evaluate("config/account/username", config, XPathConstants.NODE);
+			//node.setTextContent("this is a test!");
 
-           // read database info:
-           DB_URL = (String)xpath.evaluate("config/database/url/text()", config, XPathConstants.STRING);
-           DB_username = (String)xpath.evaluate("config/database/username/text()", config, XPathConstants.STRING);
-           DB_password = (String)xpath.evaluate("config/database/password/text()", config, XPathConstants.STRING);
+			// read database info:
+			DB_URL = (String)xpath.evaluate("config/database/url/text()", config, XPathConstants.STRING);
+			DB_username = (String)xpath.evaluate("config/database/username/text()", config, XPathConstants.STRING);
+			DB_password = (String)xpath.evaluate("config/database/password/text()", config, XPathConstants.STRING);
 
-           // load remote access accounts:
-           node = (Node)xpath.evaluate("config/remoteaccessaccounts", config, XPathConstants.NODE);
-           if (node == null) {
-          		Log.error("Bad XML document. Path config/remoteaccessaccounts does not exist. Exiting ...");
+			// load remote access accounts:
+			node = (Node)xpath.evaluate("config/remoteaccessaccounts", config, XPathConstants.NODE);
+			if (node == null) {
+				Log.error("Bad XML document. Path config/remoteaccessaccounts does not exist. Exiting ...");
 				closeAndExit(1);
-           }
-           node = node.getFirstChild();
-           while (node != null) {
-        	   if (node.getNodeType() == Node.ELEMENT_NODE) {
-        		   RemoteAccessServer.remoteAccounts.add(((Element)node).getAttribute("key"));
-              	}
-              	node = node.getNextSibling();
-           }
+			}
+			node = node.getFirstChild();
+			while (node != null) {
+				if (node.getNodeType() == Node.ELEMENT_NODE) {
+					RemoteAccessServer.remoteAccounts.add(((Element)node).getAttribute("key"));
+				}
+				node = node.getNextSibling();
+			}
 
-           // load static channel list:
-           Channel chan;
-           node = (Node)xpath.evaluate("config/channels/static", config, XPathConstants.NODE);
-           if (node == null) {
-           		Log.error("Bad XML document. Path config/channels/static does not exist. Exiting ...");
+			// load static channel list:
+			Channel chan;
+			node = (Node)xpath.evaluate("config/channels/static", config, XPathConstants.NODE);
+			if (node == null) {
+					Log.error("Bad XML document. Path config/channels/static does not exist. Exiting ...");
 				closeAndExit(1);
-           }
-           node = node.getFirstChild();
-           while (node != null) {
-        	   if (node.getNodeType() == Node.ELEMENT_NODE) {
-        		   chan = new Channel(((Element)node).getAttribute("name"));
-        		   chan.antispam = ((Element)node).getAttribute("antispam").equals("yes") ? true : false;
-        		   chan.antispamSettings = ((Element)node).getAttribute("antispamsettings");
-        		   if (!SpamSettings.validateSpamSettingsString(chan.antispamSettings)) {
-        			   Log.log("Fixing invalid spam settings for #" + chan.name + " ...");
-        			   chan.antispamSettings = SpamSettings.spamSettingsToString(SpamSettings.DEFAULT_SETTINGS);
-        		   }
-        		   channels.add(chan);
-        		   // apply anti-spam settings:
-        		   AntiSpamSystem.setSpamSettingsForChannel(chan.name, chan.antispamSettings);
-        	   }
-        	   node = node.getNextSibling();
-           }
+			}
+			node = node.getFirstChild();
+			while (node != null) {
+				if (node.getNodeType() == Node.ELEMENT_NODE) {
+					chan = new Channel(((Element)node).getAttribute("name"));
+					chan.antispam = ((Element)node).getAttribute("antispam").equals("yes") ? true : false;
+					chan.antispamSettings = ((Element)node).getAttribute("antispamsettings");
+					if (!SpamSettings.validateSpamSettingsString(chan.antispamSettings)) {
+						Log.log("Fixing invalid spam settings for #" + chan.name + " ...");
+						chan.antispamSettings = SpamSettings.spamSettingsToString(SpamSettings.DEFAULT_SETTINGS);
+					}
+					channels.add(chan);
+					// apply anti-spam settings:
+					AntiSpamSystem.setSpamSettingsForChannel(chan.name, chan.antispamSettings);
+				}
+				node = node.getNextSibling();
+			}
 
-           // load registered channel list:
-           node = (Node)xpath.evaluate("config/channels/registered", config, XPathConstants.NODE);
-           if (node == null) {
+			// load registered channel list:
+			node = (Node)xpath.evaluate("config/channels/registered", config, XPathConstants.NODE);
+			if (node == null) {
 			Log.error("Bad XML document. Path config/channels/registered does not exist. Exiting ...");
 			closeAndExit(1);
-           }
-           node = node.getFirstChild();
+			}
+			node = node.getFirstChild();
 			while (node != null) {
 				if (node.getNodeType() == Node.ELEMENT_NODE) {
 					// this is "channel" element
@@ -221,70 +221,70 @@ public class ChanServ {
 						Log.log("Fixing invalid spam settings for #" + chan.name + " ...");
 						chan.antispamSettings = SpamSettings.spamSettingsToString(SpamSettings.DEFAULT_SETTINGS);
 					}
-	           		channels.add(chan);
-	           		// load this channel's operator list:
-	           		node2 = node.getFirstChild();
-	           		while (node2 != null) {
-	           			if (node2.getNodeType() == Node.ELEMENT_NODE) {
-		           			// this is "operator" element
-	           				chan.addOperator(((Element)node2).getAttribute("name"));
-	           				//***Log.debug("OPERATOR: " + ((Element)node2).getAttribute("name") + "  (chan " + ((Element)node).getAttribute("name") + ")");
-	           			}
-	           			node2 = node2.getNextSibling();
-	           		}
-	           		// apply anti-spam settings:
+					channels.add(chan);
+					// load this channel's operator list:
+					node2 = node.getFirstChild();
+					while (node2 != null) {
+						if (node2.getNodeType() == Node.ELEMENT_NODE) {
+							// this is "operator" element
+							chan.addOperator(((Element)node2).getAttribute("name"));
+							//***Log.debug("OPERATOR: " + ((Element)node2).getAttribute("name") + "  (chan " + ((Element)node).getAttribute("name") + ")");
+						}
+						node2 = node2.getNextSibling();
+					}
+					// apply anti-spam settings:
 					AntiSpamSystem.setSpamSettingsForChannel(chan.name, chan.antispamSettings);
 				}
 				node = node.getNextSibling();
 			}
 
 
-           Log.log("Config file read.");
-        } catch (SAXException sxe) {
-        	// Error generated during parsing
-        	Log.error("Error during parsing xml document: " + fname);
-        	closeAndExit(1);
-        	/*
-        	Exception  x = sxe;
-        	if (sxe.getException() != null)
-        		x = sxe.getException();
-        	x.printStackTrace();
-        	*/
-        } catch (ParserConfigurationException pce) {
-            // Parser with specified options can't be built
-        	Log.error("Unable to build specified xml parser");
-        	closeAndExit(1);
-            //pce.printStackTrace();
+			Log.log("Config file read.");
+		} catch (SAXException sxe) {
+			// Error generated during parsing
+			Log.error("Error during parsing xml document: " + fname);
+			closeAndExit(1);
+			/*
+			Exception  x = sxe;
+			if (sxe.getException() != null)
+				x = sxe.getException();
+			x.printStackTrace();
+			*/
+		} catch (ParserConfigurationException pce) {
+			// Parser with specified options can't be built
+			Log.error("Unable to build specified xml parser");
+			closeAndExit(1);
+			//pce.printStackTrace();
 
-        } catch (IOException ioe) {
-        	// I/O error
-        	Log.error("I/O error while accessing " + fname);
-        	closeAndExit(1);
-        	//ioe.printStackTrace();
-        } catch (XPathExpressionException e) {
-        	Log.error("Error: XPath expression exception - XML document is malformed.");
-    		e.printStackTrace();
-    		closeAndExit(1);
-        } catch (Exception e) {
-        	Log.error("Unknown exception while reading config file: " + fname);
-        	e.printStackTrace();
-        	closeAndExit(1);
-        	//e.printStackTrace();
-        }
+		} catch (IOException ioe) {
+			// I/O error
+			Log.error("I/O error while accessing " + fname);
+			closeAndExit(1);
+			//ioe.printStackTrace();
+		} catch (XPathExpressionException e) {
+			Log.error("Error: XPath expression exception - XML document is malformed.");
+			e.printStackTrace();
+			closeAndExit(1);
+		} catch (Exception e) {
+			Log.error("Unknown exception while reading config file: " + fname);
+			e.printStackTrace();
+			closeAndExit(1);
+			//e.printStackTrace();
+		}
 
 	}
 
 	public static void saveConfig(String fname) {
 		try {
-	        XPath xpath = XPathFactory.newInstance().newXPath();
-	        Node root;
-	        Node node;
-	        Node temp;
-	        Element elem, elem2;
-	        //Text text; // text node
-	        Channel chan;
+			XPath xpath = XPathFactory.newInstance().newXPath();
+			Node root;
+			Node node;
+			Node temp;
+			Element elem, elem2;
+			//Text text; // text node
+			Channel chan;
 
-	        try {
+			try {
 				// remove all static channels from config and replace it with current static channel list:
 
 				root = (Node)xpath.evaluate("config/channels/static", config, XPathConstants.NODE);
@@ -372,15 +372,15 @@ public class ChanServ {
 
 			// ok save it now:
 			config.normalize(); //*** is this needed?
-	        DOMSource source = new DOMSource(config);
-	        StreamResult result = new StreamResult(new FileOutputStream(fname));
+			DOMSource source = new DOMSource(config);
+			StreamResult result = new StreamResult(new FileOutputStream(fname));
 
-	        TransformerFactory transFactory = TransformerFactory.newInstance();
-	        Transformer transformer = transFactory.newTransformer();
+			TransformerFactory transFactory = TransformerFactory.newInstance();
+			Transformer transformer = transFactory.newTransformer();
 
-	        transformer.transform(source, result);
+			transformer.transform(source, result);
 
-	        if (DEBUG) Log.log("Config file saved to " + fname);
+			if (DEBUG) Log.log("Config file saved to " + fname);
 		} catch (Exception e) {
 			Log.error("Unable to save config file to " + fname + "! Ignoring ...");
 		}
@@ -393,55 +393,55 @@ public class ChanServ {
 	}
 
 	private static boolean tryToConnect() {
-        try {
-        	Log.log("Connecting to " + serverAddress + ":" + serverPort + " ...");
-            socket = new Socket(serverAddress, serverPort);
-            sockout = new PrintWriter(socket.getOutputStream(), true);
-            sockin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        } catch (UnknownHostException e) {
-            Log.error("Unknown host error: " + serverAddress);
-            return false;
-        } catch (IOException e) {
-            Log.error("Couldn't get I/O for the connection to: " + serverAddress);
-            return false;
-        }
+		try {
+			Log.log("Connecting to " + serverAddress + ":" + serverPort + " ...");
+			socket = new Socket(serverAddress, serverPort);
+			sockout = new PrintWriter(socket.getOutputStream(), true);
+			sockin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+		} catch (UnknownHostException e) {
+			Log.error("Unknown host error: " + serverAddress);
+			return false;
+		} catch (IOException e) {
+			Log.error("Couldn't get I/O for the connection to: " + serverAddress);
+			return false;
+		}
 
-        Log.log("Now connected to " + serverAddress);
-        return true;
+		Log.log("Now connected to " + serverAddress);
+		return true;
 	}
 
 	public static void messageLoop() {
 		String line;
-        while (true) {
-        	try {
-            	line = sockin.readLine();
-        	} catch (IOException e) {
-        		Log.error("Connection with server closed with exception.");
-        		break;
-        	}
-        	if (line == null) break;
-            if (DEBUG) Log.log("Server: \"" + line + "\"");
+		while (true) {
+			try {
+				line = sockin.readLine();
+			} catch (IOException e) {
+				Log.error("Connection with server closed with exception.");
+				break;
+			}
+			if (line == null) break;
+			if (DEBUG) Log.log("Server: \"" + line + "\"");
 
-            // parse command and respond to it:
-    		try {
-    			configLock.acquire();
-                execRemoteCommand(line);
-    		} catch (InterruptedException e) {
-    			//return ;
-    		} finally {
-    			configLock.release();
-    		}
+			// parse command and respond to it:
+			try {
+				configLock.acquire();
+				execRemoteCommand(line);
+			} catch (InterruptedException e) {
+				//return ;
+			} finally {
+				configLock.release();
+			}
 
-        }
+		}
 
-        try {
-            sockout.close();
-            sockin.close();
-            socket.close();
-        } catch (IOException e) {
-        	// do nothing
-        }
-        Log.log("Connection with server closed.");
+		try {
+			sockout.close();
+			sockin.close();
+			socket.close();
+		} catch (IOException e) {
+			// do nothing
+		}
+		Log.log("Connection with server closed.");
 	}
 
 	// processes messages that were only sent to server admins. "message" parameter must be a
@@ -1402,7 +1402,7 @@ public class ChanServ {
 		return null;
 	}
 
-    /* returns null if channel is not found */
+	/* returns null if channel is not found */
 	public static Channel getChannel(String name) {
 		for (int i = 0; i < channels.size(); i++)
 			if (((Channel)channels.get(i)).name.equals(name)) return ((Channel)channels.get(i));
@@ -1412,13 +1412,13 @@ public class ChanServ {
 	public static void startTimers() {
 		keepAliveTimer = new Timer();
 		keepAliveTimer.schedule(new KeepAliveTask(),
-                1000,        //initial delay
-                15*1000);  //subsequent rate
+				1000,		//initial delay
+				15*1000);  //subsequent rate
 
 		logCleanerTimer = new Timer();
 		logCleanerTimer.schedule(new LogCleaner(),
-                5000,        //initial delay
-                20*1000);  //subsequent rate
+				5000,		//initial delay
+				20*1000);  //subsequent rate
 
 		timersStarted = true;
 	}
@@ -1483,12 +1483,12 @@ public class ChanServ {
 
 		// we are out of the main loop (due to an error, for example), lets reconnect:
 		while (true) {
-	    	try {
-	    		Thread.sleep(10000); // wait for 10 secs before trying to reconnect
-	    	} catch (InterruptedException e) {
-	    	}
+			try {
+				Thread.sleep(10000); // wait for 10 secs before trying to reconnect
+			} catch (InterruptedException e) {
+			}
 
-	    	Log.log("Trying to reconnect to the server ...");
+			Log.log("Trying to reconnect to the server ...");
 			if (!tryToConnect()) continue;
 			startTimers();
 			connected = true;

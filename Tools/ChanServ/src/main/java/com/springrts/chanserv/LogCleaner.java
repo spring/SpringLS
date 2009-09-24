@@ -84,78 +84,78 @@ public class LogCleaner extends TimerTask {
 			String name = file.getName().substring(0, file.getName().length() - 4); // remove ".log" from the end of the file name
 
 			try {
-            	if (!ChanServ.database.doesTableExist(name)) {
-            		boolean result= ChanServ.database.execUpdate("CREATE TABLE `" + name + "` (" + Misc.EOL +
-            													 "id INT NOT NULL AUTO_INCREMENT, " + Misc.EOL +
-            													 "stamp BIGINT NOT NULL, " + Misc.EOL +
-            													 "line TEXT NOT NULL, " + Misc.EOL +
-            													 "primary key(id)) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
-            		if (!result) {
-            			Log.error("Unable to create table '" + name + "' in the database!");
-            			return ;
-            		}
-            	}
+				if (!ChanServ.database.doesTableExist(name)) {
+					boolean result= ChanServ.database.execUpdate("CREATE TABLE `" + name + "` (" + Misc.EOL +
+																 "id INT NOT NULL AUTO_INCREMENT, " + Misc.EOL +
+																 "stamp BIGINT NOT NULL, " + Misc.EOL +
+																 "line TEXT NOT NULL, " + Misc.EOL +
+																 "primary key(id)) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
+					if (!result) {
+						Log.error("Unable to create table '" + name + "' in the database!");
+						return ;
+					}
+				}
 
-            	ArrayList<Long> stamps = new ArrayList<Long>();
-            	ArrayList<String> lines = new ArrayList<String>();
+				ArrayList<Long> stamps = new ArrayList<Long>();
+				ArrayList<String> lines = new ArrayList<String>();
 
-    			StringBuilder update = new StringBuilder();
+				StringBuilder update = new StringBuilder();
 
 				BufferedReader in = new BufferedReader(new FileReader(file));
 				String line;
 
 				int lineCount = 0;
-	            while ((line = in.readLine()) != null) {
-	            	if (line.trim().equals("")) continue; // empty line
+				while ((line = in.readLine()) != null) {
+					if (line.trim().equals("")) continue; // empty line
 
-	            	long stamp;
-	            	try {
+					long stamp;
+					try {
 						stamp = Long.parseLong(line.substring(0, line.indexOf(' ')));
-	            	} catch (NumberFormatException e) {
-	            		Log.error("Line from log file " + file.getName() + " does not contain time stamp. Line is: \"" + line + "\"");
-	            		return ;
-	            	}
+					} catch (NumberFormatException e) {
+						Log.error("Line from log file " + file.getName() + " does not contain time stamp. Line is: \"" + line + "\"");
+						return ;
+					}
 
-	            	if (lineCount == 0) {
-		        	update.append( "INSERT INTO `" + name + "` (stamp, line) values (?, ?)" );
-	            	} else {
-	            		update.append( ","+ Misc.EOL + "(?, ?)" );
-	            	}
+					if (lineCount == 0) {
+					update.append( "INSERT INTO `" + name + "` (stamp, line) values (?, ?)" );
+					} else {
+						update.append( ","+ Misc.EOL + "(?, ?)" );
+					}
 
-	            	stamps.add(stamp);
-	            	lines.add(line.substring(line.indexOf(' ')+1, line.length()));
+					stamps.add(stamp);
+					lines.add(line.substring(line.indexOf(' ')+1, line.length()));
 
-	            	lineCount++;
-		        }
-	            in.close();
+					lineCount++;
+				}
+				in.close();
 
-	            update.append( ";" );
+				update.append( ";" );
 
-	            if (lineCount == 0) {
-	            	Log.error("Log file is empty: " + file.getName());
-	            	// delete the file if possible:
-	            	if (file.delete()) {
-	            		Log.log("Empty log file was successfully deleted.");
-	            	} else {
-	            		Log.error("Unable to delete empty log file: " + file.getName());
-	            	}
-	            	return ;
-	            }
+				if (lineCount == 0) {
+					Log.error("Log file is empty: " + file.getName());
+					// delete the file if possible:
+					if (file.delete()) {
+						Log.log("Empty log file was successfully deleted.");
+					} else {
+						Log.error("Unable to delete empty log file: " + file.getName());
+					}
+					return ;
+				}
 
-	            // insert into database:
-	            PreparedStatement pstmt = ChanServ.database.getConnection().prepareStatement(update.toString());
-	            for (int j = 0; j < stamps.size(); j++) {
-	            	pstmt.setLong(j*2+1, stamps.get(j));
-	            	pstmt.setString(j*2+2, lines.get(j));
-	            }
-	            pstmt.executeUpdate();
-	            pstmt.close();
+				// insert into database:
+				PreparedStatement pstmt = ChanServ.database.getConnection().prepareStatement(update.toString());
+				for (int j = 0; j < stamps.size(); j++) {
+					pstmt.setLong(j*2+1, stamps.get(j));
+					pstmt.setString(j*2+2, lines.get(j));
+				}
+				pstmt.executeUpdate();
+				pstmt.close();
 
-	            // finally, delete the file:
-	            if (!file.delete()) {
-	            	Log.error("Unable to delete log file, which was just transfered to the database: " + file.getName());
-	            	return ;
-	            }
+				// finally, delete the file:
+				if (!file.delete()) {
+					Log.error("Unable to delete log file, which was just transfered to the database: " + file.getName());
+					return ;
+				}
 			} catch (IOException e) {
 				Log.error("Unable to read contents of file " + file.toString());
 				e.printStackTrace();

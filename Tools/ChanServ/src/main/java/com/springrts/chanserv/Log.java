@@ -28,9 +28,12 @@ public class Log {
 		return toFile(externalLogFileName, text, newLine);
 	}
 
-	/* fname is file name without path ("./logs" path is automatically added).
-	 * Timestamp is automatically added in front of the line. */
+	/**
+	 * Timestamp is automatically added in front of the line.
+	 * @param fname file name without path ("./logs" path is automatically added).
+	 */
 	public static boolean toFile(String fname, String line, boolean newLine) {
+
 		try {
 			logToDiskLock.acquire();
 			return Misc.appendTextToFile(LOG_FOLDER + "/" + fname, Misc.getUnixTimestamp() + " " + line, newLine);

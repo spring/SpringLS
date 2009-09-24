@@ -11,6 +11,7 @@ import java.util.*;
  * @author Betalord
  */
 class SpamRecord {
+
 	public double penaltyPoints; // cumulative penalty points
 	public long timeOfLastMsg; // time of last line sent to the channel by this user
 	public String lastMsg; // last line sent to the channel by this user
@@ -37,6 +38,7 @@ class SpamRecord {
  * @author Betalord
  */
 class SpamSettings {
+
 	public static final SpamSettings DEFAULT_SETTINGS = new SpamSettings(5, 200, 1.0, 0.5, 0.5);
 
 	int penaltyLimit; // when penalty points reach this limit, user gets muted
@@ -96,13 +98,13 @@ class AntiSpamTask extends TimerTask {
 	public void run() {
 		if (!ChanServ.isConnected()) return;
 		synchronized (AntiSpamSystem.spamRecords) {
-		    for (Iterator it = AntiSpamSystem.spamRecords.values().iterator(); it.hasNext(); ) {
-		    	SpamRecord rec = (SpamRecord)it.next();
+			for (Iterator it = AntiSpamSystem.spamRecords.values().iterator(); it.hasNext(); ) {
+				SpamRecord rec = (SpamRecord)it.next();
 
-		    	rec.penaltyPoints = Math.max(0, rec.penaltyPoints - 1.0); // reduce by 1.0 penalty point each second
-		    	if (rec.penaltyPoints == 0)
-		    		it.remove();
-		    }
+				rec.penaltyPoints = Math.max(0, rec.penaltyPoints - 1.0); // reduce by 1.0 penalty point each second
+				if (rec.penaltyPoints == 0)
+					it.remove();
+			}
 		}
 	}
 }
@@ -128,8 +130,8 @@ public class AntiSpamSystem {
 
 		antiSpamTimer = new Timer();
 		antiSpamTimer.schedule(new AntiSpamTask(),
-                1000,        //initial delay
-                1000);       //subsequent rate
+				1000,  // initial delay
+				1000); // subsequent rate
 	}
 
 	// stops the anti-spam system
@@ -137,7 +139,7 @@ public class AntiSpamSystem {
 		try {
 			antiSpamTimer.cancel();
 		} catch (Exception e) {
-			//
+			// do nothing
 		}
 	}
 

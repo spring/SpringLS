@@ -99,14 +99,14 @@ public class RemoteAccessServer extends Thread {
 
 	public void run() {
 		try {
-	        ServerSocket ss = new ServerSocket(port);
+			ServerSocket ss = new ServerSocket(port);
 
-	        while (true) {
-	            Socket cs = ss.accept();
-	            RemoteClientThread thread = new RemoteClientThread(this, cs);
-	        	threads.add(thread);
-	        	thread.start();
-	        }
+			while (true) {
+				Socket cs = ss.accept();
+				RemoteClientThread thread = new RemoteClientThread(this, cs);
+				threads.add(thread);
+				thread.start();
+			}
 		} catch (IOException e) {
 			Log.error("Error occured in RemoteAccessServer: " + e.getMessage());
 		}
@@ -115,46 +115,46 @@ public class RemoteAccessServer extends Thread {
 }
 
 class RemoteClientThread extends Thread {
-    static final int BUF_SIZE = 2048;
+	static final int BUF_SIZE = 2048;
 
-    static final byte[] EOL = {(byte)'\r', (byte)'\n' };
+	static final byte[] EOL = {(byte)'\r', (byte)'\n' };
 
-    /* unique ID which we will use as a message ID when sending commands to TASServer */
-    public int ID = (int)((Math.random() * 65535));
+	/* unique ID which we will use as a message ID when sending commands to TASServer */
+	public int ID = (int)((Math.random() * 65535));
 
-    /* reply queue which gets filled by ChanServ automatically */
-    Queue replyQueue = new Queue();
+	/* reply queue which gets filled by ChanServ automatically */
+	Queue replyQueue = new Queue();
 
-    /* socket for the client which we are handling */
-    private Socket socket;
-    private String IP;
-    private boolean identified = false; // if remote client has already identified
+	/* socket for the client which we are handling */
+	private Socket socket;
+	private String IP;
+	private boolean identified = false; // if remote client has already identified
 
-    private PrintWriter out;
-    private BufferedReader in;
+	private PrintWriter out;
+	private BufferedReader in;
 
-    private RemoteAccessServer parent; // so we will know which object spawned this thread
+	private RemoteAccessServer parent; // so we will know which object spawned this thread
 
 
-    RemoteClientThread(RemoteAccessServer parent, Socket s) {
-    	this.socket = s;
-    	this.parent = parent;
-        try {
-            socket.setSoTimeout(RemoteAccessServer.TIMEOUT);
-            socket.setTcpNoDelay(true);
-        } catch (SocketException e) {
-        	Log.error("Serious error in RemoteClient constructor (SocketException): " + e.getMessage());
-        }
-        IP = socket.getInetAddress().getHostAddress();
+	RemoteClientThread(RemoteAccessServer parent, Socket s) {
+		this.socket = s;
+		this.parent = parent;
+		try {
+			socket.setSoTimeout(RemoteAccessServer.TIMEOUT);
+			socket.setTcpNoDelay(true);
+		} catch (SocketException e) {
+			Log.error("Serious error in RemoteClient constructor (SocketException): " + e.getMessage());
+		}
+		IP = socket.getInetAddress().getHostAddress();
 
-	    try {
-	    	out = new PrintWriter(socket.getOutputStream(), true);
-	    	in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-	    } catch (IOException e) {
-	    	Log.error("Serious error: cannot associate input/output with client socket! Program will now exit ...");
-    	    System.exit(1);
-    	}
-    }
+		try {
+			out = new PrintWriter(socket.getOutputStream(), true);
+			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+		} catch (IOException e) {
+			Log.error("Serious error: cannot associate input/output with client socket! Program will now exit ...");
+			System.exit(1);
+		}
+	}
 
 	public String readLine() throws IOException {
 		return in.readLine();
@@ -168,9 +168,9 @@ class RemoteClientThread extends Thread {
 	private void disconnect() {
 		try {
 			if (!socket.isClosed()) {
-	    	    out.close();
-	    	    in.close();
-	    	    socket.close();
+				out.close();
+				in.close();
+				socket.close();
 			}
 		} catch (IOException e) {
 			// ignore it
@@ -182,8 +182,8 @@ class RemoteClientThread extends Thread {
 		parent.threads.remove(this);
 	}
 
-    public void run() {
-   	    String input;
+	public void run() {
+		String input;
 
 		try
 		{
@@ -204,19 +204,19 @@ class RemoteClientThread extends Thread {
 			kill();
 			return;
 		}
-    }
+	}
 
-    private void queryTASServer(String command) {
-    	ChanServ.sendLine("#" + ID + " " + command);
+	private void queryTASServer(String command) {
+		ChanServ.sendLine("#" + ID + " " + command);
 
-    }
-    private String waitForReply() {
-    	return (String)replyQueue.pull(); // will wait until queue doesn't contain a response
-    }
+	}
+	private String waitForReply() {
+		return (String)replyQueue.pull(); // will wait until queue doesn't contain a response
+	}
 
-    public void processCommand(String command) {
-    	command = command.trim();
-    	if (command.equals("")) return ;
+	public void processCommand(String command) {
+		command = command.trim();
+		if (command.equals("")) return ;
 
 		String[] params = command.split(" ");
 		params[0] = params[0].toUpperCase();
@@ -329,5 +329,5 @@ class RemoteClientThread extends Thread {
 		} else {
 			// unknown command!
 		}
-    }
+	}
 }

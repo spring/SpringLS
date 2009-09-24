@@ -14,6 +14,7 @@ import java.util.*;
  * @author Betalord
  */
 public class Channel {
+
 	public String name;
 	public String topic = ""; // "" means topic is disabled
 	public String logFileName;
