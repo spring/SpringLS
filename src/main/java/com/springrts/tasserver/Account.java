@@ -95,10 +95,12 @@ public class Account {
 		this.lastCountry = new String(acc.lastCountry);
 	}
 
+	@Override
 	public String toString() {
 		return user + " " + pass + " " + Integer.toString(access, 2) + " " + lastUserID + " " + lastLogin + " " + lastIP + " " + registrationDate + " " + lastCountry + " " + accountID;
 	}
 
+	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (!(o instanceof Account)) return false;

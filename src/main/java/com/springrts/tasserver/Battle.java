@@ -234,7 +234,9 @@ public class Battle {
 
 	/* removes all bots owned by client */
 	public void removeClientBots(Client client) {
-		while (removeFirstBotOfClient(client)) ;
+		while (removeFirstBotOfClient(client)) {
+			// empty loop body
+		}
 	}
 
 	public void sendBotListToClient(Client client) {

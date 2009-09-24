@@ -18,6 +18,7 @@ public class GlobalMapGrade {
 		this.mapHash = mapHash;
 	}
 
+	@Override
 	public boolean equals(Object obj) {
 
 		if (obj == null) {

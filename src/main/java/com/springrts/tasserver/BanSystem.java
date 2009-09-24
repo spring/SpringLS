@@ -11,7 +11,6 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Timestamp;
 
 /**
  * @author Betalord
@@ -74,7 +73,7 @@ public class BanSystem {
 	}
 
 	/**
-	 * returns null if IP/username/userID is not banned, or corresponding BanEntry object otherwise
+	 * Returns null if IP/username/userID is not banned, or corresponding BanEntry object otherwise
 	 */
 	public static BanEntry checkIfBanned(String username, long IP, int userID) {
 		for (int i = 0; i < banEntries.size(); i++) {

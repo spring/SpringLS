@@ -34,6 +34,7 @@ public class SaveAccountsThread extends Thread {
 		this.dupAccounts = dupAccounts;
 	}
 
+	@Override
 	public void run() {
 		System.out.println("Dumping accounts to disk in a separate thread ...");
 		long time = System.currentTimeMillis();

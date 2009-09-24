@@ -25,6 +25,7 @@ public class NATHelpServer extends Thread {
 		this.port = port;
 	}
 
+	@Override
 	public void run() {
 		try {
 			socket = new DatagramSocket(port);

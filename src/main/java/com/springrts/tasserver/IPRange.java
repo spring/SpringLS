@@ -41,6 +41,7 @@ public class IPRange implements Comparable {
 
 	/* needed to fulfil "consistent with equals" criterion,
 	 * i.e. compareTo(x) == 0 is true if and only if equals(x) == true. */
+	@Override
 	public boolean equals(Object obj) {
 
 		if (this == obj) {
@@ -52,6 +53,7 @@ public class IPRange implements Comparable {
 		return (this.IP_FROM == ((IPRange)obj).IP_FROM) && (this.IP_TO == ((IPRange)obj).IP_TO) && (this.COUNTRY_CODE2.equals(((IPRange)obj).COUNTRY_CODE2));
 	}
 
+	@Override
 	public String toString() {
 		return IP_FROM + "," + IP_TO + "," + COUNTRY_CODE2;
 	}
