@@ -33,7 +33,11 @@ public class Statistics {
 
 	public static long lastStatisticsUpdate = System.currentTimeMillis(); // time (System.currentTimeMillis()) when we last updated statistics
 
-	/* returns -1 if unsuccessful, or else returns time taken to save the statistics file (in milliseconds) */
+	/**
+	 * Saves Statistics to permanent storage.
+	 * @return -1 on error; otherwise: time (in milliseconds) it took
+	 *         to save the statistics file
+	 */
 	public static int saveStatisticsToDisk() {
 		long taken;
 		try {
@@ -53,22 +57,28 @@ public class Statistics {
 		return new Long(taken).intValue();
 	}
 
-	/* will append statistics file (or create one if it doesn't exist) and add latest statistics to it.
-	 * Returns milliseconds taken to calculate statistics, or -1 if it fails. */
+	/**
+	 * Will append statistics file (or create one if it doesn't exist)
+	 * and add latest statistics to it.
+	 * @return milliseconds taken to calculate statistics, or -1 if it fails
+	 */
 	private static long autoUpdateStatisticsFile() {
+
 		String fname = TASServer.STATISTICS_FOLDER + now("ddMMyy") + ".dat";
 		long startTime = System.currentTimeMillis();
 
 		int activeBattlesCount = 0;
 		for (int i = 0; i < Battles.getBattlesSize(); i++) {
-			if ((Battles.getBattleByIndex(i).getClientsSize() >= 1 /* at least 1 client + founder == 2 players */) && (Battles.getBattleByIndex(i).inGame())) {
+			if ((Battles.getBattleByIndex(i).getClientsSize() >= 1 /* at least 1 client + founder == 2 players */) &&
+					(Battles.getBattleByIndex(i).inGame())) {
 				activeBattlesCount++;
 			}
 		}
 
 		int activeAccounts = 0;
 		for (int i = 0; i < Accounts.getAccountsSize(); i++) {
-			if ((Accounts.getAccount(i).getInGameTime() > 300) && (Accounts.getAccount(i).lastLogin > System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 7)) {
+			if ((Accounts.getAccount(i).getInGameTime() > 300) &&
+					(Accounts.getAccount(i).lastLogin > System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 7)) {
 				activeAccounts++;
 			}
 		}
@@ -77,7 +87,12 @@ public class Statistics {
 
 		try {
 			BufferedWriter out = new BufferedWriter(new FileWriter(fname, true));
-			out.write(now("HHmmss") + " " + Clients.getClientsSize() + " " + activeBattlesCount + " " + Accounts.getAccountsSize() + " " + activeAccounts + " " + topMods + "\r\n");
+			out.write(new StringBuilder(now("HHmmss")).append(" ")
+					.append(Clients.getClientsSize()).append(" ")
+					.append(activeBattlesCount).append(" ")
+					.append(Accounts.getAccountsSize()).append(" ")
+					.append(activeAccounts).append(" ")
+					.append(topMods).append("\r\n").toString());
 			out.close();
 		} catch (IOException e) {
 			System.out.println("Error: unable to access file <" + fname + ">. Skipping ...");
@@ -89,7 +104,10 @@ public class Statistics {
 		return System.currentTimeMillis() - startTime;
 	}
 
-	/* this will create "statistics.dat" file which will contain all records from the last 7 days */
+	/**
+	 * This will create "statistics.dat" file which will contain all records
+	 * from the last 7 days
+	 */
 	private static boolean createAggregateFile() {
 		String fname = TASServer.STATISTICS_FOLDER + "statistics.dat";
 
@@ -107,7 +125,7 @@ public class Statistics {
 					BufferedReader in = new BufferedReader(new FileReader(TASServer.STATISTICS_FOLDER + formatter.format(temp) + ".dat"));
 					//***System.out.println("--- Found: <" + TASServer.STATISTICS_FOLDER + formatter.format(temp) + ".dat>");
 					while ((line = in.readLine()) != null) {
-						out.write(formatter.format(temp) + " " + line + "\r\n");
+						out.write(new StringBuilder(formatter.format(temp)).append(" ").append(line).append("\r\n").toString());
 					}
 				} catch (IOException e) {
 					// just skip the file ...
@@ -147,15 +165,32 @@ public class Statistics {
 			Runtime.getRuntime().exec(cmds).waitFor();
 
 			// generate "online clients diagram":
-			cmd = TASServer.PLOTICUS_FULLPATH + " -png " + TASServer.STATISTICS_FOLDER + "clients.pl -o " + TASServer.STATISTICS_FOLDER + "clients.png startdate=" + formatter.format(startDate) + " enddate=" + formatter.format(endDate) + " datafile=" + TASServer.STATISTICS_FOLDER + "statistics.dat";
+			cmd = new StringBuilder(TASServer.PLOTICUS_FULLPATH)
+					.append(" -png ")
+					.append(TASServer.STATISTICS_FOLDER)
+					.append("clients.pl -o ").append(TASServer.STATISTICS_FOLDER)
+					.append("clients.png startdate=").append(formatter.format(startDate))
+					.append(" enddate=").append(formatter.format(endDate))
+					.append(" datafile=").append(TASServer.STATISTICS_FOLDER)
+					.append("statistics.dat").toString();
 			Runtime.getRuntime().exec(cmd).waitFor();
 
 			// generate "active battles diagram":
-			cmd = TASServer.PLOTICUS_FULLPATH + " -png " + TASServer.STATISTICS_FOLDER + "battles.pl -o " + TASServer.STATISTICS_FOLDER + "battles.png startdate=" + formatter.format(startDate) + " enddate=" + formatter.format(endDate) + " datafile=" + TASServer.STATISTICS_FOLDER + "statistics.dat";
+			cmd = new StringBuilder(TASServer.PLOTICUS_FULLPATH)
+					.append(" -png ").append(TASServer.STATISTICS_FOLDER)
+					.append("battles.pl -o ").append(TASServer.STATISTICS_FOLDER)
+					.append("battles.png startdate=").append(formatter.format(startDate))
+					.append(" enddate=").append(formatter.format(endDate))
+					.append(" datafile=").append(TASServer.STATISTICS_FOLDER).append("statistics.dat").toString();
 			Runtime.getRuntime().exec(cmd).waitFor();
 
 			// generate "accounts diagram":
-			cmd = TASServer.PLOTICUS_FULLPATH + " -png " + TASServer.STATISTICS_FOLDER + "accounts.pl -o " + TASServer.STATISTICS_FOLDER + "accounts.png startdate=" + formatter.format(startDate) + " enddate=" + formatter.format(endDate) + " datafile=" + TASServer.STATISTICS_FOLDER + "statistics.dat";
+			cmd = new StringBuilder(TASServer.PLOTICUS_FULLPATH)
+					.append(" -png ").append(TASServer.STATISTICS_FOLDER)
+					.append("accounts.pl -o ").append(TASServer.STATISTICS_FOLDER)
+					.append("accounts.png startdate=").append(formatter.format(startDate))
+					.append(" enddate=").append(formatter.format(endDate))
+					.append(" datafile=").append(TASServer.STATISTICS_FOLDER).append("statistics.dat").toString();
 			Runtime.getRuntime().exec(cmd).waitFor();
 
 			// generate "popular mods chart":
@@ -185,12 +220,14 @@ public class Statistics {
 		return true;
 	}
 
-	/* will return list of mods being played right now (top 5 mods only) with frequencies.
+	/**
+	 * Will return list of mods being played right now (top 5 mods only) with frequencies.
 	 * format: listlen "modname1" freq1 "modname2" freq" ...
 	 * where delimiter is TAB (not SPACE). An empty list is denoted by 0 value for listlen.
 	 */
 	private static String currentlyPopularModsList() {
-		ArrayList<String> mods = new ArrayList<String>();
+
+		List<String> mods = new ArrayList<String>();
 		int[] freq = new int[0];
 		boolean found = false;
 
@@ -228,13 +265,15 @@ public class Statistics {
 		return result;
 	}
 
-	/* this will return popular mod list for a certain date (date must be on "ddMMyy"
+	/**
+	 * This will return popular mod list for a certain date (date must be on "ddMMyy"
 	 * format). It will take first entry for every new hour and add it to the list
 	 * (other entries for the same hour will be ignored).
 	 * See comments for currentlyPopularModList() method for more info.
 	 */
 	private static String getPopularModsList(String date) {
-		ArrayList<String> mods = new ArrayList<String>();
+
+		List<String> mods = new ArrayList<String>();
 		int[] freq = new int[0];
 		boolean found = false;
 
@@ -285,17 +324,17 @@ public class Statistics {
 		if (mods.size() == 0) {
 			return "0";
 		}
-		int k = Math.min(5, mods.size()); // return 5 or less mods
-		String result = "" + k;
+		final int k = Math.min(5, mods.size()); // return 5 or less mods
+		StringBuilder result = new StringBuilder().append(k);
 		Misc.bubbleSort(freq, mods); // Note: don't cut the array by k, or sorting won't have any effect!
 		for (int i = 0; i < k; i++) {
-			result = result + "\t" + mods.get(i) + "\t" + freq[i];
+			result.append("\t").append(mods.get(i)).append("\t").append(freq[i]);
 		}
 
-		return result;
+		return result.toString();
 	}
 
-	/*
+	/**
 	 * Usage (some examples):
 	 *
 	 * System.out.println(now("dd MMMMM yyyy"));
@@ -313,8 +352,7 @@ public class Statistics {
 	 *
 	 * Also see http://java.sun.com/j2se/1.4.2/docs/api/java/text/SimpleDateFormat.html
 	 * for more info on SimpleDateFormat.
-	 *
-	 * */
+	 */
 	private static String now(String format) {
 		Date today = new Date();
 		SimpleDateFormat formatter = new SimpleDateFormat(format);
