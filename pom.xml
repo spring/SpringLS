@@ -12,6 +12,9 @@
 
 	<build>
 		<plugins>
+			<!--
+				Set source compatibility to 1.5, so Annotations are supported.
+			-->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -21,6 +24,10 @@
 				</configuration>
 			</plugin>
 
+			<!--
+				Modifies the jars manifest file,
+				eg. adds the Main-Class attribute
+			-->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
@@ -28,12 +35,29 @@
 					<archive>
 						<manifest>
 							<addClasspath>true</addClasspath>
-							<!--<classpathPrefix>lib/</classpathPrefix>-->
 							<packageName>com.springrts.tasserver</packageName>
 							<mainClass>com.springrts.tasserver.TASServer</mainClass>
 						</manifest>
 					</archive>
 				</configuration>
+			</plugin>
+
+			<!--
+				This includes the dependencies in the generated jar
+				during the package phase
+			-->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>1.2.1</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
