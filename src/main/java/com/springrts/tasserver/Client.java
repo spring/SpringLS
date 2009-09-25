@@ -189,7 +189,7 @@ public class Client {
 
 	public void sendWelcomeMessage() {
 		sendLine(new StringBuilder("TASServer ")
-				.append(TASServer.VERSION).append(" ")
+				.append(TASServer.getAppVersion()).append(" ")
 				.append(TASServer.latestSpringVersion).append(" ")
 				.append(TASServer.NAT_TRAVERSAL_PORT).append(" ")
 				.append(TASServer.LAN_MODE ? 1 : 0).toString());

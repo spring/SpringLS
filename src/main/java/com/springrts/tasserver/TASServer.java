@@ -231,7 +231,6 @@ import java.util.regex.*;
  */
 public class TASServer {
 
-	static final String VERSION = "0.35";
 	static byte DEBUG = 1; // 0 - no verbose, 1 - normal verbose, 2 - extensive verbose
 	static String MOTD = "Enjoy your stay :-)";
 	static String agreement = ""; // agreement which is sent to user upon first login. User must send CONFIRMAGREEMENT command to confirm the agreement before server allows him to log in. See LOGIN command implementation for more details.
@@ -271,6 +270,7 @@ public class TASServer {
 	static long lastFailedLoginsPurgeTime = System.currentTimeMillis(); // time when we last purged list of failed login attempts
 
 	// database related:
+	private static Properties mavenProperties = null;
 	public static DBInterface database;
 	private static String DB_URL = "jdbc:mysql://127.0.0.1/spring";
 	private static String DB_username = "";
@@ -295,7 +295,8 @@ public class TASServer {
 	public static CharsetDecoder asciiDecoder;
 	public static CharsetEncoder asciiEncoder;
 
-	/* in 'updateProperties' we store a list of Spring versions and server responses to them.
+	/**
+	 * In 'updateProperties' we store a list of Spring versions and server responses to them.
 	 * We use it when client doesn't have the latest Spring version or the lobby program
 	 * and requests an update from us. The XML file should normally contain at least the "default" key
 	 * which contains a standard response in case no suitable response is found.
@@ -318,7 +319,7 @@ public class TASServer {
 		}
 	}
 
-	/* reads MOTD from disk (if file is found) */
+	/** Reads MOTD from disk (if file is found) */
 	private static boolean readMOTD(String fileName) {
 		StringBuilder newMOTD = new StringBuilder();
 		try {
@@ -373,7 +374,53 @@ public class TASServer {
 		return true;
 	}
 
-	/* reads agreement from disk (if file is found) */
+	/**
+	 * Reads this applications Maven properties file in the
+	 * META-INF directory of the class-path.
+	 */
+	private static Properties getMavenProperties() {
+
+		Properties pomProps = null;
+
+		try {
+			final String pomPropsLoc = "/META-INF/maven/com.springrts/tasserver/pom.properties";
+			InputStream propFileIn = TASServer.class.getResourceAsStream(pomPropsLoc);
+			if (propFileIn == null) {
+				throw new IOException("Failed locating resource in the classpath: " + pomPropsLoc);
+			}
+			pomProps = new Properties();
+			pomProps.load(propFileIn);
+		} catch (Exception ex) {
+			// TODO: add logging
+			pomProps = null;
+		}
+
+		return pomProps;
+	}
+
+	/**
+	 * Reads this applications version from the Maven properties file in the
+	 * META-INF directory.
+	 */
+	public static String getAppVersion() {
+
+		String appVersion = null;
+
+		if (mavenProperties == null) {
+			mavenProperties = getMavenProperties();
+		}
+		if (mavenProperties != null) {
+			appVersion = mavenProperties.getProperty("version", null);
+		}
+
+		if (appVersion == null) {
+			// TODO: add logging
+		}
+
+		return appVersion;
+	}
+
+	/** Reads agreement from disk (if file is found) */
 	private static void readAgreement() {
 		StringBuilder newAgreement = new StringBuilder();
 		try {
@@ -3736,7 +3783,7 @@ public class TASServer {
 		}
 
 		System.out.println(new StringBuilder("TASServer ")
-				.append(VERSION).append(" started on ")
+				.append(getAppVersion()).append(" started on ")
 				.append(Misc.easyDateFormat("yyyy.MM.dd 'at' hh:mm:ss z")).toString());
 
 		// switch to lan mode if user accounts information is not present:
