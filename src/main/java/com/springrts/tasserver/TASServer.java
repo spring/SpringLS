@@ -318,7 +318,7 @@ public class TASServer {
 			mainChanLog.println(new StringBuilder(Misc.easyDateFormat("<HH:mm:ss> ")).append(text).toString());
 		} catch (Exception e) {
 			TASServer.LOG_MAIN_CHANNEL = false;
-			System.out.println("$ERROR: Unable to write main channel log file (MainChanLog.log)");
+			s_log.error("Unable to write main channel log file (MainChanLog.log)", e);
 		}
 	}
 
@@ -333,8 +333,8 @@ public class TASServer {
 			}
 			in.close();
 		} catch (IOException e) {
-			System.out.println(new StringBuilder("Couldn't find ")
-					.append(fileName).append(". Using default MOTD").toString());
+			s_log.warn(new StringBuilder("Couldn't find ")
+					.append(fileName).append(". Using default MOTD").toString(), e);
 			return false;
 		}
 		MOTD = newMOTD.toString();
@@ -434,9 +434,9 @@ public class TASServer {
 			}
 			in.close();
 		} catch (IOException e) {
-			System.out.println(new StringBuilder("Couldn't find ")
+			s_log.warn(new StringBuilder("Couldn't find ")
 					.append(AGREEMENT_FILENAME)
-					.append(". Using no agreement.").toString());
+					.append(". Using no agreement.").toString(), e);
 			return;
 		}
 		if (newAgreement.length() > 2) {
@@ -445,7 +445,7 @@ public class TASServer {
 	}
 
 	public static void closeServerAndExit() {
-		System.out.println("Server stopped.");
+		s_log.info("Server stopped.");
 		if (!LAN_MODE && initializationFinished) {
 			Accounts.saveAccounts(true); // we need to check if initialization has completed so that we don't save empty accounts array and so overwrite actual accounts
 		}
@@ -514,11 +514,11 @@ public class TASServer {
 			readSelector = Selector.open();
 
 		} catch (IOException e) {
-			System.out.println(new StringBuilder("Could not listen on port: ").append(port).toString());
+			s_log.error(new StringBuilder("Could not listen on port: ").append(port).toString(), e);
 			return false;
 		}
 
-		System.out.println(new StringBuilder("Port ").append(port)
+		s_log.info(new StringBuilder("Port ").append(port)
 				.append(" is open\nListening for connections ...").toString());
 
 		return true;
@@ -531,8 +531,8 @@ public class TASServer {
 			// regardless of whether there is a connection available
 			while ((clientChannel = sSockChan.accept()) != null) {
 				if (redirect) {
-					if (DEBUG > 0) {
-						System.out.println(new StringBuilder("Client redirected to ")
+					if (s_log.isDebugEnabled()) {
+						s_log.debug(new StringBuilder("Client redirected to ")
 								.append(redirectToIP).append(": ")
 								.append(clientChannel.socket().getInetAddress().getHostAddress()).toString());
 					}
@@ -548,14 +548,14 @@ public class TASServer {
 				// from this point on, we know that client has been successfully connected
 				client.sendWelcomeMessage();
 
-				if (DEBUG > 0) {
-					System.out.println(new StringBuilder("New client connected: ").append(client.IP).toString());
+				if (s_log.isDebugEnabled()) {
+					s_log.debug(new StringBuilder("New client connected: ").append(client.IP).toString());
 				}
 			}
 		} catch (IOException ioe) {
-			System.out.println(new StringBuilder("error during accept(): ").append(ioe.toString()).toString());
+			s_log.error(new StringBuilder("Error during accept(): ").append(ioe.toString()).toString(), ioe);
 		} catch (Exception e) {
-			System.out.println(new StringBuilder("exception in acceptNewConnections()").append(e.toString()).toString());
+			s_log.error(new StringBuilder("Exception in acceptNewConnections()").append(e.toString()).toString(), e);
 		}
 	}
 
@@ -590,7 +590,7 @@ public class TASServer {
 				// basic anti-flood protection:
 				if ((client.account.accessLevel() < Account.ADMIN_ACCESS) && (((client.getBotModeFromStatus() == false) && (client.dataOverLastTimePeriod > TASServer.maxBytesAlert)) ||
 						((client.getBotModeFromStatus() == true) && (client.dataOverLastTimePeriod > TASServer.maxBytesAlertForBot)))) {
-					System.out.println(new StringBuilder("WARNING: Flooding detected from ")
+					s_log.warn(new StringBuilder("Flooding detected from ")
 							.append(client.IP).append(" (")
 							.append(client.account.user).append(")").toString());
 					Clients.sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: Flooding has been detected from ")
@@ -611,8 +611,8 @@ public class TASServer {
 
 				// check for end-of-stream
 				if (nbytes == -1) {
-					if (DEBUG > 0) {
-						System.out.println("Socket disconnected - killing client");
+					if (s_log.isDebugEnabled()) {
+						s_log.debug("Socket disconnected - killing client");
 					}
 					channel.close();
 					Clients.killClient(client); // will also close the socket channel
@@ -656,22 +656,32 @@ public class TASServer {
 				}
 			}
 		} catch (IOException ioe) {
-			System.out.println("exception during select(): possibly due to force disconnect. Killing the client ...");
+			s_log.info("exception during select(): possibly due to force disconnect. Killing the client ...", ioe);
 			try {
 				if (client != null) {
 					Clients.killClient(client, "Quit: connection lost");
 				}
 			} catch (Exception e) {
+				// do nothing
 			}
 		} catch (Exception e) {
-			System.out.println(new StringBuilder("exception in readIncomingMessages(): killing the client ... (").append(e.toString()).append(")").toString());
+			s_log.info(new StringBuilder("exception in readIncomingMessages(): killing the client ... (").append(e.toString()).append(")").toString(), e);
 			try {
 				if (client != null) {
 					Clients.killClient(client, "Quit: connection lost");
 				}
 				e.printStackTrace(); //*** DEBUG
 			} catch (Exception ex) {
+				// do nothing
 			}
+		}
+	}
+
+	private static void verifyBattle(Battle battle) {
+
+		if (battle == null) {
+			s_log.fatal("Invalid battle ID. Server will now exit!");
+			closeServerAndExit();
 		}
 	}
 
@@ -755,13 +765,13 @@ public class TASServer {
 			return false;
 		}
 
-		if (DEBUG > 1) {
+		if (s_log.isDebugEnabled()) {
 			if (client.account.accessLevel() != Account.NIL_ACCESS) {
-				System.out.println(new StringBuilder("[<-")
+				s_log.debug(new StringBuilder("[<-")
 						.append(client.account.user).append("] \"")
 						.append(command).append("\"").toString());
 			} else {
-				System.out.println(new StringBuilder("[<-")
+				s_log.debug(new StringBuilder("[<-")
 						.append(client.IP).append("] \"")
 						.append(command).append("\"").toString());
 			}
@@ -1980,7 +1990,7 @@ public class TASServer {
 				}
 
 				if (readUpdateProperties(UPDATE_PROPERTIES_FILENAME)) {
-					System.out.println("\"Update properties\" read from " + UPDATE_PROPERTIES_FILENAME);
+					s_log.info("\"Update properties\" read from " + UPDATE_PROPERTIES_FILENAME);
 					client.sendLine("SERVERMSG \"Update properties\" have been successfully loaded from " + UPDATE_PROPERTIES_FILENAME);
 				} else {
 					client.sendLine(new StringBuilder("SERVERMSG Unable to load \"Update properties\" from ")
@@ -2214,8 +2224,8 @@ public class TASServer {
 				Clients.notifyClientsOfNewClientOnServer(client);
 				Clients.notifyClientsOfNewClientStatus(client);
 
-				if (DEBUG > 0) {
-					System.out.println(new StringBuilder("User just logged in: ").append(client.account.user).toString());
+				if (s_log.isDebugEnabled()) {
+					s_log.debug(new StringBuilder("User just logged in: ").append(client.account.user).toString());
 				}
 			} else if (commands[0].equals("CONFIRMAGREEMENT")) {
 				// update client's temp account (he is not logged in yet since he needs to confirm the agreement before server will allow him to log in):
@@ -2433,7 +2443,7 @@ public class TASServer {
 				String s = Misc.makeSentence(commands, 2);
 				// check for flooding:
 				if ((s.length() > maxChatMessageLength) && (client.account.accessLevel() < Account.ADMIN_ACCESS)) {
-					System.out.println(new StringBuilder("WARNING: Flooding detected from ")
+					s_log.warn(new StringBuilder("Flooding detected from ")
 							.append(client.IP).append(" (")
 							.append(client.account.user).append(") [exceeded max. chat message size]").toString());
 					client.sendLine(new StringBuilder("SERVERMSG Flooding detected - you have exceeded maximum allowed chat message size (")
@@ -2472,7 +2482,7 @@ public class TASServer {
 				String s = Misc.makeSentence(commands, 2);
 				// check for flooding:
 				if ((s.length() > maxChatMessageLength) && (client.account.accessLevel() < Account.ADMIN_ACCESS)) {
-					System.out.println(new StringBuilder("WARNING: Flooding detected from ")
+					s_log.warn(new StringBuilder("Flooding detected from ")
 							.append(client.IP).append(" (")
 							.append(client.account.user)
 							.append(") [exceeded max. chat message size]").toString());
@@ -2505,7 +2515,7 @@ public class TASServer {
 				String s = Misc.makeSentence(commands, 2);
 				// check for flooding:
 				if ((s.length() > maxChatMessageLength) && (client.account.accessLevel() < Account.ADMIN_ACCESS)) {
-					System.out.println(new StringBuilder("WARNING: Flooding detected from ")
+					s_log.warn(new StringBuilder("Flooding detected from ")
 							.append(client.IP).append(" (")
 							.append(client.account.user).append(") [exceeded max. chat message size]").toString());
 					client.sendLine(new StringBuilder("SERVERMSG Flooding detected - you have exceeded maximum allowed chat message size (")
@@ -2607,10 +2617,7 @@ public class TASServer {
 					return false; // this may happen when client sent LEAVEBATTLE command right after he was kicked from the battle, for example.
 				}
 				Battle bat = Battles.getBattleByID(client.battleID);
-				if (bat == null) {
-					System.out.println("Serious error occured: Invalid battle ID. Server will now exit!");
-					closeServerAndExit();
-				}
+				verifyBattle(bat);
 				Battles.leaveBattle(client, bat); // automatically checks if client is a founder and closes battle
 			} else if (commands[0].equals("OPENBATTLE")) {
 				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
@@ -2774,7 +2781,7 @@ public class TASServer {
 				String s = Misc.makeSentence(commands, 1);
 				// check for flooding:
 				if ((s.length() > maxChatMessageLength) && (client.account.accessLevel() < Account.ADMIN_ACCESS)) {
-					System.out.println(new StringBuilder("WARNING: Flooding detected from ")
+					s_log.warn(new StringBuilder("Flooding detected from ")
 							.append(client.IP).append(" (")
 							.append(client.account.user)
 							.append(") [exceeded max. chat message size]").toString());
@@ -2809,7 +2816,7 @@ public class TASServer {
 				String s = Misc.makeSentence(commands, 1);
 				// check for flooding:
 				if ((s.length() > maxChatMessageLength) && (client.account.accessLevel() < Account.ADMIN_ACCESS)) {
-					System.out.println(new StringBuilder("WARNING: Flooding detected from ")
+					s_log.warn(new StringBuilder("Flooding detected from ")
 							.append(client.IP).append(" (")
 							.append(client.account.user)
 							.append(") [exceeded max. chat message size]").toString());
@@ -3089,10 +3096,7 @@ public class TASServer {
 				}
 
 				Battle bat = Battles.getBattleByID(client.battleID);
-				if (bat == null) {
-					System.out.println("Serious error occured: Invalid battle ID. Server will now exit!");
-					closeServerAndExit();
-				}
+				verifyBattle(bat);
 
 				int value;
 				try {
@@ -3142,10 +3146,7 @@ public class TASServer {
 				}
 
 				Battle bat = Battles.getBattleByID(client.battleID);
-				if (bat == null) {
-					System.out.println("Serious error occured: Invalid battle ID. Server will now exit!");
-					closeServerAndExit();
-				}
+				verifyBattle(bat);
 
 				Bot bot = bat.getBot(commands[1]);
 				if (bot == null) {
@@ -3170,10 +3171,7 @@ public class TASServer {
 				}
 
 				Battle bat = Battles.getBattleByID(client.battleID);
-				if (bat == null) {
-					System.out.println("Serious error occured: Invalid battle ID. Server will now exit!");
-					closeServerAndExit();
-				}
+				verifyBattle(bat);
 
 				Bot bot = bat.getBot(commands[1]);
 				if (bot == null) {
@@ -3302,10 +3300,7 @@ public class TASServer {
 					}
 
 					Battle bat = Battles.getBattleByID(client.battleID);
-					if (bat == null) {
-						System.out.println("Serious error occured: Invalid battle ID. Server will now exit!");
-						closeServerAndExit();
-					}
+					verifyBattle(bat);
 
 					if (!bat.isClientInBattle(commands[1])) {
 						client.sendLine("SERVERMSG RING command failed: You don't have permission to ring players other than those participating in your battle!");
@@ -3340,10 +3335,7 @@ public class TASServer {
 				}
 
 				Battle bat = Battles.getBattleByID(client.battleID);
-				if (bat == null) {
-					System.out.println("Serious error occured: Invalid battle ID. Server will now exit!");
-					closeServerAndExit();
-				}
+				verifyBattle(bat);
 
 				if (bat.founder != client) {
 					return false;
@@ -3395,10 +3387,7 @@ public class TASServer {
 				}
 
 				Battle bat = Battles.getBattleByID(client.battleID);
-				if (bat == null) {
-					System.out.println("Serious error occured: Invalid battle ID. Server will now exit!");
-					closeServerAndExit();
-				}
+				verifyBattle(bat);
 
 				if (bat.founder != client) {
 					return false;
@@ -3437,10 +3426,7 @@ public class TASServer {
 				}
 
 				Battle bat = Battles.getBattleByID(client.battleID);
-				if (bat == null) {
-					System.out.println("Serious error occured: Invalid battle ID. Server will now exit!");
-					closeServerAndExit();
-				}
+				verifyBattle(bat);
 
 				bat.tempReplayScript.clear();
 			} else if (commands[0].equals("SCRIPT")) {
@@ -3453,10 +3439,7 @@ public class TASServer {
 				}
 
 				Battle bat = Battles.getBattleByID(client.battleID);
-				if (bat == null) {
-					System.out.println("Serious error occured: Invalid battle ID. Server will now exit!");
-					closeServerAndExit();
-				}
+				verifyBattle(bat);
 
 				bat.tempReplayScript.add(Misc.makeSentence(commands, 1));
 			} else if (commands[0].equals("SCRIPTEND")) {
@@ -3469,10 +3452,7 @@ public class TASServer {
 				}
 
 				Battle bat = Battles.getBattleByID(client.battleID);
-				if (bat == null) {
-					System.out.println("Serious error occured: Invalid battle ID. Server will now exit!");
-					closeServerAndExit();
-				}
+				verifyBattle(bat);
 
 				// copy temp script to active script:
 				bat.ratifyTempScript();
@@ -3488,10 +3468,7 @@ public class TASServer {
 				}
 
 				Battle bat = Battles.getBattleByID(client.battleID);
-				if (bat == null) {
-					System.out.println("Serious error occured: Invalid battle ID. Server will now exit!");
-					closeServerAndExit();
-				}
+				verifyBattle(bat);
 
 				if (bat.founder != client) {
 					return false;
@@ -3599,10 +3576,7 @@ public class TASServer {
 				}
 
 				Battle bat = Battles.getBattleByID(client.battleID);
-				if (bat == null) {
-					System.out.println("Serious error occured: Invalid battle ID. Server will now exit!");
-					closeServerAndExit();
-				}
+				verifyBattle(bat);
 
 				if (bat.founder != client) {
 					return false;
@@ -3638,8 +3612,12 @@ public class TASServer {
 
 	} // tryToExecCommand()
 
-	/* processes all arguments from string 'args'. Raises an exception in case of errors. */
+	/**
+	 * Processes all command line arguments in 'args'.
+	 * Raises an exception in case of errors.
+	 */
 	public static void processCommandLineArguments(String[] args) throws IOException, Exception {
+
 		// process command line arguments:
 		String s;
 		for (int i = 0; i < args.length; i++) {
@@ -3660,6 +3638,7 @@ public class TASServer {
 						throw new IOException();
 					}
 					DEBUG = (byte) level;
+					// TODO: set logger to use Debugging
 					i++;  // we must skip debug level parameter in the next iteration
 				} else if (s.equals("STATISTICS")) {
 					RECORD_STATISTICS = true;
@@ -3677,12 +3656,12 @@ public class TASServer {
 					lanAdminPassword = Misc.encodePassword(args[i + 2]);
 
 					if (Accounts.isOldUsernameValid(lanAdminUsername) != null) {
-						System.out.println(new StringBuilder("Lan admin username is not valid: ")
+						s_log.warn(new StringBuilder("Lan admin username is not valid: ")
 								.append(Accounts.isOldUsernameValid(lanAdminUsername)).toString());
 						throw new Exception();
 					}
 					if (Accounts.isPasswordValid(lanAdminPassword) != null) {
-						System.out.println(new StringBuilder("Lan admin password is not valid: ")
+						s_log.warn(new StringBuilder("Lan admin password is not valid: ")
 								.append(Accounts.isPasswordValid(lanAdminPassword)).toString());
 						throw new Exception();
 					}
@@ -3695,9 +3674,8 @@ public class TASServer {
 							try {
 								processCommandLineArguments(line.split(" "));
 							} catch (Exception e) {
-								System.out.println(new StringBuilder("Error in reading ")
-										.append(args[i + 1]).append(" (invalid line)").toString());
-								System.out.println(e.getMessage());
+								s_log.error(new StringBuilder("Error in reading ")
+										.append(args[i + 1]).append(" (invalid line)").toString(), e);
 								throw e;
 							}
 						}
@@ -3719,11 +3697,11 @@ public class TASServer {
 					DB_password = args[i + 1];
 					i++; // to skip the argument
 				} else {
-					System.out.println("Invalid commandline argument");
+					s_log.error("Invalid commandline argument");
 					throw new IOException();
 				}
 			} else {
-				System.out.println("Commandline argument does not start with a hyphen");
+				s_log.error("Commandline argument does not start with a hyphen");
 				throw new IOException();
 			}
 		}
@@ -3738,13 +3716,13 @@ public class TASServer {
 			System.out.println("Bad arguments. Usage:");
 			System.out.println("");
 			System.out.println("-PORT [number]");
-			System.out.println("  Server will host on port [number]. If command is omitted,\n" +
-					"  default port will be used.");
+			System.out.println("  Server will host on port [number]. If command is omitted,");
+			System.out.println("  default port will be used.");
 			System.out.println("");
 			System.out.println("-LAN");
-			System.out.println("  Server will run in \"LAN mode\", meaning any user can login as\n" +
-					"  long as he uses unique username (password is ignored).\n" +
-					"  Note: Server will accept users from outside the local network too.");
+			System.out.println("  Server will run in \"LAN mode\", meaning any user can login as");
+			System.out.println("  long as he uses unique username (password is ignored).");
+			System.out.println("  Note: Server will accept users from outside the local network too.");
 			System.out.println("");
 			System.out.println("-DEBUG [number]");
 			System.out.println("  Use 0 for no verbose, 1 for normal and 2 for extensive verbose.");
@@ -3753,46 +3731,46 @@ public class TASServer {
 			System.out.println("  Server will create and save statistics on disk on predefined intervals.");
 			System.out.println("");
 			System.out.println("-NATPORT [number]");
-			System.out.println("  Server will use this port with some NAT traversal techniques. If command is omitted,\n" +
-					"  default port will be used.");
+			System.out.println("  Server will use this port with some NAT traversal techniques. If command is omitted,");
+			System.out.println("  default port will be used.");
 			System.out.println("");
 			System.out.println("-LOGMAIN");
 			System.out.println("  Server will log all conversations from channel #main to MainChanLog.log");
 			System.out.println("");
 			System.out.println("-LANADMIN [username] [password]");
-			System.out.println("  Will override default lan admin account. Use this account to set up your lan server\n");
+			System.out.println("  Will override default lan admin account. Use this account to set up your lan server");
 			System.out.println("  at runtime.");
 			System.out.println("");
 			System.out.println("-LOADARGS [filename]");
-			System.out.println("  Will read command-line arguments from the specified file. You can freely combine actual\n");
-			System.out.println("  command-line arguments with the ones from the file (if duplicate args are specified, the last\n");
+			System.out.println("  Will read command-line arguments from the specified file. You can freely combine actual");
+			System.out.println("  command-line arguments with the ones from the file (if duplicate args are specified, the last");
 			System.out.println("  one will prevail).");
 			System.out.println("");
 			System.out.println("-LATESTSPRINGVERSION [version]");
-			System.out.println("  Will set latest Spring version to this string. By default no value is set (defaults to \"*\").\n");
-			System.out.println("  This is used to tell clients which version is the latest one so that they know when to update.\n");
+			System.out.println("  Will set latest Spring version to this string. By default no value is set (defaults to \"*\").");
+			System.out.println("  This is used to tell clients which version is the latest one so that they know when to update.");
 			System.out.println("");
 			System.out.println("-DBURL [url]");
-			System.out.println("  Will set URL of the database (used only in \"normal mode\", not LAN mode).\n");
+			System.out.println("  Will set URL of the database (used only in \"normal mode\", not LAN mode).");
 			System.out.println("");
 			System.out.println("-DBUSERNAME [username]");
-			System.out.println("  Will set username for the database (used only in \"normal mode\", not LAN mode).\n");
+			System.out.println("  Will set username for the database (used only in \"normal mode\", not LAN mode).");
 			System.out.println("");
 			System.out.println("-DBPASSWORD [password]");
-			System.out.println("  Will set password for the database (used only in \"normal mode\", not LAN mode).\n");
+			System.out.println("  Will set password for the database (used only in \"normal mode\", not LAN mode).");
 			System.out.println("");
 
 			closeServerAndExit();
 		}
 
-		System.out.println(new StringBuilder("TASServer ")
+		s_log.info(new StringBuilder("TASServer ")
 				.append(getAppVersion()).append(" started on ")
 				.append(Misc.easyDateFormat("yyyy.MM.dd 'at' hh:mm:ss z")).toString());
 
 		// switch to lan mode if user accounts information is not present:
 		if (!LAN_MODE) {
 			if (!(new File(ACCOUNTS_INFO_FILEPATH)).exists()) {
-				System.out.println("Accounts info file not found, switching to \"lan mode\" ...");
+				s_log.warn("Accounts info file not found, switching to \"lan mode\" ...");
 				LAN_MODE = true;
 			}
 		}
@@ -3804,10 +3782,10 @@ public class TASServer {
 				closeServerAndExit();
 			}
 			if (!database.testConnection()) {
-				System.out.println("Connection to database could not be established. Shutting down ...");
+				s_log.error("Connection to database could not be established. Shutting down ...");
 				closeServerAndExit();
 			}
-			System.out.println("Connection to database has been established.");
+			s_log.info("Connection to database has been established.");
 		}
 
 		if (!LAN_MODE) {
@@ -3815,7 +3793,7 @@ public class TASServer {
 			BanSystem.fetchLatestBanList();
 			readAgreement();
 		} else {
-			System.out.println("LAN mode enabled");
+			s_log.info("LAN mode enabled");
 		}
 
 		if (RECORD_STATISTICS) {
@@ -3824,9 +3802,9 @@ public class TASServer {
 			if (!file.exists()) {
 				boolean success = (file.mkdir());
 				if (!success) {
-					System.out.println(new StringBuilder("Error: unable to create folder: ").append(STATISTICS_FOLDER).toString());
+					s_log.error(new StringBuilder("Unable to create folder: ").append(STATISTICS_FOLDER).toString());
 				} else {
-					System.out.println(new StringBuilder("Created missing folder: ").append(STATISTICS_FOLDER).toString());
+					s_log.info(new StringBuilder("Created missing folder: ").append(STATISTICS_FOLDER).toString());
 				}
 			}
 		}
@@ -3838,7 +3816,7 @@ public class TASServer {
 						.append(Misc.easyDateFormat("dd/MM/yy")).toString());
 			} catch (Exception e) {
 				LOG_MAIN_CHANNEL = false;
-				System.out.println("$ERROR: Unable to open main channel log file (MainChanLog.log)");
+				s_log.error("Unable to open main channel log file (MainChanLog.log)");
 				e.printStackTrace();
 			}
 		}
@@ -3849,9 +3827,9 @@ public class TASServer {
 			if (!file.exists()) {
 				boolean success = (file.mkdir());
 				if (!success) {
-					System.out.println(new StringBuilder("Error: unable to create folder: ").append(SERVER_NOTIFICATION_FOLDER).toString());
+					s_log.error(new StringBuilder("Unable to create folder: ").append(SERVER_NOTIFICATION_FOLDER).toString());
 				} else {
-					System.out.println(new StringBuilder("Created missing folder: ").append(SERVER_NOTIFICATION_FOLDER).toString());
+					s_log.info(new StringBuilder("Created missing folder: ").append(SERVER_NOTIFICATION_FOLDER).toString());
 				}
 			}
 		}
@@ -3860,15 +3838,15 @@ public class TASServer {
 		upTime = System.currentTimeMillis();
 
 		if (readUpdateProperties(UPDATE_PROPERTIES_FILENAME)) {
-			System.out.println(new StringBuilder("\"Update properties\" read from ").append(UPDATE_PROPERTIES_FILENAME).toString());
+			s_log.info(new StringBuilder("\"Update properties\" read from ").append(UPDATE_PROPERTIES_FILENAME).toString());
 		}
 
 		long tempTime = System.currentTimeMillis();
 		if (!IP2Country.initializeAll(IP2COUNTRY_FILENAME)) {
-			System.out.println("Unable to find or read <IP2Country> file. Skipping ...");
+			s_log.warn("Unable to find or read <IP2Country> file. Skipping ...");
 		} else {
 			tempTime = System.currentTimeMillis() - tempTime;
-			System.out.println(new StringBuilder("<IP2Country> loaded in ")
+			s_log.info(new StringBuilder("<IP2Country> loaded in ")
 					.append(tempTime).append(" ms.").toString());
 		}
 
@@ -3920,7 +3898,7 @@ public class TASServer {
 						continue; // already scheduled for kill
 					}
 					if (now - Clients.getClient(i).timeOfLastReceive > timeoutLength) {
-						System.out.println(new StringBuilder("Timeout detected from ")
+						s_log.warn(new StringBuilder("Timeout detected from ")
 								.append(Clients.getClient(i).account.user).append(" (")
 								.append(Clients.getClient(i).IP).append("). Client has been scheduled for kill ...").toString());
 						Clients.killClientDelayed(Clients.getClient(i), "Quit: timeout");
@@ -3942,8 +3920,8 @@ public class TASServer {
 				InetAddress address = packet.getAddress();
 				int p = packet.getPort();
 				String data = new String(packet.getData(), packet.getOffset(), packet.getLength());
-				if (DEBUG > 1) {
-					System.out.println(new StringBuilder("*** UDP packet received from ")
+				if (s_log.isDebugEnabled()) {
+					s_log.debug(new StringBuilder("*** UDP packet received from ")
 							.append(address.getHostAddress()).append(" from port ")
 							.append(p).toString());
 				}
@@ -4014,6 +3992,6 @@ public class TASServer {
 		sn.addLine("Server has just been stopped gracefully. See server log for more info.");
 		ServerNotifications.addNotification(sn);
 
-		System.out.println("Server closed gracefully!");
+		s_log.info("Server closed gracefully!");
 	}
 }
