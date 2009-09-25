@@ -218,6 +218,8 @@
 package com.springrts.tasserver;
 
 
+import org.apache.commons.logging.*;
+
 import java.util.*;
 import java.io.*;
 import java.net.*;
@@ -268,6 +270,7 @@ public class TASServer {
 	public static boolean initializationFinished = false; // we set this to 'true' just before we enter the main loop. We need this information when saving accounts for example, so that we don't dump empty accounts to disk when an error has occured before initialization has been completed
 	static ArrayList<FailedLoginAttempt> failedLoginAttempts = new ArrayList<FailedLoginAttempt>(); // here we store information on latest failed login attempts. We use it to block users from brute-forcing other accounts
 	static long lastFailedLoginsPurgeTime = System.currentTimeMillis(); // time when we last purged list of failed login attempts
+	private static final Log s_log  = LogFactory.getLog(TASServer.class);
 
 	// database related:
 	private static Properties mavenProperties = null;
@@ -391,7 +394,7 @@ public class TASServer {
 			pomProps = new Properties();
 			pomProps.load(propFileIn);
 		} catch (Exception ex) {
-			// TODO: add logging
+			s_log.warn("Failed reading the Maven properties file", ex);
 			pomProps = null;
 		}
 
@@ -414,7 +417,7 @@ public class TASServer {
 		}
 
 		if (appVersion == null) {
-			// TODO: add logging
+			s_log.warn("Failed getting the Applications version from the Maven properties file");
 		}
 
 		return appVersion;
