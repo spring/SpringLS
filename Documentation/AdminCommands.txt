@@ -5,29 +5,43 @@ Moderator commands:
 
 /ingame <username>
   returns user's in-game time.
+  GETINGAMETIME [username]
+  Returns ingame time of <username>. If username is not specified server will send ingame time of user, who issued this command.
 /kick <username> [{reason}]
+  FORCELEAVECHANNEL channel username [{reason}]
 /topic <channel> {new topic}
+  CHANNELTOPIC channel {topic}
 /chanmsg <channel> {message}
   will display a message in the channel.
+  CHANNELMESSAGE channel {message}
 /ring <username>
   plays a "ring" sound on user's client program.
+  RING username
 /ip <username>
   returns user's IP address.
+  GETIP username
 /mute <channel> <username> [minutes] [ip]
   will mute user for specified time or for indefinite time if "minutes" are not specified.
   Use "ip" (literal keyword, not the IP address) to make mute persistent, that is if user
   will rename his account or register a new one, mute will still affect him (based on his IP)
+  MUTE channel username [minutes] [IP]
+  Mutes user <username> in channel <channel> for <minutes> minutes (indefinite time if omitted). If "IP" is specified, mutes user by ip.
 /unmute <channel> <username>
+  will unmute a user
+  UNMUTE channel username
 /mutelist <channel>
-  this command is available to normal users as well.
+  this command is available to normal users as well (and is documented in protocol description).
 /lastlogin <username>
   will return user's last login date/time
+  GETLASTLOGINTIME username
 /findip <ipaddress>
   will return a list of clients that are currently using this IP or were recently using it.
   You can use '*' for each field as well, e.g. "192.168.*.*" to search for any IPs that
   start with "192.168...".
+  FINDIP ip
 /lastip <username>
   will return last IP address used by the user (or current one if still online)
+  GETLASTIP username
  
 ---------------------------------------------------------------------
 Administrator commands:
