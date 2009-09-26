@@ -3,22 +3,21 @@
 
 .PHONY: all clean distclean start stop
 
-# Compile all .java files into .class files, then put them in the .jar file.
+# Compile and package the project.
 all:
-	javac *.java
-	@echo All Done!
+	mvn package
 
 clean:
 
 # Remove all generated .class files.
 distclean:
-	rm -f *.class
+	mvn clean
 
 # Start the server in the background.
 start:
 	umask 077 && \
-		java -Xms256m -Xmx256m -classpath .:/usr/share/java/mysql-connector-java.jar \
-		TASServer -lan -debug 2 -loadargs lanadmin.txt \
+		java -Xms256m -Xmx256m -classpath /usr/share/java/mysql-connector-java.jar \
+		-jar target/tasserver*.jar -lan -debug 2 -loadargs lanadmin.txt \
 		| grep -v -E '^(\[<-.*\] "PING"$$)|(\[->.*\])' \
 		| ([ -z "`which cronolog`" ] && cat || cronolog 'logs/%Y%m%d.log') &
 
