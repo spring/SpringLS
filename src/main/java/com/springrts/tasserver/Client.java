@@ -27,6 +27,7 @@ public class Client {
 	public int battleStatus; // see MYBATTLESTATUS command for actual values of battleStatus
 	public int teamColor; // see MYBATTLESTATUS for info on this one
 	public int battleID; // battle ID in which client is participating. Must be -1 if not participating in any battle.
+	public int requestedBattleID; // battle ID which client is requesting to join. Must be -1 if not requesting to join any battle.
 	public List<Channel> channels = new ArrayList<Channel>(); // list of channels user is participating in
 
 	public SocketChannel sockChan;
@@ -43,6 +44,7 @@ public class Client {
 	public long dataOverLastTimePeriod = 0; // how many bytes did client send over last recvRecordPeriod seconds. This is used with anti-flood protection.
 	public long timeOfLastReceive; // time (System.currentTimeMillis()) when we last heard from client (last data received)
 	public boolean acceptAccountIDs; // does the client accept accountIDs in ADDUSER command ?
+	public boolean handleBattleJoinAuthorization; // does the client accept JOINBATTLEREQUEST command ?
 
 	public Client(SocketChannel sockChan) {
 		alive = true;
@@ -70,6 +72,7 @@ public class Client {
 		teamColor = 0;
 		inGameTime = 0;
 		battleID = -1;
+		requestedBattleID = -1;
 		cpu = 0;
 
 		timeOfLastReceive = System.currentTimeMillis();

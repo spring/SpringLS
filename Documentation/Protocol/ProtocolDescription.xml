@@ -314,8 +314,10 @@
         optional functionalities that break backward compatibility. Each character of the
         compFlags parameter indicates a specific functionality (like IRC user/channel flags).
         By default, all the optional functionalities are considered as not supported by the client.
-        Currently there is only one compatibility flag:<br />
-        'a': client supports accountIDs sent in <clink name="ADDUSER"/> command
+        Currently there are two compatibility flags:<br />
+        'a': client supports accountIDs sent in <clink name="ADDUSER"/> command<br />
+        'b': client supports battle authorization system (<clink name="JOINBATTLEREQUEST"/>, 
+        <clink name="JOINBATTLEACCEPT"/> and <clink name="JOINBATTLEDENY"/> commands)
         </Argument>
       </Arguments>
       <Description>
@@ -333,6 +335,7 @@
         <Example>LOGIN Johnny Gnmk1g3mcY6OWzJuM4rlMw== 3200 192.168.1.100 TASClient 0.30</Example>
         <Example>LOGIN Johnny Gnmk1g3mcY6OWzJuM4rlMw== 3200 * TASClient 0.30</Example>
         <Example>LOGIN Johnny Gnmk1g3mcY6OWzJuM4rlMw== 3200 * TASClient 0.30	FA23BB4A</Example>
+        <Example>LOGIN Johnny Gnmk1g3mcY6OWzJuM4rlMw== 3200 * TASClient 0.30	0	ab</Example>
       </Examples>
     </Command>
 
@@ -1000,6 +1003,43 @@
       Sent by server telling the client that he has just joined the battle successfully.
       Server will also send a series of CLIENTBATTLESTATUS commands after this command,
       so that user will get the battle statuses of all the clients in the battle.
+      </Description>
+    </Command>
+
+    <Command Name="JOINBATTLEREQUEST" Source="server">
+      <Arguments>
+        <Argument Name="username" Optional="no" Sentence="no"/>
+        <Argument Name="ip" Optional="no" Sentence="no" />
+      </Arguments>
+      <Description>
+      Sent by server to battle founder each time a client requests to join his battle, if the
+      battle founder supports battle authorization system (i.e. he provided the battle
+      authorization compatibility flag ('b') in the <clink name="LOGIN"/> command.).
+      </Description>
+      <Response>
+      When client receives this command, he must send either a JOINBATTLEACCEPT or a JOINBATTLEDENY
+      command to the server.
+      </Response>
+    </Command>
+
+    <Command Name="JOINBATTLEACCEPT" Source="client">
+      <Arguments>
+        <Argument Name="username" Optional="no" Sentence="no"/>
+      </Arguments>
+      <Description>
+      Sent by client in response to a JOINBATTLEREQUEST command in order to allow
+      the user to join the battle.
+      </Description>
+    </Command>
+
+    <Command Name="JOINBATTLEDENY" Source="client">
+      <Arguments>
+        <Argument Name="username" Optional="no" Sentence="no"/>
+        <Argument Name="reason" Optional="yes" Sentence="yes"/>
+      </Arguments>
+      <Description>
+      Sent by client in response to a JOINBATTLEREQUEST command in order to prevent
+      the user from joining the battle.
       </Description>
     </Command>
 
