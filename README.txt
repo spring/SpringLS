@@ -1,5 +1,39 @@
- Running the server
-------------------------
+This repository contains three java applications:
+* TASServer           : a spring lobby server
+* ChanServ            : a spring lobby bot
+* TransferOldAccounts : small helper application for migration
+                        (only really interesting for the online server admins)
+
+The rest of this Readme is about TASServer only
+
+
+ Building
+-----------
+
+Maven is used as the project management system.
+The project description file is pom.xml, which contains everything
+Maven needs to know about the project, in order to:
+* Download dependencies
+* Compile the sources
+* Pack the class files together with all the dependencies into a single,
+  executable Jar file
+
+build steps:
+1. Make sure you have Maven 2 installed. You can check that with the following command:
+mvn --version
+2. compile and package TASServer:
+mvn package
+This may take wuite some time, if you are runnig Maven for the first time,
+as it has to downlaod all the dependencies for the different build steps,
+plus the dependencies of TASServer.
+3. If everything went smoothly, this was it already!
+All the output of the build process is under the target/ subdir.
+This is also where you find the final jar file:
+target/tasserver*.jar
+
+
+ Running
+---------
 
 If you are running it under Linux (.jar file), run it from the console:
 java -jar TASServer.jar
@@ -31,7 +65,7 @@ http://java.sun.com/j2se/1.5.0/download.jsp
 
 
  Command line arguments
-----------------------------
+------------------------
 
 -PORT [number]
   Server will host on port [number]. If command is omitted,
@@ -73,7 +107,7 @@ Example of usage (main lobby server uses these arguments):
 java TASServer -DEBUG 1 -natport 8201 -logmain -port 8200 | tee ./logs/TASServer.log
 
  Running server in normal mode
------------------------------------
+-------------------------------
 For LAN mode, this section is not relevant.
 
 When you want to run normal server, some external .jar files have to be added
