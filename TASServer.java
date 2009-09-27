@@ -660,6 +660,33 @@ public class TASServer {
 		return true;
 	}
 
+	public static void notifyClientJoinedBattle(Client client, Battle bat) {
+		// This non-object oriented function is ugly, but Client and Battle classes are made in such a way that
+		// they do not handle players notifications, which is made in TASServer class...
+		
+		// do the actually joining and notifying:
+		client.battleStatus = 0; // reset client's battle status
+		client.battleID = bat.ID;
+		client.requestedBattleID = -1;
+		bat.addClient(client);
+	 	client.sendLine("JOINBATTLE " + bat.ID + " " + bat.hashCode); // notify client that he has successfully joined the battle
+		Clients.notifyClientsOfNewClientInBattle(bat, client);
+		bat.notifyOfBattleStatuses(client);
+		bat.sendBotListToClient(client);
+		// tell host about this client's IP and UDP source port (if battle is hosted using one of the NAT traversal techniques):
+		if ((bat.natType == 1) || (bat.natType == 2)) {
+			// make sure that clients behind NAT get local IPs and not external ones:
+			bat.founder.sendLine("CLIENTIPPORT " + client.account.user + " " + (bat.founder.IP.equals(client.IP) ? client.localIP : client.IP) + " " + client.UDPSourcePort);
+		}
+
+		client.sendLine("REQUESTBATTLESTATUS");
+		bat.sendDisabledUnitsListToClient(client);
+		bat.sendStartRectsListToClient(client);
+		bat.sendScriptTagsToClient(client);
+
+		if (bat.type == 1) bat.sendScriptToClient(client);
+	}
+	
 	/* Note: this method is not synchronized!
 	 * Note2: this method may be called recursively! */
 	public static boolean tryToExecCommand(String command, Client client) {
@@ -1680,11 +1707,19 @@ public class TASServer {
 					client.sendLine("DENIED <userID> field should be an integer");
 					return false;
 				}
-				if(args2.length > 2 && args2[2].indexOf('a') >= 0) {
+				if(args2.length > 2) {
+					if(args2[2].indexOf('a') >= 0) {
 					client.acceptAccountIDs=true;
 				}else{
 					client.acceptAccountIDs=false;
 				}
+					if(args2[2].indexOf('b') >= 0) {
+						client.handleBattleJoinAuthorization=true;
+					}else{
+						client.handleBattleJoinAuthorization=false;
+					}
+				}
+					
 
 				int cpu;
 				try {
@@ -2060,27 +2095,41 @@ public class TASServer {
 					return false;
 				}
 
-				// do the actually joining and notifying:
-				client.battleStatus = 0; // reset client's battle status
-				client.battleID = battleID;
-				bat.addClient(client);
-			 	client.sendLine("JOINBATTLE " + bat.ID + " " + bat.hashCode); // notify client that he has successfully joined the battle
-				Clients.notifyClientsOfNewClientInBattle(bat, client);
-				bat.notifyOfBattleStatuses(client);
-				bat.sendBotListToClient(client);
-				// tell host about this client's IP and UDP source port (if battle is hosted using one of the NAT traversal techniques):
-				if ((bat.natType == 1) || (bat.natType == 2)) {
-					// make sure that clients behind NAT get local IPs and not external ones:
-					bat.founder.sendLine("CLIENTIPPORT " + client.account.user + " " + (bat.founder.IP.equals(client.IP) ? client.localIP : client.IP) + " " + client.UDPSourcePort);
+				if(bat.founder.handleBattleJoinAuthorization) {
+					client.requestedBattleID=battleID;
+					bat.founder.sendLine("JOINBATTLEREQUEST " + client.account.user + " " + (bat.founder.IP.equals(client.IP) ? client.localIP : client.IP));
+				}else{
+					notifyClientJoinedBattle(client,bat);
 				}
 
-				client.sendLine("REQUESTBATTLESTATUS");
-				bat.sendDisabledUnitsListToClient(client);
-				bat.sendStartRectsListToClient(client);
-				bat.sendScriptTagsToClient(client);
-
-				if (bat.type == 1) bat.sendScriptToClient(client);
-
+			}
+			else if (commands[0].equals("JOINBATTLEACCEPT")) {
+				if (commands.length != 2) return false;
+				if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
+				if (client.battleID == -1) return false;
+				Battle bat = Battles.getBattleByID(client.battleID);
+				if (bat == null) return false;
+				if (bat.founder != client) return false; // only founder can accept battle join
+				Client joiningClient = Clients.getClient(commands[1]);
+				if (joiningClient == null) return false;
+				if (joiningClient.requestedBattleID !=  client.battleID) return false;
+				notifyClientJoinedBattle(joiningClient,bat);
+			}
+			else if (commands[0].equals("JOINBATTLEDENY")) {
+				if (commands.length < 2) return false;
+				if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
+				if (client.battleID == -1) return false;
+				Battle bat = Battles.getBattleByID(client.battleID);
+				if (bat == null) return false;
+				if (bat.founder != client) return false; // only founder can deny battle join
+				Client joiningClient = Clients.getClient(commands[1]);
+				if (joiningClient == null) return false;
+				if (joiningClient.requestedBattleID !=  client.battleID) return false;
+				joiningClient.requestedBattleID = -1;
+				String reason="";
+				if(commands.length > 2)
+					reason = " - " + Misc.makeSentence(commands, 2);
+				joiningClient.sendLine("JOINBATTLEFAILED Denied by battle founder" +  reason);
 			}
 			else if (commands[0].equals("LEAVEBATTLE")) {
 				if (commands.length != 1) return false;
@@ -2108,6 +2157,7 @@ public class TASServer {
 				Battles.addBattle(bat);
 				client.battleStatus = 0; // reset client's battle status
 				client.battleID = bat.ID;
+				client.requestedBattleID = -1;
 
 				boolean local;
 				for (int i = 0; i < Clients.getClientsSize(); i++) {
