@@ -5,6 +5,9 @@
 package com.springrts.tasserver;
 
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import java.io.*;
 import java.util.*;
 
@@ -27,6 +30,8 @@ import java.util.*;
  * @author Betalord
  */
 public class UpdateIP2CountryThread extends Thread {
+
+	private static final Log s_log  = LogFactory.getLog(UpdateIP2CountryThread.class);
 
 	private static boolean inProgress; // true if updating is already in progress
 	private static final int DOWNLOAD_LIMIT = 1024 * 128; // in bytes per second. This is the maximum speed at which this thread will attempt to download files from the internet
@@ -156,7 +161,7 @@ public class UpdateIP2CountryThread extends Thread {
 			sn.addLine(countries.size() + " countries mentioned in merged IP2Country database");
 			ServerNotifications.addNotification(sn);
 
-			System.out.println("IP2Country has just been successfully updated.");
+			s_log.info("IP2Country has just been successfully updated.");
 		} catch (Exception e) {
 			ServerNotification sn = new ServerNotification("Unable to update IP2Country database");
 			sn.addLine("Attempt to update from online IP2Country database failed. Stack trace: ");

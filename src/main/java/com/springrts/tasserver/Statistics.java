@@ -5,6 +5,9 @@
 package com.springrts.tasserver;
 
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import java.util.*;
 import java.text.*;
 import java.io.BufferedReader;
@@ -31,6 +34,8 @@ import java.io.IOException;
  */
 public class Statistics {
 
+	private static final Log s_log  = LogFactory.getLog(Statistics.class);
+
 	public static long lastStatisticsUpdate = System.currentTimeMillis(); // time (System.currentTimeMillis()) when we last updated statistics
 
 	/**
@@ -48,10 +53,9 @@ public class Statistics {
 			}
 			Statistics.createAggregateFile(); // to simplify parsing
 			Statistics.generatePloticusImages();
-			System.out.println("*** Statistics saved to disk. Time taken: " + taken + " ms.");
+			s_log.info("*** Statistics saved to disk. Time taken: " + taken + " ms.");
 		} catch (Exception e) {
-			System.out.println("*** Error while saving statistics... Stack trace:");
-			e.printStackTrace();
+			s_log.error("*** Failed saving statistics... Stack trace:", e);
 			return -1;
 		}
 		return new Long(taken).intValue();
@@ -95,11 +99,11 @@ public class Statistics {
 					.append(topMods).append("\r\n").toString());
 			out.close();
 		} catch (IOException e) {
-			System.out.println("Error: unable to access file <" + fname + ">. Skipping ...");
+			s_log.error("Unable to access file <" + fname + ">. Skipping ...", e);
 			return -1;
 		}
 
-		System.out.println("Statistics has been updated to disk ...");
+		s_log.info("Statistics has been updated to disk ...");
 
 		return System.currentTimeMillis() - startTime;
 	}
@@ -123,19 +127,19 @@ public class Statistics {
 				temp.setTime(today.getTime() - (i - 1) * 1000 * 60 * 60 * 24);
 				try {
 					BufferedReader in = new BufferedReader(new FileReader(TASServer.STATISTICS_FOLDER + formatter.format(temp) + ".dat"));
-					//***System.out.println("--- Found: <" + TASServer.STATISTICS_FOLDER + formatter.format(temp) + ".dat>");
+					//***s_log.info("--- Found: <" + TASServer.STATISTICS_FOLDER + formatter.format(temp) + ".dat>");
 					while ((line = in.readLine()) != null) {
 						out.write(new StringBuilder(formatter.format(temp)).append(" ").append(line).append("\r\n").toString());
 					}
 				} catch (IOException e) {
 					// just skip the file ...
-					//***System.out.println("--- Skipped: <" + TASServer.STATISTICS_FOLDER + formatter.format(temp) + ".dat>");
+					//***s_log.error("--- Skipped: <" + TASServer.STATISTICS_FOLDER + formatter.format(temp) + ".dat>", e);
 				}
 			}
 
 			out.close();
 		} catch (Exception e) {
-			System.out.println("Error: unable to access file <" + fname + ">. Skipping ...");
+			s_log.error("Unable to access file <" + fname + ">. Skipping ...", e);
 			return false;
 		}
 
@@ -212,8 +216,7 @@ public class Statistics {
 			Runtime.getRuntime().exec(cmds).waitFor();
 
 		} catch (Exception e) {
-			System.out.println("*** Error while generating ploticus charts!");
-			e.printStackTrace(); //*** DEBUG
+			s_log.error("*** Failed generating ploticus charts!", e);
 			return false;
 		}
 
@@ -315,8 +318,7 @@ public class Statistics {
 				}
 			}
 		} catch (Exception e) {
-			System.out.println("*** Error in getPopularModsList(). Skipping ...");
-			e.printStackTrace(); //*** DEBUG
+			s_log.error("*** Error in getPopularModsList(). Skipping ...", e);
 			return "0";
 		}
 

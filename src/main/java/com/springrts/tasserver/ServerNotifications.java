@@ -5,6 +5,9 @@
 package com.springrts.tasserver;
 
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import java.io.*;
 
 /**
@@ -12,6 +15,7 @@ import java.io.*;
  */
 public class ServerNotifications {
 
+	private static final Log s_log  = LogFactory.getLog(ServerNotifications.class);
 	public static final String NOTIFICATION_SYSTEM_VERSION = "1.0"; // this will also get saved with notifications just in case format of notification files change in the future
 
 	// note that this method may be called from multiple threads simultaneously (don't remove the 'synchronized' identifier!)
@@ -35,7 +39,7 @@ public class ServerNotifications {
 			out.write(sn.message);
 			out.close();
 		} catch (IOException e) {
-			System.out.println("Error: unable to write file <" + fname + ">. Server notification will not be saved!");
+			s_log.error("Unable to write file <" + fname + ">. Server notification will not be saved!");
 			Clients.sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Serious problem: Unable to save server notification (notification dropped).");
 			return false;
 		}

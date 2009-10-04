@@ -5,6 +5,9 @@
 package com.springrts.tasserver;
 
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import java.util.*;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -17,13 +20,15 @@ import java.sql.Statement;
  */
 public class BanSystem {
 
+	private static final Log s_log  = LogFactory.getLog(BanSystem.class);
+
 	private static ArrayList<BanEntry> banEntries = new ArrayList<BanEntry>();
 
 	/**
 	 * Will retrieve latest ban entries from the database
 	 */
 	public static void fetchLatestBanList() {
-		System.out.println("Trying to update ban list ...");
+		s_log.info("Trying to update ban list ...");
 
 		banEntries.clear();
 
@@ -53,15 +58,14 @@ public class BanSystem {
 			}
 
 		} catch (SQLException e) {
-			System.out.println("Error reading ResultSet while reading ban entries!");
-			TASServer.database.printSQLException(e);
-			System.out.println("Error while trying to update ban list!");
-			return ;
+			s_log.error("Failed reading ResultSet while reading ban entries!", e);
+			DBInterface.logSQLException(s_log, e);
+			s_log.error("Error while trying to update ban list!");
+			return;
 		} catch (Exception e) {
 			Clients.sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Serious problem detected: error while trying to access the database.");
-			System.out.println("Error reading ResultSet while reading ban entries! Error message: " + e.getMessage());
-			e.printStackTrace(); //*** DEBUG
-			return ;
+			s_log.error("Failed reading ResultSet while reading ban entries!", e);
+			return;
 		} finally {
 			// always return connection back to pool, no matter what!
 			try { rset.close(); } catch(Exception e) { }
@@ -69,7 +73,7 @@ public class BanSystem {
 			try { conn.close(); } catch(Exception e) { }
 		}
 
-		System.out.println("Ban list successfully updated.");
+		s_log.info("Ban list successfully updated.");
 	}
 
 	/**

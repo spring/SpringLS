@@ -5,6 +5,9 @@
 package com.springrts.tasserver;
 
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import java.io.IOException;
 import java.nio.channels.*;
 import java.util.*;
@@ -13,6 +16,8 @@ import java.util.*;
  * @author Betalord
  */
 public class Clients {
+
+	private static final Log s_log  = LogFactory.getLog(Clients.class);
 
 	static private ArrayList<Client> clients = new ArrayList<Client>();
 
@@ -243,7 +248,7 @@ public class Clients {
 		if (client.battleID != -1) {
 			Battle bat = Battles.getBattleByID(client.battleID);
 			if (bat == null) {
-				System.out.println("Serious error occured: Invalid battle ID. Server will now exit!");
+				s_log.fatal("Invalid battle ID. Server will now exit!");
 				TASServer.closeServerAndExit();
 			}
 			Battles.leaveBattle(client, bat); // automatically checks if client is founder and closes the battle
@@ -251,12 +256,12 @@ public class Clients {
 
 		if (client.account.accessLevel() != Account.NIL_ACCESS) {
 			sendToAllRegisteredUsers("REMOVEUSER %s" + client.account.user);
-			if (TASServer.DEBUG > 0) {
-				System.out.println("Registered user killed: " + client.account.user);
+			if (s_log.isDebugEnabled()) {
+				s_log.debug("Registered user killed: " + client.account.user);
 			}
 		} else {
-			if (TASServer.DEBUG > 0) {
-				System.out.println("Unregistered user killed");
+			if (s_log.isDebugEnabled()) {
+				s_log.debug("Unregistered user killed");
 			}
 		}
 

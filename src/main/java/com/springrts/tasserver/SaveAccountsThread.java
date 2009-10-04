@@ -5,6 +5,9 @@
 package com.springrts.tasserver;
 
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -28,6 +31,8 @@ import java.util.*;
  */
 public class SaveAccountsThread extends Thread {
 
+	private static final Log s_log  = LogFactory.getLog(SaveAccountsThread.class);
+
 	private List dupAccounts; // duplicated accounts. Needed to ensure thread safety as well as accounts state consistency
 
 	public SaveAccountsThread(List dupAccounts) {
@@ -36,7 +41,8 @@ public class SaveAccountsThread extends Thread {
 
 	@Override
 	public void run() {
-		System.out.println("Dumping accounts to disk in a separate thread ...");
+
+		s_log.info("Dumping accounts to disk in a separate thread ...");
 		long time = System.currentTimeMillis();
 
 		try {
@@ -48,7 +54,7 @@ public class SaveAccountsThread extends Thread {
 
 			out.close();
 		} catch (IOException e) {
-			System.out.println("IOException error while trying to write accounts info to " + TASServer.ACCOUNTS_INFO_FILEPATH + "!");
+			s_log.error("Failed writing accounts info to " + TASServer.ACCOUNTS_INFO_FILEPATH + "!", e);
 
 			// add server notification:
 			ServerNotification sn = new ServerNotification("Error saving accounts");
@@ -58,7 +64,7 @@ public class SaveAccountsThread extends Thread {
 			return;
 		}
 
-		System.out.println(dupAccounts.size() + " accounts information written to " + TASServer.ACCOUNTS_INFO_FILEPATH + " successfully (" + (System.currentTimeMillis() - time) + " ms).");
+		s_log.info(dupAccounts.size() + " accounts information written to " + TASServer.ACCOUNTS_INFO_FILEPATH + " successfully (" + (System.currentTimeMillis() - time) + " ms).");
 
 		// let garbage collector free the duplicate accounts list:
 		dupAccounts = null;

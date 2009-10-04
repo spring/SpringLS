@@ -5,6 +5,9 @@
 package com.springrts.tasserver;
 
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -14,6 +17,8 @@ import java.util.*;
  * @author Betalord
  */
 public class Accounts {
+
+	private static final Log s_log  = LogFactory.getLog(Accounts.class);
 
 	// note: ArrayList is not synchronized! Use Vector class instead if multiple threads are going to access it
 	private static List<Account> accounts = new ArrayList<Account>();
@@ -74,11 +79,11 @@ public class Accounts {
 
 		} catch (IOException e) {
 			// catch possible io errors from readLine()
-			System.out.println("IOException error while trying to update accounts info from " + TASServer.ACCOUNTS_INFO_FILEPATH + "! Skipping ...");
+			s_log.error("Failed updating accounts info from " + TASServer.ACCOUNTS_INFO_FILEPATH + "! Skipping ...", e);
 			return false;
 		}
 
-		System.out.println(accounts.size() + " accounts information read from " + TASServer.ACCOUNTS_INFO_FILEPATH + " (" + (System.currentTimeMillis() - time) + " ms)");
+		s_log.info(accounts.size() + " accounts information read from " + TASServer.ACCOUNTS_INFO_FILEPATH + " (" + (System.currentTimeMillis() - time) + " ms)");
 
 		return true;
 	}

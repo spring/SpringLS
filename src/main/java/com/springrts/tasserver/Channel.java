@@ -5,12 +5,17 @@
 package com.springrts.tasserver;
 
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import java.util.ArrayList;
 
 /**
  * @author Betalord
  */
 public class Channel {
+
+	private static final Log s_log  = LogFactory.getLog(Channel.class);
 
 	public String name;
 	private String topic; // "" represents no topic (topic is disabled for this channel)
@@ -54,15 +59,20 @@ public class Channel {
 		topic = newTopic.trim();
 		topicAuthor = author;
 		topicChangedTime = System.currentTimeMillis();
-		if (TASServer.DEBUG > 1) {
-			System.out.println("* Topic for #" + name + " changed to '" + topic + "' (set by <" + author + ">)");
+		if (s_log.isDebugEnabled()) {
+			s_log.debug("* Topic for #" + name + " changed to '" + topic + "' (set by <" + author + ">)");
 		}
 		return true;
 	}
 
-	/* sends msg as a channel message to all clients on this channel */
+	/** Sends msg as a channel message to all clients on this channel */
 	public void broadcast(String msg) {
-		if (msg.trim().equals("")) return ; // no message
+
+		if (msg.trim().equals("")) {
+			// do nto send any message
+			return;
+		}
+
 		sendLineToClients("CHANNELMESSAGE " + name + " " + msg);
 	}
 
@@ -70,9 +80,13 @@ public class Channel {
 		return !(topic.equals(""));
 	}
 
-	/* adds new client to the list of clients of this channel */
+	/** Adds new client to the list of clients of this channel */
 	public void addClient(Client client) {
-		if (isClientInThisChannel(client)) return ; // already in the channel!
+
+		if (isClientInThisChannel(client)) {
+			// already in the channel!
+			return;
+		}
 
 		clients.add(client);
 	}
@@ -85,12 +99,12 @@ public class Channel {
 		return (clients.indexOf(client) != -1);
 	}
 
-	/* returns number of clients in this channel */
+	/** Returns number of clients in this channel */
 	public int getClientsSize() {
 		return clients.size();
 	}
 
-	/*  returns null if index if out of bounds */
+	/** Returns null if index if out of bounds */
 	public Client getClient(int index) {
 		try {
 			return clients.get(index);
@@ -99,7 +113,7 @@ public class Channel {
 		}
 	}
 
-	/* sends s to all clients in this channel */
+	/** Sends a text to all clients in this channel */
 	public void sendLineToClients(String s) {
 		if (name.toUpperCase().equals("MAIN")) if (TASServer.LOG_MAIN_CHANNEL) {
 			TASServer.writeMainChanLog(s);

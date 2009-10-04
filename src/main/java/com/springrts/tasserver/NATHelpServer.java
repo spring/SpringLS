@@ -5,6 +5,9 @@
 package com.springrts.tasserver;
 
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -16,6 +19,8 @@ import java.util.*;
  * @author Betalord
  */
 public class NATHelpServer extends Thread {
+
+	private static final Log s_log  = LogFactory.getLog(NATHelpServer.class);
 
 	private DatagramSocket socket = null;
 	private int port;
@@ -30,11 +35,11 @@ public class NATHelpServer extends Thread {
 		try {
 			socket = new DatagramSocket(port);
 		} catch (Exception e) {
-			System.out.println("Unable to start UDP server on port " + port + ". Ignoring ...");
+			s_log.warn("Unable to start UDP server on port " + port + ". Ignoring ...", e);
 			return;
 		}
 
-		System.out.println("UDP server started on port " + port);
+		s_log.info("UDP server started on port " + port);
 
 		while (true) {
 			try {
@@ -53,14 +58,13 @@ public class NATHelpServer extends Thread {
 				if (e.getMessage().equalsIgnoreCase("socket closed")) {
 					// server stopped gracefully!
 				} else {
-					System.out.println("ERROR in UDP server. Stack trace:");
-					e.printStackTrace();
+					s_log.error("Error in UDP server", e);
 				}
 			}
 		}
 
 		socket.close();
-		System.out.println("UDP NAT server closed.");
+		s_log.info("UDP NAT server closed.");
 	}
 
 	public void stopServer() {

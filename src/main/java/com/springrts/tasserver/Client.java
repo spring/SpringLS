@@ -5,6 +5,9 @@
 package com.springrts.tasserver;
 
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import java.io.IOException;
 import java.nio.*;
 import java.nio.channels.*;
@@ -15,6 +18,8 @@ import java.util.*;
  * @author Betalord
  */
 public class Client {
+
+	private static final Log s_log  = LogFactory.getLog(Client.class);
 
 	public boolean alive = false; // if false, then this client is not "valid" anymore (we already killed him and closed his socket).
 	public boolean halfDead = false; // when we schedule client for kill (via Clients.killClientDelayed, for example) this flag is set to true. When true, we don't read or send any data to this client.
@@ -58,7 +63,7 @@ public class Client {
 			if (newIP != null) {
 				IP = newIP;
 			} else {
-				System.out.println("Could not resolve local IP address. User may have problems \n" +
+				s_log.warn("Could not resolve local IP address. User may have problems \n" +
 								   "with hosting battles.");
 			}
 		}
@@ -144,11 +149,11 @@ public class Client {
 			return true;
 		}
 
-		if (TASServer.DEBUG > 1) {
+		if (s_log.isDebugEnabled()) {
 			if (account.accessLevel() != Account.NIL_ACCESS) {
-				System.out.println("[->" + account.user + "]" + " \"" + text + "\"");
+				s_log.debug("[->" + account.user + "]" + " \"" + text + "\"");
 			} else {
-				System.out.println("[->" + IP + "]" + " \"" + text + "\"");
+				s_log.debug("[->" + IP + "]" + " \"" + text + "\"");
 			}
 		}
 
@@ -158,7 +163,7 @@ public class Client {
 			String data = text + Misc.EOL;
 
 			if ((sockChan == null) || (!sockChan.isConnected())) {
-				System.out.println("WARNING: SocketChannel is not ready to be written to. Killing the client next loop ...");
+				s_log.warn("SocketChannel is not ready to be written to. Killing the client next loop ...");
 				Clients.killClientDelayed(this, "Quit: undefined connection error");
 				return false;
 			}
@@ -167,7 +172,7 @@ public class Client {
 			try{
 				buf = TASServer.asciiEncoder.encode(CharBuffer.wrap(data));
 			} catch (CharacterCodingException e) {
-				System.out.println("WARNING: Unable to encode message. Killing the client next loop ...");
+				s_log.warn("Unable to encode message. Killing the client next loop ...", e);
 				Clients.killClientDelayed(this, "Quit: undefined encoder error");
 				return false;
 			}
@@ -182,9 +187,8 @@ public class Client {
 				}
 			}
 		} catch (Exception e) {
-			System.out.println("Error sending data (undefined). Killing the client next loop ...");
+			s_log.error("Failed sending data (undefined). Killing the client next loop ...", e);
 			Clients.killClientDelayed(this, "Quit: undefined connection error");
-			e.printStackTrace(); //*** DEBUG
 			return false;
 		}
 		return true;
@@ -201,14 +205,14 @@ public class Client {
 	/** Should only be called by Clients.killClient() method! */
 	public void disconnect() {
 		if (!alive) {
-			System.out.println("PROBLEM DETECTED: disconnecting dead client. Skipping ...");
+			s_log.error("PROBLEM DETECTED: disconnecting dead client. Skipping ...");
 			return ;
 		}
 
 		try {
 			sockChan.close();
 		} catch (Exception e) {
-			System.out.println("Error: cannot disconnect socket!");
+			s_log.error("Failed disconnecting socket!");
 		}
 
 		sockChan = null;
@@ -342,7 +346,7 @@ public class Client {
 	public void beginFastWrite() {
 
 		if (fastWrite != null) {
-			System.out.println("Serious error detected: invalid use of beginFastWrite(). Check your code! Shutting down the server ...");
+			s_log.fatal("Invalid use of beginFastWrite(). Check your code! Shutting down the server ...");
 			TASServer.closeServerAndExit();
 		}
 
@@ -352,7 +356,7 @@ public class Client {
 	public void endFastWrite() {
 
 		if (fastWrite == null) {
-			System.out.println("Serious error detected: invalid use of endFastWrite(). Check your code! Shutting down the server ...");
+			s_log.fatal("Invalid use of endFastWrite(). Check your code! Shutting down the server ...");
 			TASServer.closeServerAndExit();
 		}
 

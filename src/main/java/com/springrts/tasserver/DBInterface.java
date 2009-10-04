@@ -7,6 +7,8 @@ package com.springrts.tasserver;
 
 import java.sql.*;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.commons.pool.*;
 import org.apache.commons.pool.impl.GenericObjectPool;
 import org.apache.commons.dbcp.*;
@@ -23,6 +25,8 @@ import org.apache.commons.dbcp.*;
  * http://commons.apache.org/pool/apidocs/org/apache/commons/pool/impl/GenericObjectPool.Config.html
  */
 public class DBInterface {
+
+	private static final Log s_log  = LogFactory.getLog(DBInterface.class);
 
 	// database information:
 	private String url;
@@ -47,9 +51,9 @@ public class DBInterface {
 			// broken Java implementations
 
 			Class.forName("com.mysql.jdbc.Driver").newInstance();
-			System.out.println("JDBC driver loaded.");
+			s_log.info("JDBC driver loaded.");
 		} catch (Exception e) {
-			System.out.println("JDBC driver not found!");
+			s_log.error("JDBC driver not found", e);
 			return false;
 		}
 
@@ -97,8 +101,7 @@ public class DBInterface {
 			Class.forName("org.apache.commons.dbcp.PoolingDriver");
 			driver = (PoolingDriver) DriverManager.getDriver("jdbc:apache:commons:dbcp:");
 		} catch (Exception e) {
-			System.out.println("Unable to connect to database!");
-			e.printStackTrace();
+			s_log.error("Unable to connect to database", e);
 			return false;
 		}
 
@@ -112,7 +115,7 @@ public class DBInterface {
 		// to access our pool of Connections.
 		//
 
-		System.out.println("Database interface has been initialized successfully.");
+		s_log.info("Database interface has been initialized successfully.");
 		return true;
 	}
 
@@ -131,7 +134,7 @@ public class DBInterface {
 		} catch (Exception e) {
 			Throwable t = e;
 			while (t != null) {
-				System.out.println(t.getMessage());
+				s_log.warn(t.getMessage());
 				t = t.getCause();
 			}
 			return false;
@@ -145,26 +148,26 @@ public class DBInterface {
 		return true;
 	}
 
-	public void printSQLException(SQLException e) {
-		System.out.println("SQLException: " + e.getMessage());
-		System.out.println("SQLState: " + e.getSQLState());
-		System.out.println("VendorError: " + e.getErrorCode());
+	public static void logSQLException(Log arg_log, SQLException e) {
+		arg_log.error("SQLException: " + e.getMessage());
+		arg_log.error("SQLState: " + e.getSQLState());
+		arg_log.error("VendorError: " + e.getErrorCode());
 	}
 
 	public void printDriverStats() {
 		PoolingDriver driver = null;
 		ObjectPool connectionPool = null;
-		System.out.println("--------- DB driver status ---------");
+		s_log.info("--------- DB driver status ---------");
 		try {
 			driver = (PoolingDriver) DriverManager.getDriver("jdbc:apache:commons:dbcp:");
 			connectionPool = driver.getConnectionPool(connectionPoolName);
 		} catch (Exception e) {
-			System.out.println("Error while trying to get driver status. Error message: " + e.getMessage());
+			s_log.info("Failed getting driver status", e);
 		}
 
-		System.out.println("NumActive: " + connectionPool.getNumActive());
-		System.out.println("NumIdle: " + connectionPool.getNumIdle());
-		System.out.println("------------------------------------");
+		s_log.info("NumActive: " + connectionPool.getNumActive());
+		s_log.info("NumIdle: " + connectionPool.getNumIdle());
+		s_log.info("------------------------------------");
 	}
 
 	public void shutdownDriver() throws Exception {

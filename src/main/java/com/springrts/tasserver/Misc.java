@@ -5,6 +5,9 @@
 package com.springrts.tasserver;
 
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -17,6 +20,8 @@ import java.security.*;
  * @author Betalord
  */
 public class Misc {
+
+	private static final Log s_log  = LogFactory.getLog(Misc.class);
 
 	static public final String EOL = "\n";
 	static private String hex = "0123456789ABCDEF";
@@ -254,7 +259,7 @@ public class Misc {
 			return new sun.misc.BASE64Encoder().encode(getMD5(plainPassword));
 		} catch (Exception e) {
 			// this should not happen!
-			System.out.println("WARNING: Serious error occured: " + e.getMessage());
+			s_log.fatal("Failed encoding password", e);
 			TASServer.closeServerAndExit();
 			return "";
 		}
