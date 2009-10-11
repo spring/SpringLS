@@ -45,6 +45,27 @@
 				</configuration>
 			</plugin>
 
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<!--
+						This copies the dependencies to the target/dependency dir
+						during the package phase.
+					-->
+					<execution>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/dependency</outputDirectory>
+							<excludeArtifactIds>commons-logging,log4j,persistence-api</excludeArtifactIds>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
 			<!--
 				This includes the dependencies in the generated jar
 				during the package phase
@@ -59,6 +80,21 @@
 						<goals>
 							<goal>shade</goal>
 						</goals>
+						<configuration>
+							<artifactSet>
+								<!--
+									Include only the ones that are always needed,
+									like logging. Additional ones, like those required
+									for DB access for example, which is not used
+									in LAN mode, have to be added to the classpath
+									when executing the server.
+								-->
+								<includes>
+									<include>commons-logging:commons-logging</include>
+									<include>log4j:log4j</include>
+								</includes>
+							</artifactSet>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
