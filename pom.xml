@@ -38,6 +38,7 @@
 					<archive>
 						<manifest>
 							<addClasspath>true</addClasspath>
+							<classpathPrefix>dependency</classpathPrefix>
 							<packageName>com.springrts.tasserver</packageName>
 							<mainClass>com.springrts.tasserver.TASServer</mainClass>
 						</manifest>
