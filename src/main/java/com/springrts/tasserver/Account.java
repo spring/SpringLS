@@ -71,18 +71,41 @@ public class Account implements Serializable {
 	 * @see lastUserId
 	 */
 	@Id
+	@Column(
+		name       = "id",
+		unique     = true,
+		nullable   = false,
+		insertable = true,
+		updatable  = false
+		)
 	private int id;
 
 	/**
 	 * Accounts name name.
 	 * This is what you see, for example, in the lobby or in-game.
 	 */
+	@Column(
+		name       = "name",
+		unique     = true,
+		nullable   = false,
+		insertable = true,
+		updatable  = true,
+		length     = 40
+		)
 	private String name;
 
 	/**
 	 * Encrypted form of the password.
 	 * TODO: add method of description
 	 */
+	@Column(
+		name       = "password",
+		unique     = true,
+		nullable   = false,
+		insertable = true,
+		updatable  = true,
+		length     = 32
+		)
 	private String password;
 
 	/**
@@ -101,17 +124,39 @@ public class Account implements Serializable {
 	 * name), ban evasion etc.
 	 * @see id
 	 */
+	@Column(
+		name       = "last_id",
+		unique     = false,
+		nullable   = true,
+		insertable = true,
+		updatable  = true
+		)
 	private int lastUserId;
 
 	/**
 	 * Time of the last login.
 	 * @see System.currentTimeMillis()
 	 */
+	@Column(
+		name       = "last_login",
+		unique     = false,
+		nullable   = false,
+		insertable = true,
+		updatable  = true
+		)
 	private long lastLogin;
 
 	/**
 	 * Most recent IP used to log into this account.
 	 */
+	@Column(
+		name       = "last_ip",
+		unique     = false,
+		nullable   = false,
+		insertable = true,
+		updatable  = true,
+		length     = 15
+		)
 	private String lastIP;
 
 	/**
@@ -122,6 +167,13 @@ public class Account implements Serializable {
 	 * introduced with Spring 0.67b3, Dec 18 2005.
 	 * @see System.currentTimeMillis()
 	 */
+	@Column(
+		name       = "register_date",
+		unique     = true,
+		nullable   = true,
+		insertable = true,
+		updatable  = false
+		)
 	private long registrationDate;
 
 	/**
@@ -419,7 +471,7 @@ public class Account implements Serializable {
 	 * field was first introduced with Spring 0.67b3, Dec 18 2005.
 	 * @param registrationDate the registrationDate to set
 	 */
-	private void setRegistrationDate(long registrationDate) {
+	public void setRegistrationDate(long registrationDate) {
 		this.registrationDate = registrationDate;
 	}
 
