@@ -68,7 +68,7 @@ public class Battle {
 				.append(ID).append(" ")
 				.append(type).append(" ")
 				.append(natType).append(" ")
-				.append(founder.account.user).append(" ")
+				.append(founder.account.getName()).append(" ")
 				.append(founder.IP).append(" ")
 				.append(port).append(" ")
 				.append(maxPlayers).append(" ")
@@ -93,7 +93,7 @@ public class Battle {
 				.append(ID).append(" ")
 				.append(type).append(" ")
 				.append(natType).append(" ")
-				.append(founder.account.user).append(" ")
+				.append(founder.account.getName()).append(" ")
 				.append(ip).append(" ")
 				.append(port).append(" ")
 				.append(maxPlayers).append(" ")
@@ -114,14 +114,14 @@ public class Battle {
 				continue;
 			} else {
 				client.sendLine(new StringBuilder("CLIENTBATTLESTATUS ")
-						.append(this.clients.get(i).account.user).append(" ")
+						.append(this.clients.get(i).account.getName()).append(" ")
 						.append(this.clients.get(i).battleStatus).append(" ")
 						.append(this.clients.get(i).teamColor).toString());
 			}
 		}
 		if (founder != client) {
 			client.sendLine(new StringBuilder("CLIENTBATTLESTATUS ")
-					.append(founder.account.user).append(" ")
+					.append(founder.account.getName()).append(" ")
 					.append(founder.battleStatus).append(" ")
 					.append(founder.teamColor).toString());
 		}
@@ -131,7 +131,7 @@ public class Battle {
 	 * of the client. */
 	public void notifyClientsOfBattleStatus(Client client) {
 		sendToAllClients(new StringBuilder("CLIENTBATTLESTATUS ")
-				.append(client.account.user).append(" ")
+				.append(client.account.getName()).append(" ")
 				.append(client.battleStatus).append(" ")
 				.append(client.teamColor).toString());
 	}
@@ -157,9 +157,9 @@ public class Battle {
 		if (this.clients.size() == 0) {
 			return "";
 		}
-		StringBuilder sb = new StringBuilder(clients.get(0).account.user);
+		StringBuilder sb = new StringBuilder(clients.get(0).account.getName());
 		for (int i = 1; i < this.clients.size(); i++) {
-			sb.append(" ").append(clients.get(i).account.user);
+			sb.append(" ").append(clients.get(i).account.getName());
 		}
 		return sb.toString();
 	}
@@ -241,11 +241,11 @@ public class Battle {
 
 		// TODO: possible simplification if equals nad hashCode method of Client are good
 		for (int i = 0; i < clients.size(); i++) {
-			if (clients.get(i).account.user.equals(username)) {
+			if (clients.get(i).account.getName().equals(username)) {
 				return true;
 			}
 		}
-		if (founder.account.user.equals(username)) {
+		if (founder.account.getName().equals(username)) {
 			return true;
 		}
 
@@ -256,11 +256,11 @@ public class Battle {
 
 		// TODO: possible simplification if equals nad hashCode method of Client are good
 		for (int i = 0; i < clients.size(); i++) {
-			if (clients.get(i).account.user.equals(username)) {
+			if (clients.get(i).account.getName().equals(username)) {
 				return clients.get(i);
 			}
 		}
-		if (founder.account.user.equals(username)) {
+		if (founder.account.getName().equals(username)) {
 			return founder;
 		}
 
@@ -319,7 +319,7 @@ public class Battle {
 	public boolean removeFirstBotOfClient(Client client) {
 
 		for (int i = 0; i < bots.size(); i++) {
-			if (bots.get(i).ownerName.equals(client.account.user)) {
+			if (bots.get(i).ownerName.equals(client.account.getName())) {
 				sendToAllClients(new StringBuilder("REMOVEBOT ")
 						.append(ID).append(" ")
 						.append(bots.get(i).name).toString());

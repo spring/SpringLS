@@ -592,17 +592,17 @@ public class TASServer {
 						((client.getBotModeFromStatus() == true) && (client.dataOverLastTimePeriod > TASServer.maxBytesAlertForBot)))) {
 					s_log.warn(new StringBuilder("Flooding detected from ")
 							.append(client.IP).append(" (")
-							.append(client.account.user).append(")").toString());
+							.append(client.account.getName()).append(")").toString());
 					Clients.sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: Flooding has been detected from ")
 							.append(client.IP).append(" (")
-							.append(client.account.user).append("). User has been kicked.").toString());
+							.append(client.account.getName()).append("). User has been kicked.").toString());
 					Clients.killClient(client, "Disconnected due to excessive flooding");
 
 					// add server notification:
 					ServerNotification sn = new ServerNotification("Flooding detected");
 					sn.addLine(new StringBuilder("Flooding detected from ")
 							.append(client.IP).append(" (")
-							.append(client.account.user).append(").").toString());
+							.append(client.account.getName()).append(").").toString());
 					sn.addLine("User has been kicked from the server.");
 					ServerNotifications.addNotification(sn);
 
@@ -643,7 +643,7 @@ public class TASServer {
 						time = System.currentTimeMillis() - time;
 						if (time > 200) {
 							Clients.sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: (DEBUG) User <")
-									.append(client.account.user).append("> caused ")
+									.append(client.account.getName()).append("> caused ")
 									.append(time).append(" ms load on the server. Command issued: ")
 									.append(command).toString());
 						}
@@ -690,7 +690,7 @@ public class TASServer {
 		if (acc == null) {
 			return null;
 		}
-		if (acc.pass.equals(pass)) {
+		if (acc.getPassword().equals(pass)) {
 			return acc;
 		} else {
 			return null;
@@ -720,7 +720,7 @@ public class TASServer {
 	/** Sends "message of the day" (MOTD) to client */
 	private static boolean sendMOTDToClient(Client client) {
 		client.beginFastWrite();
-		client.sendLine(new StringBuilder("MOTD Welcome, ").append(client.account.user).append("!").toString());
+		client.sendLine(new StringBuilder("MOTD Welcome, ").append(client.account.getName()).append("!").toString());
 		client.sendLine(new StringBuilder("MOTD There are currently ").append((Clients.getClientsSize() - 1)).append(" clients connected").toString()); // -1 is because we shouldn't count the client to which we are sending MOTD
 		client.sendLine(new StringBuilder("MOTD to server talking in ").append(Channels.getChannelsSize()).append(" open channels and").toString());
 		client.sendLine(new StringBuilder("MOTD participating in ").append(Battles.getBattlesSize()).append(" battles.").toString());
@@ -773,7 +773,7 @@ public class TASServer {
 		// tell host about this client's IP and UDP source port (if battle is hosted using one of the NAT traversal techniques):
 		if ((bat.natType == 1) || (bat.natType == 2)) {
 			// make sure that clients behind NAT get local IPs and not external ones:
-			bat.founder.sendLine("CLIENTIPPORT " + client.account.user + " " + (bat.founder.IP.equals(client.IP) ? client.localIP : client.IP) + " " + client.UDPSourcePort);
+			bat.founder.sendLine("CLIENTIPPORT " + client.account.getName() + " " + (bat.founder.IP.equals(client.IP) ? client.localIP : client.IP) + " " + client.UDPSourcePort);
 		}
 
 		client.sendLine("REQUESTBATTLESTATUS");
@@ -795,7 +795,7 @@ public class TASServer {
 		if (s_log.isDebugEnabled()) {
 			if (client.account.accessLevel() != Account.NIL_ACCESS) {
 				s_log.debug(new StringBuilder("[<-")
-						.append(client.account.user).append("] \"")
+						.append(client.account.getName()).append("] \"")
 						.append(command).append("\"").toString());
 			} else {
 				s_log.debug(new StringBuilder("[<-")
@@ -974,8 +974,8 @@ public class TASServer {
 					return false;
 				}
 				final String broadcastMsg = new StringBuilder("<")
-						.append(client.account.user).append("> has kicked <")
-						.append(target.account.user).append("> from server")
+						.append(client.account.getName()).append("> has kicked <")
+						.append(target.account.getName()).append("> from server")
 						.append(reason).toString();
 				for (int i = 0; i < Channels.getChannelsSize(); i++) {
 					if (Channels.getChannel(i).isClientInThisChannel(target)) {
@@ -983,7 +983,7 @@ public class TASServer {
 					}
 				}
 				target.sendLine(new StringBuilder("SERVERMSG You've been kicked from server by <")
-						.append(client.account.user).append(">")
+						.append(client.account.getName()).append(">")
 						.append(reason).toString());
 				Clients.killClient(target, "Quit: kicked from server");
 			} else if (commands[0].equals("FLOODLEVEL")) {
@@ -1117,7 +1117,7 @@ public class TASServer {
 
 				// if any user is connected to this account, kick him:
 				for (int j = 0; j < Clients.getClientsSize(); j++) {
-					if (Clients.getClient(j).account.user.equals(commands[1])) {
+					if (Clients.getClient(j).account.getName().equals(commands[1])) {
 						Clients.killClient(Clients.getClient(j));
 						j--;
 					}
@@ -1163,15 +1163,15 @@ public class TASServer {
 					return false;
 				}
 
-				acc.pass = commands[2];
+				acc.setPassword(commands[2]);
 
 				Accounts.saveAccounts(false); // save changes
 
 				// add server notification:
 				ServerNotification sn = new ServerNotification("Account password changed by admin");
 				sn.addLine(new StringBuilder("Admin <")
-						.append(client.account.user).append("> has changed password for account <")
-						.append(acc.user).append(">").toString());
+						.append(client.account.getName()).append("> has changed password for account <")
+						.append(acc.getName()).append(">").toString());
 				ServerNotifications.addNotification(sn);
 			} else if (commands[0].equals("CHANGEACCOUNTACCESS")) {
 				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
@@ -1193,8 +1193,8 @@ public class TASServer {
 					return false;
 				}
 
-				int oldAccess = acc.access;
-				acc.access = value;
+				int oldAccess = acc.getAccessType();
+				acc.setAccessType(value);
 
 				Accounts.saveAccounts(false); // save changes
 				// just in case if rank got changed: FIXME?
@@ -1209,8 +1209,8 @@ public class TASServer {
 				// add server notification:
 				ServerNotification sn = new ServerNotification("Account access changed by admin");
 				sn.addLine(new StringBuilder("Admin <")
-						.append(client.account.user).append("> has changed access/status bits for account <")
-						.append(acc.user).append(">.").toString());
+						.append(client.account.getName()).append("> has changed access/status bits for account <")
+						.append(acc.getName()).append(">.").toString());
 				sn.addLine(new StringBuilder("Old access code: ")
 						.append(oldAccess).append(". New code: ")
 						.append(value).toString());
@@ -1232,7 +1232,7 @@ public class TASServer {
 
 				client.sendLine(new StringBuilder("SERVERMSG ")
 						.append(commands[1]).append("'s access code is ")
-						.append(acc.access).toString());
+						.append(acc.getAccessType()).toString());
 			} else if (commands[0].equals("REDIRECT")) {
 				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
 					return false;
@@ -1247,7 +1247,7 @@ public class TASServer {
 
 				// add server notification:
 				ServerNotification sn = new ServerNotification("Entered redirection mode");
-				sn.addLine(new StringBuilder("Admin <").append(client.account.user).append("> has enabled redirection mode. New address: ").append(redirectToIP).toString());
+				sn.addLine(new StringBuilder("Admin <").append(client.account.getName()).append("> has enabled redirection mode. New address: ").append(redirectToIP).toString());
 				ServerNotifications.addNotification(sn);
 			} else if (commands[0].equals("REDIRECTOFF")) {
 				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
@@ -1259,7 +1259,7 @@ public class TASServer {
 
 				// add server notification:
 				ServerNotification sn = new ServerNotification("Redirection mode disabled");
-				sn.addLine(new StringBuilder("Admin <").append(client.account.user)
+				sn.addLine(new StringBuilder("Admin <").append(client.account.getName())
 						.append("> has disabled redirection mode.").toString());
 				ServerNotifications.addNotification(sn);
 			} else if (commands[0].equals("BROADCAST")) {
@@ -1337,12 +1337,12 @@ public class TASServer {
 					found = true;
 					client.sendLine(new StringBuilder("SERVERMSG ")
 							.append(IP).append(" is bound to: ")
-							.append(Clients.getClient(i).account.user).toString());
+							.append(Clients.getClient(i).account.getName()).toString());
 				}
 
 				// now let's check if this IP matches any recently used IP:
 				for (int i = 0; i < Accounts.getAccountsSize(); i++) {
-					String[] sp2 = Accounts.getAccount(i).lastIP.split("\\.");
+					String[] sp2 = Accounts.getAccount(i).getLastIP().split("\\.");
 
 					if (!sp1[0].equals("*") && !sp1[0].equals(sp2[0])) {
 						continue;
@@ -1357,11 +1357,11 @@ public class TASServer {
 						continue;
 					}
 
-					if (Clients.getClient(Accounts.getAccount(i).user) == null) { // user is offline
+					if (Clients.getClient(Accounts.getAccount(i).getName()) == null) { // user is offline
 						found = true;
 						client.sendLine(new StringBuilder("SERVERMSG ")
 								.append(IP).append(" was recently bound to: ")
-								.append(Accounts.getAccount(i).user).append(" (offline)").toString());
+								.append(Accounts.getAccount(i).getName()).append(" (offline)").toString());
 					}
 				}
 
@@ -1387,7 +1387,7 @@ public class TASServer {
 				boolean online = Clients.isUserLoggedIn(acc);
 				client.sendLine(new StringBuilder("SERVERMSG ")
 						.append(commands[1]).append("'s last IP was ")
-						.append(acc.lastIP).append(" (")
+						.append(acc.getLastIP()).append(" (")
 						.append((online ? "online)" : "offline)")).toString());
 			} else if (commands[0].equals("GETACCOUNTINFO")) {
 				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
@@ -1405,7 +1405,7 @@ public class TASServer {
 				}
 
 				client.sendLine(new StringBuilder("SERVERMSG Full account info for <")
-						.append(acc.user).append(">: ")
+						.append(acc.getName()).append(">: ")
 						.append(acc.toString()).toString());
 			} else if (commands[0].equals("FORGEMSG")) {
 				/* this command is used only for debugging purposes. It sends the string
@@ -1454,7 +1454,7 @@ public class TASServer {
 				}
 
 				client.sendLine(new StringBuilder("SERVERMSG ")
-						.append(targetClient.account.user).append("'s IP is ")
+						.append(targetClient.account.getName()).append("'s IP is ")
 						.append(targetClient.IP).toString());
 			} else if (commands[0].equals("GETINGAMETIME")) {
 				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
@@ -1481,7 +1481,7 @@ public class TASServer {
 					}
 
 					client.sendLine(new StringBuilder("SERVERMSG ")
-							.append(acc.user).append("'s in-game time is ")
+							.append(acc.getName()).append("'s in-game time is ")
 							.append(acc.getInGameTime()).append(" minutes.").toString());
 				}
 			} else if (commands[0].equals("FORCECLOSEBATTLE")) {
@@ -1553,13 +1553,13 @@ public class TASServer {
 					return false;
 				}
 
-				chan.muteList.mute(username, minutes * 60, (muteByIP ? targetAccount.lastIP : null));
+				chan.muteList.mute(username, minutes * 60, (muteByIP ? targetAccount.getLastIP() : null));
 
 				client.sendLine(new StringBuilder("SERVERMSG You have muted <")
 						.append(username).append("> on channel #")
 						.append(chan.name).append(".").toString());
 				chan.broadcast(new StringBuilder("<")
-						.append(client.account.user).append("> has muted <")
+						.append(client.account.getName()).append("> has muted <")
 						.append(username).append(">").toString());
 			} else if (commands[0].equals("UNMUTE")) {
 				if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) {
@@ -1586,7 +1586,7 @@ public class TASServer {
 						.append(username).append("> on channel #")
 						.append(chan.name).append(".").toString());
 				chan.broadcast(new StringBuilder("<")
-						.append(client.account.user).append("> has unmuted <")
+						.append(client.account.getName()).append("> has unmuted <")
 						.append(username).append(">").toString());
 			} else if (commands[0].equals("MUTELIST")) {
 				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
@@ -1786,13 +1786,13 @@ public class TASServer {
 					return false;
 				}
 
-				if (Clients.getClient(acc.user) == null) {
+				if (Clients.getClient(acc.getName()) == null) {
 					client.sendLine(new StringBuilder("SERVERMSG <")
-							.append(acc.user).append(">'s last login was on ")
-							.append(Misc.easyDateFormat(acc.lastLogin, "d MMM yyyy HH:mm:ss z")).toString());
+							.append(acc.getName()).append(">'s last login was on ")
+							.append(Misc.easyDateFormat(acc.getLastLogin(), "d MMM yyyy HH:mm:ss z")).toString());
 				} else {
 					client.sendLine(new StringBuilder("SERVERMSG <")
-							.append(acc.user).append("> is currently online").toString());
+							.append(acc.getName()).append("> is currently online").toString());
 				}
 			} else if (commands[0].equals("SETCHANNELKEY")) {
 				if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) {
@@ -1816,7 +1816,7 @@ public class TASServer {
 					}
 					chan.setKey("");
 					chan.broadcast(new StringBuilder("<")
-							.append(client.account.user).append("> has just unlocked #")
+							.append(client.account.getName()).append("> has just unlocked #")
 							.append(chan.name).toString());
 				} else {
 					if (!commands[2].matches("^[A-Za-z0-9_]+$")) {
@@ -1825,7 +1825,7 @@ public class TASServer {
 					}
 					chan.setKey(commands[2]);
 					chan.broadcast(new StringBuilder("<")
-							.append(client.account.user).append("> has just locked #")
+							.append(client.account.getName()).append("> has just locked #")
 							.append(chan.name).append(" with private key").toString());
 				}
 			} else if (commands[0].equals("FORCELEAVECHANNEL")) {
@@ -1861,12 +1861,12 @@ public class TASServer {
 					reason = " " + Misc.makeSentence(commands, 3);
 				}
 				chan.broadcast(new StringBuilder("<")
-						.append(client.account.user).append("> has kicked <")
-						.append(target.account.user).append("> from the channel")
+						.append(client.account.getName()).append("> has kicked <")
+						.append(target.account.getName()).append("> from the channel")
 						.append(reason.equals("") ? "" : " (reason:").append(reason).append(")").toString());
 				target.sendLine(new StringBuilder("FORCELEAVECHANNEL ")
 						.append(chan.name).append(" ")
-						.append(client.account.user).append(reason).toString());
+						.append(client.account.getName()).append(reason).toString());
 				target.leaveChannel(chan, "kicked from channel");
 			} else if (commands[0].equals("ADDNOTIFICATION")) {
 				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
@@ -1877,7 +1877,7 @@ public class TASServer {
 					return false;
 				}
 
-				if (ServerNotifications.addNotification(new ServerNotification("Admin notification", client.account.user, Misc.makeSentence(commands, 1)))) {
+				if (ServerNotifications.addNotification(new ServerNotification("Admin notification", client.account.getName(), Misc.makeSentence(commands, 1)))) {
 					client.sendLine("SERVERMSG Notification added.");
 				} else {
 					client.sendLine("SERVERMSG Error while adding notification! Notification not added.");
@@ -1908,7 +1908,7 @@ public class TASServer {
 				}
 
 				client.sendLine(new StringBuilder("SERVERMSG Send buffer size for <")
-						.append(c.account.user).append("> is set to ")
+						.append(c.account.getName()).append("> is set to ")
 						.append(size).append(" bytes.").toString());
 			} else if (commands[0].equals("MEMORYAVAILABLE")) {
 				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
@@ -1996,8 +1996,8 @@ public class TASServer {
 
 				client.sendLine(new StringBuilder("SERVERMSG Registration timestamp for <")
 						.append(commands[1]).append("> is ")
-						.append(acc.registrationDate).append(" (")
-						.append(Misc.easyDateFormat(acc.registrationDate, "d MMM yyyy HH:mm:ss z"))
+						.append(acc.getRegistrationDate()).append(" (")
+						.append(Misc.easyDateFormat(acc.getRegistrationDate(), "d MMM yyyy HH:mm:ss z"))
 						.append(")").toString());
 			} else if (commands[0].equals("SETLATESTSPRINGVERSION")) {
 				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
@@ -2039,7 +2039,7 @@ public class TASServer {
 
 				client.sendLine(new StringBuilder("SERVERMSG Last user ID for <")
 						.append(commands[1]).append("> was ")
-						.append(acc.lastUserId).toString());
+						.append(acc.getLastUserId()).toString());
 			} else if (commands[0].equals("GENERATEUSERID")) {
 				if (commands.length != 2) {
 					return false;
@@ -2205,7 +2205,7 @@ public class TASServer {
 						acc.setAgreement(true);
 						Accounts.saveAccounts(false);
 					}
-					if (acc.lastLogin + 5000 > System.currentTimeMillis()) {
+					if (acc.getLastLogin() + 5000 > System.currentTimeMillis()) {
 						client.sendLine("DENIED This account has already connected in the last 5 seconds");
 						return false;
 					}
@@ -2234,19 +2234,19 @@ public class TASServer {
 				client.setAccessToStatus((((client.account.accessLevel() >= Account.PRIVILEGED_ACCESS) && (!LAN_MODE)) ? true : false));
 
 				client.cpu = cpu;
-				client.account.lastLogin = System.currentTimeMillis();
-				client.account.lastCountry = client.country;
-				client.account.lastIP = client.IP;
+				client.account.setLastLogin(System.currentTimeMillis());
+				client.account.setLastCountry(client.country);
+				client.account.setLastIP(client.IP);
 				if (commands[4].equals("*")) {
 					client.localIP = new String(client.IP);
 				} else {
 					client.localIP = commands[4];
 				}
 				client.lobbyVersion = lobbyVersion;
-				client.account.lastUserId = userID;
+				client.account.setLastUserId(userID);
 
 				// do the notifying and all:
-				client.sendLine(new StringBuilder("ACCEPTED ").append(client.account.user).toString());
+				client.sendLine(new StringBuilder("ACCEPTED ").append(client.account.getName()).toString());
 				sendMOTDToClient(client);
 				Clients.sendListOfAllUsersToClient(client);
 				Battles.sendInfoOnBattlesToClient(client);
@@ -2259,7 +2259,7 @@ public class TASServer {
 				Clients.notifyClientsOfNewClientStatus(client);
 
 				if (s_log.isDebugEnabled()) {
-					s_log.debug(new StringBuilder("User just logged in: ").append(client.account.user).toString());
+					s_log.debug(new StringBuilder("User just logged in: ").append(client.account.getName()).toString());
 				}
 			} else if (commands[0].equals("CONFIRMAGREEMENT")) {
 				// update client's temp account (he is not logged in yet since he needs to confirm the agreement before server will allow him to log in):
@@ -2283,12 +2283,12 @@ public class TASServer {
 					return false;
 				}
 
-				client.account.lastUserId = userID;
+				client.account.setLastUserId(userID);
 
 				// add server notification:
 				ServerNotification sn = new ServerNotification("User ID received");
 				sn.addLine(new StringBuilder("<")
-						.append(client.account.user).append("> has generated a new user ID: ")
+						.append(client.account.getName()).append("> has generated a new user ID: ")
 						.append(commands[1]).append("(")
 						.append(userID).append(")").toString());
 				ServerNotifications.addNotification(sn);
@@ -2322,23 +2322,23 @@ public class TASServer {
 
 				// make sure all mutes are accordingly adjusted to new username:
 				for (int i = 0; i < Channels.getChannelsSize(); i++) {
-					Channels.getChannel(i).muteList.rename(client.account.user, commands[1]);
+					Channels.getChannel(i).muteList.rename(client.account.getName(), commands[1]);
 				}
 
-				acc = new Account(commands[1], client.account.pass, client.account.access, client.account.lastUserId, System.currentTimeMillis(), client.IP, client.account.registrationDate, client.account.lastCountry, client.account.accountID);
+				acc = new Account(commands[1], client.account.getPassword(), client.account.getAccessType(), client.account.getLastUserId(), System.currentTimeMillis(), client.IP, client.account.getRegistrationDate(), client.account.getLastCountry(), client.account.getId());
 				client.sendLine(new StringBuilder("SERVERMSG Your account has been renamed to <")
 						.append(commands[1]).append(">. Reconnect with new account (you will now be automatically disconnected)!").toString());
 				Clients.killClient(client, "Quit: renaming account");
 				Accounts.replaceAccount(client.account, acc);
 				Accounts.saveAccounts(false); // let's save new accounts info to disk
 				Clients.sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: User <")
-						.append(client.account.user).append("> has just renamed his account to <")
+						.append(client.account.getName()).append("> has just renamed his account to <")
 						.append(commands[1]).append(">").toString());
 
 				// add server notification:
 				ServerNotification sn = new ServerNotification("Account renamed");
 				sn.addLine(new StringBuilder("User <")
-						.append(client.account.user).append("> has renamed his account to <")
+						.append(client.account.getName()).append("> has renamed his account to <")
 						.append(commands[1]).append(">").toString());
 				ServerNotifications.addNotification(sn);
 			} else if (commands[0].equals("CHANGEPASSWORD")) {
@@ -2356,7 +2356,7 @@ public class TASServer {
 					return false;
 				}
 
-				if (!(commands[1].equals(client.account.pass))) {
+				if (!(commands[1].equals(client.account.getPassword()))) {
 					client.sendLine("SERVERMSG CHANGEPASSWORD failed: Old password is incorrect!");
 					return false;
 				}
@@ -2368,7 +2368,7 @@ public class TASServer {
 					return false;
 				}
 
-				client.account.pass = commands[2];
+				client.account.setPassword(commands[2]);
 
 				Accounts.saveAccounts(false); // let's save new accounts info to disk
 				client.sendLine("SERVERMSG Your password has been successfully updated!");
@@ -2434,15 +2434,15 @@ public class TASServer {
 					return false;
 				}
 
-				if (!chan.setTopic(Misc.makeSentence(commands, 2), client.account.user)) {
+				if (!chan.setTopic(Misc.makeSentence(commands, 2), client.account.getName())) {
 					client.sendLine(new StringBuilder("SERVERMSG You've just disabled the topic for channel #").append(chan.name).toString());
 					chan.broadcast(new StringBuilder("<")
-							.append(client.account.user).append("> has just disabled topic for #")
+							.append(client.account.getName()).append("> has just disabled topic for #")
 							.append(chan.name).toString());
 				} else {
 					client.sendLine(new StringBuilder("SERVERMSG You've just changed the topic for channel #").append(chan.name).toString());
 					chan.broadcast(new StringBuilder("<")
-							.append(client.account.user).append("> has just changed topic for #")
+							.append(client.account.getName()).append("> has just changed topic for #")
 							.append(chan.name).toString());
 					chan.sendLineToClients(new StringBuilder("CHANNELTOPIC ")
 							.append(chan.name).append(" ")
@@ -2463,7 +2463,7 @@ public class TASServer {
 					return false;
 				}
 
-				if (chan.muteList.isMuted(client.account.user)) {
+				if (chan.muteList.isMuted(client.account.getName())) {
 					client.sendLine(new StringBuilder("SERVERMSG Message dropped. You are not allowed to talk in #")
 							.append(chan.name).append("! Please contact one of the moderators.").toString());
 					return false;
@@ -2479,15 +2479,15 @@ public class TASServer {
 				if ((s.length() > maxChatMessageLength) && (client.account.accessLevel() < Account.ADMIN_ACCESS)) {
 					s_log.warn(new StringBuilder("Flooding detected from ")
 							.append(client.IP).append(" (")
-							.append(client.account.user).append(") [exceeded max. chat message size]").toString());
+							.append(client.account.getName()).append(") [exceeded max. chat message size]").toString());
 					client.sendLine(new StringBuilder("SERVERMSG Flooding detected - you have exceeded maximum allowed chat message size (")
 							.append(maxChatMessageLength).append(" bytes). Your message has been ignored.").toString());
 					Clients.sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: Flooding has been detected from ")
 							.append(client.IP).append(" (")
-							.append(client.account.user).append(") - exceeded maximum chat message size. Ignoring ...").toString());
+							.append(client.account.getName()).append(") - exceeded maximum chat message size. Ignoring ...").toString());
 					return false;
 				}
-				chan.sendLineToClients(new StringBuilder("SAID ").append(chan.name).append(" ").append(client.account.user).append(" ").append(s).toString());
+				chan.sendLineToClients(new StringBuilder("SAID ").append(chan.name).append(" ").append(client.account.getName()).append(" ").append(s).toString());
 			} else if (commands[0].equals("SAYEX")) {
 				if (commands.length < 3) {
 					return false;
@@ -2501,7 +2501,7 @@ public class TASServer {
 					return false;
 				}
 
-				if (chan.muteList.isMuted(client.account.user)) {
+				if (chan.muteList.isMuted(client.account.getName())) {
 					client.sendLine(new StringBuilder("SERVERMSG Message dropped. You are not allowed to talk in #")
 							.append(chan.name)
 							.append("! Please contact one of the moderators.").toString());
@@ -2518,20 +2518,20 @@ public class TASServer {
 				if ((s.length() > maxChatMessageLength) && (client.account.accessLevel() < Account.ADMIN_ACCESS)) {
 					s_log.warn(new StringBuilder("Flooding detected from ")
 							.append(client.IP).append(" (")
-							.append(client.account.user)
+							.append(client.account.getName())
 							.append(") [exceeded max. chat message size]").toString());
 					client.sendLine(new StringBuilder("SERVERMSG Flooding detected - you have exceeded maximum allowed chat message size (")
 							.append(maxChatMessageLength).append(" bytes). Your message has been ignored.").toString());
 					Clients.sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: Flooding has been detected from ")
 							.append(client.IP).append(" (")
-							.append(client.account.user)
+							.append(client.account.getName())
 							.append(") - exceeded maximum chat message size. Ignoring ...").toString());
 					return false;
 				}
 
 				chan.sendLineToClients(new StringBuilder("SAIDEX ")
 						.append(chan.name).append(" ")
-						.append(client.account.user).append(" ")
+						.append(client.account.getName()).append(" ")
 						.append(s).toString());
 			} else if (commands[0].equals("SAYPRIVATE")) {
 				if (commands.length < 3) {
@@ -2551,18 +2551,18 @@ public class TASServer {
 				if ((s.length() > maxChatMessageLength) && (client.account.accessLevel() < Account.ADMIN_ACCESS)) {
 					s_log.warn(new StringBuilder("Flooding detected from ")
 							.append(client.IP).append(" (")
-							.append(client.account.user).append(") [exceeded max. chat message size]").toString());
+							.append(client.account.getName()).append(") [exceeded max. chat message size]").toString());
 					client.sendLine(new StringBuilder("SERVERMSG Flooding detected - you have exceeded maximum allowed chat message size (")
 							.append(maxChatMessageLength).append(" bytes). Your message has been ignored.").toString());
 					Clients.sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: Flooding has been detected from ")
 							.append(client.IP).append(" (")
-							.append(client.account.user)
+							.append(client.account.getName())
 							.append(") - exceeded maximum chat message size. Ignoring ...").toString());
 					return false;
 				}
 
 				target.sendLine(new StringBuilder("SAIDPRIVATE ")
-						.append(client.account.user).append(" ")
+						.append(client.account.getName()).append(" ")
 						.append(s).toString());
 				client.sendLine(command); // echo the command. See protocol description!
 			} else if (commands[0].equals("JOINBATTLE")) {
@@ -2613,7 +2613,7 @@ public class TASServer {
 
 				if (bat.founder.handleBattleJoinAuthorization) {
 					client.requestedBattleID=battleID;
-					bat.founder.sendLine("JOINBATTLEREQUEST " + client.account.user + " " + (bat.founder.IP.equals(client.IP) ? client.localIP : client.IP));
+					bat.founder.sendLine("JOINBATTLEREQUEST " + client.account.getName() + " " + (bat.founder.IP.equals(client.IP) ? client.localIP : client.IP));
 				} else {
 					notifyClientJoinedBattle(client,bat);
 				}
@@ -2823,19 +2823,19 @@ public class TASServer {
 				if ((s.length() > maxChatMessageLength) && (client.account.accessLevel() < Account.ADMIN_ACCESS)) {
 					s_log.warn(new StringBuilder("Flooding detected from ")
 							.append(client.IP).append(" (")
-							.append(client.account.user)
+							.append(client.account.getName())
 							.append(") [exceeded max. chat message size]").toString());
 					client.sendLine(new StringBuilder("SERVERMSG Flooding detected - you have exceeded maximum allowed chat message size (")
 							.append(maxChatMessageLength).append(" bytes). Your message has been ignored.").toString());
 					Clients.sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: Flooding has been detected from ")
 							.append(client.IP).append(" (")
-							.append(client.account.user)
+							.append(client.account.getName())
 							.append(") - exceeded maximum chat message size. Ignoring ...").toString());
 					return false;
 				}
 
 				bat.sendToAllClients(new StringBuilder("SAIDBATTLE ")
-						.append(client.account.user).append(" ")
+						.append(client.account.getName()).append(" ")
 						.append(s).toString());
 			} else if (commands[0].equals("SAYBATTLEEX")) {
 				if (commands.length < 2) {
@@ -2858,19 +2858,19 @@ public class TASServer {
 				if ((s.length() > maxChatMessageLength) && (client.account.accessLevel() < Account.ADMIN_ACCESS)) {
 					s_log.warn(new StringBuilder("Flooding detected from ")
 							.append(client.IP).append(" (")
-							.append(client.account.user)
+							.append(client.account.getName())
 							.append(") [exceeded max. chat message size]").toString());
 					client.sendLine(new StringBuilder("SERVERMSG Flooding detected - you have exceeded maximum allowed chat message size (")
 							.append(maxChatMessageLength).append(" bytes). Your message has been ignored.").toString());
 					Clients.sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: Flooding has been detected from ")
 							.append(client.IP).append(" (")
-							.append(client.account.user)
+							.append(client.account.getName())
 							.append(") - exceeded maximum chat message size. Ignoring ...").toString());
 					return false;
 				}
 
 				bat.sendToAllClients(new StringBuilder("SAIDBATTLEEX ")
-						.append(client.account.user).append(" ")
+						.append(client.account.getName()).append(" ")
 						.append(s).toString());
 			} else if (commands[0].equals("UPDATEBATTLEINFO")) {
 				if (commands.length < 5) {
@@ -2975,8 +2975,8 @@ public class TASServer {
 				}
 
 				bat.sendToAllClients(new StringBuilder("SAIDBATTLEEX ")
-						.append(client.account.user).append(" kicked ")
-						.append(target.account.user).append(" from battle").toString());
+						.append(client.account.getName()).append(" kicked ")
+						.append(target.account.getName()).append(" from battle").toString());
 				// notify client that he was kicked from the battle:
 				target.sendLine("FORCEQUITBATTLE");
 				// force client to leave battle:
@@ -3162,13 +3162,13 @@ public class TASServer {
 					return false;
 				}
 
-				Bot bot = new Bot(commands[1], client.account.user, Misc.makeSentence(commands, 4), value, teamColor);
+				Bot bot = new Bot(commands[1], client.account.getName(), Misc.makeSentence(commands, 4), value, teamColor);
 				bat.addBot(bot);
 
 				bat.sendToAllClients(new StringBuilder("ADDBOT ")
 						.append(bat.ID).append(" ")
 						.append(bot.name).append(" ")
-						.append(client.account.user).append(" ")
+						.append(client.account.getName()).append(" ")
 						.append(bot.battleStatus).append(" ")
 						.append(bot.teamColor).append(" ")
 						.append(bot.AIDll).toString());
@@ -3233,7 +3233,7 @@ public class TASServer {
 				}
 
 				// only bot owner and battle host are allowed to update bot:
-				if (!((client.account.user.equals(bot.ownerName)) || (client.account.user.equals(bat.founder.account.user)))) {
+				if (!((client.account.getName().equals(bot.ownerName)) || (client.account.getName().equals(bat.founder.account.getName())))) {
 					return false;
 				}
 
@@ -3353,14 +3353,14 @@ public class TASServer {
 						return false;
 					}
 
-					target.sendLine(new StringBuilder("RING ").append(client.account.user).toString());
+					target.sendLine(new StringBuilder("RING ").append(client.account.getName()).toString());
 				} else { // privileged user
 					Client target = Clients.getClient(commands[1]);
 					if (target == null) {
 						return false;
 					}
 
-					target.sendLine(new StringBuilder("RING ").append(client.account.user).toString());
+					target.sendLine(new StringBuilder("RING ").append(client.account.getName()).toString());
 				}
 			} else if (commands[0].equals("ADDSTARTRECT")) {
 				if (commands.length != 6) {
@@ -3939,7 +3939,7 @@ public class TASServer {
 					}
 					if (now - Clients.getClient(i).timeOfLastReceive > timeoutLength) {
 						s_log.warn(new StringBuilder("Timeout detected from ")
-								.append(Clients.getClient(i).account.user).append(" (")
+								.append(Clients.getClient(i).account.getName()).append(" (")
 								.append(Clients.getClient(i).IP).append("). Client has been scheduled for kill ...").toString());
 						Clients.killClientDelayed(Clients.getClient(i), "Quit: timeout");
 					}

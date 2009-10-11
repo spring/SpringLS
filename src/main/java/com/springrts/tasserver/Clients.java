@@ -72,7 +72,7 @@ public class Clients {
 	public static Client getClient(String username) {
 
 		for (int i = 0; i < clients.size(); i++) {
-			if (clients.get(i).account.user.equals(username)) {
+			if (clients.get(i).account.getName().equals(username)) {
 				return clients.get(i);
 			}
 		}
@@ -92,7 +92,7 @@ public class Clients {
 	/** Returns true if user is logged in */
 	public static boolean isUserLoggedIn(Account acc) {
 		for (int i = 0; i < clients.size(); i++) {
-			if (clients.get(i).account.user.equals(acc.user)) return true;
+			if (clients.get(i).account.getName().equals(acc.getName())) return true;
 		}
 		return false;
 	}
@@ -142,7 +142,7 @@ public class Clients {
 				// The user assumes that every new user's status is 0,
 				// so we don't need to tell him that explicitly.
 				client.sendLine(new StringBuilder("CLIENTSTATUS ")
-						.append(clients.get(i).account.user).append(" ")
+						.append(clients.get(i).account.getName()).append(" ")
 						.append(clients.get(i).status).toString());
 			}
 		}
@@ -156,7 +156,7 @@ public class Clients {
 	public static void notifyClientsOfNewClientStatus(Client client) {
 
 		sendToAllRegisteredUsers(new StringBuilder("CLIENTSTATUS ")
-				.append(client.account.user).append(" ")
+				.append(client.account.getName()).append(" ")
 				.append(client.status).toString());
 	}
 
@@ -173,13 +173,13 @@ public class Clients {
 			}
 			if (client.acceptAccountIDs) {
 				client.sendLine(new StringBuilder("ADDUSER ")
-						.append(clients.get(i).account.user).append(" ")
+						.append(clients.get(i).account.getName()).append(" ")
 						.append(clients.get(i).country).append(" ")
 						.append(clients.get(i).cpu).append(" ")
-						.append(clients.get(i).account.accountID).toString());
+						.append(clients.get(i).account.getId()).toString());
 			} else {
 				client.sendLine(new StringBuilder("ADDUSER ")
-						.append(clients.get(i).account.user).append(" ")
+						.append(clients.get(i).account.getName()).append(" ")
 						.append(clients.get(i).country).append(" ")
 						.append(clients.get(i).cpu).toString());
 			}
@@ -195,13 +195,13 @@ public class Clients {
 			if (clients.get(i) == client) continue;
 			if(clients.get(i).acceptAccountIDs) {
 				clients.get(i).sendLine(new StringBuilder("ADDUSER ")
-						.append(client.account.user).append(" ")
+						.append(client.account.getName()).append(" ")
 						.append(client.country).append(" ")
 						.append(client.cpu).append(" ")
-						.append(client.account.accountID).toString());
+						.append(client.account.getId()).toString());
 			}else{
 				clients.get(i).sendLine(new StringBuilder("ADDUSER ")
-						.append(client.account.user).append(" ")
+						.append(client.account.getName()).append(" ")
 						.append(client.country).append(" ")
 						.append(client.cpu).toString());
 			}
@@ -215,7 +215,7 @@ public class Clients {
 			if (clients.get(i).account.accessLevel() < Account.NORMAL_ACCESS) continue;
 			clients.get(i).sendLine(new StringBuilder("JOINEDBATTLE ")
 					.append(battle.ID).append(" ")
-					.append(client.account.user).toString());
+					.append(client.account.getName()).toString());
 		}
 	}
 
@@ -255,9 +255,9 @@ public class Clients {
 		}
 
 		if (client.account.accessLevel() != Account.NIL_ACCESS) {
-			sendToAllRegisteredUsers("REMOVEUSER %s" + client.account.user);
+			sendToAllRegisteredUsers("REMOVEUSER %s" + client.account.getName());
 			if (s_log.isDebugEnabled()) {
-				s_log.debug("Registered user killed: " + client.account.user);
+				s_log.debug("Registered user killed: " + client.account.getName());
 			}
 		} else {
 			if (s_log.isDebugEnabled()) {

@@ -216,26 +216,26 @@ public class Accounts {
 
 	/** WARNING: caller must check if username/password is valid etc. himself! */
 	public static void addAccount(Account acc) {
-		if (acc.accountID == Account.NEW_ACCOUNT_ID) {
-			acc.accountID = ++biggestAccountId;
-		} else if (acc.accountID > biggestAccountId) {
-			biggestAccountId = acc.accountID;
+		if (acc.getId() == Account.NEW_ACCOUNT_ID) {
+			acc.setId(++biggestAccountId);
+		} else if (acc.getId() > biggestAccountId) {
+			biggestAccountId = acc.getId();
 		}
 		accounts.add(acc);
-		map.put(acc.user, acc);
-		mapNoCase.put(acc.user, acc);
+		map.put(acc.getName(), acc);
+		mapNoCase.put(acc.getName(), acc);
 	}
 
 	public static boolean addAccountWithCheck(Account acc) {
-		if (isUsernameValid(acc.user) != null) {
+		if (isUsernameValid(acc.getName()) != null) {
 			return false;
 		}
-		if (isPasswordValid(acc.pass) != null) {
+		if (isPasswordValid(acc.getPassword()) != null) {
 			return false;
 		}
 
 		// check for duplicate entries:
-		if (doesAccountExist(acc.user)) {
+		if (doesAccountExist(acc.getName())) {
 			return false;
 		}
 
@@ -245,8 +245,8 @@ public class Accounts {
 
 	public static boolean removeAccount(Account acc) {
 		boolean result = accounts.remove(acc);
-		map.remove(acc.user);
-		mapNoCase.remove(acc.user);
+		map.remove(acc.getName());
+		mapNoCase.remove(acc.getName());
 		return result;
 	}
 
@@ -288,10 +288,10 @@ public class Accounts {
 		}
 		accounts.set(index, newAcc);
 
-		map.remove(oldAcc.user);
-		mapNoCase.remove(oldAcc.user);
-		map.put(newAcc.user, newAcc);
-		mapNoCase.put(newAcc.user, newAcc);
+		map.remove(oldAcc.getName());
+		mapNoCase.remove(oldAcc.getName());
+		map.put(newAcc.getName(), newAcc);
+		mapNoCase.put(newAcc.getName(), newAcc);
 
 		return true;
 	}

@@ -5,6 +5,8 @@
 package com.springrts.tasserver;
 
 
+import java.io.Serializable;
+
 /**
  * ---- NOTES ----
  * - Each account is uniquely identified by its username (I also used int ID in previous versions,
@@ -12,22 +14,22 @@ package com.springrts.tasserver;
  *
  * @author Betalord
  */
-public class Account {
+public class Account implements Serializable {
 
 	/*
-	 * access bits (31 effective bits, last one is a sign bit and we don't use it):
-	 * * bits 0 - 2 (3 bits): access level
+	 * accessType bits (31 effective bits, last one is a sign bit and we don't use it):
+	 * * bits 0 - 2 (3 bits): accessType level
 	 *     0 - none (should not be used for logged-in clients)
 	 *     1 - normal (limited)
 	 *     2 - privileged
 	 *     3 - admin
 	 *     values 4 - 7 are reserved for future use
 	 * * bits 3 - 22 (20 bits): in-game time (how many minutes did client spent in-game).
-	 * * bit 23: agreement bit. It tells us whether user has already
+	 * * bit 23: agreement bit. It tells us whether name has already
 	 *     read the "terms of use" and agreed to it. If not, we should
 	 *     first send him the agreement and wait until he confirms it (before
 	 *     allowing him to log on the server).
-	 * * bit 24 - bot mode (0 - normal user, 1 - automated bot).
+	 * * bit 24 - bot mode (0 - normal name, 1 - automated bot).
 	 * * bits 25 - 30 (6 bits): reserved for future use.
 	 * * bit 31: unused (integer sign)
 	 */
@@ -61,106 +63,121 @@ public class Account {
 
 	// BEGIN: User speccific data (stored in the DB)
 
-	public String user;
-	public String pass;
+	/**
+	 * Unique account identification number.
+	 * This is different to the <code>lastUserId</code>, because it
+	 * @see lastUserId
+	 */
+	private int id;
+
+	/**
+	 * Accounts name name.
+	 * This is what you see, for example, in the lobby or in-game.
+	 */
+	private String name;
+
+	/**
+	 * Encrypted form of the password.
+	 * TODO: add method of description
+	 */
+	private String password;
 
 	/**
 	 * Access type.
 	 * Bit 31 must be 0 (due to int being a signed number, and we don't want to
 	 * use any binary complement conversions).
 	 */
-	public int access;
+	private int accessType;
 
 	/**
-	 * Unique user identification number.
+	 * Unique name identification number.
 	 * Equals NO_USER_ID (currently 0) if not used/set. By default it is not
-	 * set. Multiple accounts may share same user ID. This value actually
+	 * set. Multiple accounts may share same name ID. This value actually
 	 * indicates last ID as sent with the LOGIN or USERID command by the client.
 	 * We use it to detect spawned accounts (accounts registered by the same
-	 * user), ban evasion etc.
+	 * name), ban evasion etc.
 	 * @see accountID
 	 */
-	public int lastUserId;
+	private int lastUserId;
 
 	/**
 	 * Time (System.currentTimeMillis()) of the last login.
 	 */
-	public long lastLogin;
+	private long lastLogin;
 
 	/**
 	 * Most recent IP used to log into this account.
 	 */
-	public String lastIP;
+	private String lastIP;
 
 	/**
-	 * Date of when the user registered this account.
+	 * Date of when the name registered this account.
 	 * In miliseconds (refers to System.currentTimeMillis()). 0 means
 	 * registration date is unknown. This applies to users that registered in
 	 * some early version, when this field was not yet present. Note that this
 	 * field was first introduced with Spring 0.67b3, Dec 18 2005.
 	 */
-	public long registrationDate;
+	private long registrationDate;
 
 	/**
-	 * Resolved country code for this user's IP when he last logged on.
+	 * Resolved country code for this name's IP when he last logged on.
 	 * If country could not be resolved, "XX" is used for country code,
 	 * otherwise a 2-char country code is used.
 	 */
-	public String lastCountry;
-
-	/**
-	 * Unique account identification number.
-	 * This is different to the <code>lastUserId</code>, because it
-	 * @see lastUserId
-	 */
-	public int accountID;
+	private String lastCountry;
 
 	// END: User speccific data (stored in the DB)
 
 
-	public Account(String user, String pass, int access, int lastUserId,
-			long lastLogin, String lastIP, long registrationDate, String lastCountry, int accountID) {
+	/**
+	 * Used Internally.
+	 */
+	public Account(String name, String password, int accessType, int lastUserId,
+			long lastLogin, String lastIP, long registrationDate,
+			String lastCountry, int id) {
 
-		this.user = user;
-		this.pass = pass;
-		this.access = access;
-		this.lastUserId = lastUserId;
-		this.lastLogin = lastLogin;
-		this.lastIP = lastIP;
+		this.name             = name;
+		this.password         = password;
+		this.accessType       = accessType;
+		this.lastUserId       = lastUserId;
+		this.lastLogin        = lastLogin;
+		this.lastIP           = lastIP;
 		this.registrationDate = registrationDate;
-		this.lastCountry = lastCountry;
-		this.accountID = accountID;
+		this.lastCountry      = lastCountry;
+		this.id               = id;
 	}
 
 	public Account(Account acc) {
 
-		this.user = new String(acc.user);
-		this.pass = new String(acc.pass);
-		this.access = acc.access;
-		this.lastUserId = NO_USER_ID;
-		this.lastLogin = acc.lastLogin;
-		this.lastIP = acc.lastIP;
+		this.name             = new String(acc.getName());
+		this.password         = new String(acc.getPassword());
+		this.accessType       = acc.accessType;
+		this.lastUserId       = NO_USER_ID;
+		this.lastLogin        = acc.lastLogin;
+		this.lastIP           = new String(acc.getLastIP());
 		this.registrationDate = acc.registrationDate;
-		this.lastCountry = new String(acc.lastCountry);
+		this.lastCountry      = new String(acc.getLastCountry());
+		// TODO: possible bug: is the next correct/needed?
+		//this.id               = acc.id;
 	}
 
 	@Override
 	public String toString() {
-		return new StringBuilder(user).append(" ")
-				.append(pass).append(" ")
-				.append(Integer.toString(access, 2)).append(" ")
-				.append(lastUserId).append(" ")
-				.append(lastLogin).append(" ")
-				.append(lastIP).append(" ")
-				.append(registrationDate).append(" ")
-				.append(lastCountry).append(" ")
-				.append(accountID).toString();
+		return new StringBuilder(getName()).append(" ")
+				.append(getPassword()).append(" ")
+				.append(Integer.toString(getAccessType(), 2)).append(" ")
+				.append(getLastUserId()).append(" ")
+				.append(getLastLogin()).append(" ")
+				.append(getLastIP()).append(" ")
+				.append(getRegistrationDate()).append(" ")
+				.append(getLastCountry()).append(" ")
+				.append(getId()).toString();
 	}
 
 	@Override
 	public int hashCode() {
 		int hash = 7;
-		hash = 97 * hash + (this.user != null ? this.user.hashCode() : 0);
+		hash = 97 * hash + (this.getName() != null ? this.getName().hashCode() : 0);
 		return hash;
 	}
 
@@ -173,23 +190,23 @@ public class Account {
 			return false;
 		}
 		final Account other = (Account) obj;
-		if ((this.user == null) ? (other.user != null) : !this.user.equals(other.user)) {
+		if ((this.getName() == null) ? (other.getName() != null) : !this.name.equals(other.name)) {
 			return false;
 		}
 		return true;
 	}
 
 	public int accessLevel() {
-		return access & 0x7;
+		return getAccessType() & 0x7;
 	}
 
 	public boolean getBotMode() {
-		return ((access & 0x1000000) >> 24) == 1;
+		return ((getAccessType() & 0x1000000) >> 24) == 1;
 	}
 
 	public void setBotMode(boolean bot) {
 		int b = bot ? 1 : 0;
-		access = (access & 0xFEFFFFFF) | (b << 24);
+		setAccessType((getAccessType() & 0xFEFFFFFF) | (b << 24));
 	}
 
 	/**
@@ -197,22 +214,22 @@ public class Account {
 	 * @return the client's in-game time in minutes
 	 */
 	public int getInGameTime() {
-		return (access & 0x7FFFF8) >> 3;
+		return (getAccessType() & 0x7FFFF8) >> 3;
 	}
 
 	public void setInGameTime(int mins) {
-		access = (access & 0xFF800007) | (mins << 3);
+		setAccessType((getAccessType() & 0xFF800007) | (mins << 3));
 	}
 
 	public boolean getAgreement() {
-		return ((access & 0x800000) >> 23) == 1;
+		return ((getAccessType() & 0x800000) >> 23) == 1;
 	}
 
 	public void setAgreement(boolean agreed) {
 
 		// must be 1 (true) or 0 (false)
 		int agr = agreed ? 1 : 0;
-		access = (access & 0xFF7FFFFF) | (agr << 23);
+		setAccessType((getAccessType() & 0xFF7FFFFF) | (agr << 23));
 	}
 
 	public int getRank() {
@@ -235,5 +252,185 @@ public class Account {
 		int tmp = getRank();
 		setInGameTime(getInGameTime() + mins);
 		return tmp != getRank();
+	}
+
+	/**
+	 * Unique account identification number.
+	 * This is different to the <code>lastUserId</code>, because it
+	 * @see lastUserId
+	 * @return the id
+	 */
+	public int getId() {
+		return id;
+	}
+
+	/**
+	 * Unique account identification number.
+	 * This is different to the <code>lastUserId</code>, because it
+	 * @see lastUserId
+	 * @param id the id to set
+	 */
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	/**
+	 * Accounts name name.
+	 * This is what you see, for example, in the lobby or in-game.
+	 * @return the name
+	 */
+	public String getName() {
+		return name;
+	}
+
+	/**
+	 * Accounts name name.
+	 * This is what you see, for example, in the lobby or in-game.
+	 * @param name the name to set
+	 */
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	/**
+	 * Encrypted form of the password.
+	 * TODO: add method of description
+	 * @return the password
+	 */
+	public String getPassword() {
+		return password;
+	}
+
+	/**
+	 * Encrypted form of the password.
+	 * TODO: add method of description
+	 * @param password the password to set
+	 */
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	/**
+	 * Access type.
+	 * Bit 31 must be 0 (due to int being a signed number, and we don't want to
+	 * use any binary complement conversions).
+	 * @return the accessType
+	 */
+	public int getAccessType() {
+		return accessType;
+	}
+
+	/**
+	 * Access type.
+	 * Bit 31 must be 0 (due to int being a signed number, and we don't want to
+	 * use any binary complement conversions).
+	 * @param accessType the accessType to set
+	 */
+	public void setAccessType(int accessType) {
+		this.accessType = accessType;
+	}
+
+	/**
+	 * Unique name identification number.
+	 * Equals NO_USER_ID (currently 0) if not used/set. By default it is not
+	 * set. Multiple accounts may share same name ID. This value actually
+	 * indicates last ID as sent with the LOGIN or USERID command by the client.
+	 * We use it to detect spawned accounts (accounts registered by the same
+	 * name), ban evasion etc.
+	 * @see accountID
+	 * @return the lastUserId
+	 */
+	public int getLastUserId() {
+		return lastUserId;
+	}
+
+	/**
+	 * Unique name identification number.
+	 * Equals NO_USER_ID (currently 0) if not used/set. By default it is not
+	 * set. Multiple accounts may share same name ID. This value actually
+	 * indicates last ID as sent with the LOGIN or USERID command by the client.
+	 * We use it to detect spawned accounts (accounts registered by the same
+	 * name), ban evasion etc.
+	 * @see accountID
+	 * @param lastUserId the lastUserId to set
+	 */
+	public void setLastUserId(int lastUserId) {
+		this.lastUserId = lastUserId;
+	}
+
+	/**
+	 * Time (System.currentTimeMillis()) of the last login.
+	 * @return the lastLogin
+	 */
+	public long getLastLogin() {
+		return lastLogin;
+	}
+
+	/**
+	 * Time (System.currentTimeMillis()) of the last login.
+	 * @param lastLogin the lastLogin to set
+	 */
+	public void setLastLogin(long lastLogin) {
+		this.lastLogin = lastLogin;
+	}
+
+	/**
+	 * Most recent IP used to log into this account.
+	 * @return the lastIP
+	 */
+	public String getLastIP() {
+		return lastIP;
+	}
+
+	/**
+	 * Most recent IP used to log into this account.
+	 * @param lastIP the lastIP to set
+	 */
+	public void setLastIP(String lastIP) {
+		this.lastIP = lastIP;
+	}
+
+	/**
+	 * Date of when the name registered this account.
+	 * In miliseconds (refers to System.currentTimeMillis()). 0 means
+	 * registration date is unknown. This applies to users that registered in
+	 * some early version, when this field was not yet present. Note that this
+	 * field was first introduced with Spring 0.67b3, Dec 18 2005.
+	 * @return the registrationDate
+	 */
+	public long getRegistrationDate() {
+		return registrationDate;
+	}
+
+	/**
+	 * Date of when the name registered this account.
+	 * In miliseconds (refers to System.currentTimeMillis()). 0 means
+	 * registration date is unknown. This applies to users that registered in
+	 * some early version, when this field was not yet present. Note that this
+	 * field was first introduced with Spring 0.67b3, Dec 18 2005.
+	 * @param registrationDate the registrationDate to set
+	 */
+	private void setRegistrationDate(long registrationDate) {
+		this.registrationDate = registrationDate;
+	}
+
+	/**
+	 * Resolved country code for this name's IP when he last logged on.
+	 * If country could not be resolved, "XX" is used for country code,
+	 * otherwise a 2-char country code is used.
+	 * @return the lastCountry
+	 */
+	public String getLastCountry() {
+		return lastCountry;
+	}
+
+	/**
+	 * Resolved country code for this name's IP when he last logged on.
+	 * If country could not be resolved, "XX" is used for country code,
+	 * otherwise a 2-char country code is used.
+	 * @param lastCountry the lastCountry to set
+	 */
+	public void setLastCountry(String lastCountry) {
+		this.lastCountry = lastCountry;
 	}
 }

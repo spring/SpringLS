@@ -151,7 +151,7 @@ public class Client {
 
 		if (s_log.isDebugEnabled()) {
 			if (account.accessLevel() != Account.NIL_ACCESS) {
-				s_log.debug("[->" + account.user + "]" + " \"" + text + "\"");
+				s_log.debug("[->" + account.getName() + "]" + " \"" + text + "\"");
 			} else {
 				s_log.debug("[->" + IP + "]" + " \"" + text + "\"");
 			}
@@ -265,7 +265,7 @@ public class Client {
 				for (int i = 0; i < chan.getClientsSize(); i++) {
 					chan.getClient(i).sendLine(new StringBuilder("LEFT ")
 							.append(chan.name).append(" ")
-							.append(this.account.user)
+							.append(this.account.getName())
 							.append(reason).toString());
 				}
 			}

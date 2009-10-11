@@ -82,7 +82,7 @@ public class Statistics {
 		int activeAccounts = 0;
 		for (int i = 0; i < Accounts.getAccountsSize(); i++) {
 			if ((Accounts.getAccount(i).getInGameTime() > 300) &&
-					(Accounts.getAccount(i).lastLogin > System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 7)) {
+					(Accounts.getAccount(i).getLastLogin() > System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 7)) {
 				activeAccounts++;
 			}
 		}

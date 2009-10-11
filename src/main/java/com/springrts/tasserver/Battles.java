@@ -65,7 +65,7 @@ public class Battles {
 			battle.removeClientBots(client);
 			Clients.sendToAllRegisteredUsers(new StringBuilder("LEFTBATTLE ")
 					.append(battle.ID).append(" ")
-					.append(client.account.user).toString());
+					.append(client.account.getName()).toString());
 		}
 
 		return true;
@@ -90,7 +90,7 @@ public class Battles {
 			for (int j = 0; j < bat.getClientsSize(); j++) {
 				client.sendLine(new StringBuilder("JOINEDBATTLE ")
 						.append(bat.ID).append(" ")
-						.append(bat.getClient(j).account.user).toString());
+						.append(bat.getClient(j).account.getName()).toString());
 			}
 		}
 		client.endFastWrite();

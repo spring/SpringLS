@@ -119,7 +119,10 @@ public class DBInterface {
 		return true;
 	}
 
-	/* returns true if it can connect to the database and issue a dummy query, or false otherwise */
+	/**
+	 * Returns true if it can connect to the database and issue a dummy query,
+	 * false otherwise
+	 */
 	public boolean testConnection() {
 		Connection conn = null;
 		Statement stmt = null;
