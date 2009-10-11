@@ -8,9 +8,12 @@
 	<packaging>jar</packaging>
 	<version>0.36-SNAPSHOT</version>
 	<name>TASServer</name>
-	<url>http://maven.apache.org</url>
+	<description>A Spring RTS Lobby Server</description>
+	<url>http://springrts.com</url>
 
 	<build>
+		<defaultGoal>package</defaultGoal>
+
 		<plugins>
 			<!--
 				Set source compatibility to 1.5, so Annotations are supported.
