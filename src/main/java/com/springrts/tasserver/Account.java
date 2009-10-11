@@ -59,23 +59,72 @@ public class Account {
 	public static int NO_ACCOUNT_ID = 0;
 	public static int NEW_ACCOUNT_ID = -1;
 
+	// BEGIN: User speccific data (stored in the DB)
+
 	public String user;
 	public String pass;
-	public int access;            // access type. Bit 31 must be 0 (due to int being signed number - we don't want to use any binary complement conversions).
-	public int lastUserID;        // unique user identification number. Equals NO_USER_ID (currently 0) if not used/set. By default it is not set. Multiple accounts may share same user ID. This value actually indicates last ID as sent with the LOGIN or USERID command by the client. We use it to detect spawned accounts (accounts registered by the same user), ban evasion etc.
-	public long lastLogin;        // time (System.currentTimeMillis()) of the last login
-	public String lastIP;         // the most recent IP used to log into this account
-	public long registrationDate; // date when user registered this account. In miliseconds (refers to System.currentTimeMillis()). 0 means registration date is unknown (clients who registered in some early version when this field was not yet implemented. Note that this field was first introduced with Spring 0.67b3, Dec 18 2005).
-	public String lastCountry;    // resolved country code for this user's IP when he last logged on. If country could not be resolved, "XX" is used for country code, otherwise a 2-char country code is used
-	public int accountID;         // unique account identifier number
 
-	public Account(String user, String pass, int access, int lastUserID,
+	/**
+	 * Access type.
+	 * Bit 31 must be 0 (due to int being a signed number, and we don't want to
+	 * use any binary complement conversions).
+	 */
+	public int access;
+
+	/**
+	 * Unique user identification number.
+	 * Equals NO_USER_ID (currently 0) if not used/set. By default it is not
+	 * set. Multiple accounts may share same user ID. This value actually
+	 * indicates last ID as sent with the LOGIN or USERID command by the client.
+	 * We use it to detect spawned accounts (accounts registered by the same
+	 * user), ban evasion etc.
+	 * @see accountID
+	 */
+	public int lastUserId;
+
+	/**
+	 * Time (System.currentTimeMillis()) of the last login.
+	 */
+	public long lastLogin;
+
+	/**
+	 * Most recent IP used to log into this account.
+	 */
+	public String lastIP;
+
+	/**
+	 * Date of when the user registered this account.
+	 * In miliseconds (refers to System.currentTimeMillis()). 0 means
+	 * registration date is unknown. This applies to users that registered in
+	 * some early version, when this field was not yet present. Note that this
+	 * field was first introduced with Spring 0.67b3, Dec 18 2005.
+	 */
+	public long registrationDate;
+
+	/**
+	 * Resolved country code for this user's IP when he last logged on.
+	 * If country could not be resolved, "XX" is used for country code,
+	 * otherwise a 2-char country code is used.
+	 */
+	public String lastCountry;
+
+	/**
+	 * Unique account identification number.
+	 * This is different to the <code>lastUserId</code>, because it
+	 * @see lastUserId
+	 */
+	public int accountID;
+
+	// END: User speccific data (stored in the DB)
+
+
+	public Account(String user, String pass, int access, int lastUserId,
 			long lastLogin, String lastIP, long registrationDate, String lastCountry, int accountID) {
 
 		this.user = user;
 		this.pass = pass;
 		this.access = access;
-		this.lastUserID = lastUserID;
+		this.lastUserId = lastUserId;
 		this.lastLogin = lastLogin;
 		this.lastIP = lastIP;
 		this.registrationDate = registrationDate;
@@ -88,7 +137,7 @@ public class Account {
 		this.user = new String(acc.user);
 		this.pass = new String(acc.pass);
 		this.access = acc.access;
-		this.lastUserID = NO_USER_ID;
+		this.lastUserId = NO_USER_ID;
 		this.lastLogin = acc.lastLogin;
 		this.lastIP = acc.lastIP;
 		this.registrationDate = acc.registrationDate;
@@ -100,7 +149,7 @@ public class Account {
 		return new StringBuilder(user).append(" ")
 				.append(pass).append(" ")
 				.append(Integer.toString(access, 2)).append(" ")
-				.append(lastUserID).append(" ")
+				.append(lastUserId).append(" ")
 				.append(lastLogin).append(" ")
 				.append(lastIP).append(" ")
 				.append(registrationDate).append(" ")

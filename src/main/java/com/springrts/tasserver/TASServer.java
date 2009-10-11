@@ -2039,7 +2039,7 @@ public class TASServer {
 
 				client.sendLine(new StringBuilder("SERVERMSG Last user ID for <")
 						.append(commands[1]).append("> was ")
-						.append(acc.lastUserID).toString());
+						.append(acc.lastUserId).toString());
 			} else if (commands[0].equals("GENERATEUSERID")) {
 				if (commands.length != 2) {
 					return false;
@@ -2243,7 +2243,7 @@ public class TASServer {
 					client.localIP = commands[4];
 				}
 				client.lobbyVersion = lobbyVersion;
-				client.account.lastUserID = userID;
+				client.account.lastUserId = userID;
 
 				// do the notifying and all:
 				client.sendLine(new StringBuilder("ACCEPTED ").append(client.account.user).toString());
@@ -2283,7 +2283,7 @@ public class TASServer {
 					return false;
 				}
 
-				client.account.lastUserID = userID;
+				client.account.lastUserId = userID;
 
 				// add server notification:
 				ServerNotification sn = new ServerNotification("User ID received");
@@ -2325,7 +2325,7 @@ public class TASServer {
 					Channels.getChannel(i).muteList.rename(client.account.user, commands[1]);
 				}
 
-				acc = new Account(commands[1], client.account.pass, client.account.access, client.account.lastUserID, System.currentTimeMillis(), client.IP, client.account.registrationDate, client.account.lastCountry, client.account.accountID);
+				acc = new Account(commands[1], client.account.pass, client.account.access, client.account.lastUserId, System.currentTimeMillis(), client.IP, client.account.registrationDate, client.account.lastCountry, client.account.accountID);
 				client.sendLine(new StringBuilder("SERVERMSG Your account has been renamed to <")
 						.append(commands[1]).append(">. Reconnect with new account (you will now be automatically disconnected)!").toString());
 				Clients.killClient(client, "Quit: renaming account");
