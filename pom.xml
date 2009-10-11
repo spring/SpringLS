@@ -92,6 +92,7 @@
 								<includes>
 									<include>commons-logging:commons-logging</include>
 									<include>log4j:log4j</include>
+									<include>javax.persistence:persistence-api</include>
 								</includes>
 							</artifactSet>
 						</configuration>
@@ -140,6 +141,12 @@
 			<scope>compile</scope>
 		</dependency>
 
+		<dependency>
+			<groupId>javax.persistence</groupId>
+			<artifactId>persistence-api</artifactId>
+			<version>1.0</version>
+			<scope>compile</scope>
+		</dependency>
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>

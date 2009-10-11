@@ -6,6 +6,7 @@ package com.springrts.tasserver;
 
 
 import java.io.Serializable;
+import javax.persistence.*;
 
 /**
  * ---- NOTES ----
@@ -14,6 +15,7 @@ import java.io.Serializable;
  *
  * @author Betalord
  */
+@Entity(name="users")
 public class Account implements Serializable {
 
 	/*
@@ -24,7 +26,7 @@ public class Account implements Serializable {
 	 *     2 - privileged
 	 *     3 - admin
 	 *     values 4 - 7 are reserved for future use
-	 * * bits 3 - 22 (20 bits): in-game time (how many minutes did client spent in-game).
+	 * * bits 3 - 22 (20 bits): in-game time (how many minutes did client spend in-game).
 	 * * bit 23: agreement bit. It tells us whether name has already
 	 *     read the "terms of use" and agreed to it. If not, we should
 	 *     first send him the agreement and wait until he confirms it (before
@@ -68,6 +70,7 @@ public class Account implements Serializable {
 	 * This is different to the <code>lastUserId</code>, because it
 	 * @see lastUserId
 	 */
+	@Id
 	private int id;
 
 	/**
@@ -83,7 +86,7 @@ public class Account implements Serializable {
 	private String password;
 
 	/**
-	 * Access type.
+	 * Access type (eg.: admin, mod, user).
 	 * Bit 31 must be 0 (due to int being a signed number, and we don't want to
 	 * use any binary complement conversions).
 	 */
@@ -96,12 +99,13 @@ public class Account implements Serializable {
 	 * indicates last ID as sent with the LOGIN or USERID command by the client.
 	 * We use it to detect spawned accounts (accounts registered by the same
 	 * name), ban evasion etc.
-	 * @see accountID
+	 * @see id
 	 */
 	private int lastUserId;
 
 	/**
-	 * Time (System.currentTimeMillis()) of the last login.
+	 * Time of the last login.
+	 * @see System.currentTimeMillis()
 	 */
 	private long lastLogin;
 
@@ -112,10 +116,11 @@ public class Account implements Serializable {
 
 	/**
 	 * Date of when the name registered this account.
-	 * In miliseconds (refers to System.currentTimeMillis()). 0 means
-	 * registration date is unknown. This applies to users that registered in
-	 * some early version, when this field was not yet present. Note that this
-	 * field was first introduced with Spring 0.67b3, Dec 18 2005.
+	 * In miliseconds, 0 means registration date is unknown.
+	 * This applies to users that registered in some early version,
+	 * when this field was not yet present. Note that this field was first
+	 * introduced with Spring 0.67b3, Dec 18 2005.
+	 * @see System.currentTimeMillis()
 	 */
 	private long registrationDate;
 
@@ -129,6 +134,10 @@ public class Account implements Serializable {
 	// END: User speccific data (stored in the DB)
 
 
+	/**
+	 * Used by JPA.
+	 */
+	public Account() {}
 	/**
 	 * Used Internally.
 	 */
