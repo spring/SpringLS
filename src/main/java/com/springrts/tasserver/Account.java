@@ -109,29 +109,21 @@ public class Account implements Serializable {
 	private String password;
 
 	/**
-	 * Access type (eg.: admin, mod, user).
-	 * Bit 31 must be 0 (due to int being a signed number, and we don't want to
-	 * use any binary complement conversions).
-	 */
-	private int accessType;
-
-	/**
-	 * Unique name identification number.
-	 * Equals NO_USER_ID (currently 0) if not used/set. By default it is not
-	 * set. Multiple accounts may share same name ID. This value actually
-	 * indicates last ID as sent with the LOGIN or USERID command by the client.
-	 * We use it to detect spawned accounts (accounts registered by the same
-	 * name), ban evasion etc.
-	 * @see id
+	 * Date of when the name registered this account.
+	 * In miliseconds, 0 means registration date is unknown.
+	 * This applies to users that registered in some early version,
+	 * when this field was not yet present. Note that this field was first
+	 * introduced with Spring 0.67b3, Dec 18 2005.
+	 * @see System.currentTimeMillis()
 	 */
 	@Column(
-		name       = "last_id",
-		unique     = false,
+		name       = "register_date",
+		unique     = true,
 		nullable   = true,
 		insertable = true,
-		updatable  = true
+		updatable  = false
 		)
-	private int lastUserId;
+	private long registrationDate;
 
 	/**
 	 * Time of the last login.
@@ -160,28 +152,44 @@ public class Account implements Serializable {
 	private String lastIP;
 
 	/**
-	 * Date of when the name registered this account.
-	 * In miliseconds, 0 means registration date is unknown.
-	 * This applies to users that registered in some early version,
-	 * when this field was not yet present. Note that this field was first
-	 * introduced with Spring 0.67b3, Dec 18 2005.
-	 * @see System.currentTimeMillis()
+	 * Unique name identification number.
+	 * Equals NO_USER_ID (currently 0) if not used/set. By default it is not
+	 * set. Multiple accounts may share same name ID. This value actually
+	 * indicates last ID as sent with the LOGIN or USERID command by the client.
+	 * We use it to detect spawned accounts (accounts registered by the same
+	 * name), ban evasion etc.
+	 * @see id
 	 */
 	@Column(
-		name       = "register_date",
-		unique     = true,
+		name       = "last_id",
+		unique     = false,
 		nullable   = true,
 		insertable = true,
-		updatable  = false
+		updatable  = true
 		)
-	private long registrationDate;
+	private int lastUserId;
 
 	/**
 	 * Resolved country code for this name's IP when he last logged on.
 	 * If country could not be resolved, "XX" is used for country code,
 	 * otherwise a 2-char country code is used.
 	 */
+	@Column(
+		name       = "last_country",
+		unique     = false,
+		nullable   = false,
+		insertable = true,
+		updatable  = true,
+		length     = 2
+		)
 	private String lastCountry;
+
+	/**
+	 * Access type (eg.: admin, mod, user).
+	 * Bit 31 must be 0 (due to int being a signed number, and we don't want to
+	 * use any binary complement conversions).
+	 */
+	private int accessType;
 
 	// END: User speccific data (stored in the DB)
 
