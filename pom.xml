@@ -126,6 +126,31 @@
 			<artifactId>log4j</artifactId>
 			<version>1.2.15</version>
 			<scope>runtime</scope>
+			<optional>true</optional>
+			<!--
+				Exclude these as they are not needed
+				except for special scenarios,
+				and because Maven can not auto-fetch them,
+				due to copyright restrictions.
+			-->
+			<exclusions>
+				<exclusion>
+					<groupId>javax.mail</groupId>
+					<artifactId>mail</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.sun.jdmk</groupId>
+					<artifactId>jmxtools</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.sun.jmx</groupId>
+					<artifactId>jmxri</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>javax.jms</groupId>
+					<artifactId>jms</artifactId>
+				</exclusion>
+			</exclusions> 
 		</dependency>
 
 		<dependency>
@@ -133,6 +158,7 @@
 			<artifactId>commons-pool</artifactId>
 			<version>1.5.2</version>
 			<scope>compile</scope>
+			<optional>true</optional>
 		</dependency>
 
 		<dependency>
@@ -140,6 +166,7 @@
 			<artifactId>commons-dbcp</artifactId>
 			<version>1.2.2</version>
 			<scope>compile</scope>
+			<optional>true</optional>
 		</dependency>
 
 		<dependency>
@@ -147,12 +174,14 @@
 			<artifactId>persistence-api</artifactId>
 			<version>1.0</version>
 			<scope>compile</scope>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
 			<version>5.1.6</version>
 			<scope>runtime</scope>
+			<optional>true</optional>
 		</dependency>
 
 		<dependency>
