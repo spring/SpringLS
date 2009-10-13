@@ -18,12 +18,24 @@ Maven needs to know about the project, in order to:
 * Pack the class files together with all the dependencies into a single,
   executable Jar file
 
+Installing Maven 2:
+In case you already have it installed, skip this paragraph.
+Windows:
+Go to http://maven.apache.org/download.html, and download the latest stable
+version zip file (not the Source zip). Then exctract to eg your Program Files,
+and make sure the bin sub-dir of the extracted folder is in your PATH
+environment variable.
+*nix:
+Install the maven2 package in your systems way of doing so.
+On Ubuntu for example, you would do this:
+> sudu apt-get install maven2
+
 build steps:
 1. Make sure you have Maven 2 installed. You can check that with the following command:
-mvn --version
+> mvn --version
 2. compile and package TASServer:
-mvn package
-This may take wuite some time, if you are runnig Maven for the first time,
+> mvn package
+This may take quite some time, if you are runnig Maven for the first time,
 as it has to downlaod all the dependencies for the different build steps,
 plus the dependencies of TASServer.
 3. If everything went smoothly, this was it already!
@@ -35,12 +47,8 @@ target/tasserver*.jar
  Running
 ---------
 
-If you are running it under Linux (.jar file), run it from the console:
-java -jar TASServer.jar
-If you are running it from Windows, simply double-click the .exe file.
-Alternative is to extract .jar file and run it manually from the console:
-java TASServer
-Or simply by running either LanServer.bat or DebugLanServer.bat on Windows.
+Use runServer.sh|.bat to start the server, if you built it with Maven,
+and see the documentation in these files for further info.
 
 When server is up and running, people from local network will be able to 
 join it as well as people from the internet, although those from the internet 
