@@ -16,9 +16,16 @@ import java.io.*;
 public class ServerNotifications {
 
 	private static final Log s_log  = LogFactory.getLog(ServerNotifications.class);
-	public static final String NOTIFICATION_SYSTEM_VERSION = "1.0"; // this will also get saved with notifications just in case format of notification files change in the future
+	/**
+	 * This will also get saved with notifications, just in case the format
+	 * of notification files changes in the future.
+	 */
+	public static final String NOTIFICATION_SYSTEM_VERSION = "1.0";
 
-	// note that this method may be called from multiple threads simultaneously (don't remove the 'synchronized' identifier!)
+	/**
+	 * NOTE: This method may be called from multiple threads simultaneously,
+	 *       so do not remove the 'synchronized' identifier!
+	 */
 	public static synchronized boolean addNotification(ServerNotification sn) {
 
 		if (TASServer.LAN_MODE) {
@@ -33,10 +40,7 @@ public class ServerNotifications {
 		try {
 			BufferedWriter out = new BufferedWriter(new FileWriter(fname, true));
 			out.write(NOTIFICATION_SYSTEM_VERSION + "\r\n");
-			out.write(sn.author + "\r\n");
-			out.write(sn.title + "\r\n");
-			out.write(sn.time + "\r\n");
-			out.write(sn.message);
+			out.write(sn.toString());
 			out.close();
 		} catch (IOException e) {
 			s_log.error("Unable to write file <" + fname + ">. Server notification will not be saved!");
