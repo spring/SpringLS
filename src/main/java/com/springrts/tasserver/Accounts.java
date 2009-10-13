@@ -20,12 +20,17 @@ public class Accounts {
 
 	private static final Log s_log  = LogFactory.getLog(Accounts.class);
 
-	// note: ArrayList is not synchronized! Use Vector class instead if multiple threads are going to access it
+	// note: ArrayList is not synchronized!
+	// Use Vector class instead if multiple threads are going to access it
 	private static List<Account> accounts = new ArrayList<Account>();
 	private static SaveAccountsThread saveAccountsThread = null;
 	private static int biggestAccountId = 1000;
 
-	// 'map' is used to speed up searching for accounts by username (TreeMap class implements efficient Red-Black trees)
+	/**
+	 * Used to speed up searching for accounts by username.
+	 * (TreeMap class implements efficient Red-Black trees)
+	 * @see mapNoCase
+	 */
 	private static TreeMap<String, Account> map = new TreeMap<String, Account>(
 			new java.util.Comparator<String>() {
 
@@ -34,7 +39,10 @@ public class Accounts {
 				}
 			});
 
-	// same as 'map', only difference is that it ignores case
+	/**
+	 * Same as 'map', only that this ignores case.
+	 * @see map
+	 */
 	private static TreeMap<String, Account> mapNoCase = new TreeMap<String, Account>(
 			new java.util.Comparator<String>() {
 
@@ -42,8 +50,13 @@ public class Accounts {
 					return s1.compareToIgnoreCase(s2);
 				}
 			});
-	private static long saveAccountInfoInterval = 1000 * 60 * 60; // in milliseconds
-	private static long lastSaveAccountsTime = System.currentTimeMillis(); // time when we last saved accounts info to disk
+	/** in milliseconds */
+	private static long saveAccountInfoInterval = 1000 * 60 * 60;
+	/**
+	 * Time we last saved accounts info to disk.
+	 * @see System.currentTimeMillis()
+	 */
+	private static long lastSaveAccountsTime = System.currentTimeMillis();
 
 	public static int getAccountsSize() {
 		return accounts.size();
