@@ -18,27 +18,8 @@ import javax.persistence.*;
 @Entity(name="users")
 public class Account implements Serializable {
 
-	/*
-	 * accessType bits (31 effective bits, last one is a sign bit and we don't use it):
-	 * * bits 0 - 2 (3 bits): accessType level
-	 *     0 - none (should not be used for logged-in clients)
-	 *     1 - normal (limited)
-	 *     2 - privileged
-	 *     3 - admin
-	 *     values 4 - 7 are reserved for future use
-	 * * bits 3 - 22 (20 bits): in-game time (how many minutes did client spend in-game).
-	 * * bit 23: agreement bit. It tells us whether name has already
-	 *     read the "terms of use" and agreed to it. If not, we should
-	 *     first send him the agreement and wait until he confirms it (before
-	 *     allowing him to log on the server).
-	 * * bit 24 - bot mode (0 - normal name, 1 - automated bot).
-	 * * bits 25 - 30 (6 bits): reserved for future use.
-	 * * bit 31: unused (integer sign)
-	 */
-
-
-	/*
-	 * current rank categories:
+	/**
+	 * Current rank categories:
 	 * < 5h = newbie
 	 * 5h - 15h = beginner
 	 * 15h - 30h = avarage
@@ -47,23 +28,52 @@ public class Account implements Serializable {
 	 * 300h - 1000h = highly experienced player
 	 * > 1000h = veteran
 	 */
-	private static int rank1Limit = 60*5;    // in minutes
-	private static int rank2Limit = 60*15;   // in minutes
-	private static int rank3Limit = 60*30;   // in minutes
-	private static int rank4Limit = 60*100;  // in minutes
-	private static int rank5Limit = 60*300;  // in minutes
-	private static int rank6Limit = 60*1000; // in minutes
+	public static enum Rank {
+		Newbie            (0),
+		Beginner          (5),
+		Average           (15),
+		AboveAverage      (30),
+		Experienced       (100),
+		HighlyExperienced (300),
+		Veteran           (1000);
 
-	public static int NIL_ACCESS = 0; // for clients that haven't logged in yet
-	public static int NORMAL_ACCESS = 1;
-	public static int PRIVILEGED_ACCESS = 2;
-	public static int ADMIN_ACCESS = 3;
+		private final long seconds;
+
+		private Rank(long hours) {
+			seconds = hours * 60 * 60;
+		}
+
+		/**
+		 * Returns the minimum required ammount of in-game time to optain
+		 * this rank, in seconds.
+		 * @return min. in-game time in seconds
+		 */
+		public long getRequiredTime() {
+			return seconds;
+		}
+	}
+
+	/**
+	 * The ordinal of the enum members have to match the values in the
+	 * access bit field used in the server protocol.
+	 */
+	public static enum Access {
+		/** not yet logged in */
+		NONE,
+		/** normal user access level */
+		NORMAL,
+		/** can kick and ban users + more */
+		PRIVILEGED,
+		/** can change users access level */
+		ADMIN;
+	}
 
 	public static int NO_USER_ID = 0;
 	public static int NO_ACCOUNT_ID = 0;
 	public static int NEW_ACCOUNT_ID = -1;
 
-	// BEGIN: User speccific data (stored in the DB)
+
+	// BEGIN: User specific data (stored in the DB)
 
 	/**
 	 * Unique account identification number.
@@ -96,7 +106,7 @@ public class Account implements Serializable {
 
 	/**
 	 * Encrypted form of the password.
-	 * TODO: add method of description
+	 * TODO: add description of method used to encrypt the password; lobby side
 	 */
 	@Column(
 		name       = "password",
@@ -185,13 +195,50 @@ public class Account implements Serializable {
 	private String lastCountry;
 
 	/**
+	 * How many seconds did the client spend in-game (unix time-stamp compatible).
+	 */
+	@Column(
+		name       = "ingame_time",
+		unique     = false,
+		nullable   = true,
+		insertable = true,
+		updatable  = true
+		)
+	private long inGameTime;
+
+	/**
 	 * Access type (eg.: admin, mod, user).
 	 * Bit 31 must be 0 (due to int being a signed number, and we don't want to
 	 * use any binary complement conversions).
 	 */
-	private int accessType;
+	private Access access;
 
-	// END: User speccific data (stored in the DB)
+	/**
+	 * Bot mode specifies whether this is an automated bot,
+	 * for example an instance of ChanServ, or a normal account.
+	 */
+	@Column(
+		name       = "bot",
+		unique     = false,
+		nullable   = false,
+		insertable = true,
+		updatable  = true
+		)
+	private boolean bot;
+
+	/**
+	 * Whether the user accepted the agreement or not.
+	 */
+	@Column(
+		name       = "agreement",
+		unique     = false,
+		nullable   = false,
+		insertable = true,
+		updatable  = true
+		)
+	private boolean agreementAccepted;
+
+	// END: User specific data (stored in the DB)
 
 
 	/**
@@ -201,46 +248,55 @@ public class Account implements Serializable {
 	/**
 	 * Used Internally.
 	 */
-	public Account(String name, String password, int accessType, int lastUserId,
+	public Account(String name, String password, Access access, int lastUserId,
 			long lastLogin, String lastIP, long registrationDate,
-			String lastCountry, int id) {
+			String lastCountry, int id, boolean bot, long inGameTime,
+			boolean agreementAccepted) {
 
-		this.name             = name;
-		this.password         = password;
-		this.accessType       = accessType;
-		this.lastUserId       = lastUserId;
-		this.lastLogin        = lastLogin;
-		this.lastIP           = lastIP;
-		this.registrationDate = registrationDate;
-		this.lastCountry      = lastCountry;
-		this.id               = id;
+		this.id                = id;
+		this.name              = name;
+		this.password          = password;
+		this.registrationDate  = registrationDate;
+		this.lastLogin         = lastLogin;
+		this.lastUserId        = lastUserId;
+		this.lastIP            = lastIP;
+		this.lastCountry       = lastCountry;
+		this.inGameTime        = inGameTime;
+		this.access            = access;
+		this.bot               = bot;
+		this.agreementAccepted = agreementAccepted;
 	}
 
 	public Account(Account acc) {
 
-		this.name             = new String(acc.getName());
-		this.password         = new String(acc.getPassword());
-		this.accessType       = acc.accessType;
-		this.lastUserId       = NO_USER_ID;
-		this.lastLogin        = acc.lastLogin;
-		this.lastIP           = new String(acc.getLastIP());
-		this.registrationDate = acc.registrationDate;
-		this.lastCountry      = new String(acc.getLastCountry());
-		// TODO: possible bug: is the next correct/needed?
-		//this.id               = acc.id;
+		this.name              = new String(acc.getName());
+		this.password          = new String(acc.getPassword());
+		this.access            = acc.access;
+		this.lastUserId        = NO_USER_ID;
+		this.lastLogin         = acc.lastLogin;
+		this.lastIP            = new String(acc.getLastIP());
+		this.registrationDate  = acc.registrationDate;
+		this.lastCountry       = new String(acc.getLastCountry());
+		this.id                = acc.id;
+		this.bot               = acc.bot;
+		this.inGameTime        = acc.inGameTime;
+		this.agreementAccepted = acc.agreementAccepted;
 	}
 
 	@Override
 	public String toString() {
 		return new StringBuilder(getName()).append(" ")
 				.append(getPassword()).append(" ")
-				.append(Integer.toString(getAccessType(), 2)).append(" ")
+				.append(getAccess()).append(" ")
 				.append(getLastUserId()).append(" ")
 				.append(getLastLogin()).append(" ")
 				.append(getLastIP()).append(" ")
 				.append(getRegistrationDate()).append(" ")
 				.append(getLastCountry()).append(" ")
-				.append(getId()).toString();
+				.append(getId()).append(" ")
+				.append(isBot()).append(" ")
+				.append(getInGameTime()).append(" ")
+				.append(isAgreementAccepted()).toString();
 	}
 
 	@Override
@@ -265,50 +321,72 @@ public class Account implements Serializable {
 		return true;
 	}
 
-	public int accessLevel() {
-		return getAccessType() & 0x7;
-	}
-
-	public boolean getBotMode() {
-		return ((getAccessType() & 0x1000000) >> 24) == 1;
-	}
-
-	public void setBotMode(boolean bot) {
-		int b = bot ? 1 : 0;
-		setAccessType((getAccessType() & 0xFEFFFFFF) | (b << 24));
-	}
-
 	/**
-	 * Returns the client's in-game time in minutes.
-	 * @return the client's in-game time in minutes
+	 * AccessType bits (31 effective bits, last one is a sign bit and we don't use it):
+	 * * bits 0 - 2 (3 bits): accessType level
+	 *     0 - none (should not be used for logged-in clients)
+	 *     1 - normal (limited)
+	 *     2 - privileged
+	 *     3 - admin
+	 *     values 4 - 7 are reserved for future use
+	 * * bits 3 - 22 (20 bits): in-game time (how many minutes did client spend in-game).
+	 * * bit 23: agreement bit. It tells us whether name has already
+	 *     read the "terms of use" and agreed to it. If not, we should
+	 *     first send him the agreement and wait until he confirms it (before
+	 *     allowing him to log on the server).
+	 * * bit 24 - bot mode (0 - normal name, 1 - automated bot).
+	 * * bits 25 - 30 (6 bits): reserved for future use.
+	 * * bit 31: unused (integer sign)
 	 */
-	public int getInGameTime() {
-		return (getAccessType() & 0x7FFFF8) >> 3;
+	public int getAccessBitField() {
+
+		int bf = 0;
+
+		bf += getAccess().ordinal();
+		bf += ((getInGameTime() & 0xFFFFF) / 60) << 3;
+		bf += isAgreementAccepted() ? 0x800000 : 0;
+		bf += isBot() ? 0x1000000 : 0;
+
+		return bf;
 	}
 
-	public void setInGameTime(int mins) {
-		setAccessType((getAccessType() & 0xFF800007) | (mins << 3));
+	public static Access extractAccess(int accessBitField) {
+
+		final int accessOrdinal = accessBitField & 0x3;
+		if (accessOrdinal >= Access.values().length) {
+			return null;
+		} else {
+			return Access.values()[accessOrdinal];
+		}
+	}
+	public static long extractInGameTime(int accessBitField) {
+		return ((accessBitField & 0x7FFFF8) >> 3) * 60;
+	}
+	public static boolean extractAgreementAccepted(int accessBitField) {
+		return ((accessBitField & 0x800000) >> 23) == 1;
+	}
+	public static boolean extractBot(int accessBitField) {
+		return ((accessBitField & 0x1000000) >> 24) == 1;
 	}
 
-	public boolean getAgreement() {
-		return ((getAccessType() & 0x800000) >> 23) == 1;
+
+	public long getInGameTimeInMins() {
+		return (getInGameTime() / 60);
 	}
 
-	public void setAgreement(boolean agreed) {
+	public Rank getRank() {
 
-		// must be 1 (true) or 0 (false)
-		int agr = agreed ? 1 : 0;
-		setAccessType((getAccessType() & 0xFF7FFFFF) | (agr << 23));
-	}
+		final long igtSeconds = getInGameTime();
 
-	public int getRank() {
-		if (getInGameTime() >= rank6Limit) return 6;
-		else if (getInGameTime() > rank5Limit) return 5;
-		else if (getInGameTime() > rank4Limit) return 4;
-		else if (getInGameTime() > rank3Limit) return 3;
-		else if (getInGameTime() > rank2Limit) return 2;
-		else if (getInGameTime() > rank1Limit) return 1;
-		else return 0;
+		Rank[] allRanks = Rank.values();
+		for (int r = allRanks.length-1; r >= 0; r--) {
+			final Rank curRank = allRanks[r];
+			if (igtSeconds >= curRank.getRequiredTime()) {
+				return curRank;
+			}
+		}
+
+		return Rank.Newbie;
 	}
 
 	/**
@@ -318,8 +396,9 @@ public class Account implements Serializable {
 	 * @return true if player's rank was changed, false otherwise.
 	 */
 	public boolean addMinsToInGameTime(int mins) {
-		int tmp = getRank();
-		setInGameTime(getInGameTime() + mins);
+
+		final Rank tmp = getRank();
+		setInGameTime(getInGameTime() + (mins * 60));
 		return tmp != getRank();
 	}
 
@@ -385,8 +464,8 @@ public class Account implements Serializable {
 	 * use any binary complement conversions).
 	 * @return the accessType
 	 */
-	public int getAccessType() {
-		return accessType;
+	public Access getAccess() {
+		return access;
 	}
 
 	/**
@@ -395,8 +474,8 @@ public class Account implements Serializable {
 	 * use any binary complement conversions).
 	 * @param accessType the accessType to set
 	 */
-	public void setAccessType(int accessType) {
-		this.accessType = accessType;
+	public void setAccess(Access access) {
+		this.access = access;
 	}
 
 	/**
@@ -501,5 +580,55 @@ public class Account implements Serializable {
 	 */
 	public void setLastCountry(String lastCountry) {
 		this.lastCountry = lastCountry;
+	}
+
+	/**
+	 * Bot mode specifies whether this is an automated bot,
+	 * for example an instance of ChanServ, or a normal account.
+	 * @return whether this is an automated bot or not
+	 */
+	public boolean isBot() {
+		return bot;
+	}
+
+	/**
+	 * Bot mode specifies whether this is an automated bot,
+	 * for example an instance of ChanServ, or a normal account.
+	 * @param bot whether this is an automated bot or not
+	 */
+	public void setBot(boolean bot) {
+		this.bot = bot;
+	}
+
+	/**
+	 * How many seconds did the client spend in-game (unix time-stamp compatible).
+	 * @return the inGameTime
+	 */
+	public long getInGameTime() {
+		return inGameTime;
+	}
+
+	/**
+	 * How many seconds did the client spend in-game (unix time-stamp compatible).
+	 * @param inGameTime the inGameTime to set
+	 */
+	public void setInGameTime(long inGameTime) {
+		this.inGameTime = inGameTime;
+	}
+
+	/**
+	 * Whether the user accepted the agreement or not.
+	 * @return the agreementAccepted
+	 */
+	public boolean isAgreementAccepted() {
+		return agreementAccepted;
+	}
+
+	/**
+	 * Whether the user accepted the agreement or not.
+	 * @param agreementAccepted the agreementAccepted to set
+	 */
+	public void setAgreementAccepted(boolean agreementAccepted) {
+		this.agreementAccepted = agreementAccepted;
 	}
 }

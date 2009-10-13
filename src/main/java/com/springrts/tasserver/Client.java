@@ -54,7 +54,7 @@ public class Client {
 	public Client(SocketChannel sockChan) {
 		alive = true;
 
-		account = new Account("", "", Account.NIL_ACCESS, Account.NO_USER_ID, 0, "?", 0, "XX", Account.NO_ACCOUNT_ID); // no info on user/pass, zero access
+		account = new Account("", "", Account.Access.NONE, Account.NO_USER_ID, 0, "?", 0, "XX", Account.NO_ACCOUNT_ID, false, 0, false); // no info on user/pass, zero access
 		this.sockChan = sockChan;
 		IP = sockChan.socket().getInetAddress().getHostAddress();
 		// this fixes the issue with local user connecting to server as "127.0.0.1" (he can't host battles with that IP):
@@ -150,7 +150,7 @@ public class Client {
 		}
 
 		if (s_log.isDebugEnabled()) {
-			if (account.accessLevel() != Account.NIL_ACCESS) {
+			if (account.getAccess() != Account.Access.NONE) {
 				s_log.debug("[->" + account.getName() + "]" + " \"" + text + "\"");
 			} else {
 				s_log.debug("[->" + IP + "]" + " \"" + text + "\"");

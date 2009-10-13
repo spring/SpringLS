@@ -99,7 +99,7 @@ public class Clients {
 
 	public static void sendToAllRegisteredUsers(String s) {
 		for (int i = 0; i < clients.size(); i++) {
-			if (clients.get(i).account.accessLevel() < Account.NORMAL_ACCESS) continue;
+			if (clients.get(i).account.getAccess().compareTo(Account.Access.NORMAL) < 0) continue;
 			clients.get(i).sendLine(s);
 		}
 	}
@@ -108,7 +108,7 @@ public class Clients {
 	public static void sendToAllRegisteredUsersExcept(Client client, String s) {
 
 		for (int i = 0; i < clients.size(); i++) {
-			if ((clients.get(i).account.accessLevel() < Account.NORMAL_ACCESS)
+			if ((clients.get(i).account.getAccess().compareTo(Account.Access.NORMAL) < 0)
 					|| clients.get(i) == client) {
 				continue;
 			}
@@ -119,7 +119,7 @@ public class Clients {
 	public static void sendToAllAdministrators(String s) {
 
 		for (int i = 0; i < clients.size(); i++) {
-			if (clients.get(i).account.accessLevel() < Account.ADMIN_ACCESS) {
+			if (clients.get(i).account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 				continue;
 			}
 			clients.get(i).sendLine(s);
@@ -134,7 +134,7 @@ public class Clients {
 
 		client.beginFastWrite();
 		for (int i = 0; i < clients.size(); i++) {
-			if (clients.get(i).account.accessLevel() < Account.NORMAL_ACCESS) {
+			if (clients.get(i).account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 				continue;
 			}
 			if (clients.get(i).status != 0) {
@@ -168,7 +168,7 @@ public class Clients {
 
 		client.beginFastWrite();
 		for (int i = 0; i < clients.size(); i++) {
-			if (clients.get(i).account.accessLevel() < Account.NORMAL_ACCESS) {
+			if (clients.get(i).account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 				continue;
 			}
 			if (client.acceptAccountIDs) {
@@ -191,7 +191,7 @@ public class Clients {
 	 * is not notified (he is already notified by some other method) */
 	public static void notifyClientsOfNewClientOnServer(Client client) {
 		for (int i = 0; i < clients.size(); i++) {
-			if (clients.get(i).account.accessLevel() < Account.NORMAL_ACCESS) continue;
+			if (clients.get(i).account.getAccess().compareTo(Account.Access.NORMAL) < 0) continue;
 			if (clients.get(i) == client) continue;
 			if(clients.get(i).acceptAccountIDs) {
 				clients.get(i).sendLine(new StringBuilder("ADDUSER ")
@@ -212,7 +212,7 @@ public class Clients {
 	 * with JOINBATTLE command. See protocol description) */
 	public static void notifyClientsOfNewClientInBattle(Battle battle, Client client) {
 		for (int i = 0; i < clients.size(); i++)  {
-			if (clients.get(i).account.accessLevel() < Account.NORMAL_ACCESS) continue;
+			if (clients.get(i).account.getAccess().compareTo(Account.Access.NORMAL) < 0) continue;
 			clients.get(i).sendLine(new StringBuilder("JOINEDBATTLE ")
 					.append(battle.ID).append(" ")
 					.append(client.account.getName()).toString());
@@ -254,7 +254,7 @@ public class Clients {
 			Battles.leaveBattle(client, bat); // automatically checks if client is founder and closes the battle
 		}
 
-		if (client.account.accessLevel() != Account.NIL_ACCESS) {
+		if (client.account.getAccess() != Account.Access.NONE) {
 			sendToAllRegisteredUsers("REMOVEUSER %s" + client.account.getName());
 			if (s_log.isDebugEnabled()) {
 				s_log.debug("Registered user killed: " + client.account.getName());

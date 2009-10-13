@@ -68,11 +68,24 @@ public class Accounts {
 					continue;
 				}
 				tokens = line.split(" ");
-				if (tokens.length < 9) {
-					addAccount(new Account(tokens[0], tokens[1], Integer.parseInt(tokens[2], 2), Integer.parseInt(tokens[3]), Long.parseLong(tokens[4]), tokens[5], Long.parseLong(tokens[6]), tokens[7], Account.NEW_ACCOUNT_ID));
-				} else {
-					addAccount(new Account(tokens[0], tokens[1], Integer.parseInt(tokens[2], 2), Integer.parseInt(tokens[3]), Long.parseLong(tokens[4]), tokens[5], Long.parseLong(tokens[6]), tokens[7], Integer.parseInt(tokens[8])));
+				int accountId = Account.NEW_ACCOUNT_ID;
+				if (tokens.length >= 9) {
+					accountId = Integer.parseInt(tokens[8]);
 				}
+				final int accessBitField = Integer.parseInt(tokens[2]);
+				addAccount(new Account(
+						tokens[0],
+						tokens[1],
+						Account.extractAccess(accessBitField),
+						Integer.parseInt(tokens[3]),
+						Long.parseLong(tokens[4]),
+						tokens[5],
+						Long.parseLong(tokens[6]),
+						tokens[7],
+						accountId,
+						Account.extractBot(accessBitField),
+						Account.extractInGameTime(accessBitField),
+						Account.extractAgreementAccepted(accessBitField)));
 			}
 
 			in.close();

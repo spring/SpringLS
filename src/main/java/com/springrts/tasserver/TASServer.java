@@ -588,7 +588,7 @@ public class TASServer {
 				client.dataOverLastTimePeriod += nbytes;
 
 				// basic anti-flood protection:
-				if ((client.account.accessLevel() < Account.ADMIN_ACCESS) && (((client.getBotModeFromStatus() == false) && (client.dataOverLastTimePeriod > TASServer.maxBytesAlert)) ||
+				if ((client.account.getAccess().compareTo(Account.Access.ADMIN) >= 0) && (((client.getBotModeFromStatus() == false) && (client.dataOverLastTimePeriod > TASServer.maxBytesAlert)) ||
 						((client.getBotModeFromStatus() == true) && (client.dataOverLastTimePeriod > TASServer.maxBytesAlertForBot)))) {
 					s_log.warn(new StringBuilder("Flooding detected from ")
 							.append(client.IP).append(" (")
@@ -793,7 +793,7 @@ public class TASServer {
 		}
 
 		if (s_log.isDebugEnabled()) {
-			if (client.account.accessLevel() != Account.NIL_ACCESS) {
+			if (client.account.getAccess() != Account.Access.NONE) {
 				s_log.debug(new StringBuilder("[<-")
 						.append(client.account.getName()).append("] \"")
 						.append(command).append("\"").toString());
@@ -828,12 +828,12 @@ public class TASServer {
 
 		try {
 			if (commands[0].equals("PING")) {
-				//***if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
+				//***if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) return false;
 
 				client.sendLine("PONG");
 			}
 			if (commands[0].equals("CREATEACCOUNT")) {
-				if (client.account.accessLevel() != Account.ADMIN_ACCESS) {
+				if (client.account.getAccess() != Account.Access.ADMIN) {
 					return false;
 				}
 				if (commands.length != 3) {
@@ -865,7 +865,19 @@ public class TASServer {
 						return false;
 					}
 				}
-				acc = new Account(commands[1], commands[2], Account.NORMAL_ACCESS, Account.NO_USER_ID, System.currentTimeMillis(), client.IP, System.currentTimeMillis(), client.country, Account.NEW_ACCOUNT_ID);
+				acc = new Account(
+						commands[1],
+						commands[2],
+						Account.Access.NORMAL,
+						Account.NO_USER_ID,
+						System.currentTimeMillis(),
+						client.IP,
+						System.currentTimeMillis(),
+						client.country,
+						Account.NEW_ACCOUNT_ID,
+						false,
+						0,
+						false);
 				Accounts.addAccount(acc);
 				Accounts.saveAccounts(false); // let's save new accounts info to disk
 				client.sendLine("SERVERMSG Account created.");
@@ -881,7 +893,7 @@ public class TASServer {
 					return false;
 				}
 
-				if (client.account.accessLevel() != Account.NIL_ACCESS) { // only clients which aren't logged-in can register
+				if (client.account.getAccess() != Account.Access.NONE) { // only clients which aren't logged-in can register
 					client.sendLine("REGISTRATIONDENIED You are already logged-in, no need to register new account");
 					return false;
 				}
@@ -943,12 +955,24 @@ public class TASServer {
 				Clients.sendToAllAdministrators(new StringBuilder("SERVERMSG New registration of <")
 						.append(commands[1]).append("> at ")
 						.append(client.IP).toString());
-				acc = new Account(commands[1], commands[2], Account.NORMAL_ACCESS, Account.NO_USER_ID, System.currentTimeMillis(), client.IP, System.currentTimeMillis(), client.country, Account.NEW_ACCOUNT_ID);
+				acc = new Account(
+						commands[1],
+						commands[2],
+						Account.Access.NORMAL,
+						Account.NO_USER_ID,
+						System.currentTimeMillis(),
+						client.IP,
+						System.currentTimeMillis(),
+						client.country,
+						Account.NEW_ACCOUNT_ID,
+						false,
+						0,
+						false);
 				Accounts.addAccount(acc);
 				Accounts.saveAccounts(false); // let's save new accounts info to disk
 				client.sendLine("REGISTRATIONACCEPTED");
 			} else if (commands[0].equals("UPTIME")) {
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
 				if (commands.length != 1) {
@@ -958,7 +982,7 @@ public class TASServer {
 				client.sendLine(new StringBuilder("SERVERMSG Server's uptime is ")
 						.append(Misc.timeToDHM(System.currentTimeMillis() - upTime)).toString());
 			} /* some admin/moderator specific commands: */ else if (commands[0].equals("KICKUSER")) {
-				if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
 					return false;
 				}
 				if (commands.length < 2) {
@@ -987,7 +1011,7 @@ public class TASServer {
 						.append(reason).toString());
 				Clients.killClient(target, "Quit: kicked from server");
 			} else if (commands[0].equals("FLOODLEVEL")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 				if (commands.length == 3) {
@@ -1006,7 +1030,7 @@ public class TASServer {
 					}
 				}
 			} else if (commands[0].equals("KILL")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 				if (commands.length < 2) {
@@ -1019,7 +1043,7 @@ public class TASServer {
 				}
 				Clients.killClient(target);
 			} else if (commands[0].equals("KILLIP")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 				if (commands.length != 2) {
@@ -1057,7 +1081,7 @@ public class TASServer {
 					Clients.killClient(Clients.getClient(i));
 				}
 			} else if (commands[0].equals("WHITELIST")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 				if (commands.length == 2) {
@@ -1067,7 +1091,7 @@ public class TASServer {
 					client.sendLine(new StringBuilder("SERVERMSG Whitelist is: ").append(whiteList.toString()).toString());
 				}
 			} else if (commands[0].equals("UNWHITELIST")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 				if (commands.length == 2) {
@@ -1076,7 +1100,7 @@ public class TASServer {
 					client.sendLine("SERVERMSG Bad command- UNWHITELIST IP");
 				}
 			} else if (commands[0].equals("ENABLELOGIN")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 				if (commands.length == 2) {
@@ -1086,7 +1110,7 @@ public class TASServer {
 						.append((loginEnabled ? "enabled" : "disabled"))
 						.append(" for non-moderators").toString());
 			} else if (commands[0].equals("ENABLEREGISTER")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 				if (commands.length == 2) {
@@ -1095,7 +1119,7 @@ public class TASServer {
 				client.sendLine(new StringBuilder("SERVERMSG The REGISTER command is ")
 						.append((regEnabled ? "enabled" : "disabled")).toString());
 			} else if (commands[0].equals("SETTIMEOUT")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 				if (commands.length == 2) {
@@ -1104,7 +1128,7 @@ public class TASServer {
 							.append(commands[1]).append(" seconds.").toString());
 				}
 			} else if (commands[0].equals("REMOVEACCOUNT")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 				if (commands.length != 2) {
@@ -1128,26 +1152,26 @@ public class TASServer {
 						.append(commands[1]).append("> account!").toString());
 			} else if (commands[0].equals("STOPSERVER")) {
 				// stop server gracefully:
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 
 				running = false;
 			} else if (commands[0].equals("FORCESTOPSERVER")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 
 				closeServerAndExit();
 			} else if (commands[0].equals("SAVEACCOUNTS")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 
 				Accounts.saveAccounts(false);
 				client.sendLine("SERVERMSG Accounts will be saved in a background thread.");
 			} else if (commands[0].equals("CHANGEACCOUNTPASS")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 				if (commands.length != 3) {
@@ -1174,16 +1198,16 @@ public class TASServer {
 						.append(acc.getName()).append(">").toString());
 				ServerNotifications.addNotification(sn);
 			} else if (commands[0].equals("CHANGEACCOUNTACCESS")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 				if (commands.length != 3) {
 					return false;
 				}
 
-				int value;
+				int newAccessBifField = -1;
 				try {
-					value = Integer.parseInt(commands[2]);
+					newAccessBifField = Integer.parseInt(commands[2]);
 				} catch (NumberFormatException e) {
 					return false;
 				}
@@ -1193,13 +1217,16 @@ public class TASServer {
 					return false;
 				}
 
-				int oldAccess = acc.getAccessType();
-				acc.setAccessType(value);
+				int oldAccessBifField = acc.getAccessBitField();
+				acc.setAccess(Account.extractAccess(newAccessBifField));
+				acc.setBot(Account.extractBot(newAccessBifField));
+				acc.setInGameTime(Account.extractInGameTime(newAccessBifField));
+				acc.setAgreementAccepted(Account.extractAgreementAccepted(newAccessBifField));
 
 				Accounts.saveAccounts(false); // save changes
 				// just in case if rank got changed: FIXME?
 				//Client target=Clients.getClient(commands[1]);
-				//target.setRankToStatus(client.account.getRank());
+				//target.setRankToStatus(client.account.getRank().ordinal());
 				//if(target.alive)
 				//	Clients.notifyClientsOfNewClientStatus(target);
 
@@ -1212,11 +1239,11 @@ public class TASServer {
 						.append(client.account.getName()).append("> has changed access/status bits for account <")
 						.append(acc.getName()).append(">.").toString());
 				sn.addLine(new StringBuilder("Old access code: ")
-						.append(oldAccess).append(". New code: ")
-						.append(value).toString());
+						.append(oldAccessBifField).append(". New code: ")
+						.append(newAccessBifField).toString());
 				ServerNotifications.addNotification(sn);
 			} else if (commands[0].equals("GETACCOUNTACCESS")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 				if (commands.length != 2) {
@@ -1232,9 +1259,9 @@ public class TASServer {
 
 				client.sendLine(new StringBuilder("SERVERMSG ")
 						.append(commands[1]).append("'s access code is ")
-						.append(acc.getAccessType()).toString());
+						.append(acc.getAccessBitField()).toString());
 			} else if (commands[0].equals("REDIRECT")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 				if (commands.length != 2) {
@@ -1250,7 +1277,7 @@ public class TASServer {
 				sn.addLine(new StringBuilder("Admin <").append(client.account.getName()).append("> has enabled redirection mode. New address: ").append(redirectToIP).toString());
 				ServerNotifications.addNotification(sn);
 			} else if (commands[0].equals("REDIRECTOFF")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 
@@ -1263,7 +1290,7 @@ public class TASServer {
 						.append("> has disabled redirection mode.").toString());
 				ServerNotifications.addNotification(sn);
 			} else if (commands[0].equals("BROADCAST")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 				if (commands.length < 2) {
@@ -1273,7 +1300,7 @@ public class TASServer {
 				Clients.sendToAllRegisteredUsers(new StringBuilder("BROADCAST ")
 						.append(Misc.makeSentence(commands, 1)).toString());
 			} else if (commands[0].equals("BROADCASTEX")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 				if (commands.length < 2) {
@@ -1283,7 +1310,7 @@ public class TASServer {
 				Clients.sendToAllRegisteredUsers(new StringBuilder("SERVERMSGBOX ")
 						.append(Misc.makeSentence(commands, 1)).toString());
 			} else if (commands[0].equals("ADMINBROADCAST")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 				if (commands.length < 2) {
@@ -1293,7 +1320,7 @@ public class TASServer {
 				Clients.sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: ")
 						.append(Misc.makeSentence(commands, 1)).toString());
 			} else if (commands[0].equals("GETACCOUNTCOUNT")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 				if (commands.length != 1) {
@@ -1303,7 +1330,7 @@ public class TASServer {
 				client.sendLine(new StringBuilder("SERVERMSG ")
 						.append(Accounts.getAccountsSize()).toString());
 			} else if (commands[0].equals("FINDIP")) {
-				if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
 					return false;
 				}
 				if (commands.length != 2) {
@@ -1370,7 +1397,7 @@ public class TASServer {
 					client.sendLine(new StringBuilder("SERVERMSG No client is/was recently using IP: ").append(IP).toString());
 				}
 			} else if (commands[0].equals("GETLASTIP")) {
-				if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
 					return false;
 				}
 				if (commands.length != 2) {
@@ -1390,7 +1417,7 @@ public class TASServer {
 						.append(acc.getLastIP()).append(" (")
 						.append((online ? "online)" : "offline)")).toString());
 			} else if (commands[0].equals("GETACCOUNTINFO")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 				if (commands.length != 2) {
@@ -1410,7 +1437,7 @@ public class TASServer {
 			} else if (commands[0].equals("FORGEMSG")) {
 				/* this command is used only for debugging purposes. It sends the string
 				 * to client specified as first argument. */
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 				if (commands.length < 3) {
@@ -1427,7 +1454,7 @@ public class TASServer {
 				/* this command is used only for debugging purposes. It forces server to process
 				 * string passed to this command as if it were sent by the user specified
 				 * in this command. */
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 				if (commands.length < 3) {
@@ -1441,7 +1468,7 @@ public class TASServer {
 
 				tryToExecCommand(Misc.makeSentence(commands, 2), targetClient);
 			} else if (commands[0].equals("GETIP")) {
-				if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
 					return false;
 				}
 				if (commands.length != 2) {
@@ -1457,15 +1484,15 @@ public class TASServer {
 						.append(targetClient.account.getName()).append("'s IP is ")
 						.append(targetClient.IP).toString());
 			} else if (commands[0].equals("GETINGAMETIME")) {
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
 
 				if (commands.length == 1) {
 					client.sendLine(new StringBuilder("SERVERMSG Your in-game time is ")
-							.append(client.account.getInGameTime()).append(" minutes.").toString());
+							.append(client.account.getInGameTimeInMins()).append(" minutes.").toString());
 				} else {
-					if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) {
+					if (client.account.getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
 						client.sendLine("SERVERMSG You have no access to see other player's in-game time!");
 						return false;
 					}
@@ -1482,10 +1509,10 @@ public class TASServer {
 
 					client.sendLine(new StringBuilder("SERVERMSG ")
 							.append(acc.getName()).append("'s in-game time is ")
-							.append(acc.getInGameTime()).append(" minutes.").toString());
+							.append(acc.getInGameTimeInMins()).append(" minutes.").toString());
 				}
 			} else if (commands[0].equals("FORCECLOSEBATTLE")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 				if (commands.length != 2) {
@@ -1509,7 +1536,7 @@ public class TASServer {
 				Battles.closeBattleAndNotifyAll(bat);
 
 			} else if (commands[0].equals("MUTE")) {
-				if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
 					return false;
 				}
 				if (commands.length < 4) {
@@ -1562,7 +1589,7 @@ public class TASServer {
 						.append(client.account.getName()).append("> has muted <")
 						.append(username).append(">").toString());
 			} else if (commands[0].equals("UNMUTE")) {
-				if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
 					return false;
 				}
 				if (commands.length != 3) {
@@ -1589,7 +1616,7 @@ public class TASServer {
 						.append(client.account.getName()).append("> has unmuted <")
 						.append(username).append(">").toString());
 			} else if (commands[0].equals("MUTELIST")) {
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
 				if (commands.length != 2) {
@@ -1622,7 +1649,7 @@ public class TASServer {
 
 				client.sendLine("MUTELISTEND");
 			} else if (commands[0].equals("CHANNELMESSAGE")) {
-				if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
 					return false;
 				}
 				if (commands.length < 3) {
@@ -1638,7 +1665,7 @@ public class TASServer {
 
 				chan.broadcast(Misc.makeSentence(commands, 2));
 			} else if (commands[0].equals("IP2COUNTRY")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 				if (commands.length != 2) {
@@ -1648,7 +1675,7 @@ public class TASServer {
 				client.sendLine(new StringBuilder("SERVERMSG Country = ")
 						.append(IP2Country.getCountryCode(Misc.IP2Long(Misc.makeSentence(commands, 1)))).toString());
 			} else if (commands[0].equals("REINITIP2COUNTRY")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 				if (commands.length < 2) {
@@ -1661,7 +1688,7 @@ public class TASServer {
 					client.sendLine("SERVERMSG Error while initializing IP2COUNTRY database!");
 				}
 			} else if (commands[0].equals("UPDATEIP2COUNTRY")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 				if (commands.length != 1) {
@@ -1676,7 +1703,7 @@ public class TASServer {
 				client.sendLine("SERVERMSG Updating IP2country database ... Server will notify of success via server notification system.");
 				IP2Country.updateDatabase();
 			} else if (commands[0].equals("RETRIEVELATESTBANLIST")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 				if (commands.length != 1) {
@@ -1689,7 +1716,7 @@ public class TASServer {
 				client.sendLine(new StringBuilder("SERVERMSG Ban entries retrieved (in ")
 						.append((System.currentTimeMillis() - time)).append(" milliseconds).").toString());
 			} else if (commands[0].equals("CHANGECHARSET")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 				if (commands.length != 2) {
@@ -1708,7 +1735,7 @@ public class TASServer {
 
 				client.sendLine(new StringBuilder("SERVERMSG Charset set to ").append(commands[1]).toString());
 			} else if (commands[0].equals("GETLOBBYVERSION")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 				if (commands.length != 2) {
@@ -1725,7 +1752,7 @@ public class TASServer {
 						.append(commands[1]).append("> is using \"")
 						.append(targetClient.lobbyVersion).append("\"").toString());
 			} else if (commands[0].equals("UPDATESTATISTICS")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 				if (commands.length != 1) {
@@ -1740,7 +1767,7 @@ public class TASServer {
 							.append(taken).append(" ms.").toString());
 				}
 			} else if (commands[0].equals("UPDATEMOTD")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 				if (commands.length != 2) {
@@ -1754,7 +1781,7 @@ public class TASServer {
 					client.sendLine(new StringBuilder("SERVERMSG MOTD has been successfully updated from ").append(commands[1]).toString());
 				}
 			} else if (commands[0].equals("LONGTIMETODATE")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 				if (commands.length != 2) {
@@ -1772,7 +1799,7 @@ public class TASServer {
 				client.sendLine(new StringBuilder("SERVERMSG LONGTIMETODATE result: ")
 						.append(Misc.easyDateFormat(time, "d MMM yyyy HH:mm:ss z")).toString());
 			} else if (commands[0].equals("GETLASTLOGINTIME")) {
-				if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
 					return false;
 				}
 				if (commands.length != 2) {
@@ -1795,7 +1822,7 @@ public class TASServer {
 							.append(acc.getName()).append("> is currently online").toString());
 				}
 			} else if (commands[0].equals("SETCHANNELKEY")) {
-				if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
 					return false;
 				}
 				if (commands.length != 3) {
@@ -1829,7 +1856,7 @@ public class TASServer {
 							.append(chan.name).append(" with private key").toString());
 				}
 			} else if (commands[0].equals("FORCELEAVECHANNEL")) {
-				if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
 					return false;
 				}
 				if (commands.length < 3) {
@@ -1869,7 +1896,7 @@ public class TASServer {
 						.append(client.account.getName()).append(reason).toString());
 				target.leaveChannel(chan, "kicked from channel");
 			} else if (commands[0].equals("ADDNOTIFICATION")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 				if (commands.length < 2) {
@@ -1883,7 +1910,7 @@ public class TASServer {
 					client.sendLine("SERVERMSG Error while adding notification! Notification not added.");
 				}
 			} else if (commands[0].equals("GETSENDBUFFERSIZE")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 				if (commands.length != 2) {
@@ -1911,7 +1938,7 @@ public class TASServer {
 						.append(c.account.getName()).append("> is set to ")
 						.append(size).append(" bytes.").toString());
 			} else if (commands[0].equals("MEMORYAVAILABLE")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 				if (commands.length != 1) {
@@ -1921,7 +1948,7 @@ public class TASServer {
 				client.sendLine(new StringBuilder("SERVERMSG Amount of free memory in Java Virtual Machine: ")
 						.append(Runtime.getRuntime().freeMemory()).append(" bytes").toString());
 			} else if (commands[0].equals("CALLGARBAGECOLLECTOR")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 				if (commands.length != 1) {
@@ -1938,7 +1965,7 @@ public class TASServer {
 				if (commands.length != 3) {
 					return false;
 				}
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 
@@ -1953,7 +1980,7 @@ public class TASServer {
 				if (commands.length != 3) {
 					return false;
 				}
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 
@@ -1975,7 +2002,7 @@ public class TASServer {
 					return false;
 				}
 
-				acc.setBotMode((mode == 0) ? false : true);
+				acc.setBot((mode == 0) ? false : true);
 
 				client.sendLine(new StringBuilder("SERVERMSG Bot mode set to ")
 						.append(mode).append(" for user <")
@@ -1984,7 +2011,7 @@ public class TASServer {
 				if (commands.length != 2) {
 					return false;
 				}
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 
@@ -2000,7 +2027,7 @@ public class TASServer {
 						.append(Misc.easyDateFormat(acc.getRegistrationDate(), "d MMM yyyy HH:mm:ss z"))
 						.append(")").toString());
 			} else if (commands[0].equals("SETLATESTSPRINGVERSION")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 				if (commands.length != 2) {
@@ -2012,7 +2039,7 @@ public class TASServer {
 
 				client.sendLine(new StringBuilder("SERVERMSG Latest spring version has been set to ").append(latestSpringVersion).toString());
 			} else if (commands[0].equals("RELOADUPDATEPROPERTIES")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 
@@ -2027,7 +2054,7 @@ public class TASServer {
 				if (commands.length != 2) {
 					return false;
 				}
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 
@@ -2044,7 +2071,7 @@ public class TASServer {
 				if (commands.length != 2) {
 					return false;
 				}
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 
@@ -2057,7 +2084,7 @@ public class TASServer {
 
 				client.sendLine("SERVERMSG ACQUIREUSERID command was dispatched. Server will notify of response via notification system.");
 			} else if (commands[0].equals("KILLALL")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 
@@ -2070,7 +2097,7 @@ public class TASServer {
 					Clients.killClient(Clients.getClient(0), (reason.length() == 0 ? "Disconnected by server" : "Disconnected by server: " + reason));
 				}
 			} else if (commands[0].equals("OUTPUTDBDRIVERSTATUS")) {
-				if (client.account.accessLevel() < Account.ADMIN_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 
@@ -2078,13 +2105,13 @@ public class TASServer {
 
 				client.sendLine("SERVERMSG DB driver status was printed to the console.");
 			} else if (commands[0].equals("CHANNELS")) {
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
 
 				Channels.sendChannelListToClient(client);
 			} else if (commands[0].equals("REQUESTUPDATEFILE")) {
-				//***if (client.account.accessLevel() > Account.NIL_ACCESS) return false;
+				//***if (client.account.getAccess() > Account.Access.NONE) return false;
 				if (commands.length < 2) {
 					return false;
 				}
@@ -2106,12 +2133,12 @@ public class TASServer {
 					Clients.killClient(client);
 				}
 			} else if (commands[0].equals("LOGIN")) {
-				if (client.account.accessLevel() != Account.NIL_ACCESS) {
+				if (client.account.getAccess() != Account.Access.NONE) {
 					client.sendLine("DENIED Already logged in");
 					return false; // user with accessLevel > 0 cannot re-login
 				}
 
-				if (!loginEnabled && Accounts.getAccount(commands[1]).accessLevel() < Account.PRIVILEGED_ACCESS) {
+				if (!loginEnabled && Accounts.getAccount(commands[1]).getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
 					client.sendLine("DENIED Sorry, logging in is currently disabled");
 					return false;
 				}
@@ -2195,14 +2222,14 @@ public class TASServer {
 						recordFailedLoginAttempt(username);
 						return false;
 					}
-					if ((!acc.getAgreement()) && (!client.account.getAgreement()) && (!agreement.equals(""))) {
+					if ((!acc.isAgreementAccepted()) && (!client.account.isAgreementAccepted()) && (!agreement.equals(""))) {
 						sendAgreementToClient(client);
 						return false;
 					}
 					// everything is OK so far!
-					if (!acc.getAgreement()) {
+					if (!acc.isAgreementAccepted()) {
 						// user has obviously accepted the agreement... Let's update it
-						acc.setAgreement(true);
+						acc.setAgreementAccepted(true);
 						Accounts.saveAccounts(false);
 					}
 					if (acc.getLastLogin() + 5000 > System.currentTimeMillis()) {
@@ -2219,19 +2246,19 @@ public class TASServer {
 						client.sendLine("DENIED Player with same name already logged in");
 						return false;
 					}
+					Account.Access accessLvl = Account.Access.NORMAL;
 					if ((commands[1].equals(lanAdminUsername)) && (commands[2].equals(lanAdminPassword))) {
-						acc = new Account(commands[1], commands[2], Account.ADMIN_ACCESS, Account.NO_USER_ID, 0, "?", 0, "XX", Account.NO_ACCOUNT_ID);
-					} else {
-						acc = new Account(commands[1], commands[2], Account.NORMAL_ACCESS, Account.NO_USER_ID, 0, "?", 0, "XX", Account.NO_ACCOUNT_ID);
+						accessLvl = Account.Access.ADMIN;
 					}
+					acc = new Account(commands[1], commands[2], accessLvl, Account.NO_USER_ID, 0, "?", 0, "XX", Account.NO_ACCOUNT_ID, false, 0, false);
 					Accounts.addAccount(acc);
 					client.account = acc;
 				}
 
 				// set client's status:
-				client.setRankToStatus(client.account.getRank());
-				client.setBotModeToStatus(client.account.getBotMode());
-				client.setAccessToStatus((((client.account.accessLevel() >= Account.PRIVILEGED_ACCESS) && (!LAN_MODE)) ? true : false));
+				client.setRankToStatus(client.account.getRank().ordinal());
+				client.setBotModeToStatus(client.account.isBot());
+				client.setAccessToStatus((((client.account.getAccess().compareTo(Account.Access.PRIVILEGED) >= 0) && (!LAN_MODE)) ? true : false));
 
 				client.cpu = cpu;
 				client.account.setLastLogin(System.currentTimeMillis());
@@ -2263,9 +2290,9 @@ public class TASServer {
 				}
 			} else if (commands[0].equals("CONFIRMAGREEMENT")) {
 				// update client's temp account (he is not logged in yet since he needs to confirm the agreement before server will allow him to log in):
-				client.account.setAgreement(true);
+				client.account.setAgreementAccepted(true);
 			} else if (commands[0].equals("USERID")) {
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
 
@@ -2293,7 +2320,7 @@ public class TASServer {
 						.append(userID).append(")").toString());
 				ServerNotifications.addNotification(sn);
 			} else if (commands[0].equals("RENAMEACCOUNT")) {
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
 
@@ -2325,7 +2352,19 @@ public class TASServer {
 					Channels.getChannel(i).muteList.rename(client.account.getName(), commands[1]);
 				}
 
-				acc = new Account(commands[1], client.account.getPassword(), client.account.getAccessType(), client.account.getLastUserId(), System.currentTimeMillis(), client.IP, client.account.getRegistrationDate(), client.account.getLastCountry(), client.account.getId());
+				acc = new Account(
+						commands[1],
+						client.account.getPassword(),
+						client.account.getAccess(),
+						client.account.getLastUserId(),
+						System.currentTimeMillis(),
+						client.IP,
+						client.account.getRegistrationDate(),
+						client.account.getLastCountry(),
+						client.account.getId(),
+						client.account.isBot(),
+						client.account.getInGameTime(),
+						client.account.isAgreementAccepted());
 				client.sendLine(new StringBuilder("SERVERMSG Your account has been renamed to <")
 						.append(commands[1]).append(">. Reconnect with new account (you will now be automatically disconnected)!").toString());
 				Clients.killClient(client, "Quit: renaming account");
@@ -2342,7 +2381,7 @@ public class TASServer {
 						.append(commands[1]).append(">").toString());
 				ServerNotifications.addNotification(sn);
 			} else if (commands[0].equals("CHANGEPASSWORD")) {
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
 
@@ -2376,7 +2415,7 @@ public class TASServer {
 				if (commands.length < 2) {
 					return false;
 				}
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
 
@@ -2391,7 +2430,7 @@ public class TASServer {
 
 				// check if key is correct (if channel is locked):
 				Channel chan = Channels.getChannel(commands[1]);
-				if ((chan != null) && (chan.isLocked()) && (client.account.accessLevel() < Account.ADMIN_ACCESS /* we will allow admins to join locked channels */)) {
+				if ((chan != null) && (chan.isLocked()) && (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0 /* we will allow admins to join locked channels */)) {
 					if (!Misc.makeSentence(commands, 2).equals(chan.getKey())) {
 						client.sendLine(new StringBuilder("JOINFAILED ").append(commands[1]).append(" Wrong key (this channel is locked)!").toString());
 						return false;
@@ -2410,7 +2449,7 @@ public class TASServer {
 				if (commands.length < 2) {
 					return false;
 				}
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
 
@@ -2424,7 +2463,7 @@ public class TASServer {
 				if (commands.length < 3) {
 					return false;
 				}
-				if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
 					return false;
 				}
 
@@ -2454,7 +2493,7 @@ public class TASServer {
 				if (commands.length < 3) {
 					return false;
 				}
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
 
@@ -2476,7 +2515,7 @@ public class TASServer {
 
 				String s = Misc.makeSentence(commands, 2);
 				// check for flooding:
-				if ((s.length() > maxChatMessageLength) && (client.account.accessLevel() < Account.ADMIN_ACCESS)) {
+				if ((s.length() > maxChatMessageLength) && (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0)) {
 					s_log.warn(new StringBuilder("Flooding detected from ")
 							.append(client.IP).append(" (")
 							.append(client.account.getName()).append(") [exceeded max. chat message size]").toString());
@@ -2492,7 +2531,7 @@ public class TASServer {
 				if (commands.length < 3) {
 					return false;
 				}
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
 
@@ -2515,7 +2554,7 @@ public class TASServer {
 
 				String s = Misc.makeSentence(commands, 2);
 				// check for flooding:
-				if ((s.length() > maxChatMessageLength) && (client.account.accessLevel() < Account.ADMIN_ACCESS)) {
+				if ((s.length() > maxChatMessageLength) && (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0)) {
 					s_log.warn(new StringBuilder("Flooding detected from ")
 							.append(client.IP).append(" (")
 							.append(client.account.getName())
@@ -2537,7 +2576,7 @@ public class TASServer {
 				if (commands.length < 3) {
 					return false;
 				}
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
 
@@ -2548,7 +2587,7 @@ public class TASServer {
 
 				String s = Misc.makeSentence(commands, 2);
 				// check for flooding:
-				if ((s.length() > maxChatMessageLength) && (client.account.accessLevel() < Account.ADMIN_ACCESS)) {
+				if ((s.length() > maxChatMessageLength) && (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0)) {
 					s_log.warn(new StringBuilder("Flooding detected from ")
 							.append(client.IP).append(" (")
 							.append(client.account.getName()).append(") [exceeded max. chat message size]").toString());
@@ -2569,7 +2608,7 @@ public class TASServer {
 				if (commands.length < 2) {
 					return false; // requires 1 or 2 arguments (password is optional)
 				}
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
 
@@ -2620,7 +2659,7 @@ public class TASServer {
 
 			} else if (commands[0].equals("JOINBATTLEACCEPT")) {
 				if (commands.length != 2) return false;
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) return false;
 				if (client.battleID == -1) return false;
 				Battle bat = Battles.getBattleByID(client.battleID);
 				if (bat == null) return false;
@@ -2631,7 +2670,7 @@ public class TASServer {
 				notifyClientJoinedBattle(joiningClient,bat);
 			} else if (commands[0].equals("JOINBATTLEDENY")) {
 				if (commands.length < 2) return false;
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) return false;
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) return false;
 				if (client.battleID == -1) return false;
 				Battle bat = Battles.getBattleByID(client.battleID);
 				if (bat == null) return false;
@@ -2649,7 +2688,7 @@ public class TASServer {
 				if (commands.length != 1) {
 					return false;
 				}
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
 
@@ -2660,7 +2699,7 @@ public class TASServer {
 				verifyBattle(bat);
 				Battles.leaveBattle(client, bat); // automatically checks if client is a founder and closes battle
 			} else if (commands[0].equals("OPENBATTLE")) {
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
 				if (client.battleID != -1) {
@@ -2678,7 +2717,7 @@ public class TASServer {
 
 				boolean local;
 				for (int i = 0; i < Clients.getClientsSize(); i++) {
-					if (Clients.getClient(i).account.accessLevel() < Account.NORMAL_ACCESS) {
+					if (Clients.getClient(i).account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 						continue;
 					}
 					// make sure that clients behind NAT get local IPs and not external ones:
@@ -2692,7 +2731,7 @@ public class TASServer {
 				if (commands.length != 3) {
 					return false;
 				}
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
 
@@ -2756,7 +2795,7 @@ public class TASServer {
 				if (commands.length != 2) {
 					return false;
 				}
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
 
@@ -2796,7 +2835,7 @@ public class TASServer {
 						if (client.inGameTime != 0) { // we won't update clients who play by themselves (or with bots only), since some try to exploit the system by leaving computer alone in-battle for hours to increase their ranks
 							int diff = new Long((System.currentTimeMillis() - client.inGameTime) / 60000).intValue(); // in minutes
 							if (client.account.addMinsToInGameTime(diff)) {
-								client.setRankToStatus(client.account.getRank());
+								client.setRankToStatus(client.account.getRank().ordinal());
 							}
 						}
 					}
@@ -2806,7 +2845,7 @@ public class TASServer {
 				if (commands.length < 2) {
 					return false;
 				}
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
 
@@ -2820,7 +2859,7 @@ public class TASServer {
 
 				String s = Misc.makeSentence(commands, 1);
 				// check for flooding:
-				if ((s.length() > maxChatMessageLength) && (client.account.accessLevel() < Account.ADMIN_ACCESS)) {
+				if ((s.length() > maxChatMessageLength) && (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0)) {
 					s_log.warn(new StringBuilder("Flooding detected from ")
 							.append(client.IP).append(" (")
 							.append(client.account.getName())
@@ -2841,7 +2880,7 @@ public class TASServer {
 				if (commands.length < 2) {
 					return false;
 				}
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
 
@@ -2855,7 +2894,7 @@ public class TASServer {
 
 				String s = Misc.makeSentence(commands, 1);
 				// check for flooding:
-				if ((s.length() > maxChatMessageLength) && (client.account.accessLevel() < Account.ADMIN_ACCESS)) {
+				if ((s.length() > maxChatMessageLength) && (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0)) {
 					s_log.warn(new StringBuilder("Flooding detected from ")
 							.append(client.IP).append(" (")
 							.append(client.account.getName())
@@ -2876,7 +2915,7 @@ public class TASServer {
 				if (commands.length < 5) {
 					return false;
 				}
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
 
@@ -2914,7 +2953,7 @@ public class TASServer {
 				if (commands.length != 3) {
 					return false;
 				}
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
 
@@ -2952,7 +2991,7 @@ public class TASServer {
 				if (commands.length != 2) {
 					return false;
 				}
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
 
@@ -2985,7 +3024,7 @@ public class TASServer {
 				if (commands.length != 3) {
 					return false;
 				}
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
 
@@ -3023,7 +3062,7 @@ public class TASServer {
 				if (commands.length != 3) {
 					return false;
 				}
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
 
@@ -3061,7 +3100,7 @@ public class TASServer {
 				if (commands.length != 3) {
 					return false;
 				}
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
 
@@ -3096,7 +3135,7 @@ public class TASServer {
 				if (commands.length != 2) {
 					return false;
 				}
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
 
@@ -3127,7 +3166,7 @@ public class TASServer {
 				if (commands.length < 5) {
 					return false;
 				}
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
 
@@ -3177,7 +3216,7 @@ public class TASServer {
 				if (commands.length != 2) {
 					return false;
 				}
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
 
@@ -3202,7 +3241,7 @@ public class TASServer {
 				if (commands.length != 4) {
 					return false;
 				}
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
 
@@ -3251,7 +3290,7 @@ public class TASServer {
 				if (commands.length < 2) {
 					return false;
 				}
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
 
@@ -3279,7 +3318,7 @@ public class TASServer {
 				if (commands.length < 2) {
 					return false;
 				}
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
 
@@ -3302,7 +3341,7 @@ public class TASServer {
 				if (commands.length != 1) {
 					return false;
 				}
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
 
@@ -3325,10 +3364,10 @@ public class TASServer {
 				}
 				// privileged users can ring anyone, "normal" users can ring only when they are hosting
 				// and only clients who are participating in their battle
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
-				if (client.account.accessLevel() < Account.PRIVILEGED_ACCESS) { // normal user
+				if (client.account.getAccess().compareTo(Account.Access.PRIVILEGED) < 0) { // normal user
 					Client target = Clients.getClient(commands[1]);
 					if (target == null) {
 						return false;
@@ -3366,7 +3405,7 @@ public class TASServer {
 				if (commands.length != 6) {
 					return false;
 				}
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
 
@@ -3418,7 +3457,7 @@ public class TASServer {
 				if (commands.length != 2) {
 					return false;
 				}
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
 
@@ -3457,7 +3496,7 @@ public class TASServer {
 				if (commands.length != 1) {
 					return false;
 				}
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
 
@@ -3470,7 +3509,7 @@ public class TASServer {
 
 				bat.tempReplayScript.clear();
 			} else if (commands[0].equals("SCRIPT")) {
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
 
@@ -3483,7 +3522,7 @@ public class TASServer {
 
 				bat.tempReplayScript.add(Misc.makeSentence(commands, 1));
 			} else if (commands[0].equals("SCRIPTEND")) {
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
 
@@ -3499,7 +3538,7 @@ public class TASServer {
 
 				bat.sendScriptToAllExceptFounder();
 			} else if (commands[0].equals("SETSCRIPTTAGS")) {
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
 
@@ -3607,7 +3646,7 @@ public class TASServer {
 					bat.sendToAllClients(new StringBuilder("SETSCRIPTTAGS ").append(validPairs).toString());
 				}
 			} else if (commands[0].equals("REMOVESCRIPTTAGS")) {
-				if (client.account.accessLevel() < Account.NORMAL_ACCESS) {
+				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
 				}
 
