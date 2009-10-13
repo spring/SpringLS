@@ -80,14 +80,19 @@ public class Misc {
 		return res;
 	}
 
-	/* int to hex, with leading zeroes and uppercase (http://www.rgagnon.com/javadetails/java-0004.html) */
+	/**
+	 * Converts a decimal integer to hex, with leading zeroes and uppercase
+	 * @see http://www.rgagnon.com/javadetails/java-0004.html
+	 */
 	public static String intToHex(int i) {
 		return Integer.toHexString(0x10000 | i).substring(1).toUpperCase();
 	}
 
-	/* this method will return local IP address such as "192.168.1.100" instead of "127.0.0.1".
-	 * Found it here: http://forum.java.sun.com/thread.jspa?threadID=619056&messageID=3477258
-	 *  */
+	/**
+	 * This method will return the local IP address, such as "192.168.1.100"
+	 * instead of "127.0.0.1".
+	 * @see http://forum.java.sun.com/thread.jspa?threadID=619056&messageID=3477258
+	 */
 	public static String getLocalIPAddress() {
 		try {
 			Enumeration e = NetworkInterface.getNetworkInterfaces();
@@ -135,7 +140,10 @@ public class Misc {
 		return result;
 	}
 
-	/* converts time (in milliseconds) to "<x> days, <y> hours and <z> minutes" string */
+	/**
+	 * Converts time (in milliseconds) to a string like this:
+	 * "<x> days, <y> hours and <z> minutes"
+	 */
 	public static String timeToDHM(long duration) {
 		long temp = duration / (1000 * 60 * 60 * 24);
 		String res = temp + " days, ";
@@ -148,16 +156,16 @@ public class Misc {
 		return res;
 	}
 
-	/*
-	 * copied from: http://www.source-code.biz/snippets/java/3.htm
-	 *
+	/**
 	 * Reallocates an array with a new size, and copies the contents
 	 * of the old array to the new array.
 	 * @param oldArray  the old array, to be reallocated.
 	 * @param newSize   the new array size.
 	 * @return          A new array with the same contents.
+	 * @see http://www.source-code.biz/snippets/java/3.htm
 	 */
 	public static Object resizeArray(Object oldArray, int newSize) {
+
 		int oldSize = java.lang.reflect.Array.getLength(oldArray);
 		Class elementType = oldArray.getClass().getComponentType();
 		Object newArray = java.lang.reflect.Array.newInstance(
@@ -169,9 +177,10 @@ public class Misc {
 		return newArray;
 	}
 
-	/* sorts an array of integers using simple bubble sort algorithm.
-	 * Copied from http://en.wikisource.org/wiki/Bubble_sort
-	 * */
+	/**
+	 * Sorts an array of integers using simple bubble sort algorithm.
+	 * @see http://en.wikisource.org/wiki/Bubble_sort
+	 */
 	public static void bubbleSort(int data[]) {
 		boolean isSorted;
 		int tempVariable;
@@ -194,9 +203,11 @@ public class Misc {
 		} while (!isSorted);
 	}
 
-	/* sorts an array of integers plus a parallel List of objects
-	 * using simple bubble sort. This is a generic method:
-	 * http://java.sun.com/docs/books/tutorial/extra/generics/methods.html */
+	/**
+	 * Sorts an array of integers plus a parallel List of objects
+	 * using simple bubble sort. This is a generic method.
+	 * @see http://java.sun.com/docs/books/tutorial/extra/generics/methods.html
+	 */
 	public static <T> void bubbleSort(int data[], List<T> list) {
 		boolean isSorted;
 		int tempInt;
@@ -253,7 +264,9 @@ public class Misc {
 		return digest;
 	}
 
-	// this method encodes plain-text password to md5 hashed one in base-64 form:
+	/**
+	 * This method encodes plain-text passwords to md5 hashed ones in base-64 form.
+	 */
 	public static String encodePassword(String plainPassword) {
 		try {
 			return new sun.misc.BASE64Encoder().encode(getMD5(plainPassword));
@@ -265,9 +278,11 @@ public class Misc {
 		}
 	}
 
-	/* Will decompress ZIP archive to current folder.
+	/**
+	 * Will decompress ZIP archive to current folder.
 	 * Code copied from here: http://www.rgagnon.com/javadetails/java-0067.html
-	 * and slightly modified. */
+	 * and slightly modified.
+	 */
 	public static void unzipArchive(String fileName) throws IOException {
 		ZipInputStream zin = new ZipInputStream(new BufferedInputStream(new FileInputStream(fileName)));
 		ZipEntry e;
@@ -280,8 +295,10 @@ public class Misc {
 		zin.close();
 	}
 
-	/* will unzip only first entry from the archive file and save it as localFileName.
-	 * If no file is found inside the archive, it will simply ignore it. */
+	/**
+	 * Will unzip only first entry from the archive file and save it as localFileName.
+	 * If no file is found inside the archive, it will simply ignore it.
+	 */
 	public static void unzipSingleArchive(String fileName, String localFileName) throws IOException {
 		ZipInputStream zin = new ZipInputStream(new BufferedInputStream(new FileInputStream(fileName)));
 		if (zin.getNextEntry() != null) {
@@ -290,7 +307,9 @@ public class Misc {
 		zin.close();
 	}
 
-	/* will unzip next entry from given ZipInputStream */
+	/**
+	 * Will unzip next entry from given ZipInputStream
+	 */
 	public static void unzipSingleEntry(ZipInputStream zin, String toFile) throws IOException {
 		FileOutputStream out = new FileOutputStream(toFile);
 		byte[] b = new byte[512];
@@ -301,11 +320,13 @@ public class Misc {
 		out.close();
 	}
 
-	/* downloads a file from the given url and saves it to disk to specified file.
+	/**
+	 * Downloads a file from the given url and saves it to disk to specified file.
 	 * 'downloadLimit' is specified in bytes per second (use 0 for unlimited) - this is
 	 * the maximum rate at which this method will attempt to download the file.
 	 * Returns number of bytes written if it succeeds.
-	 * Original code copied from: http://schmidt.devlib.org/java/file-download.html#source */
+	 * Original code copied from: http://schmidt.devlib.org/java/file-download.html#source
+	 */
 	public static long download(String address, String localFileName, int downloadLimit) throws MalformedURLException, IOException {
 		long numWritten = 0;
 		OutputStream out = null;
@@ -377,7 +398,9 @@ public class Misc {
 		return numWritten;
 	}
 
-	// see extended version of this method for more info!
+	/**
+	 * @see download(String, String, int)
+	 */
 	public static long download(String address, String localFileName) throws MalformedURLException, IOException {
 		return download(address, localFileName, 0);
 	}
@@ -386,8 +409,11 @@ public class Misc {
 		return (new File(fileName)).delete();
 	}
 
-	/* this method is thread-safe (or at least it is if not called from multiple threads with same Exception object)
-	 * and must remain such since multiple threads may call it. */
+	/**
+	 * This method is thread-safe; or at least it is if not called from multiple
+	 * threads with the same Exception object.
+	 * It has to be thread-safe, since multiple threads may call it.
+	 */
 	public static String exceptionToFullString(Exception e) {
 		String res = e.toString();
 
@@ -399,7 +425,7 @@ public class Misc {
 		return res;
 	}
 
-	/* various methods dealing with battleStatus: */
+	// BEGIN: various methods dealing with battleStatus
 	public static int getReadyStatusFromBattleStatus(int battleStatus) {
 		return (battleStatus & 0x2) >> 1;
 	}
@@ -455,4 +481,5 @@ public class Misc {
 	public static int setSideOfBattleStatus(int battleStatus, int side) {
 		return (battleStatus & 0xF0FFFFFF) | (side << 24);
 	}
+	// END: various methods dealing with battleStatus
 }

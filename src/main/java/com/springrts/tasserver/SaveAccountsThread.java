@@ -33,7 +33,11 @@ public class SaveAccountsThread extends Thread {
 
 	private static final Log s_log  = LogFactory.getLog(SaveAccountsThread.class);
 
-	private List dupAccounts; // duplicated accounts. Needed to ensure thread safety as well as accounts state consistency
+	/**
+	 * Duplicated accounts.
+	 * Needed to ensure thread safety as well as accounts state consistency
+	 */
+	private List dupAccounts;
 
 	public SaveAccountsThread(List dupAccounts) {
 		this.dupAccounts = dupAccounts;

@@ -21,6 +21,9 @@ public class ServerNotification {
 	private long time = 0;
 	private String title;
 	private String author;
+	/**
+	 * Either an empty string or starts with a new-line.
+	 */
 	private StringBuilder message;
 
 	public ServerNotification(String title) {

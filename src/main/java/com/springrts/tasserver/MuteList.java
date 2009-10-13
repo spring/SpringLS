@@ -13,8 +13,19 @@ import java.util.ArrayList;
 public class MuteList {
 
 	private ArrayList<String> usernames;
-	private ArrayList<Long> mutedUntil; // time (in milliseconds, refers to System.currentTimeMillis()) when it will expire. Expired records are automatically removed in certain methods. Use 0 to mute user for indefinite time.
-	private ArrayList<String> IPs; // IPs of the muted users. If user is not muted by IP (but only by username), corresponding IP in this list is set to 'null'
+	/**
+	 * Time (in milliseconds) when it will expire.
+	 * Expired records are automatically removed in certain methods.
+	 * Use 0 to mute user for indefinite time.
+	 * @see System.currentTimeMillis()
+	 */
+	private ArrayList<Long> mutedUntil;
+	/**
+	 * IPs of the muted users.
+	 * If user is not muted by IP (but only by username), the corresponding
+	 * IP in this list is set to 'null'.
+	 */
+	private ArrayList<String> IPs;
 	private Channel channel;
 
 	public MuteList(Channel channel) {
@@ -24,7 +35,7 @@ public class MuteList {
 		this.channel = channel;
 	}
 
-	/* will purge expired entries */
+	/** Purges expired entries */
 	public void clearExpiredOnes() {
 		// remove any expired records (those with expire time 0 are persistent, we won't remove them):
 		for (int i = 0; i < usernames.size(); i++)
@@ -67,8 +78,13 @@ public class MuteList {
 		return false;
 	}
 
-	// returns false if already muted. Use "seconds" to tell for how long should user be muted.
-	// Set 'IP' to 'null' if you don't want to mute this user by the IP.
+	/**
+	 * Mutes a user.
+	 * @param username name of hte user to mute.
+	 * @param seconds use to specify for how long he user should be muted.
+	 * @param IP set to 'null' if you don't want to mute this user by the IP.
+	 * @return false if already muted
+	 */
 	public boolean mute(String username, int seconds, String IP) {
 		for (int i = 0; i < usernames.size(); i++)
 			if (usernames.get(i).equals(username)) return false;
@@ -81,7 +97,9 @@ public class MuteList {
 		return true;
 	}
 
-	// returns false if user is not on the list
+	/**
+	 * @return false if the user is not on the list
+	 */
 	public boolean unmute(String username) {
 		for (int i = 0; i < usernames.size(); i++)
 			if (usernames.get(i).equals(username)) {
@@ -110,7 +128,9 @@ public class MuteList {
 		else return (mutedUntil.get(index).longValue() - System.currentTimeMillis()) / 1000;
 	}
 
-	// returns 'null' if no IP is set for the user
+	/**
+	 * @return 'null' if no IP is set for the user
+	 */
 	public String getIP(int index) {
 		return IPs.get(index);
 	}

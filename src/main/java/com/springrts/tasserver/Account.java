@@ -91,7 +91,7 @@ public class Account implements Serializable {
 	private int id;
 
 	/**
-	 * Accounts name name.
+	 * Accounts login name.
 	 * This is what you see, for example, in the lobby or in-game.
 	 */
 	@Column(

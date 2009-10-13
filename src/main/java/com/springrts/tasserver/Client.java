@@ -21,35 +21,115 @@ public class Client {
 
 	private static final Log s_log  = LogFactory.getLog(Client.class);
 
-	public boolean alive = false; // if false, then this client is not "valid" anymore (we already killed him and closed his socket).
-	public boolean halfDead = false; // when we schedule client for kill (via Clients.killClientDelayed, for example) this flag is set to true. When true, we don't read or send any data to this client.
+	/**
+	 * If false, then this client is not "valid" anymore.
+	 * We already killed him and closed his socket.
+	 */
+	public boolean alive = false;
+	/**
+	 * When we schedule client for kill (via Clients.killClientDelayed(),
+	 * for example) this flag is set to true.
+	 * When true, we do not read or send any data to this client.
+	 */
+	public boolean halfDead = false;
 
 	public Account account;
 	public String IP;
-	public String localIP; // client's local IP which has to be sent with LOGIN command (server can't figure out his local IP himself of course)
-	public int UDPSourcePort; // client's public UDP source port used with some NAT traversal techniques (e.g. "hole punching")
-	public int status; // see MYSTATUS command for actual values of status
-	public int battleStatus; // see MYBATTLESTATUS command for actual values of battleStatus
-	public int teamColor; // see MYBATTLESTATUS for info on this one
-	public int battleID; // battle ID in which client is participating. Must be -1 if not participating in any battle.
-	public int requestedBattleID; // battle ID which client is requesting to join. Must be -1 if not requesting to join any battle.
-	public List<Channel> channels = new ArrayList<Channel>(); // list of channels user is participating in
+	/**
+	 * Local IP, which has to be sent with LOGIN command
+	 * The server can not figure out the clients local IP by himself of course.
+	 */
+	public String localIP;
+	/**
+	 * Public UDP source port used with some NAT traversal techniques,
+	 * e.g. "hole punching".
+	 */
+	public int UDPSourcePort;
+	/**
+	 * See the 'MYSTATUS' command for valid values
+	 */
+	public int status;
+	/**
+	 * See the 'MYBATTLESTATUS' command for valid values
+	 */
+	public int battleStatus;
+	/**
+	 * @see MYBATTLESTATUS
+	 */
+	public int teamColor;
+	/**
+	 * ID of the battle in which this client is participating.
+	 * Has to be -1 if not participating in any battle.
+	 */
+	public int battleID;
+	/**
+	 * ID of the battle which this client is requesting to join.
+	 * Must be -1 if not requesting to join any battle.
+	 */
+	public int requestedBattleID;
+	/**
+	 * List of channels user is participating in.
+	 */
+	public List<Channel> channels = new ArrayList<Channel>();
 
 	public SocketChannel sockChan;
 	public SelectionKey selKey;
 	public StringBuilder recvBuf;
-	private int msgID = TASServer.NO_MSG_ID; // -1 means no ID is used (NO_MSG_ID constant). This is the message/command ID used when sending command as described in the "lobby protocol description" document. Use setSendMsgID and resetSendMsgID methods to manipulate it.
-	private Queue<ByteBuffer> sendQueue = new LinkedList<ByteBuffer>(); // queue of "delayed data". We failed sending this the first time, so we'll have to try sending it again some time.
-	private StringBuilder fastWrite; // temporary StringBuilder used with beginFastWrite() and endFastWrite() methods.
+	/**
+	 * This is the message/command ID used when sending command
+	 * as described in the "lobby protocol description" document.
+	 * Use setSendMsgID() and resetSendMsgID() methods to manipulate it.
+	 * NO_MSG_ID means no ID is used.
+	 */
+	private int msgID = TASServer.NO_MSG_ID;
+	/**
+	 * Queue of "delayed data".
+	 * We failed sending this the first time, so we will have to try sending it
+	 * again some time later.
+	 */
+	private Queue<ByteBuffer> sendQueue = new LinkedList<ByteBuffer>();
+	/**
+	 * Temporary StringBuilder used by some internal methods.
+	 * @see beginFastWrite()
+	 * @see endFastWrite()
+	 */
+	private StringBuilder fastWrite;
 
-	public long inGameTime; // in milliseconds. Used internally to remember time when user entered game using System.currentTimeMillis().
+	/**
+	 * In milliseconds.
+	 * Used internally to remember time when the user entered the game.
+	 * @see System.currentTimeMillis()
+	 */
+	public long inGameTime;
 	public String country;
-	public int cpu; // in MHz if possible, or in MHz*1.4 if AMD. 0 means the client can't figure out it's CPU speed.
-	public String lobbyVersion; // e.g. "TASClient 1.0" (gets updated when server receives LOGIN command)
-	public long dataOverLastTimePeriod = 0; // how many bytes did client send over last recvRecordPeriod seconds. This is used with anti-flood protection.
-	public long timeOfLastReceive; // time (System.currentTimeMillis()) when we last heard from client (last data received)
-	public boolean acceptAccountIDs; // does the client accept accountIDs in ADDUSER command ?
-	public boolean handleBattleJoinAuthorization; // does the client accept JOINBATTLEREQUEST command ?
+	/**
+	 * In MHz if possible, or in MHz*1.4 if AMD.
+	 * 0 means the client can not figure out its CPU speed.
+	 */
+	public int cpu;
+	/**
+	 * e.g. "TASClient 1.0" (gets updated when server receives LOGIN command)
+	 */
+	public String lobbyVersion;
+	/**
+	 * How many bytes did this client send over the last recvRecordPeriod
+	 * seconds. This is used with anti-flood protection.
+	 */
+	public long dataOverLastTimePeriod = 0;
+	/**
+	 * Time (in milli-seconds) when we last heard from client
+	 * (last data received).
+	 * @see System.currentTimeMillis()
+	 */
+	public long timeOfLastReceive;
+	/**
+	 * Does the client accept accountIDs in ADDUSER command ?
+	 */
+	public boolean acceptAccountIDs;
+	/**
+	 * Does the client accept JOINBATTLEREQUEST command ?
+	 */
+	public boolean handleBattleJoinAuthorization;
 
 	public Client(SocketChannel sockChan) {
 		alive = true;
