@@ -150,7 +150,7 @@
 					<groupId>javax.jms</groupId>
 					<artifactId>jms</artifactId>
 				</exclusion>
-			</exclusions> 
+			</exclusions>
 		</dependency>
 
 		<dependency>
