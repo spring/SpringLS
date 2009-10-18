@@ -16,7 +16,7 @@ import java.util.*;
 /**
  * @author Betalord
  */
-public class FSAccountsService implements AccountsService {
+public class FSAccountsService extends AbstractAccountsService implements AccountsService {
 
 	private static final Log s_log  = LogFactory.getLog(FSAccountsService.class);
 
@@ -187,38 +187,11 @@ public class FSAccountsService implements AccountsService {
 	}
 
 	@Override
-	public boolean addAccountWithCheck(Account acc) {
-		if (Account.isUsernameValid(acc.getName()) != null) {
-			return false;
-		}
-		if (Account.isPasswordValid(acc.getPassword()) != null) {
-			return false;
-		}
-
-		// check for duplicate entries:
-		if (doesAccountExist(acc.getName())) {
-			return false;
-		}
-
-		addAccount(acc);
-		return true;
-	}
-
-	@Override
 	public boolean removeAccount(Account acc) {
 		boolean result = accounts.remove(acc);
 		map.remove(acc.getName());
 		mapNoCase.remove(acc.getName());
 		return result;
-	}
-
-	@Override
-	public boolean removeAccount(String username) {
-		Account acc = getAccount(username);
-		if (acc == null) {
-			return false;
-		}
-		return removeAccount(acc);
 	}
 
 	/** Returns null if account is not found */
@@ -255,11 +228,6 @@ public class FSAccountsService implements AccountsService {
 		}
 
 		return account;
-	}
-
-	@Override
-	public boolean doesAccountExist(String username) {
-		return getAccount(username) != null;
 	}
 
 	/** Will delete account 'oldAcc' and insert 'newAcc' into his position */
