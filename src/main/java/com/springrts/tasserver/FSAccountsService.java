@@ -215,10 +215,11 @@ public class FSAccountsService extends AbstractAccountsService implements Accoun
 	}
 
 	@Override
-	public Account findAccountByLastIP(String[] ip_s) {
+	public Account findAccountByLastIP(String ip) {
 
 		Account account = null;
 
+		final String[] ip_s = ip.split("\\.");
 		for (int i = 0; i < getAccountsSize(); i++) {
 			Account act_tmp = getAccount(i);
 			if (!TASServer.isSameIP(ip_s, act_tmp.getLastIP())) {

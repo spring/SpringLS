@@ -1367,7 +1367,7 @@ public class TASServer {
 				}
 
 				// now let's check if this IP matches any recently used IP:
-				Account lastAct = TASServer.getAccountsService().findAccountByLastIP(sp1);
+				Account lastAct = TASServer.getAccountsService().findAccountByLastIP(IP);
 				if (lastAct != null && Clients.getClient(lastAct.getName()) == null) { // user is offline
 					found = true;
 					client.sendLine(new StringBuilder("SERVERMSG ")
