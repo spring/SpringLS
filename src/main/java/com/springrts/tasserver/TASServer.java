@@ -271,6 +271,7 @@ public class TASServer {
 	static ArrayList<FailedLoginAttempt> failedLoginAttempts = new ArrayList<FailedLoginAttempt>(); // here we store information on latest failed login attempts. We use it to block users from brute-forcing other accounts
 	static long lastFailedLoginsPurgeTime = System.currentTimeMillis(); // time when we last purged list of failed login attempts
 	private static final Log s_log  = LogFactory.getLog(TASServer.class);
+	private static AccountsService accountsService = null;
 
 	// database related:
 	private static Properties mavenProperties = null;
@@ -447,7 +448,7 @@ public class TASServer {
 	public static void closeServerAndExit() {
 		s_log.info("Server stopped.");
 		if (!LAN_MODE && initializationFinished) {
-			Accounts.saveAccounts(true); // we need to check if initialization has completed so that we don't save empty accounts array and so overwrite actual accounts
+			TASServer.getAccountsService().saveAccounts(true); // we need to check if initialization has completed so that we don't save empty accounts array and so overwrite actual accounts
 		}
 		if (helpUDPsrvr != null && helpUDPsrvr.isAlive()) {
 			helpUDPsrvr.stopServer();
@@ -686,7 +687,7 @@ public class TASServer {
 	}
 
 	private static Account verifyLogin(String user, String pass) {
-		Account acc = Accounts.getAccount(user);
+		Account acc = TASServer.getAccountsService().getAccount(user);
 		if (acc == null) {
 			return null;
 		}
@@ -840,7 +841,7 @@ public class TASServer {
 					client.sendLine("SERVERMSG bad params");
 					return false;
 				}
-				String valid = Accounts.isOldUsernameValid(commands[1]);
+				String valid = TASServer.getAccountsService().isOldUsernameValid(commands[1]);
 				if (valid != null) {
 					client.sendLine(new StringBuilder("SERVERMSG Invalid username (reason: ")
 							.append(valid).append(")").toString());
@@ -848,13 +849,13 @@ public class TASServer {
 				}
 
 				// validate password:
-				valid = Accounts.isPasswordValid(commands[2]);
+				valid = TASServer.getAccountsService().isPasswordValid(commands[2]);
 				if (valid != null) {
 					client.sendLine(new StringBuilder("SERVERMSG Invalid password (reason: ")
 							.append(valid).append(")").toString());
 					return false;
 				}
-				Account acc = Accounts.findAccountNoCase(commands[1]);
+				Account acc = TASServer.getAccountsService().findAccountNoCase(commands[1]);
 				if (acc != null) {
 					client.sendLine("SERVERMSG Account already exists");
 					return false;
@@ -878,8 +879,8 @@ public class TASServer {
 						false,
 						0,
 						false);
-				Accounts.addAccount(acc);
-				Accounts.saveAccounts(false); // let's save new accounts info to disk
+				TASServer.getAccountsService().addAccount(acc);
+				TASServer.getAccountsService().saveAccounts(false); // let's save new accounts info to disk
 				client.sendLine("SERVERMSG Account created.");
 			}
 			if (commands[0].equals("REGISTER")) {
@@ -904,7 +905,7 @@ public class TASServer {
 				}
 
 				// validate username:
-				String valid = Accounts.isOldUsernameValid(commands[1]);
+				String valid = TASServer.getAccountsService().isOldUsernameValid(commands[1]);
 				if (valid != null) {
 					client.sendLine(new StringBuilder("REGISTRATIONDENIED Invalid username (reason: ")
 							.append(valid).append(")").toString());
@@ -912,13 +913,13 @@ public class TASServer {
 				}
 
 				// validate password:
-				valid = Accounts.isPasswordValid(commands[2]);
+				valid = TASServer.getAccountsService().isPasswordValid(commands[2]);
 				if (valid != null) {
 					client.sendLine(new StringBuilder("REGISTRATIONDENIED Invalid password (reason: ")
 							.append(valid).append(")").toString());
 					return false;
 				}
-				Account acc = Accounts.findAccountNoCase(commands[1]);
+				Account acc = TASServer.getAccountsService().findAccountNoCase(commands[1]);
 				if (acc != null) {
 					client.sendLine("REGISTRATIONDENIED Account already exists");
 					return false;
@@ -968,8 +969,8 @@ public class TASServer {
 						false,
 						0,
 						false);
-				Accounts.addAccount(acc);
-				Accounts.saveAccounts(false); // let's save new accounts info to disk
+				TASServer.getAccountsService().addAccount(acc);
+				TASServer.getAccountsService().saveAccounts(false); // let's save new accounts info to disk
 				client.sendLine("REGISTRATIONACCEPTED");
 			} else if (commands[0].equals("UPTIME")) {
 				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
@@ -1135,7 +1136,7 @@ public class TASServer {
 					return false;
 				}
 
-				if (!Accounts.removeAccount(commands[1])) {
+				if (!TASServer.getAccountsService().removeAccount(commands[1])) {
 					return false;
 				}
 
@@ -1147,7 +1148,7 @@ public class TASServer {
 					}
 				}
 
-				Accounts.saveAccounts(false); // let's save new accounts info to disk
+				TASServer.getAccountsService().saveAccounts(false); // let's save new accounts info to disk
 				client.sendLine(new StringBuilder("SERVERMSG You have successfully removed <")
 						.append(commands[1]).append("> account!").toString());
 			} else if (commands[0].equals("STOPSERVER")) {
@@ -1168,7 +1169,7 @@ public class TASServer {
 					return false;
 				}
 
-				Accounts.saveAccounts(false);
+				TASServer.getAccountsService().saveAccounts(false);
 				client.sendLine("SERVERMSG Accounts will be saved in a background thread.");
 			} else if (commands[0].equals("CHANGEACCOUNTPASS")) {
 				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
@@ -1178,18 +1179,18 @@ public class TASServer {
 					return false;
 				}
 
-				Account acc = Accounts.getAccount(commands[1]);
+				Account acc = TASServer.getAccountsService().getAccount(commands[1]);
 				if (acc == null) {
 					return false;
 				}
 				// validate password:
-				if (Accounts.isPasswordValid(commands[2]) != null) {
+				if (TASServer.getAccountsService().isPasswordValid(commands[2]) != null) {
 					return false;
 				}
 
 				acc.setPassword(commands[2]);
 
-				Accounts.saveAccounts(false); // save changes
+				TASServer.getAccountsService().saveAccounts(false); // save changes
 
 				// add server notification:
 				ServerNotification sn = new ServerNotification("Account password changed by admin");
@@ -1212,7 +1213,7 @@ public class TASServer {
 					return false;
 				}
 
-				Account acc = Accounts.getAccount(commands[1]);
+				Account acc = TASServer.getAccountsService().getAccount(commands[1]);
 				if (acc == null) {
 					return false;
 				}
@@ -1223,7 +1224,7 @@ public class TASServer {
 				acc.setInGameTime(Account.extractInGameTime(newAccessBifField));
 				acc.setAgreementAccepted(Account.extractAgreementAccepted(newAccessBifField));
 
-				Accounts.saveAccounts(false); // save changes
+				TASServer.getAccountsService().saveAccounts(false); // save changes
 				// just in case if rank got changed: FIXME?
 				//Client target=Clients.getClient(commands[1]);
 				//target.setRankToStatus(client.account.getRank().ordinal());
@@ -1250,7 +1251,7 @@ public class TASServer {
 					return false;
 				}
 
-				Account acc = Accounts.getAccount(commands[1]);
+				Account acc = TASServer.getAccountsService().getAccount(commands[1]);
 				if (acc == null) {
 					client.sendLine(new StringBuilder("SERVERMSG User <")
 							.append(commands[1]).append("> not found!").toString());
@@ -1328,7 +1329,7 @@ public class TASServer {
 				}
 
 				client.sendLine(new StringBuilder("SERVERMSG ")
-						.append(Accounts.getAccountsSize()).toString());
+						.append(TASServer.getAccountsService().getAccountsSize()).toString());
 			} else if (commands[0].equals("FINDIP")) {
 				if (client.account.getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
 					return false;
@@ -1368,8 +1369,8 @@ public class TASServer {
 				}
 
 				// now let's check if this IP matches any recently used IP:
-				for (int i = 0; i < Accounts.getAccountsSize(); i++) {
-					String[] sp2 = Accounts.getAccount(i).getLastIP().split("\\.");
+				for (int i = 0; i < TASServer.getAccountsService().getAccountsSize(); i++) {
+					String[] sp2 = TASServer.getAccountsService().getAccount(i).getLastIP().split("\\.");
 
 					if (!sp1[0].equals("*") && !sp1[0].equals(sp2[0])) {
 						continue;
@@ -1384,11 +1385,11 @@ public class TASServer {
 						continue;
 					}
 
-					if (Clients.getClient(Accounts.getAccount(i).getName()) == null) { // user is offline
+					if (Clients.getClient(TASServer.getAccountsService().getAccount(i).getName()) == null) { // user is offline
 						found = true;
 						client.sendLine(new StringBuilder("SERVERMSG ")
 								.append(IP).append(" was recently bound to: ")
-								.append(Accounts.getAccount(i).getName()).append(" (offline)").toString());
+								.append(TASServer.getAccountsService().getAccount(i).getName()).append(" (offline)").toString());
 					}
 				}
 
@@ -1404,7 +1405,7 @@ public class TASServer {
 					return false;
 				}
 
-				Account acc = Accounts.getAccount(commands[1]);
+				Account acc = TASServer.getAccountsService().getAccount(commands[1]);
 				if (acc == null) {
 					client.sendLine(new StringBuilder("SERVERMSG User ")
 							.append(commands[1]).append(" not found!").toString());
@@ -1424,7 +1425,7 @@ public class TASServer {
 					return false;
 				}
 
-				Account acc = Accounts.getAccount(commands[1]);
+				Account acc = TASServer.getAccountsService().getAccount(commands[1]);
 				if (acc == null) {
 					client.sendLine(new StringBuilder("SERVERMSG Account <")
 							.append(commands[1]).append("> does not exist.").toString());
@@ -1500,7 +1501,7 @@ public class TASServer {
 					if (commands.length != 2) {
 						return false;
 					}
-					Account acc = Accounts.getAccount(commands[1]);
+					Account acc = TASServer.getAccountsService().getAccount(commands[1]);
 					if (acc == null) {
 						client.sendLine(new StringBuilder("SERVERMSG GETINGAMETIME failed: user ")
 								.append(commands[1]).append(" not found!").toString());
@@ -1555,7 +1556,7 @@ public class TASServer {
 					return false;
 				}
 
-				Account targetAccount = Accounts.getAccount(username);
+				Account targetAccount = TASServer.getAccountsService().getAccount(username);
 				if (targetAccount == null) {
 					client.sendLine(new StringBuilder("SERVERMSG MUTE failed: User <").append(username).append("> does not exist").toString());
 					return false;
@@ -1806,7 +1807,7 @@ public class TASServer {
 					return false;
 				}
 
-				Account acc = Accounts.getAccount(commands[1]);
+				Account acc = TASServer.getAccountsService().getAccount(commands[1]);
 				if (acc == null) {
 					client.sendLine(new StringBuilder("SERVERMSG GETLASTLOGINTIME failed: <")
 							.append(commands[1]).append("> not found!").toString());
@@ -1996,7 +1997,7 @@ public class TASServer {
 					return false;
 				}
 
-				Account acc = Accounts.getAccount(commands[1]);
+				Account acc = TASServer.getAccountsService().getAccount(commands[1]);
 				if (acc == null) {
 					client.sendLine(new StringBuilder("SERVERMSG User <").append(commands[1]).append("> not found!").toString());
 					return false;
@@ -2015,7 +2016,7 @@ public class TASServer {
 					return false;
 				}
 
-				Account acc = Accounts.getAccount(commands[1]);
+				Account acc = TASServer.getAccountsService().getAccount(commands[1]);
 				if (acc == null) {
 					client.sendLine(new StringBuilder("SERVERMSG User <").append(commands[1]).append("> not found!").toString());
 					return false;
@@ -2058,7 +2059,7 @@ public class TASServer {
 					return false;
 				}
 
-				Account acc = Accounts.getAccount(commands[1]);
+				Account acc = TASServer.getAccountsService().getAccount(commands[1]);
 				if (acc == null) {
 					client.sendLine(new StringBuilder("SERVERMSG User <").append(commands[1]).append("> not found!").toString());
 					return false;
@@ -2138,7 +2139,7 @@ public class TASServer {
 					return false; // user with accessLevel > 0 cannot re-login
 				}
 
-				if (!loginEnabled && Accounts.getAccount(commands[1]).getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
+				if (!loginEnabled && TASServer.getAccountsService().getAccount(commands[1]).getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
 					client.sendLine("DENIED Sorry, logging in is currently disabled");
 					return false;
 				}
@@ -2230,7 +2231,7 @@ public class TASServer {
 					if (!acc.isAgreementAccepted()) {
 						// user has obviously accepted the agreement... Let's update it
 						acc.setAgreementAccepted(true);
-						Accounts.saveAccounts(false);
+						TASServer.getAccountsService().saveAccounts(false);
 					}
 					if (acc.getLastLogin() + 5000 > System.currentTimeMillis()) {
 						client.sendLine("DENIED This account has already connected in the last 5 seconds");
@@ -2241,7 +2242,7 @@ public class TASServer {
 					if (commands[1].equals("")) {
 						client.sendLine("DENIED Cannot login with null username");
 					}
-					Account acc = Accounts.getAccount(commands[1]);
+					Account acc = TASServer.getAccountsService().getAccount(commands[1]);
 					if (acc != null) {
 						client.sendLine("DENIED Player with same name already logged in");
 						return false;
@@ -2251,7 +2252,7 @@ public class TASServer {
 						accessLvl = Account.Access.ADMIN;
 					}
 					acc = new Account(commands[1], commands[2], accessLvl, Account.NO_USER_ID, 0, "?", 0, "XX", Account.NO_ACCOUNT_ID, false, 0, false);
-					Accounts.addAccount(acc);
+					TASServer.getAccountsService().addAccount(acc);
 					client.account = acc;
 				}
 
@@ -2335,13 +2336,13 @@ public class TASServer {
 				}
 
 				// validate new username:
-				String valid = Accounts.isOldUsernameValid(commands[1]);
+				String valid = TASServer.getAccountsService().isOldUsernameValid(commands[1]);
 				if (valid != null) {
 					client.sendLine(new StringBuilder("SERVERMSG RENAMEACCOUNT failed: Invalid username (reason: ").append(valid).append(")").toString());
 					return false;
 				}
 
-				Account acc = Accounts.findAccountNoCase(commands[1]);
+				Account acc = TASServer.getAccountsService().findAccountNoCase(commands[1]);
 				if (acc != null && acc != client.account) {
 					client.sendLine("SERVERMSG RENAMEACCOUNT failed: Account with same username already exists!");
 					return false;
@@ -2368,8 +2369,8 @@ public class TASServer {
 				client.sendLine(new StringBuilder("SERVERMSG Your account has been renamed to <")
 						.append(commands[1]).append(">. Reconnect with new account (you will now be automatically disconnected)!").toString());
 				Clients.killClient(client, "Quit: renaming account");
-				Accounts.replaceAccount(client.account, acc);
-				Accounts.saveAccounts(false); // let's save new accounts info to disk
+				TASServer.getAccountsService().replaceAccount(client.account, acc);
+				TASServer.getAccountsService().saveAccounts(false); // let's save new accounts info to disk
 				Clients.sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: User <")
 						.append(client.account.getName()).append("> has just renamed his account to <")
 						.append(commands[1]).append(">").toString());
@@ -2401,7 +2402,7 @@ public class TASServer {
 				}
 
 				// validate password:
-				String valid = Accounts.isPasswordValid(commands[2]);
+				String valid = TASServer.getAccountsService().isPasswordValid(commands[2]);
 				if (valid != null) {
 					client.sendLine(new StringBuilder("SERVERMSG CHANGEPASSWORD failed: Invalid password (reason: ").append(valid).append(")").toString());
 					return false;
@@ -2409,7 +2410,7 @@ public class TASServer {
 
 				client.account.setPassword(commands[2]);
 
-				Accounts.saveAccounts(false); // let's save new accounts info to disk
+				TASServer.getAccountsService().saveAccounts(false); // let's save new accounts info to disk
 				client.sendLine("SERVERMSG Your password has been successfully updated!");
 			} else if (commands[0].equals("JOIN")) {
 				if (commands.length < 2) {
@@ -3735,14 +3736,14 @@ public class TASServer {
 					lanAdminUsername = args[i + 1];
 					lanAdminPassword = Misc.encodePassword(args[i + 2]);
 
-					if (Accounts.isOldUsernameValid(lanAdminUsername) != null) {
+					if (TASServer.getAccountsService().isOldUsernameValid(lanAdminUsername) != null) {
 						s_log.warn(new StringBuilder("Lan admin username is not valid: ")
-								.append(Accounts.isOldUsernameValid(lanAdminUsername)).toString());
+								.append(TASServer.getAccountsService().isOldUsernameValid(lanAdminUsername)).toString());
 						throw new Exception();
 					}
-					if (Accounts.isPasswordValid(lanAdminPassword) != null) {
+					if (TASServer.getAccountsService().isPasswordValid(lanAdminPassword) != null) {
 						s_log.warn(new StringBuilder("Lan admin password is not valid: ")
-								.append(Accounts.isPasswordValid(lanAdminPassword)).toString());
+								.append(TASServer.getAccountsService().isPasswordValid(lanAdminPassword)).toString());
 						throw new Exception();
 					}
 					i += 2; // we must skip username and password parameters in next iteration
@@ -3869,7 +3870,7 @@ public class TASServer {
 		}
 
 		if (!LAN_MODE) {
-			Accounts.loadAccounts();
+			TASServer.getAccountsService().loadAccounts();
 			BanSystem.fetchLatestBanList();
 			readAgreement();
 		} else {
@@ -3943,7 +3944,7 @@ public class TASServer {
 		ServerNotification sn = new ServerNotification("Server started");
 		sn.addLine(new StringBuilder("Server has been started on port ")
 				.append(serverPort).append(". There are ")
-				.append(Accounts.getAccountsSize())
+				.append(TASServer.getAccountsService().getAccountsSize())
 				.append(" accounts currently loaded. See server log for more info.").toString());
 		ServerNotifications.addNotification(sn);
 
@@ -4014,7 +4015,7 @@ public class TASServer {
 			}
 
 			// save accounts info to disk on regular intervals:
-			Accounts.saveAccountsIfNeeded();
+			TASServer.getAccountsService().saveAccountsIfNeeded();
 
 			// purge mute lists of all channels on regular intervals:
 			if (System.currentTimeMillis() - lastMutesPurgeTime > purgeMutesInterval) {
@@ -4045,7 +4046,7 @@ public class TASServer {
 
 		// close everything:
 		if (!LAN_MODE) {
-			Accounts.saveAccounts(true);
+			TASServer.getAccountsService().saveAccounts(true);
 		}
 		if (helpUDPsrvr.isAlive()) {
 			helpUDPsrvr.stopServer();
@@ -4073,5 +4074,14 @@ public class TASServer {
 		ServerNotifications.addNotification(sn);
 
 		s_log.info("Server closed gracefully!");
+	}
+
+	static AccountsService getAccountsService() {
+
+		if (accountsService == null) {
+			accountsService = new FSAccountsService();
+		}
+
+		return accountsService;
 	}
 }

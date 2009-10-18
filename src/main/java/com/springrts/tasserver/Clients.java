@@ -266,7 +266,7 @@ public class Clients {
 		}
 
 		if (TASServer.LAN_MODE) {
-			Accounts.removeAccount(client.account);
+			TASServer.getAccountsService().removeAccount(client.account);
 		}
 
 		return true;

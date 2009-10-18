@@ -16,9 +16,9 @@ import java.util.*;
 /**
  * @author Betalord
  */
-public class Accounts {
+public class FSAccountsService implements AccountsService {
 
-	private static final Log s_log  = LogFactory.getLog(Accounts.class);
+	private static final Log s_log  = LogFactory.getLog(FSAccountsService.class);
 
 	// note: ArrayList is not synchronized!
 	// Use Vector class instead if multiple threads are going to access it
@@ -58,7 +58,7 @@ public class Accounts {
 	 */
 	private static long lastSaveAccountsTime = System.currentTimeMillis();
 
-	public static int getAccountsSize() {
+	public int getAccountsSize() {
 		return accounts.size();
 	}
 
@@ -66,7 +66,7 @@ public class Accounts {
 	 * (Re-)Loads accounts from disk.
 	 * @return false if loading failed, true otherwise
 	 */
-	public static boolean loadAccounts() {
+	public boolean loadAccounts() {
 		long time = System.currentTimeMillis();
 		try {
 			BufferedReader in = new BufferedReader(new FileReader(TASServer.ACCOUNTS_INFO_FILEPATH));
@@ -120,7 +120,7 @@ public class Accounts {
 	 *              so this method can return immediately (non-blocking mode).
 	 *              If true, it will not return until the accounts have been saved.
 	 */
-	public static void saveAccounts(boolean block) {
+	public void saveAccounts(boolean block) {
 		if ((saveAccountsThread != null) && (saveAccountsThread.isAlive())) {
 			return; // already in progress. Let's just skip it ...
 		}
@@ -145,7 +145,7 @@ public class Accounts {
 	 * Will call saveAccounts() only if they haven't been saved for some time.
 	 * This method should be called periodically!
 	 */
-	public static void saveAccountsIfNeeded() {
+	public void saveAccountsIfNeeded() {
 		if ((!TASServer.LAN_MODE) && (System.currentTimeMillis() - lastSaveAccountsTime > saveAccountInfoInterval)) {
 			saveAccounts(false);
 			// note: lastSaveAccountsTime will get updated in saveAccounts() method!
@@ -155,7 +155,7 @@ public class Accounts {
 	/**
 	 * Returns 'null' if username is valid; an error description otherwise.
 	 */
-	public static String isUsernameValid(String username) {
+	public String isUsernameValid(String username) {
 		if (username.length() > 20) {
 			return "Username too long";
 		}
@@ -172,7 +172,7 @@ public class Accounts {
 	/**
 	 * Returns 'null' if password is valid; an error description otherwise.
 	 */
-	public static String isPasswordValid(String password) {
+	public String isPasswordValid(String password) {
 		if (password.length() < 2) {
 			return "Password too short";
 		}
@@ -190,7 +190,7 @@ public class Accounts {
 	 * Returns 'null' if username is valid; an error description otherwise.
 	 * This is used with "old" format of usernames which could also contain "[" and "]" characters.
 	 */
-	public static String isOldUsernameValid(String username) {
+	public String isOldUsernameValid(String username) {
 		if (username.length() > 20) {
 			return "Username too long";
 		}
@@ -209,7 +209,7 @@ public class Accounts {
 	 * The nickname must contain part of username - it may only prefix and postfix the username.
 	 * @param baseUsername used to test nickname against
 	 */
-	public static String isNicknameValid(String nickname, String baseUsername) {
+	public String isNicknameValid(String nickname, String baseUsername) {
 		if (nickname.length() > 20) {
 			return "Nickname too long";
 		}
@@ -241,7 +241,7 @@ public class Accounts {
 	}
 
 	/** WARNING: caller must check if username/password is valid etc. himself! */
-	public static void addAccount(Account acc) {
+	public void addAccount(Account acc) {
 		if (acc.getId() == Account.NEW_ACCOUNT_ID) {
 			acc.setId(++biggestAccountId);
 		} else if (acc.getId() > biggestAccountId) {
@@ -252,7 +252,7 @@ public class Accounts {
 		mapNoCase.put(acc.getName(), acc);
 	}
 
-	public static boolean addAccountWithCheck(Account acc) {
+	public boolean addAccountWithCheck(Account acc) {
 		if (isUsernameValid(acc.getName()) != null) {
 			return false;
 		}
@@ -269,14 +269,14 @@ public class Accounts {
 		return true;
 	}
 
-	public static boolean removeAccount(Account acc) {
+	public boolean removeAccount(Account acc) {
 		boolean result = accounts.remove(acc);
 		map.remove(acc.getName());
 		mapNoCase.remove(acc.getName());
 		return result;
 	}
 
-	public static boolean removeAccount(String username) {
+	public boolean removeAccount(String username) {
 		Account acc = getAccount(username);
 		if (acc == null) {
 			return false;
@@ -285,12 +285,12 @@ public class Accounts {
 	}
 
 	/** Returns null if account is not found */
-	public static Account getAccount(String username) {
+	public Account getAccount(String username) {
 		return map.get(username);
 	}
 
 	/** Returns null if index is out of bounds */
-	public static Account getAccount(int index) {
+	public Account getAccount(int index) {
 		try {
 			return accounts.get(index);
 		} catch (IndexOutOfBoundsException e) {
@@ -298,16 +298,16 @@ public class Accounts {
 		}
 	}
 
-	public static Account findAccountNoCase(String username) {
+	public Account findAccountNoCase(String username) {
 		return mapNoCase.get(username);
 	}
 
-	public static boolean doesAccountExist(String username) {
+	public boolean doesAccountExist(String username) {
 		return getAccount(username) != null;
 	}
 
 	/** Will delete account 'oldAcc' and insert 'newAcc' into his position */
-	public static boolean replaceAccount(Account oldAcc, Account newAcc) {
+	public boolean replaceAccount(Account oldAcc, Account newAcc) {
 		int index = accounts.indexOf(oldAcc);
 		if (index == -1) {
 			return false; // 'oldAcc' does not exist!

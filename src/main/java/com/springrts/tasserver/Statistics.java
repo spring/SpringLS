@@ -80,9 +80,9 @@ public class Statistics {
 		}
 
 		int activeAccounts = 0;
-		for (int i = 0; i < Accounts.getAccountsSize(); i++) {
-			if ((Accounts.getAccount(i).getRank().compareTo(Account.Rank.Newbie) > 0) &&
-					(Accounts.getAccount(i).getLastLogin() > System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 7)) {
+		for (int i = 0; i < TASServer.getAccountsService().getAccountsSize(); i++) {
+			if ((TASServer.getAccountsService().getAccount(i).getRank().compareTo(Account.Rank.Newbie) > 0) &&
+					(TASServer.getAccountsService().getAccount(i).getLastLogin() > System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 7)) {
 				activeAccounts++;
 			}
 		}
@@ -94,7 +94,7 @@ public class Statistics {
 			out.write(new StringBuilder(now("HHmmss")).append(" ")
 					.append(Clients.getClientsSize()).append(" ")
 					.append(activeBattlesCount).append(" ")
-					.append(Accounts.getAccountsSize()).append(" ")
+					.append(TASServer.getAccountsService().getAccountsSize()).append(" ")
 					.append(activeAccounts).append(" ")
 					.append(topMods).append("\r\n").toString());
 			out.close();
