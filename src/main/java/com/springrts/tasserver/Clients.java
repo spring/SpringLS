@@ -187,8 +187,11 @@ public class Clients {
 		client.endFastWrite();
 	}
 
-	/* notifies all registered clients of a new client who just logged in. The new client
-	 * is not notified (he is already notified by some other method) */
+	/**
+	 * Notifies all registered clients of a new client who just logged in.
+	 * The new client is not notified, because he is already notified
+	 * by some other method.
+	 */
 	public static void notifyClientsOfNewClientOnServer(Client client) {
 		for (int i = 0; i < clients.size(); i++) {
 			if (clients.get(i).account.getAccess().compareTo(Account.Access.NORMAL) < 0) continue;
@@ -208,8 +211,10 @@ public class Clients {
 		}
 	}
 
-	/* The client who just joined the battle is also notified (he should also be notified
-	 * with JOINBATTLE command. See protocol description) */
+	/**
+	 * The client who just joined the battle is also notified (he should also be notified
+	 * with JOINBATTLE command. See protocol description)
+	 */
 	public static void notifyClientsOfNewClientInBattle(Battle battle, Client client) {
 		for (int i = 0; i < clients.size(); i++)  {
 			if (clients.get(i).account.getAccess().compareTo(Account.Access.NORMAL) < 0) continue;
@@ -219,16 +224,18 @@ public class Clients {
 		}
 	}
 
-	/* see the overloaded killClient() method for more info */
+	/** @see killClient() */
 	public static boolean killClient(Client client) {
 		return killClient(client, "");
 	}
 
-	/* this method disconnects and removes client from the clients list.
+	/**
+	 * This method disconnects and removes a client from the clients list.
 	 * Also cleans up after him (channels, battles) and notifies other
 	 * users of his departure. "reason" is used with LEFT command to
 	 * notify other users on same channel of this client's departure
-	 * reason (it may be left blank ("") to give no reason). */
+	 * reason (it may be left blank ("") to give no reason).
+	 */
 	public static boolean killClient(Client client, String reason) {
 
 		int index = clients.indexOf(client);

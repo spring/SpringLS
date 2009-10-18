@@ -58,14 +58,33 @@ public class FSAccountsService implements AccountsService {
 	 */
 	private static long lastSaveAccountsTime = System.currentTimeMillis();
 
+	@Override
 	public int getAccountsSize() {
 		return accounts.size();
+	}
+
+	@Override
+	public int getActiveAccountsSize() {
+
+		int activeAccounts = 0;
+
+		final long oneWeekAgo = System.currentTimeMillis() - (1000 * 60 * 60 * 24 * 7);
+		for (int i = 0; i < getAccountsSize(); i++) {
+			Account act = getAccount(i);
+			if ((act.getRank().compareTo(Account.Rank.Newbie) > 0) &&
+					(act.getLastLogin() > oneWeekAgo)) {
+				activeAccounts++;
+			}
+		}
+
+		return activeAccounts;
 	}
 
 	/**
 	 * (Re-)Loads accounts from disk.
 	 * @return false if loading failed, true otherwise
 	 */
+	@Override
 	public boolean loadAccounts() {
 		long time = System.currentTimeMillis();
 		try {
@@ -120,6 +139,7 @@ public class FSAccountsService implements AccountsService {
 	 *              so this method can return immediately (non-blocking mode).
 	 *              If true, it will not return until the accounts have been saved.
 	 */
+	@Override
 	public void saveAccounts(boolean block) {
 		if ((saveAccountsThread != null) && (saveAccountsThread.isAlive())) {
 			return; // already in progress. Let's just skip it ...
@@ -145,6 +165,7 @@ public class FSAccountsService implements AccountsService {
 	 * Will call saveAccounts() only if they haven't been saved for some time.
 	 * This method should be called periodically!
 	 */
+	@Override
 	public void saveAccountsIfNeeded() {
 		if ((!TASServer.LAN_MODE) && (System.currentTimeMillis() - lastSaveAccountsTime > saveAccountInfoInterval)) {
 			saveAccounts(false);
@@ -155,6 +176,7 @@ public class FSAccountsService implements AccountsService {
 	/**
 	 * Returns 'null' if username is valid; an error description otherwise.
 	 */
+	@Override
 	public String isUsernameValid(String username) {
 		if (username.length() > 20) {
 			return "Username too long";
@@ -172,6 +194,7 @@ public class FSAccountsService implements AccountsService {
 	/**
 	 * Returns 'null' if password is valid; an error description otherwise.
 	 */
+	@Override
 	public String isPasswordValid(String password) {
 		if (password.length() < 2) {
 			return "Password too short";
@@ -190,6 +213,7 @@ public class FSAccountsService implements AccountsService {
 	 * Returns 'null' if username is valid; an error description otherwise.
 	 * This is used with "old" format of usernames which could also contain "[" and "]" characters.
 	 */
+	@Override
 	public String isOldUsernameValid(String username) {
 		if (username.length() > 20) {
 			return "Username too long";
@@ -209,6 +233,7 @@ public class FSAccountsService implements AccountsService {
 	 * The nickname must contain part of username - it may only prefix and postfix the username.
 	 * @param baseUsername used to test nickname against
 	 */
+	@Override
 	public String isNicknameValid(String nickname, String baseUsername) {
 		if (nickname.length() > 20) {
 			return "Nickname too long";
@@ -241,6 +266,7 @@ public class FSAccountsService implements AccountsService {
 	}
 
 	/** WARNING: caller must check if username/password is valid etc. himself! */
+	@Override
 	public void addAccount(Account acc) {
 		if (acc.getId() == Account.NEW_ACCOUNT_ID) {
 			acc.setId(++biggestAccountId);
@@ -252,6 +278,7 @@ public class FSAccountsService implements AccountsService {
 		mapNoCase.put(acc.getName(), acc);
 	}
 
+	@Override
 	public boolean addAccountWithCheck(Account acc) {
 		if (isUsernameValid(acc.getName()) != null) {
 			return false;
@@ -269,6 +296,7 @@ public class FSAccountsService implements AccountsService {
 		return true;
 	}
 
+	@Override
 	public boolean removeAccount(Account acc) {
 		boolean result = accounts.remove(acc);
 		map.remove(acc.getName());
@@ -276,6 +304,7 @@ public class FSAccountsService implements AccountsService {
 		return result;
 	}
 
+	@Override
 	public boolean removeAccount(String username) {
 		Account acc = getAccount(username);
 		if (acc == null) {
@@ -285,11 +314,13 @@ public class FSAccountsService implements AccountsService {
 	}
 
 	/** Returns null if account is not found */
+	@Override
 	public Account getAccount(String username) {
 		return map.get(username);
 	}
 
 	/** Returns null if index is out of bounds */
+	@Override
 	public Account getAccount(int index) {
 		try {
 			return accounts.get(index);
@@ -298,15 +329,18 @@ public class FSAccountsService implements AccountsService {
 		}
 	}
 
+	@Override
 	public Account findAccountNoCase(String username) {
 		return mapNoCase.get(username);
 	}
 
+	@Override
 	public boolean doesAccountExist(String username) {
 		return getAccount(username) != null;
 	}
 
 	/** Will delete account 'oldAcc' and insert 'newAcc' into his position */
+	@Override
 	public boolean replaceAccount(Account oldAcc, Account newAcc) {
 		int index = accounts.indexOf(oldAcc);
 		if (index == -1) {

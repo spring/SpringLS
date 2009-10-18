@@ -4,6 +4,8 @@
 
 package com.springrts.tasserver;
 
+import java.util.Set;
+
 
 /**
  * Data Access Object (DAO) interface for Account's.
@@ -15,7 +17,18 @@ package com.springrts.tasserver;
  */
 public interface AccountsService {
 
+	/**
+	 * Returns the number of all accounts.
+	 */
 	public int getAccountsSize();
+
+	/**
+	 * Returns the number of all active accounts.
+	 * An account has to fullfill two criterias to be considered active:
+	 * * last login is not more then 1 week ago
+	 * * rank is higher then Newbie/Rank 1
+	 */
+	public int getActiveAccountsSize();
 
 	/**
 	 * (Re-)Loads accounts from disk.
@@ -40,7 +53,7 @@ public interface AccountsService {
 	/**
 	 * Returns 'null' if username is valid; an error description otherwise.
 	 */
-	public String isUsernameValid(String username);
+	public String isUsernameValid(String userName);
 
 	/**
 	 * Returns 'null' if password is valid; an error description otherwise.
@@ -51,14 +64,14 @@ public interface AccountsService {
 	 * Returns 'null' if username is valid; an error description otherwise.
 	 * This is used with "old" format of usernames which could also contain "[" and "]" characters.
 	 */
-	public String isOldUsernameValid(String username);
+	public String isOldUsernameValid(String userName);
 
 	/**
 	 * Returns 'null' if password is valid; an error description otherwise.
 	 * The nickname must contain part of username - it may only prefix and postfix the username.
 	 * @param baseUsername used to test nickname against
 	 */
-	public String isNicknameValid(String nickname, String baseUsername);
+	public String isNicknameValid(String nickName, String baseUserName);
 
 	/** WARNING: caller must check if username/password is valid etc. himself! */
 	public void addAccount(Account acc);
@@ -67,17 +80,17 @@ public interface AccountsService {
 
 	public boolean removeAccount(Account acc);
 
-	public boolean removeAccount(String username);
+	public boolean removeAccount(String userName);
 
 	/** Returns null if account is not found */
-	public Account getAccount(String username);
+	public Account getAccount(String userName);
 
 	/** Returns null if index is out of bounds */
 	public Account getAccount(int index);
 
-	public Account findAccountNoCase(String username);
+	public Account findAccountNoCase(String userName);
 
-	public boolean doesAccountExist(String username);
+	public boolean doesAccountExist(String userName);
 
 	/** Will delete account 'oldAcc' and insert 'newAcc' into his position */
 	public boolean replaceAccount(Account oldAcc, Account newAcc);
