@@ -378,6 +378,34 @@ public class TASServer {
 		return true;
 	}
 
+	public static boolean isSameIP(final String ip1, final String ip2) {
+
+		String[] ip1_s = ip1.split("\\.");
+		String[] ip2_s = ip2.split("\\.");
+
+		return isSameIP(ip1_s, ip2_s);
+	}
+	public static boolean isSameIP(final String[] ip1_s, final String ip2) {
+
+		String[] ip2_s = ip2.split("\\.");
+
+		return isSameIP(ip1_s, ip2_s);
+	}
+	public static boolean isSameIP(final String[] ip1_s, final String[] ip2_s) {
+
+		if        (!ip1_s[0].equals("*") && !ip1_s[0].equals(ip2_s[0])) {
+			return false;
+		} else if (!ip1_s[1].equals("*") && !ip1_s[1].equals(ip2_s[1])) {
+			return false;
+		} else if (!ip1_s[2].equals("*") && !ip1_s[2].equals(ip2_s[2])) {
+			return false;
+		} else if (!ip1_s[3].equals("*") && !ip1_s[3].equals(ip2_s[3])) {
+			return false;
+		}
+
+		return true;
+	}
+
 	/**
 	 * Reads this applications Maven properties file in the
 	 * META-INF directory of the class-path.
@@ -1057,27 +1085,8 @@ public class TASServer {
 					return false;
 				}
 				for (int i = 0; i < Clients.getClientsSize(); i++) {
-					String[] sp2 = Clients.getClient(i).IP.split("\\.");
-
-					if (!sp1[0].equals("*")) {
-						if (!sp1[0].equals(sp2[0])) {
-							continue;
-						}
-					}
-					if (!sp1[1].equals("*")) {
-						if (!sp1[1].equals(sp2[1])) {
-							continue;
-						}
-					}
-					if (!sp1[2].equals("*")) {
-						if (!sp1[2].equals(sp2[2])) {
-							continue;
-						}
-					}
-					if (!sp1[3].equals("*")) {
-						if (!sp1[3].equals(sp2[3])) {
-							continue;
-						}
+					if (!isSameIP(sp1, Clients.getClient(i).IP)) {
+						continue;
 					}
 					Clients.killClient(Clients.getClient(i));
 				}
@@ -1347,18 +1356,7 @@ public class TASServer {
 				}
 
 				for (int i = 0; i < Clients.getClientsSize(); i++) {
-					String[] sp2 = Clients.getClient(i).IP.split("\\.");
-
-					if (!sp1[0].equals("*") && !sp1[0].equals(sp2[0])) {
-						continue;
-					}
-					if (!sp1[1].equals("*") && !sp1[1].equals(sp2[1])) {
-						continue;
-					}
-					if (!sp1[2].equals("*") && !sp1[2].equals(sp2[2])) {
-						continue;
-					}
-					if (!sp1[3].equals("*") && !sp1[3].equals(sp2[3])) {
+					if (!isSameIP(sp1, Clients.getClient(i).IP)) {
 						continue;
 					}
 
@@ -1369,28 +1367,12 @@ public class TASServer {
 				}
 
 				// now let's check if this IP matches any recently used IP:
-				for (int i = 0; i < TASServer.getAccountsService().getAccountsSize(); i++) {
-					String[] sp2 = TASServer.getAccountsService().getAccount(i).getLastIP().split("\\.");
-
-					if (!sp1[0].equals("*") && !sp1[0].equals(sp2[0])) {
-						continue;
-					}
-					if (!sp1[1].equals("*") && !sp1[1].equals(sp2[1])) {
-						continue;
-					}
-					if (!sp1[2].equals("*") && !sp1[2].equals(sp2[2])) {
-						continue;
-					}
-					if (!sp1[3].equals("*") && !sp1[3].equals(sp2[3])) {
-						continue;
-					}
-
-					if (Clients.getClient(TASServer.getAccountsService().getAccount(i).getName()) == null) { // user is offline
-						found = true;
-						client.sendLine(new StringBuilder("SERVERMSG ")
-								.append(IP).append(" was recently bound to: ")
-								.append(TASServer.getAccountsService().getAccount(i).getName()).append(" (offline)").toString());
-					}
+				Account lastAct = TASServer.getAccountsService().findAccountByLastIP(sp1);
+				if (lastAct != null && Clients.getClient(lastAct.getName()) == null) { // user is offline
+					found = true;
+					client.sendLine(new StringBuilder("SERVERMSG ")
+							.append(IP).append(" was recently bound to: ")
+							.append(lastAct.getName()).append(" (offline)").toString());
 				}
 
 				if (!found) {

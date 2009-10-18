@@ -335,6 +335,22 @@ public class FSAccountsService implements AccountsService {
 	}
 
 	@Override
+	public Account findAccountByLastIP(String[] ip_s) {
+
+		Account account = null;
+
+		for (int i = 0; i < getAccountsSize(); i++) {
+			Account act_tmp = getAccount(i);
+			if (!TASServer.isSameIP(ip_s, act_tmp.getLastIP())) {
+				continue;
+			}
+			account = act_tmp;
+		}
+
+		return account;
+	}
+
+	@Override
 	public boolean doesAccountExist(String username) {
 		return getAccount(username) != null;
 	}

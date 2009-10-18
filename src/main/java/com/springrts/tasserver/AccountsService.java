@@ -90,6 +90,9 @@ public interface AccountsService {
 
 	public Account findAccountNoCase(String userName);
 
+	/** Returns 'null' if no account ever connected from this IP */
+	public Account findAccountByLastIP(String[] ip_s);
+
 	public boolean doesAccountExist(String userName);
 
 	/** Will delete account 'oldAcc' and insert 'newAcc' into his position */
