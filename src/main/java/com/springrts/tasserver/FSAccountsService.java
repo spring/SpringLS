@@ -173,98 +173,6 @@ public class FSAccountsService implements AccountsService {
 		}
 	}
 
-	/**
-	 * Returns 'null' if username is valid; an error description otherwise.
-	 */
-	@Override
-	public String isUsernameValid(String username) {
-		if (username.length() > 20) {
-			return "Username too long";
-		}
-		if (username.length() < 2) {
-			return "Username too short";
-		}
-		if (!username.matches("^[A-Za-z0-9_]+$")) {
-			return "Username contains invalid characters";
-		}
-		// everything is OK:
-		return null;
-	}
-
-	/**
-	 * Returns 'null' if password is valid; an error description otherwise.
-	 */
-	@Override
-	public String isPasswordValid(String password) {
-		if (password.length() < 2) {
-			return "Password too short";
-		}
-		if (password.length() > 30) {
-			return "Password too long"; // md5-base64 encoded passwords require 24 chars
-		}		// we have to allow a bit wider range of possible chars as base64 can produce chars such as +, = and /
-		if (!password.matches("^[\\x2B-\\x7A]+$")) {
-			return "Password contains invalid characters";
-		}
-		// everything is OK:
-		return null;
-	}
-
-	/**
-	 * Returns 'null' if username is valid; an error description otherwise.
-	 * This is used with "old" format of usernames which could also contain "[" and "]" characters.
-	 */
-	@Override
-	public String isOldUsernameValid(String username) {
-		if (username.length() > 20) {
-			return "Username too long";
-		}
-		if (username.length() < 2) {
-			return "Username too short";
-		}
-		if (!username.matches("^[A-Za-z0-9_\\[\\]]+$")) {
-			return "Username contains invalid characters";
-		}
-		// everything is OK:
-		return null;
-	}
-
-	/**
-	 * Returns 'null' if password is valid; an error description otherwise.
-	 * The nickname must contain part of username - it may only prefix and postfix the username.
-	 * @param baseUsername used to test nickname against
-	 */
-	@Override
-	public String isNicknameValid(String nickname, String baseUsername) {
-		if (nickname.length() > 20) {
-			return "Nickname too long";
-		}
-		if (nickname.length() < 2) {
-			return "Nickname too short";
-		}
-
-		if (!nickname.matches("^[A-Za-z0-9_\\[\\]\\|]+$")) {
-			return "Nickname contains invalid characters";
-		}
-
-		// check if prefix is valid:
-		if (!nickname.matches("^([A-Za-z0-9\\[\\]\\|]+[\\|\\]])?" + baseUsername)) {
-			return "Invalid prefix found in nickname: embed your prefix in [] brackets or separate it by a | character";
-		}
-
-		// check if postfix is valid:
-		if (!nickname.matches(baseUsername + "([\\|\\[][A-Za-z0-9\\[\\]\\|]+)?$")) {
-			return "Invalid postfix found in nickname: embed your postfix in [] brackets or separate it by a | character";
-		}
-
-		// check if prefix and postfix are both valid in one shot:
-		if (!nickname.matches("^([A-Za-z0-9\\[\\]\\|]+[\\|\\]])?" + baseUsername + "([\\|\\[][A-Za-z0-9\\[\\]\\|]+)?$")) {
-			return "Nickname contains invalid prefix/postfix. Your username should be contained in your nickname!";
-		}
-
-		// everything is OK:
-		return null;
-	}
-
 	/** WARNING: caller must check if username/password is valid etc. himself! */
 	@Override
 	public void addAccount(Account acc) {
@@ -280,10 +188,10 @@ public class FSAccountsService implements AccountsService {
 
 	@Override
 	public boolean addAccountWithCheck(Account acc) {
-		if (isUsernameValid(acc.getName()) != null) {
+		if (Account.isUsernameValid(acc.getName()) != null) {
 			return false;
 		}
-		if (isPasswordValid(acc.getPassword()) != null) {
+		if (Account.isPasswordValid(acc.getPassword()) != null) {
 			return false;
 		}
 
@@ -319,8 +227,7 @@ public class FSAccountsService implements AccountsService {
 		return map.get(username);
 	}
 
-	/** Returns null if index is out of bounds */
-	@Override
+	/** Returns 'null' if index is out of bounds */
 	public Account getAccount(int index) {
 		try {
 			return accounts.get(index);

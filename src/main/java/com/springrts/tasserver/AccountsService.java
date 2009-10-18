@@ -50,29 +50,6 @@ public interface AccountsService {
 	 */
 	public void saveAccountsIfNeeded();
 
-	/**
-	 * Returns 'null' if username is valid; an error description otherwise.
-	 */
-	public String isUsernameValid(String userName);
-
-	/**
-	 * Returns 'null' if password is valid; an error description otherwise.
-	 */
-	public String isPasswordValid(String password);
-
-	/**
-	 * Returns 'null' if username is valid; an error description otherwise.
-	 * This is used with "old" format of usernames which could also contain "[" and "]" characters.
-	 */
-	public String isOldUsernameValid(String userName);
-
-	/**
-	 * Returns 'null' if password is valid; an error description otherwise.
-	 * The nickname must contain part of username - it may only prefix and postfix the username.
-	 * @param baseUsername used to test nickname against
-	 */
-	public String isNicknameValid(String nickName, String baseUserName);
-
 	/** WARNING: caller must check if username/password is valid etc. himself! */
 	public void addAccount(Account acc);
 
@@ -84,9 +61,6 @@ public interface AccountsService {
 
 	/** Returns null if account is not found */
 	public Account getAccount(String userName);
-
-	/** Returns null if index is out of bounds */
-	public Account getAccount(int index);
 
 	public Account findAccountNoCase(String userName);
 

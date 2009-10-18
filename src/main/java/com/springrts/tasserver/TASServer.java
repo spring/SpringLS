@@ -869,7 +869,7 @@ public class TASServer {
 					client.sendLine("SERVERMSG bad params");
 					return false;
 				}
-				String valid = TASServer.getAccountsService().isOldUsernameValid(commands[1]);
+				String valid = Account.isOldUsernameValid(commands[1]);
 				if (valid != null) {
 					client.sendLine(new StringBuilder("SERVERMSG Invalid username (reason: ")
 							.append(valid).append(")").toString());
@@ -877,7 +877,7 @@ public class TASServer {
 				}
 
 				// validate password:
-				valid = TASServer.getAccountsService().isPasswordValid(commands[2]);
+				valid = Account.isPasswordValid(commands[2]);
 				if (valid != null) {
 					client.sendLine(new StringBuilder("SERVERMSG Invalid password (reason: ")
 							.append(valid).append(")").toString());
@@ -933,7 +933,7 @@ public class TASServer {
 				}
 
 				// validate username:
-				String valid = TASServer.getAccountsService().isOldUsernameValid(commands[1]);
+				String valid = Account.isOldUsernameValid(commands[1]);
 				if (valid != null) {
 					client.sendLine(new StringBuilder("REGISTRATIONDENIED Invalid username (reason: ")
 							.append(valid).append(")").toString());
@@ -941,7 +941,7 @@ public class TASServer {
 				}
 
 				// validate password:
-				valid = TASServer.getAccountsService().isPasswordValid(commands[2]);
+				valid = Account.isPasswordValid(commands[2]);
 				if (valid != null) {
 					client.sendLine(new StringBuilder("REGISTRATIONDENIED Invalid password (reason: ")
 							.append(valid).append(")").toString());
@@ -1193,7 +1193,7 @@ public class TASServer {
 					return false;
 				}
 				// validate password:
-				if (TASServer.getAccountsService().isPasswordValid(commands[2]) != null) {
+				if (Account.isPasswordValid(commands[2]) != null) {
 					return false;
 				}
 
@@ -2318,7 +2318,7 @@ public class TASServer {
 				}
 
 				// validate new username:
-				String valid = TASServer.getAccountsService().isOldUsernameValid(commands[1]);
+				String valid = Account.isOldUsernameValid(commands[1]);
 				if (valid != null) {
 					client.sendLine(new StringBuilder("SERVERMSG RENAMEACCOUNT failed: Invalid username (reason: ").append(valid).append(")").toString());
 					return false;
@@ -2384,7 +2384,7 @@ public class TASServer {
 				}
 
 				// validate password:
-				String valid = TASServer.getAccountsService().isPasswordValid(commands[2]);
+				String valid = Account.isPasswordValid(commands[2]);
 				if (valid != null) {
 					client.sendLine(new StringBuilder("SERVERMSG CHANGEPASSWORD failed: Invalid password (reason: ").append(valid).append(")").toString());
 					return false;
@@ -3718,14 +3718,15 @@ public class TASServer {
 					lanAdminUsername = args[i + 1];
 					lanAdminPassword = Misc.encodePassword(args[i + 2]);
 
-					if (TASServer.getAccountsService().isOldUsernameValid(lanAdminUsername) != null) {
+					String error;
+					if ((error = Account.isOldUsernameValid(lanAdminUsername)) != null) {
 						s_log.warn(new StringBuilder("Lan admin username is not valid: ")
-								.append(TASServer.getAccountsService().isOldUsernameValid(lanAdminUsername)).toString());
+								.append(error).toString());
 						throw new Exception();
 					}
-					if (TASServer.getAccountsService().isPasswordValid(lanAdminPassword) != null) {
+					if ((error = Account.isPasswordValid(lanAdminPassword)) != null) {
 						s_log.warn(new StringBuilder("Lan admin password is not valid: ")
-								.append(TASServer.getAccountsService().isPasswordValid(lanAdminPassword)).toString());
+								.append(error).toString());
 						throw new Exception();
 					}
 					i += 2; // we must skip username and password parameters in next iteration

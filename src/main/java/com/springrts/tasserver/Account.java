@@ -15,7 +15,8 @@ import javax.persistence.*;
  *
  * @author Betalord
  */
-@Entity(name="users")
+@Entity
+@Table(name="users")
 public class Account implements Serializable {
 
 	/**
@@ -367,6 +368,101 @@ public class Account implements Serializable {
 	}
 	public static boolean extractBot(int accessBitField) {
 		return ((accessBitField & 0x1000000) >> 24) == 1;
+	}
+
+	/**
+	 * Returns 'null' if username is valid; an error description otherwise.
+	 */
+	public static String isUsernameValid(String userName) {
+
+		if (userName.length() > 20) {
+			return "Username too long";
+		} else if (userName.length() < 2) {
+			return "Username too short";
+		} else if (!userName.matches("^[A-Za-z0-9_]+$")) {
+			return "Username contains invalid characters";
+		} else {
+			// everything is OK:
+			return null;
+		}
+	}
+
+	/**
+	 * Returns 'null' if password is valid; an error description otherwise.
+	 */
+	public static String isPasswordValid(String password) {
+
+		if (password.length() < 2) {
+			return "Password too short";
+		} else if (password.length() > 30) {
+			// md5-base64 encoded passwords require 24 chars
+			return "Password too long";
+		}
+		// we have to allow a bit wider range of possible chars,
+		// as base64 can produce chars such as '+', '=' and '/'
+		else if (!password.matches("^[\\x2B-\\x7A]+$")) {
+			return "Password contains invalid characters";
+		} else {
+			// everything is OK:
+			return null;
+		}
+	}
+
+	/**
+	 * Returns 'null' if username is valid; an error description otherwise.
+	 * This is used with "old" format of user names which could also contain
+	 * "[" and "]" characters.
+	 * @param userName to be checked for validity
+	 * @return an error description or 'null' if nickName is ok
+	 */
+	public static String isOldUsernameValid(String userName) {
+
+		if        (userName.length() > 20) {
+			return "Username too long";
+		} else if (userName.length() < 2) {
+			return "Username too short";
+		} else if (!userName.matches("^[A-Za-z0-9_\\[\\]]+$")) {
+			return "Username contains invalid characters";
+		} else {
+			// everything is OK:
+			return null;
+		}
+	}
+
+	/**
+	 * Returns 'null' if password is valid; an error description otherwise.
+	 * The nickname must contain part of username - it may only prefix and postfix the username.
+	 * @param nickName to be checked for validity
+	 * @param baseUserName used to test nickName against
+	 * @return an error description or 'null' if nickName is ok
+	 */
+	public static String isNicknameValid(String nickName, String baseUserName) {
+
+		if        (nickName.length() > 20) {
+			return "Nickname too long";
+		} else if (nickName.length() < 2) {
+			return "Nickname too short";
+		} else if (!nickName.matches("^[A-Za-z0-9_\\[\\]\\|]+$")) {
+			return "Nickname contains invalid characters";
+		}
+		// check if prefix is valid:
+		else if (!nickName.matches("^([A-Za-z0-9\\[\\]\\|]+[\\|\\]])?" + baseUserName)) {
+			return "Invalid prefix found in nickname: embed your prefix " +
+					"in [] brackets or separate it by a | character";
+		}
+		// check if postfix is valid:
+		else if (!nickName.matches(baseUserName + "([\\|\\[][A-Za-z0-9\\[\\]\\|]+)?$")) {
+			return "Invalid postfix found in nickname: embed your postfix " +
+					"in [] brackets or separate it by a | character";
+		}
+		// check if prefix and postfix are both valid in one shot:
+		else if (!nickName.matches("^([A-Za-z0-9\\[\\]\\|]+[\\|\\]])?" + baseUserName + "([\\|\\[][A-Za-z0-9\\[\\]\\|]+)?$")) {
+			return "Nickname contains invalid prefix/postfix. " +
+					"Your username should be contained in your nickname!";
+		} else {
+			// everything is OK:
+			return null;
+		}
 	}
 
 
