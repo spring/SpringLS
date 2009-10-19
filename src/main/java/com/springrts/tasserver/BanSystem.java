@@ -44,16 +44,18 @@ public class BanSystem {
 			rset = stmt.executeQuery(query);
 
 			while (rset.next()) {
-				BanEntry ban = new BanEntry();
-				ban.expireDate = (rset.getTimestamp("ExpirationDate") != null ? rset.getTimestamp("ExpirationDate").getTime() : 0);
-				ban.username = rset.getString("Username");
-				ban.IP_start = rset.getLong("IP_start");
-				ban.IP_end = rset.getLong("IP_end");
-				ban.userID = rset.getInt("userID");
-				ban.publicReason = rset.getString("PublicReason");
+				BanEntry ban = new BanEntry(
+						(rset.getTimestamp("ExpirationDate") != null ? rset.getTimestamp("ExpirationDate").getTime() : 0),
+						rset.getString("Username"),
+						rset.getLong("IP_start"),
+						rset.getLong("IP_end"),
+						rset.getInt("userID"),
+						rset.getString("PublicReason"));
 
-				if ((ban.expireDate != 0) && (ban.expireDate < System.currentTimeMillis()))
-					continue; // already expired
+				if ((ban.getExpireDate() != 0) && (ban.getExpireDate() < System.currentTimeMillis())) {
+					// already expired
+					continue;
+				}
 				banEntries.add(ban);
 			}
 
@@ -83,7 +85,7 @@ public class BanSystem {
 		for (int i = 0; i < banEntries.size(); i++) {
 			BanEntry ban = banEntries.get(i);
 			// check if already expired:
-			if ((ban.expireDate != 0) && (ban.expireDate < System.currentTimeMillis())) {
+			if ((ban.getExpireDate() != 0) && (ban.getExpireDate() < System.currentTimeMillis())) {
 				// already expired, so lets remove it and skip it:
 				banEntries.remove(i);
 				i--;
@@ -91,21 +93,23 @@ public class BanSystem {
 			}
 
 			// check if banned by user ID:
-			if ((ban.userID != 0) && (userID != 0)) {
-				if (userID == ban.userID)
+			if ((ban.getUserId() != 0) && (userID != 0)) {
+				if (userID == ban.getUserId())
 					return ban;
 			}
 
 			// check if banned by username:
-			if (ban.username != null) {
-				if (username.equals(ban.username))
+			if (ban.getUsername() != null) {
+				if (username.equals(ban.getUsername())) {
 					return ban;
+				}
 			}
 
 			// check if banned by IP address:
-			if (ban.IP_start != 0) {
-				if (checkIPAgainstRange(IP, ban.IP_start, ban.IP_end))
+			if (ban.getIpStart() != 0) {
+				if (checkIPAgainstRange(IP, ban.getIpStart(), ban.getIpEnd())) {
 					return ban;
+				}
 			}
 		}
 		return null;

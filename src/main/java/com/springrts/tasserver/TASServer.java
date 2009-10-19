@@ -2185,7 +2185,7 @@ public class TASServer {
 					BanEntry ban = BanSystem.checkIfBanned(username, Misc.IP2Long(client.IP), userID);
 					if (ban != null) {
 						client.sendLine(new StringBuilder("DENIED You are banned from this server! (Reason: ")
-								.append(ban.publicReason).append("). Please contact server administrator.").toString());
+								.append(ban.getPublicReason()).append("). Please contact server administrator.").toString());
 						recordFailedLoginAttempt(username);
 						return false;
 					}
