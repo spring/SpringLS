@@ -23,7 +23,7 @@ public class FSAccountsService extends AbstractAccountsService implements Accoun
 	// note: ArrayList is not synchronized!
 	// Use Vector class instead if multiple threads are going to access it
 	private static List<Account> accounts = new ArrayList<Account>();
-	private static SaveAccountsThread saveAccountsThread = null;
+	private static FSSaveAccountsThread saveAccountsThread = null;
 	private static int biggestAccountId = 1000;
 
 	/**
@@ -147,7 +147,7 @@ public class FSAccountsService extends AbstractAccountsService implements Accoun
 		lastSaveAccountsTime = System.currentTimeMillis();
 		List<Account> accounts_cpy = new ArrayList<Account>(accounts.size());
 		Collections.copy(accounts_cpy, accounts);
-		saveAccountsThread = new SaveAccountsThread(accounts_cpy);
+		saveAccountsThread = new FSSaveAccountsThread(accounts_cpy);
 		saveAccountsThread.start();
 
 		if (block) {

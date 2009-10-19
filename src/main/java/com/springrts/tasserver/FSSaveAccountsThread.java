@@ -29,9 +29,9 @@ import java.util.*;
  *
  * @author Betalord
  */
-public class SaveAccountsThread extends Thread {
+public class FSSaveAccountsThread extends Thread {
 
-	private static final Log s_log  = LogFactory.getLog(SaveAccountsThread.class);
+	private static final Log s_log  = LogFactory.getLog(FSSaveAccountsThread.class);
 
 	/**
 	 * Duplicated accounts.
@@ -39,7 +39,7 @@ public class SaveAccountsThread extends Thread {
 	 */
 	private List dupAccounts;
 
-	public SaveAccountsThread(List dupAccounts) {
+	public FSSaveAccountsThread(List dupAccounts) {
 		this.dupAccounts = dupAccounts;
 	}
 
