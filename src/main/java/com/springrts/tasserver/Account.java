@@ -82,6 +82,7 @@ public class Account implements Serializable {
 	 * @see lastUserId
 	 */
 	@Id
+	@GeneratedValue
 	@Column(
 		name       = "id",
 		unique     = true,
@@ -300,6 +301,7 @@ public class Account implements Serializable {
 				.append(isAgreementAccepted()).toString();
 	}
 
+
 	@Override
 	public int hashCode() {
 		int hash = 7;
@@ -504,7 +506,7 @@ public class Account implements Serializable {
 	 * @see lastUserId
 	 * @return the id
 	 */
-	public int getId() {
+	protected int getId() {
 		return id;
 	}
 
@@ -514,7 +516,7 @@ public class Account implements Serializable {
 	 * @see lastUserId
 	 * @param id the id to set
 	 */
-	public void setId(int id) {
+	protected void setId(int id) {
 		this.id = id;
 	}
 
