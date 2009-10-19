@@ -134,7 +134,8 @@ public class Client {
 	public Client(SocketChannel sockChan) {
 		alive = true;
 
-		account = new Account("", "", Account.Access.NONE, Account.NO_USER_ID, 0, "?", 0, "XX", Account.NO_ACCOUNT_ID, false, 0, false); // no info on user/pass, zero access
+		// no info on user/pass, zero access
+		account = new Account();
 		this.sockChan = sockChan;
 		IP = sockChan.socket().getInetAddress().getHostAddress();
 		// this fixes the issue with local user connecting to server as "127.0.0.1" (he can't host battles with that IP):
