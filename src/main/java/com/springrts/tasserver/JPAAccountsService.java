@@ -62,7 +62,6 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 	@Override
 	public void saveAccountsIfNeeded() {}
 
-	/** WARNING: caller must check if username/password is valid etc. himself! */
 	@Override
 	public void addAccount(Account acc) {
 
@@ -169,5 +168,75 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 		}
 
 		return acts;
+	}
+
+	public static void moveAccountsFromFStoDB() {
+
+		AccountsService from = new FSAccountsService();
+		AccountsService to = new JPAAccountsService();
+		moveAccounts(from, to);
+	}
+	public static void moveAccountsFromDBtoFS() {
+
+		AccountsService from = new FSAccountsService();
+		AccountsService to = new JPAAccountsService();
+		moveAccounts(from, to);
+	}
+	private static void moveAccounts(AccountsService from, AccountsService to) {
+
+		System.out.println("Copy all accounts from one storage to the other ...");
+		List<Account> accounts = from.fetchAllAccounts();
+
+		for (Account account : accounts) {
+			to.addAccount(account);
+		}
+
+		System.out.println("done.");
+	}
+
+	public static void createAliBaba() {
+
+		AccountsService actSrvc = new JPAAccountsService();
+		System.out.println("Accounts: " + actSrvc.getAccountsSize());
+		System.out.println("Creating Ali Baba ...");
+
+		final String countryCode2L = java.util.Locale.getDefault().getCountry();
+		String localIP = "?";
+		try {
+			localIP = java.net.InetAddress.getLocalHost().getHostAddress();
+		} catch (java.net.UnknownHostException ex) {
+			// ignore
+		}
+
+		Account admin = new Account("admin", "admin", localIP, countryCode2L);
+		admin.setAccess(Account.Access.ADMIN);
+		admin.setAgreementAccepted(true);
+		actSrvc.addAccount(admin);
+
+		System.out.println("and the 40 thievs ...");
+		for (int i=0; i < 40; i++) {
+			Account user_x = new Account("user_" + i, "user_" + i, localIP, countryCode2L);
+			user_x.setAgreementAccepted(true);
+			actSrvc.addAccount(user_x);
+		}
+
+		System.out.println("Accounts: " + actSrvc.getAccountsSize());
+	}
+
+	public static void main(String[] args) {
+
+		final String toDo = (args.length > 0 ? args[0] : "");
+		if (toDo.equals("alibaba")) {
+			createAliBaba();
+		} else if (toDo.equals("FS2DB")) {
+			moveAccountsFromDBtoFS();
+		} else if (toDo.equals("DB2FS")) {
+			moveAccountsFromFStoDB();
+		} else {
+			System.out.println("Specify one of these (be carefull! No \"Are you sure?\" protection):");
+			System.out.println("\talibaba - creates one admin account and 40 users (user_0, ...), all with username==password");
+			System.out.println("\tFS2DB   - copy all accounts from " + TASServer.ACCOUNTS_INFO_FILEPATH + " to the Accounts DB");
+			System.out.println("\tDB2FS   - copy all accounts from the Accounts DB to " + TASServer.ACCOUNTS_INFO_FILEPATH);
+		}
 	}
 }
