@@ -225,7 +225,12 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 
 	public static void main(String[] args) {
 
-		final String toDo = (args.length > 0 ? args[0] : "");
+		String toDo = (args.length > 0 ? args[0] : "");
+		if (toDo.equals("")) {
+			java.util.Scanner console = new java.util.Scanner(System.in);
+			toDo = console.nextLine();
+		}
+
 		if (toDo.equals("alibaba")) {
 			createAliBaba();
 		} else if (toDo.equals("FS2DB")) {
