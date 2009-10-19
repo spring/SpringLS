@@ -37,9 +37,9 @@ public class FSSaveAccountsThread extends Thread {
 	 * Duplicated accounts.
 	 * Needed to ensure thread safety as well as accounts state consistency
 	 */
-	private List dupAccounts;
+	private List<Account> dupAccounts;
 
-	public FSSaveAccountsThread(List dupAccounts) {
+	public FSSaveAccountsThread(List<Account> dupAccounts) {
 		this.dupAccounts = dupAccounts;
 	}
 
@@ -53,7 +53,7 @@ public class FSSaveAccountsThread extends Thread {
 			PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(TASServer.ACCOUNTS_INFO_FILEPATH)));
 
 			for (int i = 0; i < dupAccounts.size(); i++) {
-				out.println(dupAccounts.get(i).toString());
+				out.println(FSAccountsService.toPersistentString(dupAccounts.get(i)));
 			}
 
 			out.close();

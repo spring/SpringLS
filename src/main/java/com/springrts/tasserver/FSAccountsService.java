@@ -80,6 +80,50 @@ public class FSAccountsService extends AbstractAccountsService implements Accoun
 		return activeAccounts;
 	}
 
+
+	/**
+	 * Used to save an Account to persistent file storage.
+	 * Only change this if you know what you are doing!
+	 */
+	public static String toPersistentString(final Account account) {
+		return new StringBuilder(account.getName()).append(" ")
+				.append(account.getPassword()).append(" ")
+				.append(Integer.toString(account.getAccessBitField(), 2)).append(" ")
+				.append(account.getLastUserId()).append(" ")
+				.append(account.getLastLogin()).append(" ")
+				.append(account.getLastIP()).append(" ")
+				.append(account.getRegistrationDate()).append(" ")
+				.append(account.getLastCountry()).toString();
+	}
+	/**
+	 * Used to load an persistent Account from file storage.
+	 * Only change this if you know what you are doing!
+	 */
+	public static Account parsePersistenString(final String actStr) {
+
+		final String[] actParts = actStr.split(" ");
+		int accountId = Account.NEW_ACCOUNT_ID;
+		if (actParts.length >= 9) {
+			accountId = Integer.parseInt(actParts[8]);
+		}
+		final int accessBitField = Integer.parseInt(actParts[2]);
+		Account act = new Account(
+				actParts[0],
+				actParts[1],
+				Account.extractAccess(accessBitField),
+				Integer.parseInt(actParts[3]),
+				Long.parseLong(actParts[4]),
+				actParts[5],
+				Long.parseLong(actParts[6]),
+				actParts[7],
+				accountId,
+				Account.extractBot(accessBitField),
+				Account.extractInGameTime(accessBitField),
+				Account.extractAgreementAccepted(accessBitField));
+
+		return act;
+	}
+
 	/**
 	 * (Re-)Loads accounts from disk.
 	 * @return false if loading failed, true otherwise
@@ -99,25 +143,8 @@ public class FSAccountsService extends AbstractAccountsService implements Accoun
 				if (line.equals("")) {
 					continue;
 				}
-				tokens = line.split(" ");
-				int accountId = Account.NEW_ACCOUNT_ID;
-				if (tokens.length >= 9) {
-					accountId = Integer.parseInt(tokens[8]);
-				}
-				final int accessBitField = Integer.parseInt(tokens[2]);
-				addAccount(new Account(
-						tokens[0],
-						tokens[1],
-						Account.extractAccess(accessBitField),
-						Integer.parseInt(tokens[3]),
-						Long.parseLong(tokens[4]),
-						tokens[5],
-						Long.parseLong(tokens[6]),
-						tokens[7],
-						accountId,
-						Account.extractBot(accessBitField),
-						Account.extractInGameTime(accessBitField),
-						Account.extractAgreementAccepted(accessBitField)));
+				Account act = FSAccountsService.parsePersistenString(line);
+				addAccount(act);
 			}
 
 			in.close();
@@ -137,7 +164,7 @@ public class FSAccountsService extends AbstractAccountsService implements Accoun
 	 * Saves accounts to permanent storage.
 	 * @param block if false, this method will spawn a new thread,
 	 *              so this method can return immediately (non-blocking mode).
-	 *              If true, it will not return until the accounts have been saved.
+	 *              If 'true', it will not return until the accounts have been saved.
 	 */
 	@Override
 	public void saveAccounts(boolean block) {
