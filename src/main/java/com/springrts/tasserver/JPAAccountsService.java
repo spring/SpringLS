@@ -5,6 +5,7 @@
 package com.springrts.tasserver;
 
 
+import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
@@ -150,5 +151,23 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 		}
 
 		return replaced;
+	}
+
+	@Override
+	public List<Account> fetchAllAccounts() {
+
+		List<Account> acts = null;
+
+		try {
+			em.getTransaction().begin();
+			acts = (List<Account>) (em.createQuery("SELECT * FROM Account").getResultList());
+			em.getTransaction().commit();
+		} catch (Exception ex) {
+			em.getTransaction().rollback();
+			s_log.error("Failed fetching an account", ex);
+			acts = null;
+		}
+
+		return acts;
 	}
 }

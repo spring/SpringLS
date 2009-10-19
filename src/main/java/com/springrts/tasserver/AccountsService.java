@@ -5,6 +5,7 @@
 package com.springrts.tasserver;
 
 import java.util.Set;
+import java.util.List;
 
 
 /**
@@ -78,4 +79,11 @@ public interface AccountsService {
 	 * @return 'true' if changed were saved successfully
 	 */
 	public boolean mergeAccountChanges(Account account, String oldName);
+
+	/**
+	 * Loads all accounts from the persistent storage into memory.
+	 * This should only be used for maintenance task, and not during general
+	 * server up-time.
+	 */
+	public List<Account> fetchAllAccounts();
 }

@@ -277,4 +277,9 @@ public class FSAccountsService extends AbstractAccountsService implements Accoun
 
 		return true;
 	}
+
+	@Override
+	public List<Account> fetchAllAccounts() {
+		return accounts;
+	}
 }
