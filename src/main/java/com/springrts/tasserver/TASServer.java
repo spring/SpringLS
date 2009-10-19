@@ -233,43 +233,42 @@ import java.util.regex.*;
  */
 public class TASServer {
 
-	static byte DEBUG = 1; // 0 - no verbose, 1 - normal verbose, 2 - extensive verbose
-	static String MOTD = "Enjoy your stay :-)";
-	static String agreement = ""; // agreement which is sent to user upon first login. User must send CONFIRMAGREEMENT command to confirm the agreement before server allows him to log in. See LOGIN command implementation for more details.
+	private static byte DEBUG = 1; // 0 - no verbose, 1 - normal verbose, 2 - extensive verbose
+	private static String MOTD = "Enjoy your stay :-)";
+	private static String agreement = ""; // agreement which is sent to user upon first login. User must send CONFIRMAGREEMENT command to confirm the agreement before server allows him to log in. See LOGIN command implementation for more details.
 	static long upTime;
 	static String latestSpringVersion = "*"; // this is sent via welcome message to every new client who connects to the server
-	static final String MOTD_FILENAME = "motd.txt";
-	static final String AGREEMENT_FILENAME = "agreement.rtf";
+	private static final String MOTD_FILENAME = "motd.txt";
+	private static final String AGREEMENT_FILENAME = "agreement.rtf";
 	static final String ACCOUNTS_INFO_FILEPATH = "accounts.txt";
 	static final String SERVER_NOTIFICATION_FOLDER = "./notifs";
 	static final String IP2COUNTRY_FILENAME = "ip2country.dat";
 	static final String UPDATE_PROPERTIES_FILENAME = "updates.xml";
-	static final int DEFAULT_SERVER_PORT = 8200; // default server (TCP) port
-	static int serverPort = DEFAULT_SERVER_PORT; // actual server (TCP) port to be used (or currently in use)
+	private static final int DEFAULT_SERVER_PORT = 8200; // default server (TCP) port
+	private static int serverPort = DEFAULT_SERVER_PORT; // actual server (TCP) port to be used (or currently in use)
 	static int NAT_TRAVERSAL_PORT = 8201; // default UDP port used with some NAT traversal technique. If this port is not forwarded, hole punching technique will not work.
 	static final int TIMEOUT_CHECK = 5000;
 	static int timeoutLength = 50000; // in milliseconds
 	static boolean LAN_MODE = false;
-	static boolean redirect = false; // if true, server is redirection clients to new IP
-	static String redirectToIP = ""; // new IP to which clients are redirected if (redirected==true)
-	static boolean RECORD_STATISTICS = false; // if true, statistics are saved to disk on regular intervals
+	private static boolean redirect = false; // if true, server is redirection clients to new IP
+	private static String redirectToIP = ""; // new IP to which clients are redirected if (redirected==true)
+	private static boolean RECORD_STATISTICS = false; // if true, statistics are saved to disk on regular intervals
 	static String PLOTICUS_FULLPATH = "./ploticus/bin/pl"; // see http://ploticus.sourceforge.net/ for more info on ploticus
 	static String STATISTICS_FOLDER = "./stats/";
 	static long saveStatisticsInterval = 1000 * 60 * 20; // in milliseconds
 	static boolean LOG_MAIN_CHANNEL = false; // if true, server will keep a log of all conversations from channel #main (in file "MainChanLog.log")
-	static PrintStream mainChanLog;
-	static String lanAdminUsername = "admin"; // default lan admin account. Can be overwritten with -LANADMIN switch. Used only when server is running in lan mode!
-	static String lanAdminPassword = Misc.encodePassword("admin");
-	private static HashMap<String, Integer> registrationTimes = new HashMap<String, Integer>();
+	private static PrintStream mainChanLog;
+	private static String lanAdminUsername = "admin"; // default lan admin account. Can be overwritten with -LANADMIN switch. Used only when server is running in lan mode!
+	private static String lanAdminPassword = Misc.encodePassword("admin");
 	private static LinkedList<String> whiteList = new LinkedList<String>();
-	static long purgeMutesInterval = 1000 * 3; // in miliseconds. On this interval, all channels' mute lists will be checked for expirations and purged accordingly.
-	static long lastMutesPurgeTime = System.currentTimeMillis(); // time when we last purged mute lists of all channels
-	static String[] reservedAccountNames = {"TASServer", "Server", "server"}; // accounts with these names cannot be registered (since they may be used internally by the server)
-	static final long minSleepTimeBetweenMapGrades = 5; // minimum time (in seconds) required between two consecutive MAPGRADES command sent by the client. We need this to ensure that client doesn't send MAPGRADES command too often as it creates much load on the server.
+	private static long purgeMutesInterval = 1000 * 3; // in miliseconds. On this interval, all channels' mute lists will be checked for expirations and purged accordingly.
+	private static long lastMutesPurgeTime = System.currentTimeMillis(); // time when we last purged mute lists of all channels
+	private static String[] reservedAccountNames = {"TASServer", "Server", "server"}; // accounts with these names cannot be registered (since they may be used internally by the server)
+	private static final long minSleepTimeBetweenMapGrades = 5; // minimum time (in seconds) required between two consecutive MAPGRADES command sent by the client. We need this to ensure that client doesn't send MAPGRADES command too often as it creates much load on the server.
 	private static int MAX_TEAMS = 16; // max. teams/allies numbers supported by Spring
 	public static boolean initializationFinished = false; // we set this to 'true' just before we enter the main loop. We need this information when saving accounts for example, so that we don't dump empty accounts to disk when an error has occured before initialization has been completed
-	static ArrayList<FailedLoginAttempt> failedLoginAttempts = new ArrayList<FailedLoginAttempt>(); // here we store information on latest failed login attempts. We use it to block users from brute-forcing other accounts
-	static long lastFailedLoginsPurgeTime = System.currentTimeMillis(); // time when we last purged list of failed login attempts
+	private static ArrayList<FailedLoginAttempt> failedLoginAttempts = new ArrayList<FailedLoginAttempt>(); // here we store information on latest failed login attempts. We use it to block users from brute-forcing other accounts
+	private static long lastFailedLoginsPurgeTime = System.currentTimeMillis(); // time when we last purged list of failed login attempts
 	private static final Log s_log  = LogFactory.getLog(TASServer.class);
 	private static AccountsService accountsService = null;
 
