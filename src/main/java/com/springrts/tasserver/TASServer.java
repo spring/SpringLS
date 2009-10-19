@@ -273,8 +273,8 @@ public class TASServer {
 	private static final Log s_log  = LogFactory.getLog(TASServer.class);
 	private static AccountsService accountsService = null;
 
-	// database related:
 	private static Properties mavenProperties = null;
+	// database related:
 	public static DBInterface database;
 	private static String DB_URL = "jdbc:mysql://127.0.0.1/spring";
 	private static String DB_username = "";
@@ -1941,7 +1941,9 @@ public class TASServer {
 					return false;
 				}
 
-				// we don't check here if agreement bit is set yet or if user is banned, we only verify if login info is correct
+				// We don't check here if agreement bit is set yet,
+				// or if user is banned.
+				// We only verify if login info is correct
 				client.sendLine("TESTLOGINACCEPT");
 			} else if (commands[0].equals("SETBOTMODE")) {
 				if (commands.length != 3) {

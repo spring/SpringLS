@@ -6,6 +6,7 @@ package com.springrts.tasserver;
 
 
 /**
+ * This class is currently unused.
  * @author Betalord
  */
 public class GlobalMapGrade {
