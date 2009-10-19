@@ -45,8 +45,9 @@ public interface AccountsService {
 	public void saveAccounts(boolean block);
 
 	/**
-	 * Will call saveAccounts() only if they haven't been saved for some time.
+	 * Saves accounts only if they have not been saved for some time.
 	 * This method should be called periodically!
+	 * @see saveAccounts()
 	 */
 	public void saveAccountsIfNeeded();
 
@@ -69,6 +70,12 @@ public interface AccountsService {
 
 	public boolean doesAccountExist(String userName);
 
-	/** Will delete account 'oldAcc' and insert 'newAcc' into his position */
-	public boolean replaceAccount(Account oldAcc, Account newAcc);
+	/**
+	 * Save changes to an account to permanent storage.
+	 * @param account the account which got changed
+	 * @param oldName the old value of the name attribute of the account
+	 *                is only used by the 'FSAccountsService'
+	 * @return 'true' if changed were saved successfully
+	 */
+	public boolean mergeAccountChanges(Account account, String oldName);
 }

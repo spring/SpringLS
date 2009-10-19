@@ -258,19 +258,22 @@ public class FSAccountsService extends AbstractAccountsService implements Accoun
 		return account;
 	}
 
-	/** Will delete account 'oldAcc' and insert 'newAcc' into his position */
 	@Override
-	public boolean replaceAccount(Account oldAcc, Account newAcc) {
-		int index = accounts.indexOf(oldAcc);
-		if (index == -1) {
-			return false; // 'oldAcc' does not exist!
-		}
-		accounts.set(index, newAcc);
+	public boolean mergeAccountChanges(Account account, String oldName) {
 
-		map.remove(oldAcc.getName());
-		mapNoCase.remove(oldAcc.getName());
-		map.put(newAcc.getName(), newAcc);
-		mapNoCase.put(newAcc.getName(), newAcc);
+		final boolean isPersistentAccount = map.containsKey(oldName);
+		if (!isPersistentAccount) {
+			return false;
+		}
+
+		final String newName = account.getName();
+		if (!newName.equals(oldName)) {
+			// the account was renamed
+			map.remove(oldName);
+			mapNoCase.remove(oldName);
+			map.put(newName, account);
+			mapNoCase.put(newName, account);
+		}
 
 		return true;
 	}

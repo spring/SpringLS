@@ -24,18 +24,19 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 
 		EntityManagerFactory emf = Persistence.createEntityManagerFactory("tasserver");
 		em = emf.createEntityManager();
-		em.getTransaction().begin();
 	}
 
 	@Override
 	public int getAccountsSize() {
 
 		try {
+			em.getTransaction().begin();
 			long numAccounts = (Long) (em.createQuery("SELECT count(a.id) FROM Account a").getSingleResult());
+			em.getTransaction().commit();
 			return (int)numAccounts;
 		} catch (Exception ex) {
-			em.getTransaction().rollback();
 			s_log.error("Failed fetching number of accounts", ex);
+			em.getTransaction().rollback();
 		}
 
 		return -1;
@@ -65,11 +66,12 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 	public void addAccount(Account acc) {
 
 		try {
+			em.getTransaction().begin();
 			em.persist(acc);
 			em.getTransaction().commit();
 		} catch (Exception ex) {
-			em.getTransaction().rollback();
 			s_log.error("Failed adding an account", ex);
+			em.getTransaction().rollback();
 		}
 	}
 
@@ -79,12 +81,13 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 		boolean removed = false;
 
 		try {
+			em.getTransaction().begin();
 			em.remove(acc);
 			em.getTransaction().commit();
 			removed = true;
 		} catch (Exception ex) {
-			em.getTransaction().rollback();
 			s_log.error("Failed adding an account", ex);
+			em.getTransaction().rollback();
 		}
 
 		return removed;
@@ -96,6 +99,7 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 		Account act = null;
 
 		try {
+			em.getTransaction().begin();
 			act = (Account) (em.createQuery("SELECT a FROM Account a WHERE a.username == " + username).getSingleResult());
 			em.getTransaction().commit();
 		} catch (Exception ex) {
@@ -118,32 +122,31 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 		Account act = null;
 
 		try {
+			em.getTransaction().begin();
 			act = (Account) (em.createQuery("SELECT a FROM Account a WHERE a.last_ip == " + ip).getSingleResult());
 			em.getTransaction().commit();
 		} catch (Exception ex) {
-			em.getTransaction().rollback();
 			s_log.trace("Failed fetching an account with by last ip", ex);
+			em.getTransaction().rollback();
 			act = null;
 		}
 
 		return act;
 	}
 
-
-	/** Will delete account 'oldAcc' and insert 'newAcc' into his position */
 	@Override
-	public boolean replaceAccount(Account oldAcc, Account newAcc) {
+	public boolean mergeAccountChanges(Account account, String oldName) {
 
 		boolean replaced = false;
 
 		try {
-			em.remove(oldAcc);
-			em.persist(newAcc);
+			em.getTransaction().begin();
+			em.merge(account);
 			em.getTransaction().commit();
 			replaced = true;
 		} catch (Exception ex) {
-			em.getTransaction().rollback();
 			s_log.error("Failed replacing an account", ex);
+			em.getTransaction().rollback();
 		}
 
 		return replaced;

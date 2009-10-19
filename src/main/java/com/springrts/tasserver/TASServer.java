@@ -897,16 +897,8 @@ public class TASServer {
 				acc = new Account(
 						commands[1],
 						commands[2],
-						Account.Access.NORMAL,
-						Account.NO_USER_ID,
-						System.currentTimeMillis(),
 						client.IP,
-						System.currentTimeMillis(),
-						client.country,
-						Account.NEW_ACCOUNT_ID,
-						false,
-						0,
-						false);
+						client.country);
 				TASServer.getAccountsService().addAccount(acc);
 				TASServer.getAccountsService().saveAccounts(false); // let's save new accounts info to disk
 				client.sendLine("SERVERMSG Account created.");
@@ -987,16 +979,8 @@ public class TASServer {
 				acc = new Account(
 						commands[1],
 						commands[2],
-						Account.Access.NORMAL,
-						Account.NO_USER_ID,
-						System.currentTimeMillis(),
 						client.IP,
-						System.currentTimeMillis(),
-						client.country,
-						Account.NEW_ACCOUNT_ID,
-						false,
-						0,
-						false);
+						client.country);
 				TASServer.getAccountsService().addAccount(acc);
 				TASServer.getAccountsService().saveAccounts(false); // let's save new accounts info to disk
 				client.sendLine("REGISTRATIONACCEPTED");
@@ -2233,7 +2217,8 @@ public class TASServer {
 					if ((commands[1].equals(lanAdminUsername)) && (commands[2].equals(lanAdminPassword))) {
 						accessLvl = Account.Access.ADMIN;
 					}
-					acc = new Account(commands[1], commands[2], accessLvl, Account.NO_USER_ID, 0, "?", 0, "XX", Account.NO_ACCOUNT_ID, false, 0, false);
+					acc = new Account(commands[1], commands[2], "?", "XX");
+					acc.setAccess(accessLvl);
 					TASServer.getAccountsService().addAccount(acc);
 					client.account = acc;
 				}
@@ -2335,34 +2320,31 @@ public class TASServer {
 					Channels.getChannel(i).muteList.rename(client.account.getName(), commands[1]);
 				}
 
-				acc = new Account(
-						commands[1],
-						client.account.getPassword(),
-						client.account.getAccess(),
-						client.account.getLastUserId(),
-						System.currentTimeMillis(),
-						client.IP,
-						client.account.getRegistrationDate(),
-						client.account.getLastCountry(),
-						client.account.getId(),
-						client.account.isBot(),
-						client.account.getInGameTime(),
-						client.account.isAgreementAccepted());
+				final Account account_backup = client.account.clone();
+				final String oldName = client.account.getName();
+				client.account.setName(commands[1]);
+				client.account.setLastLogin(System.currentTimeMillis());
+				client.account.setLastIP(client.IP);
 				client.sendLine(new StringBuilder("SERVERMSG Your account has been renamed to <")
 						.append(commands[1]).append(">. Reconnect with new account (you will now be automatically disconnected)!").toString());
 				Clients.killClient(client, "Quit: renaming account");
-				TASServer.getAccountsService().replaceAccount(client.account, acc);
-				TASServer.getAccountsService().saveAccounts(false); // let's save new accounts info to disk
-				Clients.sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: User <")
-						.append(client.account.getName()).append("> has just renamed his account to <")
-						.append(commands[1]).append(">").toString());
+				final boolean mergeOk = TASServer.getAccountsService().mergeAccountChanges(client.account, oldName);
+				if (mergeOk) {
+					TASServer.getAccountsService().saveAccounts(false); // let's save new accounts info to disk
+					Clients.sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: User <")
+							.append(client.account.getName()).append("> has just renamed his account to <")
+							.append(commands[1]).append(">").toString());
 
-				// add server notification:
-				ServerNotification sn = new ServerNotification("Account renamed");
-				sn.addLine(new StringBuilder("User <")
-						.append(client.account.getName()).append("> has renamed his account to <")
-						.append(commands[1]).append(">").toString());
-				ServerNotifications.addNotification(sn);
+					// add server notification:
+					ServerNotification sn = new ServerNotification("Account renamed");
+					sn.addLine(new StringBuilder("User <")
+							.append(client.account.getName()).append("> has renamed his account to <")
+							.append(commands[1]).append(">").toString());
+					ServerNotifications.addNotification(sn);
+				} else {
+					client.account = account_backup;
+					client.sendLine("SERVERMSG Your account renaming was undone. Reconnect with old account (you will now be automatically disconnected)!");
+				}
 			} else if (commands[0].equals("CHANGEPASSWORD")) {
 				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
