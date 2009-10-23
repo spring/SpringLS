@@ -2714,6 +2714,7 @@ public class TASServer {
 				Battles.addBattle(bat);
 				client.battleStatus = 0; // reset client's battle status
 				client.battleID = bat.ID;
+				client.requestedBattleID = -1;
 
 				boolean local;
 				for (int i = 0; i < Clients.getClientsSize(); i++) {
