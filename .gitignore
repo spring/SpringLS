@@ -1,2 +1,4 @@
 /target/
 /Tools/ChanServ/target/
+/motd.txt
+/conf/META-INF/persistence.xml
