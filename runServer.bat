@@ -1,6 +1,7 @@
 @ECHO OFF
 REM
 REM How To:
+REM All these actions require that you ran 'mvn package' successfully.
 REM
 REM * start server (LAN mode):
 REM   > runServer.bat
@@ -12,20 +13,29 @@ REM * stop server:
 REM   press [Ctrl]+[C]
 REM
 REM * configure logging:
-REM   > copy src\main\resources\log4j.properties .
-REM   > edit log4j.properties
+REM   > copy src\main\resources\log4j.properties conf
+REM   > edit conf\log4j.properties
 REM   For documentation about log4j configuration,
 REM   see the 'Configuration' section on this site:
 REM   http://logging.apache.org/log4j/1.2/manual.html
 REM
+REM * configure the DB:
+REM   > edit conf\META-INF\persistence.xml
+REM   Info about the default persistence provider for TASServer (Hibernate):
+REM   http://docs.jboss.org/hibernate/stable/entitymanager/reference/en/html/configuration.html
+REM
+
+SET MY_MAIN_CLASS_main=com.springrts.tasserver.TASServer
+SET MY_MAIN_CLASS_admn=com.springrts.tasserver.JPAAccountsService
+SET MY_MAIN_CLASS=%MY_MAIN_CLASS_main%
 
 IF {%1}=={normal} (
 	SET MY_ECHO=Starting normal server, all dependencies
-	SET MY_JAVA_ARGS=-cp ".;target\*;target\dependency\*" com.springrts.tasserver.TASServer %2 %3 %4 %5 %6 %7 %8 %9
+	SET MY_JAVA_ARGS=-cp "conf;target\*;target\dependency\*" %MY_MAIN_CLASS% %2 %3 %4 %5 %6 %7 %8 %9
 ) ELSE (
 	SET MY_ECHO=Starting LAN server, only minimal dependencies
 	REM SET MY_JAVA_ARGS=-jar target\tasserver-<version>.jar -LAN
-	SET MY_JAVA_ARGS=-cp ".;target\*" com.springrts.tasserver.TASServer -LAN %2 %3 %4 %5 %6 %7 %8 %9
+	SET MY_JAVA_ARGS=-cp "conf;target\*" %MY_MAIN_CLASS% -LAN %2 %3 %4 %5 %6 %7 %8 %9
 )
 
 ECHO %MY_ECHO%
