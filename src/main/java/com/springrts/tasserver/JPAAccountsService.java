@@ -60,6 +60,7 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 
 		final long oneWeekAgo = System.currentTimeMillis() - (1000 * 60 * 60 * 24 * 7);
 		final Account.Rank lowRank = Account.Rank.Newbie;
+		// TODO
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
@@ -140,7 +141,7 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 			act = (Account) q_fetchByLastIP.getSingleResult();
 			em.getTransaction().commit();
 		} catch (Exception ex) {
-			s_log.trace("Failed fetching an account with by last ip", ex);
+			s_log.trace("Failed fetching an account by last ip", ex);
 			em.getTransaction().rollback();
 			act = null;
 		}
