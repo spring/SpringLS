@@ -4,23 +4,24 @@
 # All these actions require that you ran 'mvn package' successfully.
 #
 # * start server (LAN mode):
-#   > runServer.sh
+#   > ./runServer.sh
 #
 # * start server (normal mode):
-#   > FULL_CP=1 runServer.sh
+#   > FULL_CP=1 ./runServer.sh
 #
 # * stop server:
 #   press [Ctrl]+[C]
 #
 # * configure logging:
 #   > cp src/main/resources/log4j.properties conf
-#   > edit conf/log4j.properties
+#   > ${EDITOR} conf/log4j.properties
 #   For documentation about log4j configuration,
 #   see the 'Configuration' section on this site:
 #   http://logging.apache.org/log4j/1.2/manual.html
 #
 # * configure the DB:
-#   > edit conf/META-INF/persistence.xml
+#   > cp conf/META-INF/persistence.xml.template conf/META-INF/persistence.xml
+#   > ${EDITOR} conf/META-INF/persistence.xml
 #   Info about the default persistence provider for TASServer (Hibernate):
 #   http://docs.jboss.org/hibernate/stable/entitymanager/reference/en/html/configuration.html
 #

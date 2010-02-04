@@ -20,6 +20,7 @@ REM   see the 'Configuration' section on this site:
 REM   http://logging.apache.org/log4j/1.2/manual.html
 REM
 REM * configure the DB:
+REM * > copy conf\META-INF\persistence.xml.template conf\META-INF\persistence.xml
 REM   > edit conf\META-INF\persistence.xml
 REM   Info about the default persistence provider for TASServer (Hibernate):
 REM   http://docs.jboss.org/hibernate/stable/entitymanager/reference/en/html/configuration.html
