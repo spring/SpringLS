@@ -199,6 +199,9 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 	private static void moveAccounts(AccountsService from, AccountsService to) {
 
 		System.out.println("Copy all accounts from one storage to the other ...");
+
+		from.loadAccounts();
+
 		List<Account> accounts = from.fetchAllAccounts();
 
 		for (Account account : accounts) {
