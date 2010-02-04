@@ -278,6 +278,7 @@ public class TASServer {
 	private static String DB_URL = "jdbc:mysql://127.0.0.1/spring";
 	private static String DB_username = "";
 	private static String DB_password = "";
+	private static  boolean useUserDB = false;
 	private static final int READ_BUFFER_SIZE = 256; // size of the ByteBuffer used to read data from the socket channel. This size doesn't really matter - server will work with any size (tested with READ_BUFFER_SIZE==1), but too small buffer size may impact the performance.
 	private static final int SEND_BUFFER_SIZE = 8192 * 2; // socket's send buffer size
 	private static final long MAIN_LOOP_SLEEP = 10L;
@@ -3743,6 +3744,8 @@ public class TASServer {
 				} else if (s.equals("DBPASSWORD")) {
 					DB_password = args[i + 1];
 					i++; // to skip the argument
+				} else if (s.equals("USERDB")) {
+					useUserDB = true;
 				} else {
 					s_log.error("Invalid commandline argument");
 					throw new IOException();
@@ -3805,6 +3808,9 @@ public class TASServer {
 			System.out.println("");
 			System.out.println("-DBPASSWORD [password]");
 			System.out.println("  Will set password for the database (used only in \"normal mode\", not LAN mode).");
+			System.out.println("");
+			System.out.println("-USERDB");
+			System.out.println("  Instead of accounts.txt, use the DB (used only in \"normal mode\", not LAN mode).");
 			System.out.println("");
 
 			closeServerAndExit();
@@ -4045,7 +4051,11 @@ public class TASServer {
 	static AccountsService getAccountsService() {
 
 		if (accountsService == null) {
-			accountsService = new FSAccountsService();
+			if (useUserDB) {
+				accountsService = new JPAAccountsService();
+			} else {
+				accountsService = new FSAccountsService();
+			}
 		}
 
 		return accountsService;
