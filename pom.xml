@@ -243,6 +243,22 @@
 				</dependency>
 			</dependencies>
 		</profile>
+
+		<profile>
+			<id>DB-Postgres</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<dependencies>
+				<dependency>
+					<groupId>postgresql</groupId>
+					<artifactId>postgresql</artifactId>
+					<version>8.4-701.jdbc4</version>
+					<scope>runtime</scope>
+					<optional>true</optional>
+				</dependency>
+			</dependencies>
+		</profile>
 	</profiles>
 
 </project>
