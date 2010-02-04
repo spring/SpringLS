@@ -9,6 +9,9 @@
 # * start server (normal mode):
 #   > FULL_CP=1 ./runServer.sh
 #
+# * start server (debug mode):
+#   > DBG_PORT=7333 FULL_CP=1 ./runServer.sh
+#
 # * stop server:
 #   press [Ctrl]+[C]
 #
@@ -43,5 +46,14 @@ MY_MAIN_CLASS_main=com.springrts.tasserver.TASServer
 MY_MAIN_CLASS_admn=com.springrts.tasserver.JPAAccountsService
 MY_MAIN_CLASS=${MY_MAIN_CLASS_main}
 
-java -cp "${MY_FINAL_CP}" ${MY_MAIN_CLASS} $@
+MY_OPTIONAL_OPTS=""
+
+if [ ${DBG_PORT} ]; then
+	MY_DEBUG_OPTS="-Xdebug -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${DBG_PORT} -Djava.compiler=NONE -Xnoagent"
+else
+	MY_DEBUG_OPTS=""
+fi
+MY_OPTIONAL_OPTS="${MY_OPTIONAL_OPTS} ${MY_DEBUG_OPTS}"
+
+java -cp "${MY_FINAL_CP}" ${MY_OPTIONAL_OPTS} ${MY_MAIN_CLASS} $@
 

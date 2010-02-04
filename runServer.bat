@@ -9,6 +9,10 @@ REM
 REM * start server (normal mode):
 REM   > runServer.bat normal
 REM
+REM * start server (debug mode):
+REM   > SET DBG_PORT=7333
+REM   > runServer.bat normal
+REM
 REM * stop server:
 REM   press [Ctrl]+[C]
 REM
@@ -39,5 +43,14 @@ IF {%1}=={normal} (
 	SET MY_JAVA_ARGS=-cp "conf;target\*" %MY_MAIN_CLASS% -LAN %2 %3 %4 %5 %6 %7 %8 %9
 )
 
+SET MY_OPTIONAL_OPTS=
+
+IF {%DBG_PORT%}!={} (
+	SET MY_DEBUG_OPTS=-Xdebug -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=%DBG_PORT% -Djava.compiler=NONE -Xnoagent
+) ELSE (
+	SET MY_DEBUG_OPTS=
+)
+SET MY_OPTIONAL_OPTS=%MY_OPTIONAL_OPTS% %MY_DEBUG_OPTS%
+
 ECHO %MY_ECHO%
-java %MY_JAVA_ARGS%
+java %MY_OPTIONAL_OPTS% %MY_JAVA_ARGS%
