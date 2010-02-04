@@ -5,6 +5,8 @@
 package com.springrts.tasserver;
 
 
+import java.io.UnsupportedEncodingException;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -206,11 +208,26 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 		System.out.println("done.");
 	}
 
-	public static void createAliBaba() {
+	private static String hashMD5(String input) {
 
-		AccountsService actSrvc = new JPAAccountsService();
-		System.out.println("Accounts: " + actSrvc.getAccountsSize());
-		System.out.println("Creating Ali Baba ...");
+		try {
+			java.security.MessageDigest digest = java.security.MessageDigest.getInstance("MD5");
+			byte[] md5hash = new byte[32];
+			digest.update(input.getBytes("iso-8859-1"), 0, input.length());
+			md5hash = digest.digest();
+
+			//MD5 hash in base-64 form
+			return new String(new sun.misc.BASE64Encoder().encode(md5hash)).trim();
+		} catch (UnsupportedEncodingException ex) {
+			ex.printStackTrace();
+			return input;
+		} catch (NoSuchAlgorithmException ex) {
+			ex.printStackTrace();
+			return input;
+		}
+	}
+
+	private static Account createTestAccount(String userName) {
 
 		final String countryCode2L = java.util.Locale.getDefault().getCountry();
 		String localIP = "?";
@@ -220,14 +237,24 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 			// ignore
 		}
 
-		Account admin = new Account("admin", "admin", localIP, countryCode2L);
+		String userPasswd = hashMD5(userName);
+		return new Account(userName, userPasswd, localIP, countryCode2L);
+	}
+
+	public static void createAliBaba() {
+
+		AccountsService actSrvc = new JPAAccountsService();
+		System.out.println("Accounts: " + actSrvc.getAccountsSize());
+		System.out.println("Creating Ali Baba ...");
+
+		Account admin = createTestAccount("admin");
 		admin.setAccess(Account.Access.ADMIN);
 		admin.setAgreementAccepted(true);
 		actSrvc.addAccount(admin);
 
 		System.out.println("and the 40 thievs ...");
 		for (int i=0; i < 40; i++) {
-			Account user_x = new Account("user_" + i, "user_" + i, localIP, countryCode2L);
+			Account user_x = createTestAccount("user_" + i);
 			user_x.setAgreementAccepted(true);
 			actSrvc.addAccount(user_x);
 		}
