@@ -334,7 +334,7 @@ public class TASServer {
 			}
 			in.close();
 		} catch (IOException e) {
-			s_log.warn(new StringBuilder("Couldn't find ")
+			s_log.warn(new StringBuilder("Could not read from file ")
 					.append(fileName).append(". Using default MOTD").toString(), e);
 			return false;
 		}
