@@ -96,7 +96,7 @@ public class FSAccountsService extends AbstractAccountsService implements Accoun
 				.append(account.getLastCountry()).toString();
 	}
 	/**
-	 * Used to load an persistent Account from file storage.
+	 * Used to load a persistent Account from file storage.
 	 * Only change this if you know what you are doing!
 	 */
 	public static Account parsePersistenString(final String actStr) {
@@ -106,7 +106,7 @@ public class FSAccountsService extends AbstractAccountsService implements Accoun
 		if (actParts.length >= 9) {
 			accountId = Integer.parseInt(actParts[8]);
 		}
-		final int accessBitField = Integer.parseInt(actParts[2]);
+		final int accessBitField = Integer.parseInt(actParts[2], 2); // input is of the form "1100110"
 		Account act = new Account(
 				actParts[0],
 				actParts[1],
