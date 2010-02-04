@@ -38,6 +38,15 @@ build steps:
    This may take quite some time, if you are runnig Maven for the first time,
    as it has to download all the dependencies for the different build steps,
    plus the dependencies of TASServer.
+   When you get the following:
+   "Missing indirectly referenced artifact javax.transaction:jta:jar:1.0.1B:compile"
+   Follow these steps:
+   - with a browser, download "Class Files 1.0.1B" from:
+     http://java.sun.com/javaee/technologies/jta/index.jsp
+   - execute:
+     > mvn install:install-file -Dfile=jta-1_0_1B-classes.zip -DgroupId=javax.transaction -DartifactId=jta -Dversion=1.0.1B -Dpackaging=jar
+   - continue packaging:
+     > mvn package
 3. If everything went smoothly, this was it already!
    All the output of the build process is under the target/ subdir.
    This is also where you find the final jar file:
