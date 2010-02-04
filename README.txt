@@ -32,16 +32,16 @@ On Ubuntu for example, you would do this:
 
 build steps:
 1. Make sure you have Maven 2 installed. You can check that with the following command:
-> mvn --version
+   > mvn --version
 2. compile and package TASServer:
-> mvn package
-This may take quite some time, if you are runnig Maven for the first time,
-as it has to downlaod all the dependencies for the different build steps,
-plus the dependencies of TASServer.
+   > mvn package
+   This may take quite some time, if you are runnig Maven for the first time,
+   as it has to download all the dependencies for the different build steps,
+   plus the dependencies of TASServer.
 3. If everything went smoothly, this was it already!
-All the output of the build process is under the target/ subdir.
-This is also where you find the final jar file:
-target/tasserver*.jar
+   All the output of the build process is under the target/ subdir.
+   This is also where you find the final jar file:
+   target/tasserver*.jar
 
 
  Running
