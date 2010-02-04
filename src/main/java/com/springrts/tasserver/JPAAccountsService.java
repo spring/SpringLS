@@ -9,6 +9,7 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
+import javax.persistence.Query;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -20,11 +21,20 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 	private static final Log s_log  = LogFactory.getLog(JPAAccountsService.class);
 
 	private EntityManager em = null;
+	private Query q_size = null;
+	private Query q_list = null;
+	private Query q_fetchByName = null;
+	private Query q_fetchByLastIP = null;
 
 	public JPAAccountsService() {
 
 		EntityManagerFactory emf = Persistence.createEntityManagerFactory("tasserver");
 		em = emf.createEntityManager();
+
+		q_size          = em.createQuery("SELECT count(a.id) FROM Account a");
+		q_list          = em.createQuery("SELECT * FROM Account");
+		q_fetchByName   = em.createQuery("SELECT a FROM Account a WHERE a.name = :name");
+		q_fetchByLastIP = em.createQuery("SELECT a FROM Account a WHERE a.last_ip = :ip");
 	}
 
 	@Override
@@ -32,7 +42,7 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 
 		try {
 			em.getTransaction().begin();
-			long numAccounts = (Long) (em.createQuery("SELECT count(a.id) FROM Account a").getSingleResult());
+			long numAccounts = (Long) (q_size.getSingleResult());
 			em.getTransaction().commit();
 			return (int)numAccounts;
 		} catch (Exception ex) {
@@ -100,7 +110,8 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 
 		try {
 			em.getTransaction().begin();
-			act = (Account) (em.createQuery("SELECT a FROM Account a WHERE a.username == " + username).getSingleResult());
+			q_fetchByName.setParameter("name", username);
+			act = (Account) q_fetchByName.getSingleResult();
 			em.getTransaction().commit();
 		} catch (Exception ex) {
 			em.getTransaction().rollback();
@@ -123,7 +134,8 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 
 		try {
 			em.getTransaction().begin();
-			act = (Account) (em.createQuery("SELECT a FROM Account a WHERE a.last_ip == " + ip).getSingleResult());
+			q_fetchByLastIP.setParameter("ip", ip);
+			act = (Account) q_fetchByLastIP.getSingleResult();
 			em.getTransaction().commit();
 		} catch (Exception ex) {
 			s_log.trace("Failed fetching an account with by last ip", ex);
@@ -159,7 +171,7 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 
 		try {
 			em.getTransaction().begin();
-			acts = (List<Account>) (em.createQuery("SELECT * FROM Account").getResultList());
+			acts = (List<Account>) (q_list.getResultList());
 			em.getTransaction().commit();
 		} catch (Exception ex) {
 			em.getTransaction().rollback();
