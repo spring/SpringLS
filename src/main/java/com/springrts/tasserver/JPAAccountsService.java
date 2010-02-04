@@ -246,9 +246,9 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 		if (toDo.equals("alibaba")) {
 			createAliBaba();
 		} else if (toDo.equals("FS2DB")) {
-			moveAccountsFromDBtoFS();
-		} else if (toDo.equals("DB2FS")) {
 			moveAccountsFromFStoDB();
+		} else if (toDo.equals("DB2FS")) {
+			moveAccountsFromDBtoFS();
 		} else {
 			System.out.println("Specify one of these (be carefull! No \"Are you sure?\" protection):");
 			System.out.println("\talibaba - creates one admin account and 40 users (user_0, ...), all with username==password");
