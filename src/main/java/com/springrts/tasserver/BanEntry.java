@@ -12,7 +12,7 @@ import javax.persistence.*;
  * @author Betalord
  */
 @Entity
-@Table(name="bans")
+@Table(name="BanEntries")
 public class BanEntry implements Serializable {
 
 	@Id
@@ -28,6 +28,7 @@ public class BanEntry implements Serializable {
 	 * Equals 0 when ban was issued for indefinite time
 	 */
 	@Column(
+		name       = "ExpirationDate",
 		unique     = false,
 		nullable   = true,
 		insertable = true,
@@ -36,6 +37,7 @@ public class BanEntry implements Serializable {
 	private long expireDate;
 	/** Username of the banned account (may be 'null' as well) */
 	@Column(
+		name       = "Username",
 		unique     = false,
 		nullable   = true,
 		insertable = true,
@@ -45,6 +47,7 @@ public class BanEntry implements Serializable {
 	private String username;
 	/** Start of IP range which was banned (may be 0) */
 	@Column(
+		name       = "IP_start",
 		unique     = false,
 		nullable   = true,
 		insertable = true,
@@ -53,6 +56,7 @@ public class BanEntry implements Serializable {
 	private long ipStart;
 	/** End of IP range which was banned (may be 0) */
 	@Column(
+		name       = "IP_end",
 		unique     = false,
 		nullable   = true,
 		insertable = true,
@@ -61,6 +65,7 @@ public class BanEntry implements Serializable {
 	private long ipEnd;
 	/** Account ID of the banned account. If 0, then ignore it */
 	@Column(
+		name       = "userID",
 		unique     = true,
 		nullable   = true,
 		insertable = true,
@@ -77,12 +82,24 @@ public class BanEntry implements Serializable {
 	 * The person who was banned will see this, when trying to login.
 	 */
 	@Column(
+		name       = "PublicReason",
 		unique     = false,
 		nullable   = true,
 		insertable = true,
 		updatable  = true
 		)
 	private String publicReason;
+	/**
+	 * Whether this ban is active or disabled.
+	 */
+	@Column(
+		name       = "Enabled",
+		unique     = false,
+		nullable   = false,
+		insertable = true,
+		updatable  = true
+		)
+	private boolean enabled;
 
 	/** Used by JPA */
 	public BanEntry() {}
@@ -147,11 +164,29 @@ public class BanEntry implements Serializable {
 		return publicReason;
 	}
 
+	/**
+	 * Returns whether this ban is enabled or disabled.
+	 */
+	public boolean isEnabled() {
+		return enabled;
+	}
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
+
 	public Long getId() {
 		return id;
 	}
 
 	public void setId(Long id) {
 		this.id = id;
+	}
+
+	/**
+	 * Returns whether this ban is active or disabled.
+	 * A ban is active when it is enabled and not expired.
+	 */
+	public boolean isActive() {
+		return (isEnabled() && ((getExpireDate() == 0) || (getExpireDate() > System.currentTimeMillis())));
 	}
 }
