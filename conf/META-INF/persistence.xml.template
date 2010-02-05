@@ -8,6 +8,8 @@
 		<provider>org.hibernate.ejb.HibernatePersistence</provider>
 
 		<class>com.springrts.tasserver.Account</class>
+		<class>com.springrts.tasserver.BanEntry</class>
+		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 
 		<properties>
 			<property name="hibernate.connection.username" value="root"/>
