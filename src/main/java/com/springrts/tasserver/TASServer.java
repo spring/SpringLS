@@ -271,13 +271,10 @@ public class TASServer {
 	private static long lastFailedLoginsPurgeTime = System.currentTimeMillis(); // time when we last purged list of failed login attempts
 	private static final Log s_log  = LogFactory.getLog(TASServer.class);
 	private static AccountsService accountsService = null;
+	private static BanService banService = null;
 
 	private static Properties mavenProperties = null;
 	// database related:
-	public static DBInterface database;
-	private static String DB_URL = "jdbc:mysql://127.0.0.1/spring";
-	private static String DB_username = "";
-	private static String DB_password = "";
 	private static  boolean useUserDB = false;
 	private static final int READ_BUFFER_SIZE = 256; // size of the ByteBuffer used to read data from the socket channel. This size doesn't really matter - server will work with any size (tested with READ_BUFFER_SIZE==1), but too small buffer size may impact the performance.
 	private static final int SEND_BUFFER_SIZE = 8192 * 2; // socket's send buffer size
@@ -496,11 +493,6 @@ public class TASServer {
 			} catch (Exception e) {
 				// nevermind
 			}
-		}
-		try {
-			database.shutdownDriver();
-		} catch (Exception e) {
-			// ignore
 		}
 		running = false;
 		System.exit(0);
@@ -1673,15 +1665,8 @@ public class TASServer {
 				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
-				if (commands.length != 1) {
-					return false;
-				}
 
-				client.sendLine("SERVERMSG Fetching ban entries from the database ...");
-				long time = System.currentTimeMillis();
-				BanSystem.fetchLatestBanList();
-				client.sendLine(new StringBuilder("SERVERMSG Ban entries retrieved (in ")
-						.append((System.currentTimeMillis() - time)).append(" milliseconds).").toString());
+				client.sendLine("SERVERMSG Fetching ban entries is not needed anymore. Therefore, this is a no-op now.");
 			} else if (commands[0].equals("CHANGECHARSET")) {
 				if (client.account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
@@ -2070,9 +2055,7 @@ public class TASServer {
 					return false;
 				}
 
-				database.printDriverStats();
-
-				client.sendLine("SERVERMSG DB driver status was printed to the console.");
+				client.sendLine("SERVERMSG This command is not supported anymore, as JPA is used for DB access for bans. Therefore, this is a no-op now.");
 			} else if (commands[0].equals("CHANNELS")) {
 				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
@@ -2184,8 +2167,8 @@ public class TASServer {
 						client.sendLine("DENIED Already logged in");
 						return false;
 					}
-					BanEntry ban = BanSystem.checkIfBanned(username, Misc.IP2Long(client.IP), userID);
-					if (ban != null) {
+					BanEntry ban = banService.getBanEntry(username, Misc.IP2Long(client.IP), userID);
+					if (ban != null && ban.isActive()) {
 						client.sendLine(new StringBuilder("DENIED You are banned from this server! (Reason: ")
 								.append(ban.getPublicReason()).append("). Please contact server administrator.").toString());
 						recordFailedLoginAttempt(username);
@@ -3735,15 +3718,6 @@ public class TASServer {
 				} else if (s.equals("LATESTSPRINGVERSION")) {
 					latestSpringVersion = args[i + 1];
 					i++; // to skip Spring version argument
-				} else if (s.equals("DBURL")) {
-					DB_URL = args[i + 1];
-					i++; // to skip argument
-				} else if (s.equals("DBUSERNAME")) {
-					DB_username = args[i + 1];
-					i++; // to skip the argument
-				} else if (s.equals("DBPASSWORD")) {
-					DB_password = args[i + 1];
-					i++; // to skip the argument
 				} else if (s.equals("USERDB")) {
 					useUserDB = true;
 				} else {
@@ -3828,22 +3802,9 @@ public class TASServer {
 			}
 		}
 
-		// establish connection with database:
-		if (!LAN_MODE) {
-			database = new DBInterface();
-			if (!database.initialize(DB_URL, DB_username, DB_password)) {
-				closeServerAndExit();
-			}
-			if (!database.testConnection()) {
-				s_log.error("Connection to database could not be established. Shutting down ...");
-				closeServerAndExit();
-			}
-			s_log.info("Connection to database has been established.");
-		}
-
 		if (!LAN_MODE) {
 			TASServer.getAccountsService().loadAccounts();
-			BanSystem.fetchLatestBanList();
+			banService = new JPABanService();
 			readAgreement();
 		} else {
 			s_log.info("LAN mode enabled");
@@ -3969,7 +3930,7 @@ public class TASServer {
 
 			// check UDP server for any new packets:
 			while (NATHelpServer.msgList.size() > 0) {
-				DatagramPacket packet = (DatagramPacket) NATHelpServer.msgList.remove(0);
+				DatagramPacket packet = NATHelpServer.msgList.remove(0);
 				InetAddress address = packet.getAddress();
 				int p = packet.getPort();
 				String data = new String(packet.getData(), packet.getOffset(), packet.getLength());
@@ -4033,11 +3994,6 @@ public class TASServer {
 			} catch (Exception e) {
 				// ignore
 			}
-		}
-		try {
-			database.shutdownDriver();
-		} catch (Exception e) {
-			// ignore
 		}
 
 		// add server notification:
