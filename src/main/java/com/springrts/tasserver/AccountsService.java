@@ -76,7 +76,7 @@ public interface AccountsService {
 	 * @param account the account which got changed
 	 * @param oldName the old value of the name attribute of the account
 	 *                is only used by the 'FSAccountsService'
-	 * @return 'true' if changed were saved successfully
+	 * @return 'true' if changes were saved successfully
 	 */
 	public boolean mergeAccountChanges(Account account, String oldName);
 

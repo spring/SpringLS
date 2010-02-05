@@ -34,7 +34,7 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 		em = emf.createEntityManager();
 
 		q_size          = em.createQuery("SELECT count(a.id) FROM Account a");
-		q_list          = em.createQuery("SELECT * FROM Account");
+		q_list          = em.createQuery("SELECT a FROM Account a");
 		q_fetchByName   = em.createQuery("SELECT a FROM Account a WHERE a.name = :name");
 		q_fetchByLastIP = em.createQuery("SELECT a FROM Account a WHERE a.last_ip = :ip");
 	}
@@ -99,7 +99,7 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 			em.getTransaction().commit();
 			removed = true;
 		} catch (Exception ex) {
-			s_log.error("Failed adding an account", ex);
+			s_log.error("Failed removing an account", ex);
 			em.getTransaction().rollback();
 		}
 
@@ -178,7 +178,7 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 			em.getTransaction().commit();
 		} catch (Exception ex) {
 			em.getTransaction().rollback();
-			s_log.error("Failed fetching an account", ex);
+			s_log.error("Failed fetching all accounts", ex);
 			acts = null;
 		}
 
