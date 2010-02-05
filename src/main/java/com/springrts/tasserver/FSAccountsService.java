@@ -214,6 +214,14 @@ public class FSAccountsService extends AbstractAccountsService implements Accoun
 	}
 
 	@Override
+	public void addAccounts(Iterable<Account> accs) {
+
+		for (Account acc : accs) {
+			addAccount(acc);
+		}
+	}
+
+	@Override
 	public boolean removeAccount(Account acc) {
 		boolean result = accounts.remove(acc);
 		map.remove(acc.getName());

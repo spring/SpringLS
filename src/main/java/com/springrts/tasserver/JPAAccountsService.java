@@ -93,6 +93,23 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 	}
 
 	@Override
+	public void addAccounts(Iterable<Account> accs) {
+
+		try {
+			em.getTransaction().begin();
+
+			for (Account acc : accs) {
+				em.merge(acc);
+			}
+
+			em.getTransaction().commit();
+		} catch (Exception ex) {
+			s_log.error("Failed adding an account", ex);
+			em.getTransaction().rollback();
+		}
+	}
+
+	@Override
 	public boolean removeAccount(Account acc) {
 
 		boolean removed = false;
@@ -209,9 +226,7 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 
 		List<Account> accounts = from.fetchAllAccounts();
 
-		for (Account account : accounts) {
-			to.addAccount(account);
-		}
+		to.addAccounts(accounts);
 
 		System.out.println("done.");
 	}

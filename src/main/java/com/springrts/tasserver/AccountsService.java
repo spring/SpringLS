@@ -55,6 +55,9 @@ public interface AccountsService {
 	/** WARNING: caller must check if username/password is valid etc. himself! */
 	public void addAccount(Account acc);
 
+	/** WARNING: caller must check if usernames/passwords are valid etc. himself! */
+	public void addAccounts(Iterable<Account> accs);
+
 	public boolean addAccountWithCheck(Account acc);
 
 	public boolean removeAccount(Account acc);
