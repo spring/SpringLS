@@ -40,7 +40,7 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 		q_size          = em.createQuery("SELECT count(a.id) FROM Account a");
 		q_list          = em.createQuery("SELECT a FROM Account a");
 		q_fetchByName   = em.createQuery("SELECT a FROM Account a WHERE a.name = :name");
-		q_fetchByLastIP = em.createQuery("SELECT a FROM Account a WHERE a.last_ip = :ip");
+		q_fetchByLastIP = em.createQuery("SELECT a FROM Account a WHERE a.lastIP = :ip");
 	}
 
 	@Override
