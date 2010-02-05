@@ -21,6 +21,8 @@ import java.security.*;
  */
 public class Misc {
 
+	private Misc() {}
+
 	private static final Log s_log  = LogFactory.getLog(Misc.class);
 
 	static public final String EOL = "\n";
