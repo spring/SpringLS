@@ -31,6 +31,7 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 	private Query q_list = null;
 	private Query q_fetchByName = null;
 	private Query q_fetchByLastIP = null;
+	private Query q_size_active = null;
 
 	public JPAAccountsService() {
 
@@ -38,6 +39,8 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 		em = emf.createEntityManager();
 
 		q_size          = em.createQuery("SELECT count(a.id) FROM Account a");
+		q_size_active   = em.createQuery("SELECT count(a.id) FROM Account a WHERE ((a.inGameTime >= :minInGameTime) AND (a.lastLogin > :oneWeekAgo))");
+		q_size_active.setParameter("minInGameTime", Account.Rank.Beginner.getRequiredTime());
 		q_list          = em.createQuery("SELECT a FROM Account a");
 		q_fetchByName   = em.createQuery("SELECT a FROM Account a WHERE a.name = :name");
 		q_fetchByLastIP = em.createQuery("SELECT a FROM Account a WHERE a.lastIP = :ip");
@@ -62,10 +65,21 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 	@Override
 	public int getActiveAccountsSize() {
 
-		final long oneWeekAgo = System.currentTimeMillis() - (1000 * 60 * 60 * 24 * 7);
-		final Account.Rank lowRank = Account.Rank.Newbie;
-		// TODO
-		throw new UnsupportedOperationException("Not supported yet.");
+		int activeAccounts = -1;
+
+		try {
+			em.getTransaction().begin();
+			final long oneWeekAgo = System.currentTimeMillis() - (1000 * 60 * 60 * 24 * 7);
+			q_size_active.setParameter("oneWeekAgo", oneWeekAgo);
+			activeAccounts = (int) (long) (Long) (q_size_active.getSingleResult());
+			em.getTransaction().commit();
+		} catch (Exception ex) {
+			em.getTransaction().rollback();
+			s_log.error("Failed fetching active accounts", ex);
+			activeAccounts = -1;
+		}
+
+		return activeAccounts;
 	}
 
 	@Override
