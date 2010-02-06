@@ -1173,7 +1173,14 @@ public class TASServer {
 					return false;
 				}
 
+				final String oldPasswd = acc.getPassword();
 				acc.setPassword(commands[2]);
+				final boolean mergeOk = TASServer.getAccountsService().mergeAccountChanges(acc, acc.getName());
+				if (!mergeOk) {
+					acc.setPassword(oldPasswd);
+					client.sendLine("SERVERMSG CHANGEACCOUNTPASS failed: Failed saving to persistent storage.");
+					return false;
+				}
 
 				TASServer.getAccountsService().saveAccounts(false); // save changes
 
@@ -1203,11 +1210,20 @@ public class TASServer {
 					return false;
 				}
 
-				int oldAccessBifField = acc.getAccessBitField();
-				acc.setAccess(Account.extractAccess(newAccessBifField));
-				acc.setBot(Account.extractBot(newAccessBifField));
-				acc.setInGameTime(Account.extractInGameTime(newAccessBifField));
-				acc.setAgreementAccepted(Account.extractAgreementAccepted(newAccessBifField));
+				int oldAccessBitField = acc.getAccessBitField();
+				Account account_new = acc.clone();
+				account_new.setAccess(Account.extractAccess(newAccessBifField));
+				account_new.setBot(Account.extractBot(newAccessBifField));
+				account_new.setInGameTime(Account.extractInGameTime(newAccessBifField));
+				account_new.setAgreementAccepted(Account.extractAgreementAccepted(newAccessBifField));
+				final boolean mergeOk = TASServer.getAccountsService().mergeAccountChanges(account_new, account_new.getName());
+				if (mergeOk) {
+					acc = account_new;
+				} else {
+					client.sendLine(new StringBuilder("SERVERMSG Changing ACCESS for account <")
+							.append(acc.getName()).append("> failed.").toString());
+					return false;
+				}
 
 				TASServer.getAccountsService().saveAccounts(false); // save changes
 				// just in case if rank got changed: FIXME?
@@ -1217,7 +1233,7 @@ public class TASServer {
 				//	Clients.notifyClientsOfNewClientStatus(target);
 
 				client.sendLine(new StringBuilder("SERVERMSG You have changed ACCESS for <")
-						.append(commands[1]).append("> successfully.").toString());
+						.append(acc.getName()).append("> successfully.").toString());
 
 				// add server notification:
 				ServerNotification sn = new ServerNotification("Account access changed by admin");
@@ -1225,7 +1241,7 @@ public class TASServer {
 						.append(client.account.getName()).append("> has changed access/status bits for account <")
 						.append(acc.getName()).append(">.").toString());
 				sn.addLine(new StringBuilder("Old access code: ")
-						.append(oldAccessBifField).append(". New code: ")
+						.append(oldAccessBitField).append(". New code: ")
 						.append(newAccessBifField).toString());
 				ServerNotifications.addNotification(sn);
 			} else if (commands[0].equals("GETACCOUNTACCESS")) {
@@ -1956,11 +1972,18 @@ public class TASServer {
 					return false;
 				}
 
+				final boolean wasBot = acc.isBot();
 				acc.setBot((mode == 0) ? false : true);
+				final boolean mergeOk = TASServer.getAccountsService().mergeAccountChanges(acc, acc.getName());
+				if (!mergeOk) {
+					acc.setBot(wasBot);
+					client.sendLine("SERVERMSG SETBOTMODE failed: Failed saving to persistent storage.");
+					return false;
+				}
 
 				client.sendLine(new StringBuilder("SERVERMSG Bot mode set to ")
 						.append(mode).append(" for user <")
-						.append(commands[1]).append(">").toString());
+						.append(acc.getName()).append(">").toString());
 			} else if (commands[0].equals("GETREGISTRATIONDATE")) {
 				if (commands.length != 2) {
 					return false;
@@ -2182,6 +2205,12 @@ public class TASServer {
 					if (!acc.isAgreementAccepted()) {
 						// user has obviously accepted the agreement... Let's update it
 						acc.setAgreementAccepted(true);
+						final boolean mergeOk = TASServer.getAccountsService().mergeAccountChanges(acc, acc.getName());
+						if (!mergeOk) {
+							acc.setAgreementAccepted(false);
+							client.sendLine("DENIED Failed saving 'agreement accepted' to persistent storage.");
+							return false;
+						}
 						TASServer.getAccountsService().saveAccounts(false);
 					}
 					if (acc.getLastLogin() + 5000 > System.currentTimeMillis()) {
@@ -2224,6 +2253,11 @@ public class TASServer {
 				}
 				client.lobbyVersion = lobbyVersion;
 				client.account.setLastUserId(userID);
+				final boolean mergeOk = TASServer.getAccountsService().mergeAccountChanges(client.account, client.account.getName());
+				if (!mergeOk) {
+					s_log.info(new StringBuilder("Failed saving login info to persistent storage for user: ").append(client.account.getName()).toString());
+					return false;
+				}
 
 				// do the notifying and all:
 				client.sendLine(new StringBuilder("ACCEPTED ").append(client.account.getName()).toString());
@@ -2244,6 +2278,11 @@ public class TASServer {
 			} else if (commands[0].equals("CONFIRMAGREEMENT")) {
 				// update client's temp account (he is not logged in yet since he needs to confirm the agreement before server will allow him to log in):
 				client.account.setAgreementAccepted(true);
+				final boolean mergeOk = TASServer.getAccountsService().mergeAccountChanges(client.account, client.account.getName());
+				if (!mergeOk) {
+					s_log.debug(new StringBuilder("Failed saving 'agreement accepted' state to persistent storage for user: ").append(client.account.getName()).toString());
+					return false;
+				}
 			} else if (commands[0].equals("USERID")) {
 				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
@@ -2264,6 +2303,11 @@ public class TASServer {
 				}
 
 				client.account.setLastUserId(userID);
+				final boolean mergeOk = TASServer.getAccountsService().mergeAccountChanges(client.account, client.account.getName());
+				if (!mergeOk) {
+					client.sendLine("SERVERMSG Failed saving last userid to persistent storage");
+					return false;
+				}
 
 				// add server notification:
 				ServerNotification sn = new ServerNotification("User ID received");
@@ -2305,31 +2349,34 @@ public class TASServer {
 					Channels.getChannel(i).muteList.rename(client.account.getName(), commands[1]);
 				}
 
-				final Account account_backup = client.account.clone();
 				final String oldName = client.account.getName();
-				client.account.setName(commands[1]);
-				client.account.setLastLogin(System.currentTimeMillis());
-				client.account.setLastIP(client.IP);
-				client.sendLine(new StringBuilder("SERVERMSG Your account has been renamed to <")
-						.append(commands[1]).append(">. Reconnect with new account (you will now be automatically disconnected)!").toString());
-				Clients.killClient(client, "Quit: renaming account");
-				final boolean mergeOk = TASServer.getAccountsService().mergeAccountChanges(client.account, oldName);
+				Account account_new = client.account.clone();
+				account_new.setName(commands[1]);
+				account_new.setLastLogin(System.currentTimeMillis());
+				account_new.setLastIP(client.IP);
+				final boolean mergeOk = TASServer.getAccountsService().mergeAccountChanges(account_new, client.account.getName());
 				if (mergeOk) {
-					TASServer.getAccountsService().saveAccounts(false); // let's save new accounts info to disk
-					Clients.sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: User <")
-							.append(client.account.getName()).append("> has just renamed his account to <")
-							.append(commands[1]).append(">").toString());
-
-					// add server notification:
-					ServerNotification sn = new ServerNotification("Account renamed");
-					sn.addLine(new StringBuilder("User <")
-							.append(client.account.getName()).append("> has renamed his account to <")
-							.append(commands[1]).append(">").toString());
-					ServerNotifications.addNotification(sn);
+					client.account = account_new;
 				} else {
-					client.account = account_backup;
-					client.sendLine("SERVERMSG Your account renaming was undone. Reconnect with old account (you will now be automatically disconnected)!");
+					client.sendLine("SERVERMSG Your account renaming failed.");
+					return false;
 				}
+
+				client.sendLine(new StringBuilder("SERVERMSG Your account has been renamed to <")
+						.append(account_new.getName())
+						.append(">. Reconnect with new account (you will now be automatically disconnected)!").toString());
+				Clients.killClient(client, "Quit: renaming account");
+				TASServer.getAccountsService().saveAccounts(false); // let's save new accounts info to disk
+				Clients.sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: User <")
+						.append(oldName).append("> has just renamed his account to <")
+						.append(client.account.getName()).append(">").toString());
+
+				// add server notification:
+				ServerNotification sn = new ServerNotification("Account renamed");
+				sn.addLine(new StringBuilder("User <")
+						.append(oldName).append("> has renamed his account to <")
+						.append(client.account.getName()).append(">").toString());
+				ServerNotifications.addNotification(sn);
 			} else if (commands[0].equals("CHANGEPASSWORD")) {
 				if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
@@ -2357,7 +2404,14 @@ public class TASServer {
 					return false;
 				}
 
+				final String oldPasswd = client.account.getPassword();
 				client.account.setPassword(commands[2]);
+				final boolean mergeOk = TASServer.getAccountsService().mergeAccountChanges(client.account, client.account.getName());
+				if (!mergeOk) {
+					client.account.setPassword(oldPasswd);
+					client.sendLine("SERVERMSG CHANGEPASSWORD failed: Failed saving to persistent storage.");
+					return false;
+				}
 
 				TASServer.getAccountsService().saveAccounts(false); // let's save new accounts info to disk
 				client.sendLine("SERVERMSG Your password has been successfully updated!");
@@ -2785,8 +2839,16 @@ public class TASServer {
 					} else { // back from game
 						if (client.inGameTime != 0) { // we won't update clients who play by themselves (or with bots only), since some try to exploit the system by leaving computer alone in-battle for hours to increase their ranks
 							int diff = new Long((System.currentTimeMillis() - client.inGameTime) / 60000).intValue(); // in minutes
-							if (client.account.addMinsToInGameTime(diff)) {
+							boolean rankChanged = client.account.addMinsToInGameTime(diff);
+							if (rankChanged) {
 								client.setRankToStatus(client.account.getRank().ordinal());
+							}
+							final boolean mergeOk = TASServer.getAccountsService().mergeAccountChanges(client.account, client.account.getName());
+							if (!mergeOk) {
+								// as this is no serious problem, only log a message
+								s_log.warn(new StringBuilder("Failed updating users in-game-time in persistent storage: ")
+										.append(client.account.getName()).toString());
+								return false;
 							}
 						}
 					}
