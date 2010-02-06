@@ -120,7 +120,7 @@ public class JPABanService implements BanService {
 			em.getTransaction().commit();
 		} catch (Exception ex) {
 			em.getTransaction().rollback();
-			s_log.error("Failed fetching a ban", ex);
+			s_log.trace("Failed fetching a ban", ex);
 			ban = null;
 		}
 

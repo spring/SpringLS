@@ -153,7 +153,7 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 			em.getTransaction().commit();
 		} catch (Exception ex) {
 			em.getTransaction().rollback();
-			s_log.error("Failed fetching an account", ex);
+			s_log.trace("Failed fetching an account by name: " + username, ex);
 			act = null;
 		}
 
