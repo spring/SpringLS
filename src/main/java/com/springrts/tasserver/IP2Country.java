@@ -7,6 +7,8 @@ package com.springrts.tasserver;
 
 import java.util.*;
 import java.io.*;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * @author Betalord
@@ -15,17 +17,24 @@ public class IP2Country {
 
 	static private TreeSet<String> countries = new TreeSet<String>();
 	static private TreeMap<IPRange, IPRange> resolveTable = new TreeMap<IPRange, IPRange>();
+	private static final Log s_log  = LogFactory.getLog(IP2Country.class);
 
 	public static boolean updateInProgress() {
 		return UpdateIP2CountryThread.inProgress();
 	}
 
-	public static boolean initializeAll(String filename) {
+	public static boolean initializeAll(String fileName) {
+
 		try {
-			buildDatabase(filename, resolveTable, countries);
+			buildDatabase(fileName, resolveTable, countries);
+			s_log.info("Using IP2Country info from file '" + fileName + "'.");
 		} catch (IOException e) {
+			s_log.warn(new StringBuilder("Could not find or read from file '")
+					.append(fileName).append("'. Not using any IP2Country info.").toString());
+			s_log.debug("... reason:", e);
 			return false;
 		}
+
 		return true;
 	}
 

@@ -330,9 +330,11 @@ public class TASServer {
 				newMOTD.append(line).append('\n');
 			}
 			in.close();
+			s_log.info("Using MOTD from file '" + fileName + "'.");
 		} catch (IOException e) {
-			s_log.warn(new StringBuilder("Could not read from file ")
-					.append(fileName).append(". Using default MOTD").toString(), e);
+			s_log.warn(new StringBuilder("Could not find or read from file '")
+					.append(fileName).append("'. Using default MOTD.").toString());
+			s_log.debug("... reason:", e);
 			return false;
 		}
 		MOTD = newMOTD.toString();
@@ -459,10 +461,12 @@ public class TASServer {
 				newAgreement.append(line).append('\n');
 			}
 			in.close();
+			s_log.info("Using agreement from file '" + AGREEMENT_FILENAME + "'.");
 		} catch (IOException e) {
-			s_log.warn(new StringBuilder("Couldn't find ")
+			s_log.warn(new StringBuilder("Could not find or read from file '")
 					.append(AGREEMENT_FILENAME)
-					.append(". Using no agreement.").toString(), e);
+					.append("'. Using no agreement.").toString());
+			s_log.debug("... reason:", e);
 			return;
 		}
 		if (newAgreement.length() > 2) {
@@ -3918,9 +3922,7 @@ public class TASServer {
 		}
 
 		long tempTime = System.currentTimeMillis();
-		if (!IP2Country.initializeAll(IP2COUNTRY_FILENAME)) {
-			s_log.warn("Unable to find or read <IP2Country> file. Skipping ...");
-		} else {
+		if (IP2Country.initializeAll(IP2COUNTRY_FILENAME)) {
 			tempTime = System.currentTimeMillis() - tempTime;
 			s_log.info(new StringBuilder("<IP2Country> loaded in ")
 					.append(tempTime).append(" ms.").toString());
