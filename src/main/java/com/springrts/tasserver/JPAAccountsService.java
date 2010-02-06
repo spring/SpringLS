@@ -28,10 +28,11 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 
 	private EntityManager em = null;
 	private Query q_size = null;
+	private Query q_size_active = null;
 	private Query q_list = null;
 	private Query q_fetchByName = null;
+	private Query q_fetchByLowerName = null;
 	private Query q_fetchByLastIP = null;
-	private Query q_size_active = null;
 
 	public JPAAccountsService() {
 
@@ -43,6 +44,7 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 		q_size_active.setParameter("minInGameTime", Account.Rank.Beginner.getRequiredTime());
 		q_list          = em.createQuery("SELECT a FROM Account a");
 		q_fetchByName   = em.createQuery("SELECT a FROM Account a WHERE a.name = :name");
+		q_fetchByLowerName = em.createQuery("SELECT a FROM Account a WHERE (LOWER(a.name) = :lowerName)");
 		q_fetchByLastIP = em.createQuery("SELECT a FROM Account a WHERE a.lastIP = :ip");
 	}
 
@@ -162,7 +164,21 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 
 	@Override
 	public Account findAccountNoCase(String username) {
-		throw new UnsupportedOperationException("Not supported yet.");
+
+		Account act = null;
+
+		try {
+			em.getTransaction().begin();
+			q_fetchByLowerName.setParameter("lowerName", username.toLowerCase());
+			act = (Account) q_fetchByLowerName.getSingleResult();
+			em.getTransaction().commit();
+		} catch (Exception ex) {
+			s_log.trace("Failed fetching an account by name (case-insensitive)", ex);
+			em.getTransaction().rollback();
+			act = null;
+		}
+
+		return act;
 	}
 
 	@Override
