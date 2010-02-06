@@ -697,18 +697,6 @@ public class Account implements Serializable {
 	}
 
 	/**
-	 * Date of when the name registered this account.
-	 * In miliseconds (refers to System.currentTimeMillis()). 0 means
-	 * registration date is unknown. This applies to users that registered in
-	 * some early version, when this field was not yet present. Note that this
-	 * field was first introduced with Spring 0.67b3, Dec 18 2005.
-	 * @param registrationDate the registrationDate to set
-	 */
-	public void setRegistrationDate(long registrationDate) {
-		this.registrationDate = registrationDate;
-	}
-
-	/**
 	 * Resolved country code for this name's IP when he last logged on.
 	 * If country could not be resolved, "XX" is used for country code,
 	 * otherwise a 2-char country code is used.
