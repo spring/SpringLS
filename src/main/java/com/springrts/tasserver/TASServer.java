@@ -680,7 +680,7 @@ public class TASServer {
 				}
 			}
 		} catch (IOException ioe) {
-			s_log.info("exception during select(): possibly due to force disconnect. Killing the client ...", ioe);
+			s_log.info("exception during select(): possibly due to force disconnect. Killing the client ...");
 			try {
 				if (client != null) {
 					Clients.killClient(client, "Quit: connection lost");
@@ -688,16 +688,17 @@ public class TASServer {
 			} catch (Exception e) {
 				// do nothing
 			}
+			s_log.debug("... the exception was:", ioe);
 		} catch (Exception e) {
-			s_log.info(new StringBuilder("exception in readIncomingMessages(): killing the client ... (").append(e.toString()).append(")").toString(), e);
+			s_log.info(new StringBuilder("exception in readIncomingMessages(): killing the client ... (").append(e.toString()).append(")").toString());
 			try {
 				if (client != null) {
 					Clients.killClient(client, "Quit: connection lost");
 				}
-				e.printStackTrace(); //*** DEBUG
 			} catch (Exception ex) {
 				// do nothing
 			}
+			s_log.debug("... the exception was:", e);
 		}
 	}
 
@@ -3884,8 +3885,7 @@ public class TASServer {
 						.append(Misc.easyDateFormat("dd/MM/yy")).toString());
 			} catch (Exception e) {
 				LOG_MAIN_CHANNEL = false;
-				s_log.error("Unable to open main channel log file (MainChanLog.log)");
-				e.printStackTrace();
+				s_log.error("Unable to open main channel log file (MainChanLog.log)", e);
 			}
 		}
 
