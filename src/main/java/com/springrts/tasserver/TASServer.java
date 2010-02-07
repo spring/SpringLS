@@ -233,7 +233,6 @@ import java.util.regex.*;
  */
 public class TASServer {
 
-	private static byte DEBUG = 1; // 0 - no verbose, 1 - normal verbose, 2 - extensive verbose
 	private static String MOTD = "Enjoy your stay :-)";
 	private static String agreement = ""; // agreement which is sent to user upon first login. User must send CONFIRMAGREEMENT command to confirm the agreement before server allows him to log in. See LOGIN command implementation for more details.
 	static long upTime;
@@ -3728,14 +3727,6 @@ public class TASServer {
 					i++; // we must skip port number parameter in the next iteration
 				} else if (s.equals("LAN")) {
 					LAN_MODE = true;
-				} else if (s.equals("DEBUG")) {
-					int level = Integer.parseInt(args[i + 1]);
-					if ((level < 0) || (level > 127)) {
-						throw new IOException();
-					}
-					DEBUG = (byte) level;
-					// TODO: set logger to use Debugging
-					i++;  // we must skip debug level parameter in the next iteration
 				} else if (s.equals("STATISTICS")) {
 					RECORD_STATISTICS = true;
 				} else if (s.equals("NATPORT")) {
@@ -3813,9 +3804,6 @@ public class TASServer {
 			System.out.println("  Server will run in \"LAN mode\", meaning any user can login as");
 			System.out.println("  long as he uses unique username (password is ignored).");
 			System.out.println("  Note: Server will accept users from outside the local network too.");
-			System.out.println("");
-			System.out.println("-DEBUG [number]");
-			System.out.println("  Use 0 for no verbose, 1 for normal and 2 for extensive verbose.");
 			System.out.println("");
 			System.out.println("-STATISTICS");
 			System.out.println("  Server will create and save statistics on disk on predefined intervals.");
