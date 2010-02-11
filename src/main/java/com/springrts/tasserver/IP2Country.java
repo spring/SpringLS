@@ -44,7 +44,11 @@ public class IP2Country {
 	 * in a background thread).
 	 */
 	public static void updateDatabase() {
-		if (UpdateIP2CountryThread.inProgress()) return; // update already in progress. Let's just skip it ...
+
+		if (UpdateIP2CountryThread.inProgress()) {
+			// update already in progress. Let's just skip it ...
+			return;
+		}
 
 		Thread tmp = new UpdateIP2CountryThread();
 		tmp.setPriority(Thread.NORM_PRIORITY - 2);
@@ -104,18 +108,24 @@ public class IP2Country {
 					if (!prev.COUNTRY_CODE2.equals(ip.COUNTRY_CODE2)) {
 						// this poses a problem - we have two identical ranges each pointing to a different country. Which one is correct?
 						// Current way: keep 1st entry and discharge 2nd, but only if the 1st country is not EU or US (reason for this is that 1st database generally uses US/EU for various countries within these regions):
-						if (prev.COUNTRY_CODE2.equals("EU") || prev.COUNTRY_CODE2.equals("US")) prev.COUNTRY_CODE2 = ip.COUNTRY_CODE2;
+						if (prev.COUNTRY_CODE2.equals("EU") || prev.COUNTRY_CODE2.equals("US")) {
+							prev.COUNTRY_CODE2 = ip.COUNTRY_CODE2;
+						}
+						continue;
+					} else {
+						// discharge duplicate entry
 						continue;
 					}
-					else continue; // discharge duplicate entry
 				}
 				else if ((prev.IP_FROM == ip.IP_FROM) && (prev.IP_TO > ip.IP_TO)) {
 					if (!prev.COUNTRY_CODE2.equals(ip.COUNTRY_CODE2)) {
 						// this poses a problem - what to do about it?
 						// Currently we simply discharge the 2nd entry, hoping that the 1st one is correct (and 2nd wasn't)
 						continue;
+					} else {
+						// discharge duplicate subrange
+						continue;
 					}
-					else continue; // discharge duplicate subrange
 				}
 				else if ((prev.IP_FROM == ip.IP_FROM) && (prev.IP_TO < ip.IP_TO)) {
 					if (!prev.COUNTRY_CODE2.equals(ip.COUNTRY_CODE2)) {
@@ -132,8 +142,10 @@ public class IP2Country {
 						// this poses a problem - what should we do about it?
 						// Currently we simply discharge the 2nd entry, hoping that the 1st one is correct (and 2nd wasn't)
 						continue;
+					} else {
+						// discharge duplicate subrange
+						continue;
 					}
-					else continue; // discharge duplicate subrange
 				}
 				else if ((prev.IP_FROM < ip.IP_FROM) && (prev.IP_TO > ip.IP_FROM) && (prev.IP_TO < ip.IP_TO)) {
 					// this poses a problem - what should we do about it?
@@ -194,15 +206,20 @@ public class IP2Country {
 		String result = "XX";
 		try {
 			IPRange x = resolveTable.headMap(new IPRange(IP+1, IP+1, "XX")).lastKey(); // +1 because headMap() returns keys that are strictly less than given key
-			if ((x.IP_FROM <= IP) && (x.IP_TO >= IP)) result = x.COUNTRY_CODE2;
+			if ((x.IP_FROM <= IP) && (x.IP_TO >= IP)) {
+				result = x.COUNTRY_CODE2;
+			}
 		} catch (NoSuchElementException e) {
 			// do nothing
 		}
 
 		// quick fix for some non-standard country codes:
 		result = result.toUpperCase();
-		if (result.equals("UK")) result = "GB";
-		if (result.equals("FX")) result = "FR";
+		if (result.equals("UK")) {
+			result = "GB";
+		} else if (result.equals("FX")) {
+			result = "FR";
+		}
 
 		return result;
 	}

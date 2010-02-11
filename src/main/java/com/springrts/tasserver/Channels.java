@@ -6,27 +6,31 @@ package com.springrts.tasserver;
 
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Betalord
  */
 public class Channels {
 
-	static private ArrayList<Channel> channels = new ArrayList<Channel>();
+	static private List<Channel> channels = new ArrayList<Channel>();
 
 	public static int getChannelsSize() {
 		return channels.size();
 	}
 
-	/* returns null if channel does not exist (is not open) */
+	/** Returns <code>null</code> if channel does not exist (is not open) */
 	public static Channel getChannel(String chanName) {
+
 		for (int i = 0; i < channels.size(); i++) {
-			if (channels.get(i).name.equals(chanName)) return channels.get(i);
+			if (channels.get(i).name.equals(chanName)) {
+				return channels.get(i);
+			}
 		}
 		return null;
 	}
 
-	/* returns null if index is out of bounds */
+	/** Returns <code>null</code> if index is out of bounds */
 	public static Channel getChannel(int index) {
 		try {
 			return channels.get(index);
@@ -36,20 +40,30 @@ public class Channels {
 	}
 
 	public static boolean addChannel(Channel chan) {
-		if (getChannel(chan.name) != null) return false; // channel already exists!
+		if (getChannel(chan.name) != null) {
+			// channel already exists!
+			return false;
+		}
 		channels.add(chan);
 		return true;
 	}
 
-	/* removes channel from channel list. Returns true if channel was found. */
+	/**
+	 * Removes channel from channel list.
+	 * @return <code>true</code> if channel was found
+	 */
 	public static boolean removeChannel(Channel chan) {
 		return channels.remove(chan);
 	}
 
-	/* sends information on all clients in a channel (and the topic if it is set) to the client */
+	/**
+	 * Sends information about all clients in a channel to  a specific client.
+	 * Also sets the topic of the channel for that client.
+	 */
 	public static boolean sendChannelInfoToClient(Channel chan, Client client) {
 		client.beginFastWrite();
-		// it always sends info about at least one client - the one to whom this list must be sent
+		// it always sends info about at least one client;
+		// the one to whom this list must be sent
 		StringBuilder sb = new StringBuilder();
 		sb.append("CLIENTS ").append(chan.name);
 		int c = 0;
@@ -70,15 +84,21 @@ public class Channels {
 		}
 
 		// send the topic:
-		if (chan.isTopicSet()) client.sendLine("CHANNELTOPIC " + chan.name + " " + chan.getTopicAuthor() + " " + chan.getTopicChangedTime() + " " + chan.getTopic());
+		if (chan.isTopicSet()) {
+			client.sendLine("CHANNELTOPIC " + chan.name + " " + chan.getTopicAuthor() + " " + chan.getTopicChangedTime() + " " + chan.getTopic());
+		}
 
 		client.endFastWrite();
 		return true;
 	}
 
-	/* sends a list of all open channels to client */
+	/** Sends a list of all open channels to a client */
 	public static void sendChannelListToClient(Client client) {
-		if (channels.size() == 0) return ; // nothing to send
+
+		if (channels.size() == 0) {
+			// nothing to send
+			return;
+		}
 
 		client.beginFastWrite();
 		for (int i = 0; i < channels.size(); i++) {
@@ -89,17 +109,30 @@ public class Channels {
 	}
 
 	public static void notifyClientsOfNewClientInChannel(Channel chan, Client client) {
+
 		for (int i = 0; i < chan.getClientsSize(); i++) {
-			if (chan.getClient(i) == client) continue;
-			chan.getClient(i).sendLine("JOINED " + chan.name + " " + client.account.getName());
+			Client toBeNotified = chan.getClient(i);
+			if (toBeNotified != client) {
+				toBeNotified.sendLine("JOINED " + chan.name + " " + client.account.getName());
+			}
 		}
 	}
 
-	// returns 'null' if channel name is valid, or error description otherwise
+	/**
+	 * Returns <code>null</code> if the channel name is valid,
+	 * an error description otherwise.
+	 */
 	public static String isChanNameValid(String channame) {
-		if (channame.length() > 20) return "Channel name too long";
-		if (channame.length() < 1) return "Channel name too short";
-		if (!channame.matches("^[A-Za-z0-9_\\[\\]]+$")) return "Channel name contains invalid characters";
+
+		if (channame.length() > 20) {
+			return "Channel name too long";
+		}
+		if (channame.length() < 1) {
+			return "Channel name too short";
+		}
+		if (!channame.matches("^[A-Za-z0-9_\\[\\]]+$")) {
+			return "Channel name contains invalid characters";
+		}
 		// everything is OK:
 		return null;
 	}

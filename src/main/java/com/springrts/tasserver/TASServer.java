@@ -259,14 +259,15 @@ public class TASServer {
 	private static PrintStream mainChanLog;
 	private static String lanAdminUsername = "admin"; // default lan admin account. Can be overwritten with -LANADMIN switch. Used only when server is running in lan mode!
 	private static String lanAdminPassword = Misc.encodePassword("admin");
-	private static LinkedList<String> whiteList = new LinkedList<String>();
+	private static List<String> whiteList = new LinkedList<String>();
 	private static long purgeMutesInterval = 1000 * 3; // in miliseconds. On this interval, all channels' mute lists will be checked for expirations and purged accordingly.
 	private static long lastMutesPurgeTime = System.currentTimeMillis(); // time when we last purged mute lists of all channels
-	private static String[] reservedAccountNames = {"TASServer", "Server", "server"}; // accounts with these names cannot be registered (since they may be used internally by the server)
+	private static final Collection<String> reservedAccountNames = Arrays.asList(new String[] {"TASServer", "Server", "server"}); // accounts with these names cannot be registered (since they may be used internally by the server)
 	private static final long minSleepTimeBetweenMapGrades = 5; // minimum time (in seconds) required between two consecutive MAPGRADES command sent by the client. We need this to ensure that client doesn't send MAPGRADES command too often as it creates much load on the server.
-	private static int MAX_TEAMS = 16; // max. teams/allies numbers supported by Spring
+	public static final int MAX_TEAMS = 16; // max number of teams supported by Spring
+	public static final int MAX_ALLY_TEAMS = MAX_TEAMS; // max number of ally teams supported by Spring
 	public static boolean initializationFinished = false; // we set this to 'true' just before we enter the main loop. We need this information when saving accounts for example, so that we don't dump empty accounts to disk when an error has occured before initialization has been completed
-	private static ArrayList<FailedLoginAttempt> failedLoginAttempts = new ArrayList<FailedLoginAttempt>(); // here we store information on latest failed login attempts. We use it to block users from brute-forcing other accounts
+	private static List<FailedLoginAttempt> failedLoginAttempts = new ArrayList<FailedLoginAttempt>(); // here we store information on latest failed login attempts. We use it to block users from brute-forcing other accounts
 	private static long lastFailedLoginsPurgeTime = System.currentTimeMillis(); // time when we last purged list of failed login attempts
 	private static final Log s_log  = LogFactory.getLog(TASServer.class);
 	private static AccountsService accountsService = null;
@@ -806,7 +807,9 @@ public class TASServer {
 		bat.sendStartRectsListToClient(client);
 		bat.sendScriptTagsToClient(client);
 
-		if (bat.type == 1) bat.sendScriptToClient(client);
+		if (bat.type == 1) {
+			bat.sendScriptToClient(client);
+		}
 	}
 
 	/* Note: this method is not synchronized!
@@ -884,11 +887,9 @@ public class TASServer {
 					client.sendLine("SERVERMSG Account already exists");
 					return false;
 				}
-				for (int i = 0; i < TASServer.reservedAccountNames.length; i++) {
-					if (TASServer.reservedAccountNames[i].equals(commands[1])) {
-						client.sendLine("SERVERMSG Invalid account name - you are trying to register a reserved account name");
-						return false;
-					}
+				if (TASServer.reservedAccountNames.contains(commands[1])) {
+					client.sendLine("SERVERMSG Invalid account name - you are trying to register a reserved account name");
+					return false;
 				}
 				acc = new Account(
 						commands[1],
@@ -942,11 +943,9 @@ public class TASServer {
 				}
 
 				// check for reserved names:
-				for (int i = 0; i < TASServer.reservedAccountNames.length; i++) {
-					if (TASServer.reservedAccountNames[i].equals(commands[1])) {
-						client.sendLine("REGISTRATIONDENIED Invalid account name - you are trying to register a reserved account name");
+				if (TASServer.reservedAccountNames.contains(commands[1])) {
+					client.sendLine("REGISTRATIONDENIED Invalid account name - you are trying to register a reserved account name");
 						return false;
-					}
 				}
 				if (!whiteList.contains(client.IP)) {
 					/*if (registrationTimes.containsKey(client.IP)
@@ -3451,18 +3450,19 @@ public class TASServer {
 					return false;
 				}
 
-				if (bat.startRects[allyno].enabled) {
+				StartRect startRect = bat.startRects.get(allyno);
+				if (startRect.enabled) {
 					client.sendLine(new StringBuilder("SERVERMSG Serious error: inconsistent data (")
 							.append(commands[0]).append(" command). You will now be disconnected ...").toString());
 					Clients.killClient(client, "Quit: inconsistent data");
 					return false;
 				}
 
-				bat.startRects[allyno].enabled = true;
-				bat.startRects[allyno].left = left;
-				bat.startRects[allyno].top = top;
-				bat.startRects[allyno].right = right;
-				bat.startRects[allyno].bottom = bottom;
+				startRect.enabled = true;
+				startRect.left = left;
+				startRect.top = top;
+				startRect.right = right;
+				startRect.bottom = bottom;
 
 				bat.sendToAllExceptFounder(new StringBuilder("ADDSTARTRECT ")
 						.append(allyno).append(" ")
@@ -3499,14 +3499,15 @@ public class TASServer {
 					return false;
 				}
 
-				if (!bat.startRects[allyno].enabled) {
+				StartRect startRect = bat.startRects.get(allyno);
+				if (!startRect.enabled) {
 					client.sendLine(new StringBuilder("SERVERMSG Serious error: inconsistent data (")
 							.append(commands[0]).append(" command). You will now be disconnected ...").toString());
 					Clients.killClient(client, "Quit: inconsistent data");
 					return false;
 				}
 
-				bat.startRects[allyno].enabled = false;
+				startRect.enabled = false;
 
 				bat.sendToAllExceptFounder(new StringBuilder("REMOVESTARTRECT ").append(allyno).toString());
 			} else if (commands[0].equals("SCRIPTSTART")) {

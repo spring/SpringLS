@@ -6,13 +6,14 @@ package com.springrts.tasserver;
 
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Betalord
  */
 public class Battles {
 
-	private static ArrayList<Battle> battles = new ArrayList<Battle>();
+	private static List<Battle> battles = new ArrayList<Battle>();
 
 	public static int getBattlesSize() {
 		return battles.size();
@@ -23,8 +24,11 @@ public class Battles {
 	 * or else null is returned.
 	 */
 	public static Battle getBattleByID(int battleID) {
-		for (int i = 0; i < battles.size(); i++)
-			if (battles.get(i).ID == battleID) return battles.get(i);
+		for (int i = 0; i < battles.size(); i++) {
+			if (battles.get(i).ID == battleID) {
+				return battles.get(i);
+			}
+		}
 		return null;
 	}
 

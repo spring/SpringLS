@@ -19,16 +19,16 @@ public class Clients {
 
 	private static final Log s_log  = LogFactory.getLog(Clients.class);
 
-	static private ArrayList<Client> clients = new ArrayList<Client>();
+	static private List<Client> clients = new ArrayList<Client>();
 	/** A list of clients waiting to be killed (disconnected) */
-	static private ArrayList<Client> killList = new ArrayList<Client>();
+	static private List<Client> killList = new ArrayList<Client>();
 	/**
 	 * KillList is used when we want to kill a client but not immediately (within a loop, for example).
 	 * Client on the list will get killed after main server loop reaches its end.
 	 * Also see killClientDelayed() method. Any redundant entries will be
 	 * removed (client will be killed only once), so no additional logic for
 	 * consistency is required. */
-	static private ArrayList<String>reasonList = new ArrayList<String>(); // used with killList list (gives reason for each scheduled kill)
+	static private List<String>reasonList = new ArrayList<String>(); // used with killList list (gives reason for each scheduled kill)
 
 	/**
 	 * Here we keep a list of clients who have their send queues not empty.

@@ -24,7 +24,8 @@ public class NATHelpServer extends Thread {
 
 	private DatagramSocket socket = null;
 	private int port;
-	static public Vector<DatagramPacket> msgList = new Vector<DatagramPacket>(); // must be thread-safe
+	/** Has to be thread-safe (Vector is, most other List implementations are not) */
+	static public List<DatagramPacket> msgList = new Vector<DatagramPacket>();
 
 	public NATHelpServer(int port) {
 		this.port = port;
