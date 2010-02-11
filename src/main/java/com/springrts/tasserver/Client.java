@@ -15,6 +15,10 @@ import java.nio.charset.CharacterCodingException;
 import java.util.*;
 
 /**
+ * A Client instance can be seen as a session of a user, which has logged into
+ * the Lobby using his <code>Account</code> info.
+ *
+ * @see Account
  * @author Betalord
  */
 public class Client {
@@ -224,8 +228,9 @@ public class Client {
 		}
 
 		if (fastWrite != null) {
-			if (fastWrite.length() != 0)
+			if (fastWrite.length() != 0) {
 				fastWrite.append(Misc.EOL);
+			}
 			fastWrite.append(text);
 			return true;
 		}
@@ -315,8 +320,10 @@ public class Client {
 		if (chan == null) {
 			chan = new Channel(chanName);
 			Channels.addChannel(chan);
+		} else if (this.channels.indexOf(chan) != -1) {
+			// already in the channel
+			return null;
 		}
-		else if (this.channels.indexOf(chan) != -1) return null; // already in the channel
 
 		chan.addClient(this);
 		this.channels.add(chan);
@@ -392,8 +399,9 @@ public class Client {
 
 		if (!alive || halfDead) {
 			// disregard any other scheduled writes:
-			while (sendQueue.size() != 0)
+			while (sendQueue.size() != 0) {
 				sendQueue.remove();
+			}
 			return true; // no more data left to be flushed, so return true
 		}
 
@@ -402,9 +410,13 @@ public class Client {
 			try {
 				sockChan.write(buf);
 
-				if (buf.hasRemaining()) // this happens when send buffer is full and no more data can be written to it
-					break; // lets just skip it without removing the packet from the send queue (we will retry sending it later)
-
+				if (buf.hasRemaining()) {
+					// This happens when send buffer is full and no more data
+					// can be written to it.
+					// Lets just skip it without removing the packet
+					// from the send queue (we will retry sending it later).
+					break;
+				}
 				// remove element from queue (it was sent entirely)
 				sendQueue.remove();
 			} catch (ClosedChannelException cce) {

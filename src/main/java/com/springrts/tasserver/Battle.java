@@ -6,6 +6,7 @@ package com.springrts.tasserver;
 
 
 import java.util.*;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * @author Betalord
@@ -58,29 +59,24 @@ public class Battle {
 		this.startRects = new StartRect[16];
 		this.locked = false; // we assume this by default. Client must make sure it is unlocked.
 		this.scriptTags = new HashMap<String, String>();
-		for (int i = 0; i < startRects.length; i++) startRects[i] = new StartRect();
+		for (int i = 0; i < startRects.length; i++) {
+			startRects[i] = new StartRect();
+		}
 	}
 
-	/* creates BATTLEOPENED command from this battle and returns it as a result */
+	/**
+	 * Creates BATTLEOPENED command from this battle and returns it as a result
+	 * using the external IP.
+	 */
 	public String createBattleOpenedCommand() {
-
-		return new StringBuilder("BATTLEOPENED ")
-				.append(ID).append(" ")
-				.append(type).append(" ")
-				.append(natType).append(" ")
-				.append(founder.account.getName()).append(" ")
-				.append(founder.IP).append(" ")
-				.append(port).append(" ")
-				.append(maxPlayers).append(" ")
-				.append(Misc.boolToStr(restricted())).append(" ")
-				.append(rank).append(" ")
-				.append(mapHash).append(" ")
-				.append(mapName).append("\t")
-				.append(title).append("\t")
-				.append(modName).toString();
+		return createBattleOpenedCommandEx(false);
 	}
 
-	/* same as createBattleOpenedCommand() but requires sender to tell what IP to use (local or external) */
+	/**
+	 * Same as createBattleOpenedCommand() but requires sender to specify
+	 * what IP to use (local or external).
+	 * @see #createBattleOpenedCommand()
+	 */
 	public String createBattleOpenedCommandEx(boolean local) {
 
 		String ip;
@@ -89,6 +85,7 @@ public class Battle {
 		} else {
 			ip = founder.IP;
 		}
+
 		return new StringBuilder("BATTLEOPENED ")
 				.append(ID).append(" ")
 				.append(type).append(" ")
@@ -105,8 +102,10 @@ public class Battle {
 				.append(modName).toString();
 	}
 
-	/* sends series of CLIENTBATTLESTATUS command to client telling him about battle statuses
-	 * of all clients in this battle EXCEPT for himself! */
+	/**
+	 * Sends series of CLIENTBATTLESTATUS command to client telling him
+	 * about the battle stati of all clients in this battle EXCEPT for himself!
+	 */
 	public void notifyOfBattleStatuses(Client client) {
 
 		for (int i = 0; i < this.clients.size(); i++) {
@@ -127,8 +126,10 @@ public class Battle {
 		}
 	}
 
-	/* notifies all clients in the battle (including the client) about new battle status
-	 * of the client. */
+	/**
+	 * Notifies all clients in the battle (including the client)
+	 * about the new battle status of the client.
+	 */
 	public void notifyClientsOfBattleStatus(Client client) {
 		sendToAllClients(new StringBuilder("CLIENTBATTLESTATUS ")
 				.append(client.account.getName()).append(" ")
@@ -136,7 +137,9 @@ public class Battle {
 				.append(client.teamColor).toString());
 	}
 
-	/* sends String s to all clients participating in this battle */
+	/**
+	 * Sends <code>s</code> to all clients participating in this battle.
+	 */
 	public void sendToAllClients(String s) {
 
 		for (int i = 0; i < this.clients.size(); i++) {
@@ -145,7 +148,10 @@ public class Battle {
 		founder.sendLine(s);
 	}
 
-	/* sends String s to all clients participating in this battle except for the founder */
+	/**
+	 * Sends <code>s</code> to all clients participating in this battle
+	 * except for the founder.
+	 */
 	public void sendToAllExceptFounder(String s) {
 		for (int i = 0; i < this.clients.size(); i++) {
 			clients.get(i).sendLine(s);
@@ -224,7 +230,7 @@ public class Battle {
 
 	public boolean isClientInBattle(Client client) {
 
-		// TODO: possible simplification if equals nad hashCode method of Client are good
+		// TODO: possible simplification if equals and hashCode method of Client are good
 		for (int i = 0; i < clients.size(); i++) {
 			if (clients.get(i) == client) {
 				return true;
@@ -239,7 +245,7 @@ public class Battle {
 
 	public boolean isClientInBattle(String username) {
 
-		// TODO: possible simplification if equals nad hashCode method of Client are good
+		// TODO: possible simplification if equals and hashCode method of Client are good
 		for (int i = 0; i < clients.size(); i++) {
 			if (clients.get(i).account.getName().equals(username)) {
 				return true;
@@ -254,7 +260,7 @@ public class Battle {
 
 	public Client getClient(String username) {
 
-		// TODO: possible simplification if equals nad hashCode method of Client are good
+		// TODO: possible simplification if equals and hashCode method of Client are good
 		for (int i = 0; i < clients.size(); i++) {
 			if (clients.get(i).account.getName().equals(username)) {
 				return clients.get(i);
@@ -288,26 +294,34 @@ public class Battle {
 		return bots.size();
 	}
 
-	/** Returns Bot object of the specified bot, or null if the bot does not exist */
+	/**
+	 * Returns Bot object of the specified bot, or <code>null</code>
+	 * if the bot does not exist
+	 */
 	public Bot getBot(String name) {
 
 		for (int i = 0; i < bots.size(); i++) {
-			if (bots.get(i).name.equals(name)) {
-				return bots.get(i);
+			Bot bot = bots.get(i);
+			if (bot.name.equals(name)) {
+				return bot;
 			}
 		}
 		return null;
 	}
 
-	/** Returns null if index is out of bounds */
+	/** Returns <code>null</code> if index is out of bounds */
 	public Bot getBot(int index) {
 
-		// TODO: not good catching the exception
+		Bot bot = null;
+
 		try {
-			return bots.get(index);
+			bot = bots.get(index);
 		} catch (IndexOutOfBoundsException e) {
-			return null;
+			LogFactory.getLog(TASServer.class).error("Failed fetching a bot by index", e);
+			bot = null;
 		}
+
+		return bot;
 	}
 
 	/** Adds bot to the bot list */
@@ -319,11 +333,12 @@ public class Battle {
 	public boolean removeFirstBotOfClient(Client client) {
 
 		for (int i = 0; i < bots.size(); i++) {
-			if (bots.get(i).ownerName.equals(client.account.getName())) {
+			Bot bot = bots.get(i);
+			if (bot.ownerName.equals(client.account.getName())) {
 				sendToAllClients(new StringBuilder("REMOVEBOT ")
 						.append(ID).append(" ")
-						.append(bots.get(i).name).toString());
-				bots.remove(i);
+						.append(bot.name).toString());
+				bots.remove(bot);
 				return true;
 			}
 		}
@@ -345,28 +360,29 @@ public class Battle {
 	public void sendBotListToClient(Client client) {
 
 		for (int i = 0; i < bots.size(); i++) {
+			Bot bot = bots.get(i);
 			client.sendLine(new StringBuilder("ADDBOT ")
 					.append(ID).append(" ")
-					.append(bots.get(i).name).append(" ")
-					.append(bots.get(i).ownerName).append(" ")
-					.append(bots.get(i).battleStatus).append(" ")
-					.append(bots.get(i).teamColor).append(" ")
-					.append(bots.get(i).AIDll).toString());
+					.append(bot.name).append(" ")
+					.append(bot.ownerName).append(" ")
+					.append(bot.battleStatus).append(" ")
+					.append(bot.teamColor).append(" ")
+					.append(bot.AIDll).toString());
 		}
 	}
 
 	public void sendStartRectsListToClient(Client client) {
 
 		for (int i = 0; i < startRects.length; i++) {
-			if (!startRects[i].enabled) {
-				continue;
+			StartRect curStartRect = startRects[i];
+			if (curStartRect.enabled) {
+				client.sendLine(new StringBuilder("ADDSTARTRECT ")
+						.append(i).append(" ")
+						.append(curStartRect.left).append(" ")
+						.append(curStartRect.top).append(" ")
+						.append(curStartRect.right).append(" ")
+						.append(curStartRect.bottom).toString());
 			}
-			client.sendLine(new StringBuilder("ADDSTARTRECT ")
-					.append(i).append(" ")
-					.append(startRects[i].left).append(" ")
-					.append(startRects[i].top).append(" ")
-					.append(startRects[i].right).append(" ")
-					.append(startRects[i].bottom).toString());
 		}
 	}
 

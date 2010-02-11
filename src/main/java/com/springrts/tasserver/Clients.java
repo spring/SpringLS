@@ -20,24 +20,28 @@ public class Clients {
 	private static final Log s_log  = LogFactory.getLog(Clients.class);
 
 	static private ArrayList<Client> clients = new ArrayList<Client>();
-
-	static private ArrayList<Client> killList = new ArrayList<Client>(); // a list of clients waiting to be killed (disconnected)
-	/* killList is used when we want to kill a client but not immediately (within a loop, for example).
+	/** A list of clients waiting to be killed (disconnected) */
+	static private ArrayList<Client> killList = new ArrayList<Client>();
+	/**
+	 * KillList is used when we want to kill a client but not immediately (within a loop, for example).
 	 * Client on the list will get killed after main server loop reaches its end.
 	 * Also see killClientDelayed() method. Any redundant entries will be
 	 * removed (client will be killed only once), so no additional logic for
 	 * consistency is required. */
 	static private ArrayList<String>reasonList = new ArrayList<String>(); // used with killList list (gives reason for each scheduled kill)
 
-	/* here we keep a list of clients who have their send queues not empty.
+	/**
+	 * Here we keep a list of clients who have their send queues not empty.
 	 * This collection is not synchronized! Use Collections.synchronizedList to wrap it if synchronized
 	 * access is needed. (http://java.sun.com/j2se/1.5.0/docs/api/java/util/Collections.html#synchronizedList(java.util.List))
-	 * */
+	 */
 	static private Queue<Client> sendQueue = new LinkedList<Client>();
 
-	/* will create new Client object and add it to the 'clients' list
-	 * and will also register it's socket channel with 'readSelector'.
-	 * Use 'sendBufferSize' to specify socket's send buffer size. */
+	/**
+	 * Will create new <code>Client</code> object, add it to the 'clients' list
+	 * and register its socket channel with 'readSelector'.
+	 * @param sendBufferSize specifies the sockets send buffer size.
+	 */
 	public static Client addNewClient(SocketChannel chan, Selector readSelector, int sendBufferSize) {
 
 		Client client = new Client(chan);
@@ -71,12 +75,17 @@ public class Clients {
 
 	public static Client getClient(String username) {
 
+		Client theClient = null;
+
 		for (int i = 0; i < clients.size(); i++) {
-			if (clients.get(i).account.getName().equals(username)) {
-				return clients.get(i);
+			Client toCheck = clients.get(i);
+			if (toCheck.account.getName().equals(username)) {
+				theClient = toCheck;
+				break;
 			}
 		}
-		return null;
+
+		return theClient;
 	}
 
 	/** Returns null if index is out of bounds */
@@ -91,16 +100,26 @@ public class Clients {
 
 	/** Returns true if user is logged in */
 	public static boolean isUserLoggedIn(Account acc) {
+
+		boolean isLoggedIn = false;
+
 		for (int i = 0; i < clients.size(); i++) {
-			if (clients.get(i).account.getName().equals(acc.getName())) return true;
+			if (clients.get(i).account.getName().equals(acc.getName())) {
+				isLoggedIn = true;
+				break;
+			}
 		}
-		return false;
+
+		return isLoggedIn;
 	}
 
 	public static void sendToAllRegisteredUsers(String s) {
+
 		for (int i = 0; i < clients.size(); i++) {
-			if (clients.get(i).account.getAccess().compareTo(Account.Access.NORMAL) < 0) continue;
-			clients.get(i).sendLine(s);
+			Client toBeNotified = clients.get(i);
+			if (toBeNotified.account.getAccess().compareTo(Account.Access.NORMAL) >= 0) {
+				toBeNotified.sendLine(s);
+			}
 		}
 	}
 
@@ -108,21 +127,22 @@ public class Clients {
 	public static void sendToAllRegisteredUsersExcept(Client client, String s) {
 
 		for (int i = 0; i < clients.size(); i++) {
-			if ((clients.get(i).account.getAccess().compareTo(Account.Access.NORMAL) < 0)
-					|| clients.get(i) == client) {
+			Client toBeNotified = clients.get(i);
+			if ((toBeNotified.account.getAccess().compareTo(Account.Access.NORMAL) >= 0) &&
+			    (toBeNotified != client)) {
 				continue;
 			}
-			clients.get(i).sendLine(s);
+			toBeNotified.sendLine(s);
 		}
 	}
 
 	public static void sendToAllAdministrators(String s) {
 
 		for (int i = 0; i < clients.size(); i++) {
-			if (clients.get(i).account.getAccess().compareTo(Account.Access.ADMIN) < 0) {
-				continue;
+			Client toBeNotified = clients.get(i);
+			if (toBeNotified.account.getAccess().compareTo(Account.Access.ADMIN) >= 0) {
+				toBeNotified.sendLine(s);
 			}
-			clients.get(i).sendLine(s);
 		}
 	}
 
@@ -134,16 +154,16 @@ public class Clients {
 
 		client.beginFastWrite();
 		for (int i = 0; i < clients.size(); i++) {
-			if (clients.get(i).account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
-				continue;
-			}
-			if (clients.get(i).status != 0) {
-				// only send it if not 0.
-				// The user assumes that every new user's status is 0,
-				// so we don't need to tell him that explicitly.
-				client.sendLine(new StringBuilder("CLIENTSTATUS ")
-						.append(clients.get(i).account.getName()).append(" ")
-						.append(clients.get(i).status).toString());
+			Client toBeNotified = clients.get(i);
+			if (toBeNotified.account.getAccess().compareTo(Account.Access.NORMAL) >= 0) {
+				if (toBeNotified.status != 0) {
+					// only send it if not 0.
+					// The user assumes that every new user's status is 0,
+					// so we don't need to tell him that explicitly.
+					client.sendLine(new StringBuilder("CLIENTSTATUS ")
+							.append(toBeNotified.account.getName()).append(" ")
+							.append(toBeNotified.status).toString());
+				}
 			}
 		}
 		client.endFastWrite();
@@ -168,20 +188,20 @@ public class Clients {
 
 		client.beginFastWrite();
 		for (int i = 0; i < clients.size(); i++) {
-			if (clients.get(i).account.getAccess().compareTo(Account.Access.NORMAL) < 0) {
-				continue;
-			}
-			if (client.acceptAccountIDs) {
-				client.sendLine(new StringBuilder("ADDUSER ")
-						.append(clients.get(i).account.getName()).append(" ")
-						.append(clients.get(i).country).append(" ")
-						.append(clients.get(i).cpu).append(" ")
-						.append(clients.get(i).account.getId()).toString());
-			} else {
-				client.sendLine(new StringBuilder("ADDUSER ")
-						.append(clients.get(i).account.getName()).append(" ")
-						.append(clients.get(i).country).append(" ")
-						.append(clients.get(i).cpu).toString());
+			Client toBeNotified = clients.get(i);
+			if (toBeNotified.account.getAccess().compareTo(Account.Access.NORMAL) >= 0) {
+				if (client.acceptAccountIDs) {
+					client.sendLine(new StringBuilder("ADDUSER ")
+							.append(toBeNotified.account.getName()).append(" ")
+							.append(toBeNotified.country).append(" ")
+							.append(toBeNotified.cpu).append(" ")
+							.append(toBeNotified.account.getId()).toString());
+				} else {
+					client.sendLine(new StringBuilder("ADDUSER ")
+							.append(toBeNotified.account.getName()).append(" ")
+							.append(toBeNotified.country).append(" ")
+							.append(toBeNotified.cpu).toString());
+				}
 			}
 		}
 		client.endFastWrite();
@@ -193,34 +213,41 @@ public class Clients {
 	 * by some other method.
 	 */
 	public static void notifyClientsOfNewClientOnServer(Client client) {
+
 		for (int i = 0; i < clients.size(); i++) {
-			if (clients.get(i).account.getAccess().compareTo(Account.Access.NORMAL) < 0) continue;
-			if (clients.get(i) == client) continue;
-			if(clients.get(i).acceptAccountIDs) {
-				clients.get(i).sendLine(new StringBuilder("ADDUSER ")
-						.append(client.account.getName()).append(" ")
-						.append(client.country).append(" ")
-						.append(client.cpu).append(" ")
-						.append(client.account.getId()).toString());
-			}else{
-				clients.get(i).sendLine(new StringBuilder("ADDUSER ")
-						.append(client.account.getName()).append(" ")
-						.append(client.country).append(" ")
-						.append(client.cpu).toString());
+			Client toBeNotified = clients.get(i);
+			if ((toBeNotified.account.getAccess().compareTo(Account.Access.NORMAL) >= 0) &&
+			    (toBeNotified != client)) {
+				if (toBeNotified.acceptAccountIDs) {
+					toBeNotified.sendLine(new StringBuilder("ADDUSER ")
+							.append(client.account.getName()).append(" ")
+							.append(client.country).append(" ")
+							.append(client.cpu).append(" ")
+							.append(client.account.getId()).toString());
+				} else {
+					toBeNotified.sendLine(new StringBuilder("ADDUSER ")
+							.append(client.account.getName()).append(" ")
+							.append(client.country).append(" ")
+							.append(client.cpu).toString());
+				}
 			}
 		}
 	}
 
 	/**
-	 * The client who just joined the battle is also notified (he should also be notified
-	 * with JOINBATTLE command. See protocol description)
+	 * The client who just joined the battle is also notified.
+	 * He should also be notified through the JOINBATTLE command.
+	 * See the protocol description.
 	 */
 	public static void notifyClientsOfNewClientInBattle(Battle battle, Client client) {
+
 		for (int i = 0; i < clients.size(); i++)  {
-			if (clients.get(i).account.getAccess().compareTo(Account.Access.NORMAL) < 0) continue;
-			clients.get(i).sendLine(new StringBuilder("JOINEDBATTLE ")
-					.append(battle.ID).append(" ")
-					.append(client.account.getName()).toString());
+			Client toBeNotified = clients.get(i);
+			if (toBeNotified.account.getAccess().compareTo(Account.Access.NORMAL) >= 0) {
+				toBeNotified.sendLine(new StringBuilder("JOINEDBATTLE ")
+						.append(battle.ID).append(" ")
+						.append(client.account.getName()).toString());
+			}
 		}
 	}
 
@@ -279,20 +306,24 @@ public class Clients {
 		return true;
 	}
 
-	/* this method will cause the client to be killed, but not immediately - it will do it
+	/**
+	 * This method will cause the client to be killed, but not immediately - it will do it
 	 * once main server loop reaches its end. We need this on some occassions when we iterate
 	 * through the clients list - we don't want client to be removed from the clients list
 	 * since that would "broke" our loop (since we go from index 0 to highest index, which
-	 * would be invalid as highest index would decrease by 1). */
+	 * would be invalid as highest index would decrease by 1).
+	 */
 	public static void killClientDelayed(Client client, String reason) {
 		killList.add(client);
 		reasonList.add(reason);
 		client.halfDead = true;
 	}
 
-	/* this will kill all clients in the current kill list and empty it.
+	/**
+	 * This will kill all clients in the current kill list and empty it.
 	 * Must only be called from the main server loop (at the end of it)!
-	 * Any redundant entries are ignored (cleared). */
+	 * Any redundant entries are ignored (cleared).
+	 */
 	public static void processKillList() {
 		for (; killList.size() > 0;) {
 			killClient(killList.get(0), reasonList.get(0));
@@ -301,9 +332,11 @@ public class Clients {
 		}
 	}
 
-	/* this will try to go through the list of clients that still have pending data to be sent
+	/**
+	 * This will try to go through the list of clients that still have pending data to be sent
 	 * and will try to send it. When it encounters first client that can't flush data, it will add
-	 * him to the queue's tail and break the loop. */
+	 * him to the queue's tail and break the loop.
+	 */
 	public static void flushData() {
 		Client client;
 		while ((client = sendQueue.poll()) != null) {
@@ -314,7 +347,7 @@ public class Clients {
 		}
 	}
 
-	/* adds client to the queue of clients who have more data to be sent */
+	/** Adds client to the queue of clients who have more data to be sent */
 	public static void enqueueDelayedData(Client client) {
 		sendQueue.add(client);
 	}
