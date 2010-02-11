@@ -22,6 +22,7 @@ public class NATHelpServer extends Thread {
 
 	private static final Log s_log  = LogFactory.getLog(NATHelpServer.class);
 
+	private static final int buffer_size = 256;
 	private DatagramSocket socket = null;
 	private int port;
 	/** Has to be thread-safe (Vector is, most other List implementations are not) */
@@ -42,15 +43,15 @@ public class NATHelpServer extends Thread {
 
 		s_log.info("UDP server started on port " + port);
 
+		byte[] buffer = new byte[buffer_size];
 		while (true) {
 			try {
 				if (isInterrupted()) {
 					break;
 				}
-				byte[] buf = new byte[256];
 
 				// receive packet
-				DatagramPacket packet = new DatagramPacket(buf, buf.length);
+				DatagramPacket packet = new DatagramPacket(buffer, buffer_size);
 				socket.receive(packet);
 				msgList.add(packet);
 			} catch (InterruptedIOException e) {
