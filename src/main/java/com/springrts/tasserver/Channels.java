@@ -23,7 +23,7 @@ public class Channels {
 	public static Channel getChannel(String chanName) {
 
 		for (int i = 0; i < channels.size(); i++) {
-			if (channels.get(i).name.equals(chanName)) {
+			if (channels.get(i).getName().equals(chanName)) {
 				return channels.get(i);
 			}
 		}
@@ -40,7 +40,7 @@ public class Channels {
 	}
 
 	public static boolean addChannel(Channel chan) {
-		if (getChannel(chan.name) != null) {
+		if (getChannel(chan.getName()) != null) {
 			// channel already exists!
 			return false;
 		}
@@ -65,7 +65,7 @@ public class Channels {
 		// it always sends info about at least one client;
 		// the one to whom this list must be sent
 		StringBuilder sb = new StringBuilder();
-		sb.append("CLIENTS ").append(chan.name);
+		sb.append("CLIENTS ").append(chan.getName());
 		int c = 0;
 
 		for (int i = 0; i < chan.getClientsSize(); i++) {
@@ -75,7 +75,7 @@ public class Channels {
 			if (c > 10) {
 				client.sendLine(sb.toString());
 				sb = new StringBuilder();
-				sb.append("CLIENTS ").append(chan.name);
+				sb.append("CLIENTS ").append(chan.getName());
 				c = 0;
 			}
 		}
@@ -85,7 +85,7 @@ public class Channels {
 
 		// send the topic:
 		if (chan.isTopicSet()) {
-			client.sendLine("CHANNELTOPIC " + chan.name + " " + chan.getTopicAuthor() + " " + chan.getTopicChangedTime() + " " + chan.getTopic());
+			client.sendLine("CHANNELTOPIC " + chan.getName() + " " + chan.getTopicAuthor() + " " + chan.getTopicChangedTime() + " " + chan.getTopic());
 		}
 
 		client.endFastWrite();
@@ -102,7 +102,7 @@ public class Channels {
 
 		client.beginFastWrite();
 		for (int i = 0; i < channels.size(); i++) {
-			client.sendLine("CHANNEL " + channels.get(i).name + " " + channels.get(i).getClientsSize() + (channels.get(i).isTopicSet() ? " " + channels.get(i).getTopic() : ""));
+			client.sendLine("CHANNEL " + channels.get(i).getName() + " " + channels.get(i).getClientsSize() + (channels.get(i).isTopicSet() ? " " + channels.get(i).getTopic() : ""));
 		}
 		client.sendLine("ENDOFCHANNELS");
 		client.endFastWrite();
@@ -113,7 +113,7 @@ public class Channels {
 		for (int i = 0; i < chan.getClientsSize(); i++) {
 			Client toBeNotified = chan.getClient(i);
 			if (toBeNotified != client) {
-				toBeNotified.sendLine("JOINED " + chan.name + " " + client.account.getName());
+				toBeNotified.sendLine("JOINED " + chan.getName() + " " + client.account.getName());
 			}
 		}
 	}

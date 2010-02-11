@@ -18,13 +18,17 @@ public class Channel {
 
 	private static final Log s_log  = LogFactory.getLog(Channel.class);
 
-	public String name;
+	private String name;
 	private String topic; // "" represents no topic (topic is disabled for this channel)
 	private String topicAuthor;
 	private long topicChangedTime; // time when topic was last changed (in ms since Jan 1, 1970 UTC)
 	private String key = ""; // if key is "" then this channel is not locked (anyone can join). Otherwise, user must supply correct key to join it.
 	private List<Client> clients; // clients participating in this channel
-	public MuteList muteList = new MuteList(this); // contains a list of Strings (usernames) who are muted (not allowed to talk in the channel)
+	/**
+	 * Contains a list of user names which are muted
+	 * (not allowed to talk in the channel).
+	 */
+	private MuteList muteList = new MuteList(this);
 
 	public Channel(String channelName) {
 		name = new String(channelName);
@@ -134,5 +138,21 @@ public class Channel {
 
 	public String getKey() {
 		return key;
+	}
+
+	/**
+	 * @return the name
+	 */
+	public String getName() {
+		return name;
+	}
+
+	/**
+	 * Contains a list of user names which are muted
+	 * (not allowed to talk in the channel).
+	 * @return the muteList
+	 */
+	public MuteList getMuteList() {
+		return muteList;
 	}
 }

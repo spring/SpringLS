@@ -352,7 +352,7 @@ public class Client {
 				}
 				for (int i = 0; i < chan.getClientsSize(); i++) {
 					chan.getClient(i).sendLine(new StringBuilder("LEFT ")
-							.append(chan.name).append(" ")
+							.append(chan.getName()).append(" ")
 							.append(this.account.getName())
 							.append(reason).toString());
 				}
@@ -384,7 +384,7 @@ public class Client {
 	public Channel getChannel(String chanName) {
 
 		for (int i = 0; i < channels.size(); i++) {
-			if (channels.get(i).name.equals(chanName)) {
+			if (channels.get(i).getName().equals(chanName)) {
 				return channels.get(i);
 			}
 		}

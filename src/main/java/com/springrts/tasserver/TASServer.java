@@ -1536,7 +1536,7 @@ public class TASServer {
 				}
 
 				String username = commands[2];
-				if (chan.muteList.isMuted(username)) {
+				if (chan.getMuteList().isMuted(username)) {
 					client.sendLine(new StringBuilder("SERVERMSG MUTE failed: User <").append(username).append("> is already muted. Unmute first!").toString());
 					return false;
 				}
@@ -1566,11 +1566,11 @@ public class TASServer {
 					return false;
 				}
 
-				chan.muteList.mute(username, minutes * 60, (muteByIP ? targetAccount.getLastIP() : null));
+				chan.getMuteList().mute(username, minutes * 60, (muteByIP ? targetAccount.getLastIP() : null));
 
 				client.sendLine(new StringBuilder("SERVERMSG You have muted <")
 						.append(username).append("> on channel #")
-						.append(chan.name).append(".").toString());
+						.append(chan.getName()).append(".").toString());
 				chan.broadcast(new StringBuilder("<")
 						.append(client.account.getName()).append("> has muted <")
 						.append(username).append(">").toString());
@@ -1594,10 +1594,10 @@ public class TASServer {
 					return false;
 				}
 
-				chan.muteList.unmute(username);
+				chan.getMuteList().unmute(username);
 				client.sendLine(new StringBuilder("SERVERMSG You have unmuted <")
 						.append(username).append("> on channel #")
-						.append(chan.name).append(".").toString());
+						.append(chan.getName()).append(".").toString());
 				chan.broadcast(new StringBuilder("<")
 						.append(client.account.getName()).append("> has unmuted <")
 						.append(username).append(">").toString());
@@ -1617,18 +1617,18 @@ public class TASServer {
 					return false;
 				}
 
-				client.sendLine(new StringBuilder("MUTELISTBEGIN ").append(chan.name).toString());
+				client.sendLine(new StringBuilder("MUTELISTBEGIN ").append(chan.getName()).toString());
 
-				int size = chan.muteList.size(); // we mustn't call muteList.size() in for loop since it will purge expired records each time and so we could have ArrayOutOfBounds exception
+				int size = chan.getMuteList().size(); // we mustn't call muteList.size() in for loop since it will purge expired records each time and so we could have ArrayOutOfBounds exception
 				for (int i = 0; i < size; i++) {
-					if (chan.muteList.getRemainingSeconds(i) == 0) {
+					if (chan.getMuteList().getRemainingSeconds(i) == 0) {
 						client.sendLine(new StringBuilder("MUTELIST ")
-								.append(chan.muteList.getUsername(i))
+								.append(chan.getMuteList().getUsername(i))
 								.append(", indefinite time remaining").toString());
 					} else {
 						client.sendLine(new StringBuilder("MUTELIST ")
-								.append(chan.muteList.getUsername(i)).append(", ")
-								.append(chan.muteList.getRemainingSeconds(i))
+								.append(chan.getMuteList().getUsername(i)).append(", ")
+								.append(chan.getMuteList().getRemainingSeconds(i))
 								.append(" seconds remaining").toString());
 					}
 				}
@@ -1823,7 +1823,7 @@ public class TASServer {
 					chan.setKey("");
 					chan.broadcast(new StringBuilder("<")
 							.append(client.account.getName()).append("> has just unlocked #")
-							.append(chan.name).toString());
+							.append(chan.getName()).toString());
 				} else {
 					if (!commands[2].matches("^[A-Za-z0-9_]+$")) {
 						client.sendLine(new StringBuilder("SERVERMSG Error: Invalid key: ").append(commands[2]).toString());
@@ -1832,7 +1832,7 @@ public class TASServer {
 					chan.setKey(commands[2]);
 					chan.broadcast(new StringBuilder("<")
 							.append(client.account.getName()).append("> has just locked #")
-							.append(chan.name).append(" with private key").toString());
+							.append(chan.getName()).append(" with private key").toString());
 				}
 			} else if (commands[0].equals("FORCELEAVECHANNEL")) {
 				if (client.account.getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
@@ -1858,7 +1858,7 @@ public class TASServer {
 				if (!chan.isClientInThisChannel(target)) {
 					client.sendLine(new StringBuilder("SERVERMSG Error: <")
 							.append(commands[2]).append("> is not in the channel #")
-							.append(chan.name).append("!").toString());
+							.append(chan.getName()).append("!").toString());
 					return false;
 				}
 
@@ -1871,7 +1871,7 @@ public class TASServer {
 						.append(target.account.getName()).append("> from the channel")
 						.append(reason.equals("") ? "" : " (reason:").append(reason).append(")").toString());
 				target.sendLine(new StringBuilder("FORCELEAVECHANNEL ")
-						.append(chan.name).append(" ")
+						.append(chan.getName()).append(" ")
 						.append(client.account.getName()).append(reason).toString());
 				target.leaveChannel(chan, "kicked from channel");
 			} else if (commands[0].equals("ADDNOTIFICATION")) {
@@ -2357,7 +2357,7 @@ public class TASServer {
 
 				// make sure all mutes are accordingly adjusted to new username:
 				for (int i = 0; i < Channels.getChannelsSize(); i++) {
-					Channels.getChannel(i).muteList.rename(client.account.getName(), commands[1]);
+					Channels.getChannel(i).getMuteList().rename(client.account.getName(), commands[1]);
 				}
 
 				final String oldName = client.account.getName();
@@ -2489,17 +2489,17 @@ public class TASServer {
 				}
 
 				if (!chan.setTopic(Misc.makeSentence(commands, 2), client.account.getName())) {
-					client.sendLine(new StringBuilder("SERVERMSG You've just disabled the topic for channel #").append(chan.name).toString());
+					client.sendLine(new StringBuilder("SERVERMSG You've just disabled the topic for channel #").append(chan.getName()).toString());
 					chan.broadcast(new StringBuilder("<")
 							.append(client.account.getName()).append("> has just disabled topic for #")
-							.append(chan.name).toString());
+							.append(chan.getName()).toString());
 				} else {
-					client.sendLine(new StringBuilder("SERVERMSG You've just changed the topic for channel #").append(chan.name).toString());
+					client.sendLine(new StringBuilder("SERVERMSG You've just changed the topic for channel #").append(chan.getName()).toString());
 					chan.broadcast(new StringBuilder("<")
 							.append(client.account.getName()).append("> has just changed topic for #")
-							.append(chan.name).toString());
+							.append(chan.getName()).toString());
 					chan.sendLineToClients(new StringBuilder("CHANNELTOPIC ")
-							.append(chan.name).append(" ")
+							.append(chan.getName()).append(" ")
 							.append(chan.getTopicAuthor()).append(" ")
 							.append(chan.getTopicChangedTime()).append(" ")
 							.append(chan.getTopic()).toString());
@@ -2517,13 +2517,13 @@ public class TASServer {
 					return false;
 				}
 
-				if (chan.muteList.isMuted(client.account.getName())) {
+				if (chan.getMuteList().isMuted(client.account.getName())) {
 					client.sendLine(new StringBuilder("SERVERMSG Message dropped. You are not allowed to talk in #")
-							.append(chan.name).append("! Please contact one of the moderators.").toString());
+							.append(chan.getName()).append("! Please contact one of the moderators.").toString());
 					return false;
-				} else if (chan.muteList.isIPMuted(client.IP)) {
+				} else if (chan.getMuteList().isIPMuted(client.IP)) {
 					client.sendLine(new StringBuilder("SERVERMSG Message dropped. You are not allowed to talk in #")
-							.append(chan.name).append(" (muted by IP address)! If you believe this is an error, contact one of the moderators.").toString());
+							.append(chan.getName()).append(" (muted by IP address)! If you believe this is an error, contact one of the moderators.").toString());
 					return false;
 				}
 
@@ -2541,7 +2541,7 @@ public class TASServer {
 							.append(client.account.getName()).append(") - exceeded maximum chat message size. Ignoring ...").toString());
 					return false;
 				}
-				chan.sendLineToClients(new StringBuilder("SAID ").append(chan.name).append(" ").append(client.account.getName()).append(" ").append(s).toString());
+				chan.sendLineToClients(new StringBuilder("SAID ").append(chan.getName()).append(" ").append(client.account.getName()).append(" ").append(s).toString());
 			} else if (commands[0].equals("SAYEX")) {
 				if (commands.length < 3) {
 					return false;
@@ -2555,14 +2555,14 @@ public class TASServer {
 					return false;
 				}
 
-				if (chan.muteList.isMuted(client.account.getName())) {
+				if (chan.getMuteList().isMuted(client.account.getName())) {
 					client.sendLine(new StringBuilder("SERVERMSG Message dropped. You are not allowed to talk in #")
-							.append(chan.name)
+							.append(chan.getName())
 							.append("! Please contact one of the moderators.").toString());
 					return false;
-				} else if (chan.muteList.isIPMuted(client.IP)) {
+				} else if (chan.getMuteList().isIPMuted(client.IP)) {
 					client.sendLine(new StringBuilder("SERVERMSG Message dropped. You are not allowed to talk in #")
-							.append(chan.name)
+							.append(chan.getName())
 							.append(" (muted by IP address)! If you believe this is an error, contact one of the moderators.").toString());
 					return false;
 				}
@@ -2584,7 +2584,7 @@ public class TASServer {
 				}
 
 				chan.sendLineToClients(new StringBuilder("SAIDEX ")
-						.append(chan.name).append(" ")
+						.append(chan.getName()).append(" ")
 						.append(client.account.getName()).append(" ")
 						.append(s).toString());
 			} else if (commands[0].equals("SAYPRIVATE")) {
@@ -4015,7 +4015,7 @@ public class TASServer {
 			if (System.currentTimeMillis() - lastMutesPurgeTime > purgeMutesInterval) {
 				lastMutesPurgeTime = System.currentTimeMillis();
 				for (int i = 0; i < Channels.getChannelsSize(); i++) {
-					Channels.getChannel(i).muteList.clearExpiredOnes();
+					Channels.getChannel(i).getMuteList().clearExpiredOnes();
 				}
 			}
 
