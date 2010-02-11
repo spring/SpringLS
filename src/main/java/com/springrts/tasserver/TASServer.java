@@ -2774,28 +2774,28 @@ public class TASServer {
 
 				// if game is full or game type is "battle replay", force player's mode to spectator:
 				if ((bat.getClientsSize() + 1 - bat.spectatorCount() > bat.maxPlayers) || (bat.type == 1)) {
-					client.battleStatus.Mode = 0;
+					client.battleStatus.setMode(0);
 				}
 				// if player has chosen team number which is already used by some other player/bot,
 				// force his ally number and team color to be the same as of that player/bot:
 				if (bat.founder != client) {
-					if ((bat.founder.battleStatus.TeamNo == client.battleStatus.TeamNo) && (!bat.founder.battleStatus.isSpectator())) {
-						client.battleStatus.AllyNo = bat.founder.battleStatus.AllyNo;
+					if ((bat.founder.battleStatus.getTeamNo() == client.battleStatus.getTeamNo()) && (!bat.founder.battleStatus.isSpectator())) {
+						client.battleStatus.setAllyNo(bat.founder.battleStatus.getAllyNo());
 						client.teamColor = bat.founder.teamColor;
 					}
 				}
 				for (int i = 0; i < bat.getClientsSize(); i++) {
 					if (bat.getClient(i) != client) {
-						if ((bat.getClient(i).battleStatus.TeamNo == client.battleStatus.TeamNo) && (!bat.getClient(i).battleStatus.isSpectator())) {
-							client.battleStatus.AllyNo = bat.getClient(i).battleStatus.AllyNo;
+						if ((bat.getClient(i).battleStatus.getTeamNo() == client.battleStatus.getTeamNo()) && (!bat.getClient(i).battleStatus.isSpectator())) {
+							client.battleStatus.setAllyNo(bat.getClient(i).battleStatus.getAllyNo());
 							client.teamColor = bat.getClient(i).teamColor;
 							break;
 						}
 					}
 				}
 				for (int i = 0; i < bat.getBotsSize(); i++) {
-					if (bat.getBot(i).battleStatus.TeamNo == client.battleStatus.TeamNo) {
-						client.battleStatus.AllyNo = bat.getBot(i).battleStatus.AllyNo;
+					if (bat.getBot(i).battleStatus.getTeamNo() == client.battleStatus.getTeamNo()) {
+						client.battleStatus.setAllyNo(bat.getBot(i).battleStatus.getAllyNo());
 						client.teamColor = bat.getBot(i).teamColor;
 						break;
 					}
@@ -3004,7 +3004,7 @@ public class TASServer {
 					return false;
 				}
 
-				target.battleStatus.Handicap = value;
+				target.battleStatus.setHandicap(value);
 				bat.notifyClientsOfBattleStatus(target);
 			} else if (commands[0].equals("KICKFROMBATTLE")) {
 				if (commands.length != 2) {
@@ -3075,7 +3075,7 @@ public class TASServer {
 					return false;
 				}
 
-				target.battleStatus.TeamNo = value;
+				target.battleStatus.setTeamNo(value);
 				bat.notifyClientsOfBattleStatus(target);
 			} else if (commands[0].equals("FORCEALLYNO")) {
 				if (commands.length != 3) {
@@ -3113,7 +3113,7 @@ public class TASServer {
 					return false;
 				}
 
-				target.battleStatus.AllyNo = value;
+				target.battleStatus.setAllyNo(value);
 				bat.notifyClientsOfBattleStatus(target);
 			} else if (commands[0].equals("FORCETEAMCOLOR")) {
 				if (commands.length != 3) {
@@ -3179,7 +3179,7 @@ public class TASServer {
 				if (target.battleStatus.isSpectator()) {
 					return false; // no need to change it, it's already set to spectator mode!
 				}
-				target.battleStatus.Mode = 0;
+				target.battleStatus.setMode(0);
 				bat.notifyClientsOfBattleStatus(target);
 			} else if (commands[0].equals("ADDBOT")) {
 				if (commands.length < 5) {

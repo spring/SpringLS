@@ -215,11 +215,11 @@ public class Battle {
 		int count = 0;
 
 		for (int i = 0; i < clients.size(); i++) {
-			if (clients.get(i).battleStatus.Mode == 0) {
+			if (clients.get(i).battleStatus.getMode() == 0) {
 				count++;
 			}
 		}
-		if (founder.battleStatus.Mode == 0) {
+		if (founder.battleStatus.getMode() == 0) {
 			count++;
 		}
 

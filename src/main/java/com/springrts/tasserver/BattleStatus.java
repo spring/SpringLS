@@ -1,60 +1,153 @@
+/*
+ * Created on 11. June 2009
+ */
 
 package com.springrts.tasserver;
 
 
+/**
+ *
+ * @author Satirik
+ */
 public class BattleStatus {
-	public int TeamNo;
-	public int AllyNo;
-	public Boolean Ready;
-	public int Mode;
-	public int Handicap;
-	public int Side;
+
+	private int teamNo;
+	private int allyNo;
+	private boolean ready;
+	private int mode;
+	private int handicap;
+	private int side;
 	
-	public Boolean Update(String s) {
-		int oldTeamNo = TeamNo;
-		int oldAllyNo = AllyNo;
-		Boolean oldReady = Ready;
-		int oldMode = Mode;
-		int oldHandicap = Handicap;
-		int oldSide = Side;
+	public boolean Update(String s) {
+
+		int oldTeamNo = getTeamNo();
+		int oldAllyNo = getAllyNo();
+		boolean oldReady = isReady();
+		int oldMode = getMode();
+		int oldHandicap = getHandicap();
+		int oldSide = getSide();
 		
 		String[] items = s.split("\t");
 		
 		try {
-			TeamNo = Integer.valueOf(items[0]);
-			assert(TeamNo>=0);
-			assert(TeamNo<=200);
-			AllyNo = Integer.valueOf(items[1]);
-			assert(AllyNo>=0);
-			assert(AllyNo<=200);
-			Ready = Integer.valueOf(items[2]) != 0;
-			Mode = Integer.valueOf(items[3]);
-			Handicap = Integer.valueOf(items[4]);
-			Side = Integer.valueOf(items[5]);
-			assert(Side>=0);
+			setTeamNo((int) Integer.valueOf(items[0]));
+			assert(getTeamNo()>=0);
+			assert(getTeamNo()<=200);
+			setAllyNo((int) Integer.valueOf(items[1]));
+			assert(getAllyNo()>=0);
+			assert(getAllyNo()<=200);
+			setReady(Integer.valueOf(items[2]) != 0);
+			setMode((int) Integer.valueOf(items[3]));
+			setHandicap((int) Integer.valueOf(items[4]));
+			setSide((int) Integer.valueOf(items[5]));
+			assert(getSide()>=0);
 			return true;
 		} catch (Exception e) {
-			TeamNo = oldTeamNo;
-			AllyNo = oldAllyNo;
-			Ready = oldReady;
-			Mode = oldMode;
-			Handicap = oldHandicap;
-			Side = oldSide;
+			setTeamNo(oldTeamNo);
+			setAllyNo(oldAllyNo);
+			setReady(oldReady);
+			setMode(oldMode);
+			setHandicap(oldHandicap);
+			setSide(oldSide);
 			return false;
 		}
 	}
 	
-	public Boolean isSpectator() {
-		return Mode == 0;
+	public boolean isSpectator() {
+		return (getMode() == 0);
 	}
-	
+
+	/**
+	 * @return the teamNo
+	 */
+	public int getTeamNo() {
+		return teamNo;
+	}
+
+	/**
+	 * @param teamNo the teamNo to set
+	 */
+	public void setTeamNo(int teamNo) {
+		this.teamNo = teamNo;
+	}
+
+	/**
+	 * @return the allyNo
+	 */
+	public int getAllyNo() {
+		return allyNo;
+	}
+
+	/**
+	 * @param allyNo the allyNo to set
+	 */
+	public void setAllyNo(int allyNo) {
+		this.allyNo = allyNo;
+	}
+
+	/**
+	 * @return the ready
+	 */
+	public boolean isReady() {
+		return ready;
+	}
+
+	/**
+	 * @param ready the ready to set
+	 */
+	public void setReady(boolean ready) {
+		this.ready = ready;
+	}
+
+	/**
+	 * @return the mode
+	 */
+	public int getMode() {
+		return mode;
+	}
+
+	/**
+	 * @param mode the mode to set
+	 */
+	public void setMode(int mode) {
+		this.mode = mode;
+	}
+
+	/**
+	 * @return the handicap
+	 */
+	public int getHandicap() {
+		return handicap;
+	}
+
+	/**
+	 * @param handicap the handicap to set
+	 */
+	public void setHandicap(int handicap) {
+		this.handicap = handicap;
+	}
+
+	/**
+	 * @return the side
+	 */
+	public int getSide() {
+		return side;
+	}
+
+	/**
+	 * @param side the side to set
+	 */
+	public void setSide(int side) {
+		this.side = side;
+	}
+
+	@Override
 	public String toString() {
-		int rdy;
-		if (Ready) {
-			rdy = 1;
-		} else {
-			rdy = 0;
-		}
-		return TeamNo+"\t"+AllyNo+"\t"+rdy+"\t"+Mode+"\t"+Handicap+"\t"+Side;
+		return new StringBuilder(getTeamNo())
+				.append("\t").append(getAllyNo())
+				.append("\t").append(isReady() ? 1 : 0)
+				.append("\t").append(getMode())
+				.append("\t").append(getHandicap())
+				.append("\t").append(getSide()).toString();
 	}
 }
