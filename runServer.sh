@@ -43,7 +43,7 @@ fi
 
 MY_FINAL_CP=conf:${MY_MAIN_CP}
 MY_MAIN_CLASS_main=com.springrts.tasserver.TASServer
-MY_MAIN_CLASS_admn=com.springrts.tasserver.JPAAccountsService
+MY_MAIN_CLASS_accountUtils=com.springrts.tasserver.AccountUtils
 MY_MAIN_CLASS=${MY_MAIN_CLASS_main}
 
 MY_OPTIONAL_OPTS=""

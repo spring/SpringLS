@@ -31,7 +31,7 @@ REM   http://docs.jboss.org/hibernate/stable/entitymanager/reference/en/html/con
 REM
 
 SET MY_MAIN_CLASS_main=com.springrts.tasserver.TASServer
-SET MY_MAIN_CLASS_admn=com.springrts.tasserver.JPAAccountsService
+SET MY_MAIN_CLASS_accountUtils=com.springrts.tasserver.AccountUtils
 SET MY_MAIN_CLASS=%MY_MAIN_CLASS_main%
 
 IF {%1}=={normal} (
