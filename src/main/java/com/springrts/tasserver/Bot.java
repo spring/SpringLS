@@ -21,7 +21,7 @@ public class Bot {
 	 * See MYBATTLESTATUS command for actual values of battleStatus.
 	 * Note: some bits of battle status are not used with Bot
 	 */
-	public int battleStatus;
+	public BattleStatus battleStatus;
 	public int teamColor;
 
 	public Bot(String name, String ownerName, String AIDll, int battleStatus, int teamColor) {
@@ -29,7 +29,7 @@ public class Bot {
 		this.name = new String(name);
 		this.ownerName = new String(ownerName);
 		this.AIDll = new String(AIDll);
-		this.battleStatus = battleStatus;
+		this.battleStatus = new BattleStatus();
 		this.teamColor = teamColor;
 	}
 }

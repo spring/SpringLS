@@ -796,7 +796,7 @@ public class TASServer {
 		// they do not handle players notifications, which is made in TASServer class...
 		
 		// do the actually joining and notifying:
-		client.battleStatus = 0; // reset client's battle status
+		client.battleStatus = new BattleStatus(); // reset client's battle status
 		client.battleID = bat.ID;
 		client.requestedBattleID = -1;
 		bat.addClient(client);
@@ -2727,7 +2727,7 @@ public class TASServer {
 					return false;
 				}
 				Battles.addBattle(bat);
-				client.battleStatus = 0; // reset client's battle status
+				client.battleStatus = new BattleStatus(); // reset client's battle status
 				client.battleID = bat.ID;
 				client.requestedBattleID = -1;
 
@@ -2768,39 +2768,34 @@ public class TASServer {
 				}
 				client.teamColor = newTeamColor;
 
-				int newStatus;
-				try {
-					newStatus = Integer.parseInt(commands[1]);
-				} catch (NumberFormatException e) {
+				if (!client.battleStatus.Update(commands[1])) {
 					return false;
 				}
-				// update new battle status. Note: we ignore handicap value as it can be changed only by founder with HANDICAP command!
-				client.battleStatus = Misc.setHandicapOfBattleStatus(newStatus, Misc.getHandicapFromBattleStatus(client.battleStatus));
 
 				// if game is full or game type is "battle replay", force player's mode to spectator:
 				if ((bat.getClientsSize() + 1 - bat.spectatorCount() > bat.maxPlayers) || (bat.type == 1)) {
-					client.battleStatus = Misc.setModeOfBattleStatus(client.battleStatus, 0);
+					client.battleStatus.Mode = 0;
 				}
 				// if player has chosen team number which is already used by some other player/bot,
 				// force his ally number and team color to be the same as of that player/bot:
 				if (bat.founder != client) {
-					if ((Misc.getTeamNoFromBattleStatus(bat.founder.battleStatus) == Misc.getTeamNoFromBattleStatus(client.battleStatus)) && (Misc.getModeFromBattleStatus(bat.founder.battleStatus) != 0)) {
-						client.battleStatus = Misc.setAllyNoOfBattleStatus(client.battleStatus, Misc.getAllyNoFromBattleStatus(bat.founder.battleStatus));
+					if ((bat.founder.battleStatus.TeamNo == client.battleStatus.TeamNo) && (!bat.founder.battleStatus.isSpectator())) {
+						client.battleStatus.AllyNo = bat.founder.battleStatus.AllyNo;
 						client.teamColor = bat.founder.teamColor;
 					}
 				}
 				for (int i = 0; i < bat.getClientsSize(); i++) {
 					if (bat.getClient(i) != client) {
-						if ((Misc.getTeamNoFromBattleStatus(bat.getClient(i).battleStatus) == Misc.getTeamNoFromBattleStatus(client.battleStatus)) && (Misc.getModeFromBattleStatus(bat.getClient(i).battleStatus) != 0)) {
-							client.battleStatus = Misc.setAllyNoOfBattleStatus(client.battleStatus, Misc.getAllyNoFromBattleStatus(bat.getClient(i).battleStatus));
+						if ((bat.getClient(i).battleStatus.TeamNo == client.battleStatus.TeamNo) && (!bat.getClient(i).battleStatus.isSpectator())) {
+							client.battleStatus.AllyNo = bat.getClient(i).battleStatus.AllyNo;
 							client.teamColor = bat.getClient(i).teamColor;
 							break;
 						}
 					}
 				}
 				for (int i = 0; i < bat.getBotsSize(); i++) {
-					if (Misc.getTeamNoFromBattleStatus(bat.getBot(i).battleStatus) == Misc.getTeamNoFromBattleStatus(client.battleStatus)) {
-						client.battleStatus = Misc.setAllyNoOfBattleStatus(client.battleStatus, Misc.getAllyNoFromBattleStatus(bat.getBot(i).battleStatus));
+					if (bat.getBot(i).battleStatus.TeamNo == client.battleStatus.TeamNo) {
+						client.battleStatus.AllyNo = bat.getBot(i).battleStatus.AllyNo;
 						client.teamColor = bat.getBot(i).teamColor;
 						break;
 					}
@@ -3009,7 +3004,7 @@ public class TASServer {
 					return false;
 				}
 
-				target.battleStatus = Misc.setHandicapOfBattleStatus(target.battleStatus, value);
+				target.battleStatus.Handicap = value;
 				bat.notifyClientsOfBattleStatus(target);
 			} else if (commands[0].equals("KICKFROMBATTLE")) {
 				if (commands.length != 2) {
@@ -3080,7 +3075,7 @@ public class TASServer {
 					return false;
 				}
 
-				target.battleStatus = Misc.setTeamNoOfBattleStatus(target.battleStatus, value);
+				target.battleStatus.TeamNo = value;
 				bat.notifyClientsOfBattleStatus(target);
 			} else if (commands[0].equals("FORCEALLYNO")) {
 				if (commands.length != 3) {
@@ -3118,7 +3113,7 @@ public class TASServer {
 					return false;
 				}
 
-				target.battleStatus = Misc.setAllyNoOfBattleStatus(target.battleStatus, value);
+				target.battleStatus.AllyNo = value;
 				bat.notifyClientsOfBattleStatus(target);
 			} else if (commands[0].equals("FORCETEAMCOLOR")) {
 				if (commands.length != 3) {
@@ -3181,10 +3176,10 @@ public class TASServer {
 					return false;
 				}
 
-				if (Misc.getModeFromBattleStatus(target.battleStatus) == 0) {
+				if (target.battleStatus.isSpectator()) {
 					return false; // no need to change it, it's already set to spectator mode!
 				}
-				target.battleStatus = Misc.setModeOfBattleStatus(target.battleStatus, 0);
+				target.battleStatus.Mode = 0;
 				bat.notifyClientsOfBattleStatus(target);
 			} else if (commands[0].equals("ADDBOT")) {
 				if (commands.length < 5) {
@@ -3281,13 +3276,6 @@ public class TASServer {
 					return false;
 				}
 
-				int value;
-				try {
-					value = Integer.parseInt(commands[2]);
-				} catch (NumberFormatException e) {
-					return false;
-				}
-
 				int teamColor;
 				try {
 					teamColor = Integer.parseInt(commands[3]);
@@ -3300,7 +3288,9 @@ public class TASServer {
 					return false;
 				}
 
-				bot.battleStatus = value;
+				if (!bot.battleStatus.Update(commands[2])) {
+					return false;
+				}
 				bot.teamColor = teamColor;
 
 				//*** add: force ally and color number if someone else is using his team number already

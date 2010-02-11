@@ -56,7 +56,7 @@ public class Client {
 	/**
 	 * See the 'MYBATTLESTATUS' command for valid values
 	 */
-	public int battleStatus;
+	public BattleStatus battleStatus;
 	/**
 	 * @see MYBATTLESTATUS
 	 */
@@ -158,7 +158,7 @@ public class Client {
 		recvBuf = new StringBuilder();
 		status = 0;
 		country = IP2Country.getCountryCode(Misc.IP2Long(IP));
-		battleStatus = 0;
+		battleStatus = new BattleStatus();
 		teamColor = 0;
 		inGameTime = 0;
 		battleID = -1;
