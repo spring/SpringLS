@@ -264,9 +264,17 @@ public class TASServer {
 	private static long lastMutesPurgeTime = System.currentTimeMillis(); // time when we last purged mute lists of all channels
 	private static final Collection<String> reservedAccountNames = Arrays.asList(new String[] {"TASServer", "Server", "server"}); // accounts with these names cannot be registered (since they may be used internally by the server)
 	private static final long minSleepTimeBetweenMapGrades = 5; // minimum time (in seconds) required between two consecutive MAPGRADES command sent by the client. We need this to ensure that client doesn't send MAPGRADES command too often as it creates much load on the server.
-	public static final int MAX_TEAMS = 16; // max number of teams supported by Spring
-	public static final int MAX_ALLY_TEAMS = MAX_TEAMS; // max number of ally teams supported by Spring
-	public static boolean initializationFinished = false; // we set this to 'true' just before we enter the main loop. We need this information when saving accounts for example, so that we don't dump empty accounts to disk when an error has occured before initialization has been completed
+	/**
+	 * Max number of teams supported by Spring.
+	 * Should be equal to MAX_TEAMS in springs GlobalConstants.h.
+	 */
+	public static final int MAX_TEAMS = 16;
+	/**
+	 * Max number of ally teams supported by Spring.
+	 * Should be equal to MAX_TEAMS in springs GlobalConstants.h.
+	 */
+	public static final int MAX_ALLY_TEAMS = MAX_TEAMS;
+	private static boolean initializationFinished = false; // we set this to 'true' just before we enter the main loop. We need this information when saving accounts for example, so that we don't dump empty accounts to disk when an error has occured before initialization has been completed
 	private static List<FailedLoginAttempt> failedLoginAttempts = new ArrayList<FailedLoginAttempt>(); // here we store information on latest failed login attempts. We use it to block users from brute-forcing other accounts
 	private static long lastFailedLoginsPurgeTime = System.currentTimeMillis(); // time when we last purged list of failed login attempts
 	private static final Log s_log  = LogFactory.getLog(TASServer.class);
