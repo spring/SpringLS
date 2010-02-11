@@ -268,7 +268,7 @@ public class TASServer {
 	 * Max number of teams supported by Spring.
 	 * Should be equal to MAX_TEAMS in springs GlobalConstants.h.
 	 */
-	public static final int MAX_TEAMS = 16;
+	public static final int MAX_TEAMS = 255;
 	/**
 	 * Max number of ally teams supported by Spring.
 	 * Should be equal to MAX_TEAMS in springs GlobalConstants.h.
