@@ -9,14 +9,36 @@ package com.springrts.tasserver;
  * This is used for "native" Skirmish AIs and also for Lua AIs,
  * while the "native" ones can be of any language, as of spring 0.79,
  * for example C, C++ or Java.
- * TODO: actualize to fit spring (versions > 0.79) -> aiDll field was replaced
  * @author Betalord
  */
 public class Bot {
 
+	/**
+	 * The human readable name fo this Bot.
+	 * This is specified by the user adding the bot,
+	 * and may be an arbitrary string.
+	 * By default it is usually something like "Bot1".
+	 * This should be though of as the bots equivalent
+	 * to the humans account name, at least for the users.
+	 */
 	public String name;
+	/**
+	 * Name of the owner of this bot.
+	 * For Lua AIs (synced), this is always the account name of the client
+	 * which added the bot. While this is also true for "native"
+	 * bots (unsynced), it there also denotes the client running the bot.
+	 */
 	public String ownerName;
+	/**
+	 * Short name (machine friendly) of the bots implementation.
+	 * Examples: "KAIK", "AAI", "C.R.A.I.G."
+	 */
 	private String shortName;
+	/**
+	 * Version (machine friendly) of the bots implementation.
+	 * Examples: "0.13", "0.900", "<not-versioned>"
+	 * For Lua bots this is always "<not-versioned>".
+	 */
 	private String version;
 	/**
 	 * See MYBATTLESTATUS command for actual values of battleStatus.
