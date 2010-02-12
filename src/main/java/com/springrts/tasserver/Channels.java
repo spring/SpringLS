@@ -69,7 +69,7 @@ public class Channels {
 		int c = 0;
 
 		for (int i = 0; i < chan.getClientsSize(); i++) {
-			sb.append(' ').append(chan.getClient(i).account.getName());
+			sb.append(' ').append(chan.getClient(i).getAccount().getName());
 			c++;
 			// 10 is the maximum number of users in a single line (we would like to avoid too long lines, but it is not vital)
 			if (c > 10) {
@@ -113,7 +113,7 @@ public class Channels {
 		for (int i = 0; i < chan.getClientsSize(); i++) {
 			Client toBeNotified = chan.getClient(i);
 			if (toBeNotified != client) {
-				toBeNotified.sendLine("JOINED " + chan.getName() + " " + client.account.getName());
+				toBeNotified.sendLine("JOINED " + chan.getName() + " " + client.getAccount().getName());
 			}
 		}
 	}

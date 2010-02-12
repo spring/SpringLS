@@ -45,9 +45,9 @@ public class Battles {
 	public static void closeBattleAndNotifyAll(Battle battle) {
 
 		for (int i = 0; i < battle.getClientsSize(); i++) {
-			battle.getClient(i).battleID = -1;
+			battle.getClient(i).setBattleID(-1);
 		}
-		battle.founder.battleID = -1;
+		battle.founder.setBattleID(-1);
 		Clients.sendToAllRegisteredUsers("BATTLECLOSED " + battle.ID);
 		battles.remove(battle);
 	}
@@ -62,14 +62,14 @@ public class Battles {
 		if (battle.founder == client) {
 			closeBattleAndNotifyAll(battle);
 		} else {
-			if (client.battleID != battle.ID || !battle.removeClient(client)) {
+			if (client.getBattleID() != battle.ID || !battle.removeClient(client)) {
 				return false;
 			}
-			client.battleID = -1;
+			client.setBattleID(-1);
 			battle.removeClientBots(client);
 			Clients.sendToAllRegisteredUsers(new StringBuilder("LEFTBATTLE ")
 					.append(battle.ID).append(" ")
-					.append(client.account.getName()).toString());
+					.append(client.getAccount().getName()).toString());
 		}
 
 		return true;
@@ -82,7 +82,7 @@ public class Battles {
 		for (int i = 0; i < battles.size(); i++) {
 			Battle bat = battles.get(i);
 			// make sure that clients behind NAT get local IPs and not external ones:
-			boolean local = bat.founder.IP.equals(client.IP);
+			boolean local = bat.founder.getIp().equals(client.getIp());
 			client.sendLine(bat.createBattleOpenedCommandEx(local));
 			// we have to send UPDATEBATTLEINFO command too in order to tell the user how many spectators are in the battle, for example.
 			client.sendLine(new StringBuilder("UPDATEBATTLEINFO ")
@@ -94,7 +94,7 @@ public class Battles {
 			for (int j = 0; j < bat.getClientsSize(); j++) {
 				client.sendLine(new StringBuilder("JOINEDBATTLE ")
 						.append(bat.ID).append(" ")
-						.append(bat.getClient(j).account.getName()).toString());
+						.append(bat.getClient(j).getAccount().getName()).toString());
 			}
 		}
 		client.endFastWrite();

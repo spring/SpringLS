@@ -29,56 +29,59 @@ public class Client {
 	 * If false, then this client is not "valid" anymore.
 	 * We already killed him and closed his socket.
 	 */
-	public boolean alive = false;
+	private boolean alive = false;
 	/**
 	 * When we schedule client for kill (via Clients.killClientDelayed(),
 	 * for example) this flag is set to true.
 	 * When true, we do not read or send any data to this client.
 	 */
-	public boolean halfDead = false;
+	private boolean halfDead = false;
 
-	public Account account;
-	public String IP;
+	private Account account;
+	/**
+	 * External IP
+	 */
+	private String ip;
 	/**
 	 * Local IP, which has to be sent with LOGIN command
-	 * The server can not figure out the clients local IP by himself of course.
+	 * The server can not figure out the clients local ip by himself of course.
 	 */
-	public String localIP;
+	private String localIP;
 	/**
 	 * Public UDP source port used with some NAT traversal techniques,
 	 * e.g. "hole punching".
 	 */
-	public int UDPSourcePort;
+	private int udpSourcePort;
 	/**
 	 * See the 'MYSTATUS' command for valid values
 	 */
-	public int status;
+	private int status;
 	/**
 	 * See the 'MYBATTLESTATUS' command for valid values
 	 */
-	public int battleStatus;
+	private int battleStatus;
 	/**
 	 * @see MYBATTLESTATUS
 	 */
-	public int teamColor;
+	private int teamColor;
 	/**
 	 * ID of the battle in which this client is participating.
 	 * Has to be -1 if not participating in any battle.
 	 */
-	public int battleID;
+	private int battleID;
 	/**
 	 * ID of the battle which this client is requesting to join.
 	 * Must be -1 if not requesting to join any battle.
 	 */
-	public int requestedBattleID;
+	private int requestedBattleID;
 	/**
 	 * List of channels user is participating in.
 	 */
-	public List<Channel> channels = new ArrayList<Channel>();
+	private List<Channel> channels = new ArrayList<Channel>();
 
-	public SocketChannel sockChan;
-	public SelectionKey selKey;
-	public StringBuilder recvBuf;
+	private SocketChannel sockChan;
+	private SelectionKey selKey;
+	private StringBuilder recvBuf;
 	/**
 	 * This is the message/command ID used when sending command
 	 * as described in the "lobby protocol description" document.
@@ -104,36 +107,40 @@ public class Client {
 	 * Used internally to remember time when the user entered the game.
 	 * @see System.currentTimeMillis()
 	 */
-	public long inGameTime;
-	public String country;
+	private long inGameTime;
+	/**
+	 * Two letter country code, as defined in ISO 3166-1 alpha-2.
+	 * "XX" is used for unknown country.
+	 */
+	private String country;
 	/**
 	 * In MHz if possible, or in MHz*1.4 if AMD.
 	 * 0 means the client can not figure out its CPU speed.
 	 */
-	public int cpu;
+	private int cpu;
 	/**
 	 * e.g. "TASClient 1.0" (gets updated when server receives LOGIN command)
 	 */
-	public String lobbyVersion;
+	private String lobbyVersion;
 	/**
 	 * How many bytes did this client send over the last recvRecordPeriod
 	 * seconds. This is used with anti-flood protection.
 	 */
-	public long dataOverLastTimePeriod = 0;
+	private long dataOverLastTimePeriod = 0;
 	/**
 	 * Time (in milli-seconds) when we last heard from client
 	 * (last data received).
 	 * @see System.currentTimeMillis()
 	 */
-	public long timeOfLastReceive;
+	private long timeOfLastReceive;
 	/**
-	 * Does the client accept accountIDs in ADDUSER command ?
+	 * Does the client accept accountIDs in ADDUSER command?
 	 */
-	public boolean acceptAccountIDs;
+	private boolean acceptAccountIDs;
 	/**
-	 * Does the client accept JOINBATTLEREQUEST command ?
+	 * Does the client accept JOINBATTLEREQUEST command?
 	 */
-	public boolean handleBattleJoinAuthorization;
+	private boolean handleBattleJoinAuthorization;
 
 	public Client(SocketChannel sockChan) {
 		alive = true;
@@ -141,23 +148,23 @@ public class Client {
 		// no info on user/pass, zero access
 		account = new Account();
 		this.sockChan = sockChan;
-		IP = sockChan.socket().getInetAddress().getHostAddress();
-		// this fixes the issue with local user connecting to server as "127.0.0.1" (he can't host battles with that IP):
-		if (IP.equals("127.0.0.1") || IP.equals("localhost")) {
+		ip = sockChan.socket().getInetAddress().getHostAddress();
+		// this fixes the issue with local user connecting to server as "127.0.0.1" (he can't host battles with that ip):
+		if (ip.equals("127.0.0.1") || ip.equals("localhost")) {
 			String newIP = Misc.getLocalIPAddress();
 			if (newIP != null) {
-				IP = newIP;
+				ip = newIP;
 			} else {
 				s_log.warn("Could not resolve local IP address. User may have problems \n" +
 								   "with hosting battles.");
 			}
 		}
-		localIP = new String(IP); // will be changed later once client logs in
-		UDPSourcePort = 0; // yet unknown
+		localIP = new String(ip); // will be changed later once client logs in
+		udpSourcePort = 0; // yet unknown
 		selKey = null;
 		recvBuf = new StringBuilder();
 		status = 0;
-		country = IP2Country.getCountryCode(Misc.IP2Long(IP));
+		country = IP2Country.getCountryCode(Misc.IP2Long(ip));
 		battleStatus = 0;
 		teamColor = 0;
 		inGameTime = 0;
@@ -239,7 +246,7 @@ public class Client {
 			if (account.getAccess() != Account.Access.NONE) {
 				s_log.debug("[->" + account.getName() + "]" + " \"" + text + "\"");
 			} else {
-				s_log.debug("[->" + IP + "]" + " \"" + text + "\"");
+				s_log.debug("[->" + ip + "]" + " \"" + text + "\"");
 			}
 		}
 
@@ -502,5 +509,363 @@ public class Client {
 
 	public void setBotModeToStatus(boolean isBot) {
 		status = (status & 0xFFFFFFBF) | ((isBot ? 1 : 0) << 6);
+	}
+
+	/**
+	 * If false, then this client is not "valid" anymore.
+	 * We already killed him and closed his socket.
+	 * @return the alive
+	 */
+	public boolean isAlive() {
+		return alive;
+	}
+
+	/**
+	 * If false, then this client is not "valid" anymore.
+	 * We already killed him and closed his socket.
+	 * @param alive the alive to set
+	 */
+	public void setAlive(boolean alive) {
+		this.alive = alive;
+	}
+
+	/**
+	 * When we schedule client for kill (via Clients.killClientDelayed(),
+	 * for example) this flag is set to true.
+	 * When true, we do not read or send any data to this client.
+	 * @return the halfDead
+	 */
+	public boolean isHalfDead() {
+		return halfDead;
+	}
+
+	/**
+	 * When we schedule client for kill (via Clients.killClientDelayed(),
+	 * for example) this flag is set to true.
+	 * When true, we do not read or send any data to this client.
+	 * @param halfDead the halfDead to set
+	 */
+	public void setHalfDead(boolean halfDead) {
+		this.halfDead = halfDead;
+	}
+
+	/**
+	 * @return the account
+	 */
+	public Account getAccount() {
+		return account;
+	}
+
+	/**
+	 * @param account the account to set
+	 */
+	public void setAccount(Account account) {
+		this.account = account;
+	}
+
+	/**
+	 * External IP
+	 * @return the ip
+	 */
+	public String getIp() {
+		return ip;
+	}
+
+	/**
+	 * External IP
+	 * @param ip the ip to set
+	 */
+	public void setIp(String ip) {
+		this.ip = ip;
+	}
+
+	/**
+	 * Local IP, which has to be sent with LOGIN command
+	 * The server can not figure out the clients local ip by himself of course.
+	 * @return the localIP
+	 */
+	public String getLocalIP() {
+		return localIP;
+	}
+
+	/**
+	 * Local IP, which has to be sent with LOGIN command
+	 * The server can not figure out the clients local ip by himself of course.
+	 * @param localIP the localIP to set
+	 */
+	public void setLocalIP(String localIP) {
+		this.localIP = localIP;
+	}
+
+	/**
+	 * Public UDP source port used with some NAT traversal techniques,
+	 * e.g. "hole punching".
+	 * @return the udpSourcePort
+	 */
+	public int getUdpSourcePort() {
+		return udpSourcePort;
+	}
+
+	/**
+	 * Public UDP source port used with some NAT traversal techniques,
+	 * e.g. "hole punching".
+	 * @param udpSourcePort the udpSourcePort to set
+	 */
+	public void setUdpSourcePort(int udpSourcePort) {
+		this.udpSourcePort = udpSourcePort;
+	}
+
+	/**
+	 * See the 'MYSTATUS' command for valid values
+	 * @return the status
+	 */
+	public int getStatus() {
+		return status;
+	}
+
+	/**
+	 * See the 'MYSTATUS' command for valid values
+	 * @param status the status to set
+	 */
+	public void setStatus(int status) {
+		this.status = status;
+	}
+
+	/**
+	 * See the 'MYBATTLESTATUS' command for valid values
+	 * @return the battleStatus
+	 */
+	public int getBattleStatus() {
+		return battleStatus;
+	}
+
+	/**
+	 * See the 'MYBATTLESTATUS' command for valid values
+	 * @param battleStatus the battleStatus to set
+	 */
+	public void setBattleStatus(int battleStatus) {
+		this.battleStatus = battleStatus;
+	}
+
+	/**
+	 * @see MYBATTLESTATUS
+	 * @return the teamColor
+	 */
+	public int getTeamColor() {
+		return teamColor;
+	}
+
+	/**
+	 * @see MYBATTLESTATUS
+	 * @param teamColor the teamColor to set
+	 */
+	public void setTeamColor(int teamColor) {
+		this.teamColor = teamColor;
+	}
+
+	/**
+	 * ID of the battle in which this client is participating.
+	 * Has to be -1 if not participating in any battle.
+	 * @return the battleID
+	 */
+	public int getBattleID() {
+		return battleID;
+	}
+
+	/**
+	 * ID of the battle in which this client is participating.
+	 * Has to be -1 if not participating in any battle.
+	 * @param battleID the battleID to set
+	 */
+	public void setBattleID(int battleID) {
+		this.battleID = battleID;
+	}
+
+	/**
+	 * ID of the battle which this client is requesting to join.
+	 * Must be -1 if not requesting to join any battle.
+	 * @return the requestedBattleID
+	 */
+	public int getRequestedBattleID() {
+		return requestedBattleID;
+	}
+
+	/**
+	 * ID of the battle which this client is requesting to join.
+	 * Must be -1 if not requesting to join any battle.
+	 * @param requestedBattleID the requestedBattleID to set
+	 */
+	public void setRequestedBattleID(int requestedBattleID) {
+		this.requestedBattleID = requestedBattleID;
+	}
+
+	/**
+	 * @return the sockChan
+	 */
+	public SocketChannel getSockChan() {
+		return sockChan;
+	}
+
+	/**
+	 * @param selKey the selKey to set
+	 */
+	public void setSelKey(SelectionKey selKey) {
+		this.selKey = selKey;
+	}
+
+	/**
+	 * @return the recvBuf
+	 */
+	public StringBuilder getRecvBuf() {
+		return recvBuf;
+	}
+
+	/**
+	 * In milliseconds.
+	 * Used internally to remember time when the user entered the game.
+	 * @see System.currentTimeMillis()
+	 * @return the inGameTime
+	 */
+	public long getInGameTime() {
+		return inGameTime;
+	}
+
+	/**
+	 * In milliseconds.
+	 * Used internally to remember time when the user entered the game.
+	 * @see System.currentTimeMillis()
+	 * @param inGameTime the inGameTime to set
+	 */
+	public void setInGameTime(long inGameTime) {
+		this.inGameTime = inGameTime;
+	}
+
+	/**
+	 * Two letter country code, as defined in ISO 3166-1 alpha-2.
+	 * "XX" is used for unknown country.
+	 * @return the country
+	 */
+	public String getCountry() {
+		return country;
+	}
+
+	/**
+	 * Two letter country code, as defined in ISO 3166-1 alpha-2.
+	 * "XX" is used for unknown country.
+	 * @param country the country to set
+	 */
+	public void setCountry(String country) {
+		this.country = country;
+	}
+
+	/**
+	 * In MHz if possible, or in MHz*1.4 if AMD.
+	 * 0 means the client can not figure out its CPU speed.
+	 * @return the cpu
+	 */
+	public int getCpu() {
+		return cpu;
+	}
+
+	/**
+	 * In MHz if possible, or in MHz*1.4 if AMD.
+	 * 0 means the client can not figure out its CPU speed.
+	 * @param cpu the cpu to set
+	 */
+	public void setCpu(int cpu) {
+		this.cpu = cpu;
+	}
+
+	/**
+	 * e.g. "TASClient 1.0" (gets updated when server receives LOGIN command)
+	 * @return the lobbyVersion
+	 */
+	public String getLobbyVersion() {
+		return lobbyVersion;
+	}
+
+	/**
+	 * e.g. "TASClient 1.0" (gets updated when server receives LOGIN command)
+	 * @param lobbyVersion the lobbyVersion to set
+	 */
+	public void setLobbyVersion(String lobbyVersion) {
+		this.lobbyVersion = lobbyVersion;
+	}
+
+	/**
+	 * Time (in milli-seconds) when we last heard from client
+	 * (last data received).
+	 * @see System.currentTimeMillis()
+	 * @return the timeOfLastReceive
+	 */
+	public long getTimeOfLastReceive() {
+		return timeOfLastReceive;
+	}
+
+	/**
+	 * Time (in milli-seconds) when we last heard from client
+	 * (last data received).
+	 * @see System.currentTimeMillis()
+	 * @param timeOfLastReceive the timeOfLastReceive to set
+	 */
+	public void setTimeOfLastReceive(long timeOfLastReceive) {
+		this.timeOfLastReceive = timeOfLastReceive;
+	}
+
+	/**
+	 * Does the client accept accountIDs in ADDUSER command?
+	 * @return the acceptAccountIDs
+	 */
+	public boolean isAcceptAccountIDs() {
+		return acceptAccountIDs;
+	}
+
+	/**
+	 * Does the client accept accountIDs in ADDUSER command?
+	 * @param acceptAccountIDs the acceptAccountIDs to set
+	 */
+	public void setAcceptAccountIDs(boolean acceptAccountIDs) {
+		this.acceptAccountIDs = acceptAccountIDs;
+	}
+
+	/**
+	 * Does the client accept JOINBATTLEREQUEST command?
+	 * @return the handleBattleJoinAuthorization
+	 */
+	public boolean isHandleBattleJoinAuthorization() {
+		return handleBattleJoinAuthorization;
+	}
+
+	/**
+	 * Does the client accept JOINBATTLEREQUEST command?
+	 * @param handleBattleJoinAuthorization the handleBattleJoinAuthorization to set
+	 */
+	public void setHandleBattleJoinAuthorization(boolean handleBattleJoinAuthorization) {
+		this.handleBattleJoinAuthorization = handleBattleJoinAuthorization;
+	}
+
+	/**
+	 * How many bytes did this client send over the last recvRecordPeriod
+	 * seconds. This is used with anti-flood protection.
+	 * @return the dataOverLastTimePeriod
+	 */
+	public long getDataOverLastTimePeriod() {
+		return dataOverLastTimePeriod;
+	}
+
+	/**
+	 * How many bytes did this client send over the last recvRecordPeriod
+	 * seconds. This is used with anti-flood protection.
+	 * @param dataOverLastTimePeriod the dataOverLastTimePeriod to set
+	 */
+	public void setDataOverLastTimePeriod(long dataOverLastTimePeriod) {
+		this.dataOverLastTimePeriod = dataOverLastTimePeriod;
+	}
+
+	/**
+	 * @param nBytes to add number of bytes
+	 */
+	public void addToDataOverLastTimePeriod(long nBytes) {
+		this.dataOverLastTimePeriod += nBytes;
 	}
 }

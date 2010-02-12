@@ -68,7 +68,7 @@ public class Battle {
 
 	/**
 	 * Creates BATTLEOPENED command from this battle and returns it as a result
-	 * using the external IP.
+	 * using the external ip.
 	 */
 	public String createBattleOpenedCommand() {
 		return createBattleOpenedCommandEx(false);
@@ -76,23 +76,23 @@ public class Battle {
 
 	/**
 	 * Same as createBattleOpenedCommand() but requires sender to specify
-	 * what IP to use (local or external).
+	 * what ip to use (local or external).
 	 * @see #createBattleOpenedCommand()
 	 */
 	public String createBattleOpenedCommandEx(boolean local) {
 
 		String ip;
 		if (local) {
-			ip = founder.localIP;
+			ip = founder.getLocalIP();
 		} else {
-			ip = founder.IP;
+			ip = founder.getIp();
 		}
 
 		return new StringBuilder("BATTLEOPENED ")
 				.append(ID).append(" ")
 				.append(type).append(" ")
 				.append(natType).append(" ")
-				.append(founder.account.getName()).append(" ")
+				.append(founder.getAccount().getName()).append(" ")
 				.append(ip).append(" ")
 				.append(port).append(" ")
 				.append(maxPlayers).append(" ")
@@ -115,16 +115,16 @@ public class Battle {
 				continue;
 			} else {
 				client.sendLine(new StringBuilder("CLIENTBATTLESTATUS ")
-						.append(this.clients.get(i).account.getName()).append(" ")
-						.append(this.clients.get(i).battleStatus).append(" ")
-						.append(this.clients.get(i).teamColor).toString());
+						.append(this.clients.get(i).getAccount().getName()).append(" ")
+						.append(this.clients.get(i).getBattleStatus()).append(" ")
+						.append(this.clients.get(i).getTeamColor()).toString());
 			}
 		}
 		if (founder != client) {
 			client.sendLine(new StringBuilder("CLIENTBATTLESTATUS ")
-					.append(founder.account.getName()).append(" ")
-					.append(founder.battleStatus).append(" ")
-					.append(founder.teamColor).toString());
+					.append(founder.getAccount().getName()).append(" ")
+					.append(founder.getBattleStatus()).append(" ")
+					.append(founder.getTeamColor()).toString());
 		}
 	}
 
@@ -134,9 +134,9 @@ public class Battle {
 	 */
 	public void notifyClientsOfBattleStatus(Client client) {
 		sendToAllClients(new StringBuilder("CLIENTBATTLESTATUS ")
-				.append(client.account.getName()).append(" ")
-				.append(client.battleStatus).append(" ")
-				.append(client.teamColor).toString());
+				.append(client.getAccount().getName()).append(" ")
+				.append(client.getBattleStatus()).append(" ")
+				.append(client.getTeamColor()).toString());
 	}
 
 	/**
@@ -165,9 +165,9 @@ public class Battle {
 		if (this.clients.size() == 0) {
 			return "";
 		}
-		StringBuilder sb = new StringBuilder(clients.get(0).account.getName());
+		StringBuilder sb = new StringBuilder(clients.get(0).getAccount().getName());
 		for (int i = 1; i < this.clients.size(); i++) {
-			sb.append(" ").append(clients.get(i).account.getName());
+			sb.append(" ").append(clients.get(i).getAccount().getName());
 		}
 		return sb.toString();
 	}
@@ -215,11 +215,11 @@ public class Battle {
 		int count = 0;
 
 		for (int i = 0; i < clients.size(); i++) {
-			if (Misc.getModeFromBattleStatus(clients.get(i).battleStatus) == 0) {
+			if (Misc.getModeFromBattleStatus(clients.get(i).getBattleStatus()) == 0) {
 				count++;
 			}
 		}
-		if (Misc.getModeFromBattleStatus(founder.battleStatus) == 0) {
+		if (Misc.getModeFromBattleStatus(founder.getBattleStatus()) == 0) {
 			count++;
 		}
 
@@ -249,11 +249,11 @@ public class Battle {
 
 		// TODO: possible simplification if equals and hashCode method of Client are good
 		for (int i = 0; i < clients.size(); i++) {
-			if (clients.get(i).account.getName().equals(username)) {
+			if (clients.get(i).getAccount().getName().equals(username)) {
 				return true;
 			}
 		}
-		if (founder.account.getName().equals(username)) {
+		if (founder.getAccount().getName().equals(username)) {
 			return true;
 		}
 
@@ -264,11 +264,11 @@ public class Battle {
 
 		// TODO: possible simplification if equals and hashCode method of Client are good
 		for (int i = 0; i < clients.size(); i++) {
-			if (clients.get(i).account.getName().equals(username)) {
+			if (clients.get(i).getAccount().getName().equals(username)) {
 				return clients.get(i);
 			}
 		}
-		if (founder.account.getName().equals(username)) {
+		if (founder.getAccount().getName().equals(username)) {
 			return founder;
 		}
 
@@ -336,7 +336,7 @@ public class Battle {
 
 		for (int i = 0; i < bots.size(); i++) {
 			Bot bot = bots.get(i);
-			if (bot.ownerName.equals(client.account.getName())) {
+			if (bot.ownerName.equals(client.getAccount().getName())) {
 				sendToAllClients(new StringBuilder("REMOVEBOT ")
 						.append(ID).append(" ")
 						.append(bot.name).toString());

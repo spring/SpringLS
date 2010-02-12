@@ -53,7 +53,7 @@ public class Clients {
 			chan.configureBlocking(false);
 			chan.socket().setSendBufferSize(sendBufferSize);
 			//***chan.socket().setSoTimeout(TIMEOUT_LENGTH); -> this doesn't seem to have an effect with java.nio
-			client.selKey = chan.register(readSelector, SelectionKey.OP_READ, client);
+			client.setSelKey(chan.register(readSelector, SelectionKey.OP_READ, client));
 		} catch (ClosedChannelException cce) {
 			killClient(client);
 			return null;
@@ -79,7 +79,7 @@ public class Clients {
 
 		for (int i = 0; i < clients.size(); i++) {
 			Client toCheck = clients.get(i);
-			if (toCheck.account.getName().equals(username)) {
+			if (toCheck.getAccount().getName().equals(username)) {
 				theClient = toCheck;
 				break;
 			}
@@ -104,7 +104,7 @@ public class Clients {
 		boolean isLoggedIn = false;
 
 		for (int i = 0; i < clients.size(); i++) {
-			if (clients.get(i).account.getName().equals(acc.getName())) {
+			if (clients.get(i).getAccount().getName().equals(acc.getName())) {
 				isLoggedIn = true;
 				break;
 			}
@@ -117,7 +117,7 @@ public class Clients {
 
 		for (int i = 0; i < clients.size(); i++) {
 			Client toBeNotified = clients.get(i);
-			if (toBeNotified.account.getAccess().compareTo(Account.Access.NORMAL) >= 0) {
+			if (toBeNotified.getAccount().getAccess().compareTo(Account.Access.NORMAL) >= 0) {
 				toBeNotified.sendLine(s);
 			}
 		}
@@ -128,7 +128,7 @@ public class Clients {
 
 		for (int i = 0; i < clients.size(); i++) {
 			Client toBeNotified = clients.get(i);
-			if ((toBeNotified.account.getAccess().compareTo(Account.Access.NORMAL) >= 0) &&
+			if ((toBeNotified.getAccount().getAccess().compareTo(Account.Access.NORMAL) >= 0) &&
 			    (toBeNotified != client)) {
 				continue;
 			}
@@ -140,7 +140,7 @@ public class Clients {
 
 		for (int i = 0; i < clients.size(); i++) {
 			Client toBeNotified = clients.get(i);
-			if (toBeNotified.account.getAccess().compareTo(Account.Access.ADMIN) >= 0) {
+			if (toBeNotified.getAccount().getAccess().compareTo(Account.Access.ADMIN) >= 0) {
 				toBeNotified.sendLine(s);
 			}
 		}
@@ -155,14 +155,14 @@ public class Clients {
 		client.beginFastWrite();
 		for (int i = 0; i < clients.size(); i++) {
 			Client toBeNotified = clients.get(i);
-			if (toBeNotified.account.getAccess().compareTo(Account.Access.NORMAL) >= 0) {
-				if (toBeNotified.status != 0) {
+			if (toBeNotified.getAccount().getAccess().compareTo(Account.Access.NORMAL) >= 0) {
+				if (toBeNotified.getStatus() != 0) {
 					// only send it if not 0.
 					// The user assumes that every new user's status is 0,
 					// so we don't need to tell him that explicitly.
 					client.sendLine(new StringBuilder("CLIENTSTATUS ")
-							.append(toBeNotified.account.getName()).append(" ")
-							.append(toBeNotified.status).toString());
+							.append(toBeNotified.getAccount().getName()).append(" ")
+							.append(toBeNotified.getStatus()).toString());
 				}
 			}
 		}
@@ -176,8 +176,8 @@ public class Clients {
 	public static void notifyClientsOfNewClientStatus(Client client) {
 
 		sendToAllRegisteredUsers(new StringBuilder("CLIENTSTATUS ")
-				.append(client.account.getName()).append(" ")
-				.append(client.status).toString());
+				.append(client.getAccount().getName()).append(" ")
+				.append(client.getStatus()).toString());
 	}
 
 	/**
@@ -189,18 +189,18 @@ public class Clients {
 		client.beginFastWrite();
 		for (int i = 0; i < clients.size(); i++) {
 			Client toBeNotified = clients.get(i);
-			if (toBeNotified.account.getAccess().compareTo(Account.Access.NORMAL) >= 0) {
-				if (client.acceptAccountIDs) {
+			if (toBeNotified.getAccount().getAccess().compareTo(Account.Access.NORMAL) >= 0) {
+				if (client.isAcceptAccountIDs()) {
 					client.sendLine(new StringBuilder("ADDUSER ")
-							.append(toBeNotified.account.getName()).append(" ")
-							.append(toBeNotified.country).append(" ")
-							.append(toBeNotified.cpu).append(" ")
-							.append(toBeNotified.account.getId()).toString());
+							.append(toBeNotified.getAccount().getName()).append(" ")
+							.append(toBeNotified.getCountry()).append(" ")
+							.append(toBeNotified.getCpu()).append(" ")
+							.append(toBeNotified.getAccount().getId()).toString());
 				} else {
 					client.sendLine(new StringBuilder("ADDUSER ")
-							.append(toBeNotified.account.getName()).append(" ")
-							.append(toBeNotified.country).append(" ")
-							.append(toBeNotified.cpu).toString());
+							.append(toBeNotified.getAccount().getName()).append(" ")
+							.append(toBeNotified.getCountry()).append(" ")
+							.append(toBeNotified.getCpu()).toString());
 				}
 			}
 		}
@@ -216,19 +216,19 @@ public class Clients {
 
 		for (int i = 0; i < clients.size(); i++) {
 			Client toBeNotified = clients.get(i);
-			if ((toBeNotified.account.getAccess().compareTo(Account.Access.NORMAL) >= 0) &&
+			if ((toBeNotified.getAccount().getAccess().compareTo(Account.Access.NORMAL) >= 0) &&
 			    (toBeNotified != client)) {
-				if (toBeNotified.acceptAccountIDs) {
+				if (toBeNotified.isAcceptAccountIDs()) {
 					toBeNotified.sendLine(new StringBuilder("ADDUSER ")
-							.append(client.account.getName()).append(" ")
-							.append(client.country).append(" ")
-							.append(client.cpu).append(" ")
-							.append(client.account.getId()).toString());
+							.append(client.getAccount().getName()).append(" ")
+							.append(client.getCountry()).append(" ")
+							.append(client.getCpu()).append(" ")
+							.append(client.getAccount().getId()).toString());
 				} else {
 					toBeNotified.sendLine(new StringBuilder("ADDUSER ")
-							.append(client.account.getName()).append(" ")
-							.append(client.country).append(" ")
-							.append(client.cpu).toString());
+							.append(client.getAccount().getName()).append(" ")
+							.append(client.getCountry()).append(" ")
+							.append(client.getCpu()).toString());
 				}
 			}
 		}
@@ -243,10 +243,10 @@ public class Clients {
 
 		for (int i = 0; i < clients.size(); i++)  {
 			Client toBeNotified = clients.get(i);
-			if (toBeNotified.account.getAccess().compareTo(Account.Access.NORMAL) >= 0) {
+			if (toBeNotified.getAccount().getAccess().compareTo(Account.Access.NORMAL) >= 0) {
 				toBeNotified.sendLine(new StringBuilder("JOINEDBATTLE ")
 						.append(battle.ID).append(" ")
-						.append(client.account.getName()).toString());
+						.append(client.getAccount().getName()).toString());
 			}
 		}
 	}
@@ -266,12 +266,12 @@ public class Clients {
 	public static boolean killClient(Client client, String reason) {
 
 		int index = clients.indexOf(client);
-		if (index == -1 || !client.alive) {
+		if (index == -1 || !client.isAlive()) {
 			return false;
 		}
 		client.disconnect();
 		clients.remove(index);
-		client.alive = false;
+		client.setAlive(false);
 		if (reason.trim().equals("")) {
 			reason = "Quit";
 		}
@@ -279,8 +279,8 @@ public class Clients {
 		// let's remove client from all channels he is participating in:
 		client.leaveAllChannels(reason);
 
-		if (client.battleID != -1) {
-			Battle bat = Battles.getBattleByID(client.battleID);
+		if (client.getBattleID() != -1) {
+			Battle bat = Battles.getBattleByID(client.getBattleID());
 			if (bat == null) {
 				s_log.fatal("Invalid battle ID. Server will now exit!");
 				TASServer.closeServerAndExit();
@@ -288,10 +288,10 @@ public class Clients {
 			Battles.leaveBattle(client, bat); // automatically checks if client is founder and closes the battle
 		}
 
-		if (client.account.getAccess() != Account.Access.NONE) {
-			sendToAllRegisteredUsers("REMOVEUSER %s" + client.account.getName());
+		if (client.getAccount().getAccess() != Account.Access.NONE) {
+			sendToAllRegisteredUsers("REMOVEUSER %s" + client.getAccount().getName());
 			if (s_log.isDebugEnabled()) {
-				s_log.debug("Registered user killed: " + client.account.getName());
+				s_log.debug("Registered user killed: " + client.getAccount().getName());
 			}
 		} else {
 			if (s_log.isDebugEnabled()) {
@@ -300,7 +300,7 @@ public class Clients {
 		}
 
 		if (TASServer.LAN_MODE) {
-			TASServer.getAccountsService().removeAccount(client.account);
+			TASServer.getAccountsService().removeAccount(client.getAccount());
 		}
 
 		return true;
@@ -316,7 +316,7 @@ public class Clients {
 	public static void killClientDelayed(Client client, String reason) {
 		killList.add(client);
 		reasonList.add(reason);
-		client.halfDead = true;
+		client.setHalfDead(true);
 	}
 
 	/**
