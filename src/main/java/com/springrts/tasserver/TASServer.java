@@ -3227,10 +3227,10 @@ public class TASServer {
 				bat.sendToAllClients(new StringBuilder("ADDBOT ")
 						.append(bat.ID).append(" ")
 						.append(bot.name).append(" ")
-						.append(client.getAccount().getName()).append(" ")
+						.append(bot.ownerName).append(" ")
 						.append(bot.battleStatus).append(" ")
 						.append(bot.teamColor).append(" ")
-						.append(bot.AIDll).toString());
+						.append(bot.getSpecifier()).toString());
 
 			} else if (commands[0].equals("REMOVEBOT")) {
 				if (commands.length != 2) {

@@ -369,7 +369,7 @@ public class Battle {
 					.append(bot.ownerName).append(" ")
 					.append(bot.battleStatus).append(" ")
 					.append(bot.teamColor).append(" ")
-					.append(bot.AIDll).toString());
+					.append(bot.getSpecifier()).toString());
 		}
 	}
 

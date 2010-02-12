@@ -16,7 +16,8 @@ public class Bot {
 
 	public String name;
 	public String ownerName;
-	public String AIDll;
+	private String shortName;
+	private String version;
 	/**
 	 * See MYBATTLESTATUS command for actual values of battleStatus.
 	 * Note: some bits of battle status are not used with Bot
@@ -24,12 +25,18 @@ public class Bot {
 	public int battleStatus;
 	public int teamColor;
 
-	public Bot(String name, String ownerName, String AIDll, int battleStatus, int teamColor) {
+	public Bot(String name, String ownerName, String specifier, int battleStatus, int teamColor) {
 
 		this.name = new String(name);
 		this.ownerName = new String(ownerName);
-		this.AIDll = new String(AIDll);
+		String[] specifierParts = specifier.split("\\|");
+		this.shortName = specifierParts[0];
+		this.version = ((specifierParts.length > 1) ? specifierParts[1] : "");
 		this.battleStatus = battleStatus;
 		this.teamColor = teamColor;
+	}
+
+	public String getSpecifier() {
+		return (shortName + "|" + version);
 	}
 }
