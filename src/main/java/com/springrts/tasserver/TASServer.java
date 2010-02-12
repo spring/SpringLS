@@ -2795,9 +2795,9 @@ public class TASServer {
 					}
 				}
 				for (int i = 0; i < bat.getBotsSize(); i++) {
-					if (Misc.getTeamNoFromBattleStatus(bat.getBot(i).battleStatus) == Misc.getTeamNoFromBattleStatus(client.getBattleStatus())) {
-						client.setBattleStatus(Misc.setAllyNoOfBattleStatus(client.getBattleStatus(), Misc.getAllyNoFromBattleStatus(bat.getBot(i).battleStatus)));
-						client.setTeamColor(bat.getBot(i).teamColor);
+					if (Misc.getTeamNoFromBattleStatus(bat.getBot(i).getBattleStatus()) == Misc.getTeamNoFromBattleStatus(client.getBattleStatus())) {
+						client.setBattleStatus(Misc.setAllyNoOfBattleStatus(client.getBattleStatus(), Misc.getAllyNoFromBattleStatus(bat.getBot(i).getBattleStatus())));
+						client.setTeamColor(bat.getBot(i).getTeamColor());
 						break;
 					}
 				}
@@ -3226,10 +3226,10 @@ public class TASServer {
 
 				bat.sendToAllClients(new StringBuilder("ADDBOT ")
 						.append(bat.ID).append(" ")
-						.append(bot.name).append(" ")
-						.append(bot.ownerName).append(" ")
-						.append(bot.battleStatus).append(" ")
-						.append(bot.teamColor).append(" ")
+						.append(bot.getName()).append(" ")
+						.append(bot.getOwnerName()).append(" ")
+						.append(bot.getBattleStatus()).append(" ")
+						.append(bot.getTeamColor()).append(" ")
 						.append(bot.getSpecifier()).toString());
 
 			} else if (commands[0].equals("REMOVEBOT")) {
@@ -3256,7 +3256,7 @@ public class TASServer {
 
 				bat.sendToAllClients(new StringBuilder("REMOVEBOT ")
 						.append(bat.ID).append(" ")
-						.append(bot.name).toString());
+						.append(bot.getName()).toString());
 			} else if (commands[0].equals("UPDATEBOT")) {
 				if (commands.length != 4) {
 					return false;
@@ -3292,20 +3292,20 @@ public class TASServer {
 				}
 
 				// only bot owner and battle host are allowed to update bot:
-				if (!((client.getAccount().getName().equals(bot.ownerName)) || (client.getAccount().getName().equals(bat.founder.getAccount().getName())))) {
+				if (!((client.getAccount().getName().equals(bot.getOwnerName())) || (client.getAccount().getName().equals(bat.founder.getAccount().getName())))) {
 					return false;
 				}
 
-				bot.battleStatus = value;
-				bot.teamColor = teamColor;
+				bot.setBattleStatus(value);
+				bot.setTeamColor(teamColor);
 
 				//*** add: force ally and color number if someone else is using his team number already
 
 				bat.sendToAllClients(new StringBuilder("UPDATEBOT ")
 						.append(bat.ID).append(" ")
-						.append(bot.name).append(" ")
-						.append(bot.battleStatus).append(" ")
-						.append(bot.teamColor).toString());
+						.append(bot.getName()).append(" ")
+						.append(bot.getBattleStatus()).append(" ")
+						.append(bot.getTeamColor()).toString());
 			} else if (commands[0].equals("DISABLEUNITS")) {
 				if (commands.length < 2) {
 					return false;

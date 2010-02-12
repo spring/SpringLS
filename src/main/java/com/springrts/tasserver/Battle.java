@@ -304,7 +304,7 @@ public class Battle {
 
 		for (int i = 0; i < bots.size(); i++) {
 			Bot bot = bots.get(i);
-			if (bot.name.equals(name)) {
+			if (bot.getName().equals(name)) {
 				return bot;
 			}
 		}
@@ -336,10 +336,10 @@ public class Battle {
 
 		for (int i = 0; i < bots.size(); i++) {
 			Bot bot = bots.get(i);
-			if (bot.ownerName.equals(client.getAccount().getName())) {
+			if (bot.getOwnerName().equals(client.getAccount().getName())) {
 				sendToAllClients(new StringBuilder("REMOVEBOT ")
 						.append(ID).append(" ")
-						.append(bot.name).toString());
+						.append(bot.getName()).toString());
 				bots.remove(bot);
 				return true;
 			}
@@ -365,10 +365,10 @@ public class Battle {
 			Bot bot = bots.get(i);
 			client.sendLine(new StringBuilder("ADDBOT ")
 					.append(ID).append(" ")
-					.append(bot.name).append(" ")
-					.append(bot.ownerName).append(" ")
-					.append(bot.battleStatus).append(" ")
-					.append(bot.teamColor).append(" ")
+					.append(bot.getName()).append(" ")
+					.append(bot.getOwnerName()).append(" ")
+					.append(bot.getBattleStatus()).append(" ")
+					.append(bot.getTeamColor()).append(" ")
 					.append(bot.getSpecifier()).toString());
 		}
 	}
