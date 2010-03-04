@@ -1799,14 +1799,14 @@
 
     <Command Name="TESTLOGINACCEPT" Source="server">
       <Description>
-      Used as a response to a <clink name="TESTLOGIN" /> command in case username/password pair is not valid.
+      Used as a response to a <clink name="TESTLOGIN" /> command in case username/password pair is valid.
       Use message ID to bind response to a request.
       </Description>
     </Command>
 
     <Command Name="TESTLOGINDENY" Source="server">
       <Description>
-      Used as a response to a <clink name="TESTLOGIN" /> command in case username/password pair is valid.
+      Used as a response to a <clink name="TESTLOGIN" /> command in case username/password pair is not valid.
       Use message ID to bind response to a request.
       </Description>
     </Command>
