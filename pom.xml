@@ -100,13 +100,23 @@
 					</execution>
 				</executions>
 			</plugin>
+
+			<!--
+				Version 2.0 or later is needed for support of separate fetch &
+				push urls with git.
+			-->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.0</version>
+			</plugin>
 		</plugins>
 	</build>
 
 	<scm>
 		<connection>scm:git:git://github.com/spring/TASServer.git</connection>
 		<url>http://github.com/spring/TASServer</url>
-		<developerConnection>scm:git:git@github.com:spring/TASServer.git</developerConnection>
+		<developerConnection>scm:git:[fetch=]git://github.com/spring/TASServer.git[push=]ssh://git@github.com:spring/TASServer.git</developerConnection>
 	</scm>
 
 	<dependencies>
