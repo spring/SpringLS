@@ -2197,7 +2197,7 @@ public class TASServer {
 						client.sendLine("DENIED Already logged in");
 						return false;
 					}
-					BanEntry ban = banService.getBanEntry(username, Misc.IP2Long(client.getIp()), userID);
+					BanEntry ban = getBanService().getBanEntry(username, Misc.IP2Long(client.getIp()), userID);
 					if (ban != null && ban.isActive()) {
 						client.sendLine(new StringBuilder("DENIED You are banned from this server! (Reason: ")
 								.append(ban.getPublicReason()).append("). Please contact server administrator.").toString());
@@ -3864,7 +3864,7 @@ public class TASServer {
 
 		if (!LAN_MODE) {
 			TASServer.getAccountsService().loadAccounts();
-			banService = new JPABanService();
+			getBanService();
 			readAgreement();
 		} else {
 			s_log.info("LAN mode enabled");
@@ -4072,5 +4072,19 @@ public class TASServer {
 		}
 
 		return accountsService;
+	}
+
+	static BanService getBanService() {
+
+		if (banService == null) {
+			try {
+				banService = new JPABanService();
+			} catch (Exception pex) {
+				banService = new DummyBanService();
+				s_log.warn("Failed to access database for ban entries, bans are not supported!", pex);
+			}
+		}
+
+		return banService;
 	}
 }
