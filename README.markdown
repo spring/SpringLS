@@ -36,7 +36,7 @@ In case you already have it installed, skip this paragraph.
 
 	Download the latest stable version (not the source)
 	[here](http://maven.apache.org/download.html).
-	Then extract to eg. your `C:\Program Files\`,
+	Then extract to eg. your `C:\Program Files`,
 	and make sure the bin sub-dir of the extracted folder is in your `PATH`
 	environment variable.
 
@@ -50,7 +50,8 @@ In case you already have it installed, skip this paragraph.
 
 ### TASServer build steps
 
-1.	Make sure you have Maven 2 installed. You can check that with the following command:
+1.	Make sure you have Maven 2 installed.
+	You can check that with the following command:
 
 		> mvn --version
 
@@ -71,8 +72,8 @@ This is also where you find the final jar file:
 
 ## Running
 
-Use `runServer.sh|.bat` to start the server, if you built it with Maven,
-and see the documentation in these files for further info.
+Use `runServer.sh` or `runServer.bat` to start the server, if you built it
+with Maven, and see the documentation in these files for further info.
 
 When server is up and running, people from the local network will be able to 
 join it as well as people from the internet, although those from the internet 
@@ -94,50 +95,71 @@ To be able to accept connections from outside the LAN, you will have to forward
 ports 8200 (TCP) and 8201 (UDP) to the machine running the lobby.
 
 You will also need the Java run-time environment (JRE) 6 or later.
-The latest version can be found [here](http://java.sun.com/j2se/1.6.0/download.jsp).
+The latest version can be found
+[here](http://java.sun.com/j2se/1.6.0/download.jsp).
 
 
 ## Command line arguments
 
-	-PORT [number]
-Server will host on port [number]. If command is omitted,
-default port will be used.
+The argument names are case insensitive, so all these are valid:
+`-PORT`, `-port` and `-PoRt`
 
-	-LAN
-Server will run in LAN mode, meaning any user can login as
-long as he uses unique user-name (password is ignored).
-Note: Server will accept users from outside the local network too.
+* `-PORT [number]`
 
-	-DEBUG [number]
-Use 0 for no verbose, 1 for normal and 2 for extensive verbose.
+	default: 8200
 
-	-STATISTICS
-Server will create and save statistics on disk on predefined intervals.
+	The port the server will host on.
 
-	-NATPORT [number]
-Server will use this port with some NAT traversal techniques. If command is omitted,
-default port will be used.
+* `-NATPORT [number]`
 
-	-LOGMAIN
-Server will log all conversations from channel `#main` to `MainChanLog.log`
+	default: 8201
 
-	-LANADMIN [user-name] [password]
-Will override default LAN admin account. Use this account to set up your LAN server
-at runtime.
+	The port used for some NAT traversal techniques.
 
-	-LOADARGS [file-name]
-Will read command-line arguments from the specified file. You can freely combine actual
-command-line arguments with the ones from the file (if duplicate arguments are specified, the last
-one will prevail).
+* `-LAN`
 
-	-LATESTSPRINGVERSION [version]
-Will set latest Spring version to this string. By default no value is set (defaults to "*").
-This is used to tell clients which version is the latest one so that they know when to update.
+	The server will run in LAN mode, meaning any user can login as
+	long as he uses a unique user-name, the password is ignored.
+
+	Note: Users from outside the local network will be accepted too.
+
+* `-DEBUG [number]`
+
+	default: 0
+
+	Use 0 for no verbose, 1 for normal and 2 for extensive verbose.
+
+* `-STATISTICS`
+
+	Server will create and save statistics on disk on predefined intervals.
+
+* `-LOGMAIN`
+
+	Server will log all conversations from channel `#main` to `MainChanLog.log`
+
+* `-LANADMIN [user-name] [password]`
+
+	Will override default LAN admin account. Use this account to set up
+	your LAN server at runtime.
+
+* `-LOADARGS [file-name]`
+
+	Will read command-line arguments from the specified file.
+	You can freely combine actual command-line arguments with the ones in this file.
+	If duplicate arguments are specified, the last one will be used.
+
+* `-LATESTSPRINGVERSION [version]`
+
+	default: "*"
+
+	This will set latest Spring version to `[version]`.
+	This is used to tell clients which version is the latest one,
+	so that they know when to update.
 
 
 Example of usage (main lobby server uses these arguments):
 
-	> java TASServer -DEBUG 1 -natport 8201 -logmain -port 8200 | tee ./logs/TASServer.log
+	> java TASServer -debug 1 -natport 8201 -logmain -port 8200 | tee ./logs/TASServer.log
 
 
 ## Running server in normal mode
