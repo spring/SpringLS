@@ -45,7 +45,7 @@ In case you already have it installed, skip this paragraph.
 	Install the `maven2` package in your systems way of doing so.
 	On Ubuntu for example, you would do this:
 
-		> sudu apt-get install maven2
+		> sudo apt-get install maven2
 
 
 ### TASServer build steps
@@ -73,7 +73,8 @@ This is also where you find the final jar file:
 ## Running
 
 Use `runServer.sh` or `runServer.bat` to start the server, if you built it
-with Maven, and see the documentation in these files for further info.
+with Maven.
+You should also see the documentation in these files, for further info.
 
 When server is up and running, people from the local network will be able to 
 join it as well as people from the internet, although those from the internet 
@@ -101,74 +102,42 @@ The latest version can be found
 
 ## Command line arguments
 
-The argument names are case insensitive, so all these are valid:
-`-PORT`, `-port` and `-PoRt`
-
-* `-PORT [number]`
-
-	default: 8200
-
-	The port the server will host on.
-
-* `-NATPORT [number]`
-
-	default: 8201
-
-	The port used for some NAT traversal techniques.
-
-* `-LAN`
-
-	The server will run in LAN mode, meaning any user can login as
-	long as he uses a unique user-name, the password is ignored.
-
-	Note: Users from outside the local network will be accepted too.
-
-* `-DEBUG [number]`
-
-	default: 0
-
-	Use 0 for no verbose, 1 for normal and 2 for extensive verbose.
-
-* `-STATISTICS`
-
-	Server will create and save statistics on disk on predefined intervals.
-
-* `-LOGMAIN`
-
-	Server will log all conversations from channel `#main` to `MainChanLog.log`
-
-* `-LANADMIN [user-name] [password]`
-
-	Will override default LAN admin account. Use this account to set up
-	your LAN server at runtime.
-
-* `-LOADARGS [file-name]`
-
-	Will read command-line arguments from the specified file.
-	You can freely combine actual command-line arguments with the ones in this file.
-	If duplicate arguments are specified, the last one will be used.
-
-* `-LATESTSPRINGVERSION [version]`
-
-	default: "*"
-
-	This will set latest Spring version to `[version]`.
-	This is used to tell clients which version is the latest one,
-	so that they know when to update.
-
-
 Example of usage (main lobby server uses these arguments):
 
 	> java TASServer -debug 1 -natport 8201 -logmain -port 8200 | tee ./logs/TASServer.log
 
+Arguments are case in-sensitive.
+For the full list of arguments, use `--help`.
 
-## Running server in normal mode
+To stop the server, issue _[Ctrl]+[C]_.
 
-For LAN mode, this section is not relevant.
 
-When you want to run normal server, some external .jar files have to be added
-to classpath. Here is the current list with links where to get them:
+## Running with a DB
 
-* [mysql-connector-java-5.1.5-bin.jar](http://www.mysql.com/products/connector/j/)
-* [commons-pool-1.4.jar](http://commons.apache.org/pool/)
-* [commons-dbcp-1.2.2.jar](http://commons.apache.org/dbcp/)
+Normal mode means, using a database or a flat file for storing the user accounts.
+This is how you prepare for using a database:
+
+_Unix:_
+
+	> # copy the configuration template
+	> cp conf/META-INF/persistence.xml.template conf/META-INF/persistence.xml
+	> # edit the configuration
+	> ${EDITOR} conf/META-INF/persistence.xml
+
+_Windows:_
+
+	> # copy the configuration template
+	> copy conf\META-INF\persistence.xml.template conf\META-INF\persistence.xml
+	> # edit the configuration
+	> notepad conf\META-INF\persistence.xml
+
+Info about the default persistence provider for TASServer:
+[Hibernate configuration](http://docs.jboss.org/hibernate/stable/entitymanager/reference/en/html/configuration.html)
+
+When using MySQL, and having problems to authenticate on the DB,
+have a look [here](http://queuemetrics.com/faq.jsp#faq-009).
+Instead of `localhost.localdomain`, you may face the same problem
+with `127.0.0.1`.
+
+
+
