@@ -106,7 +106,7 @@
 	<scm>
 		<connection>scm:git:git://github.com/spring/TASServer.git</connection>
 		<url>http://github.com/spring/TASServer</url>
-		<developerConnection>scm:git:git@github.com:spring/TASServer.git</developerConnection>
+		<developerConnection>scm:git:ssh://git@github.com:spring/TASServer.git</developerConnection>
 	</scm>
 
 	<dependencies>
