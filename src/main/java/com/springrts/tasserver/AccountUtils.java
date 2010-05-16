@@ -55,25 +55,6 @@ public class AccountUtils {
 		System.out.println("done.");
 	}
 
-	private static String hashMD5(String input) {
-
-		try {
-			java.security.MessageDigest digest = java.security.MessageDigest.getInstance("MD5");
-			byte[] md5hash = new byte[32];
-			digest.update(input.getBytes("iso-8859-1"), 0, input.length());
-			md5hash = digest.digest();
-
-			//MD5 hash in base-64 form
-			return new String(new sun.misc.BASE64Encoder().encode(md5hash)).trim();
-		} catch (UnsupportedEncodingException ex) {
-			ex.printStackTrace();
-			return input;
-		} catch (NoSuchAlgorithmException ex) {
-			ex.printStackTrace();
-			return input;
-		}
-	}
-
 	private static Account createTestAccount(String userName) {
 
 		final String countryCode2L = java.util.Locale.getDefault().getCountry();
@@ -84,7 +65,7 @@ public class AccountUtils {
 			// ignore
 		}
 
-		String userPasswd = hashMD5(userName);
+		String userPasswd = Misc.encodePassword(userName);
 		return new Account(userName, userPasswd, localIP, countryCode2L);
 	}
 
