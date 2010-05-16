@@ -5,8 +5,9 @@
 package com.springrts.tasserver;
 
 
-import java.io.UnsupportedEncodingException;
-import java.security.NoSuchAlgorithmException;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.List;
 
 /**
@@ -93,8 +94,12 @@ public class AccountUtils {
 
 		String toDo = (args.length > 0 ? args[0] : "");
 		if (toDo.equals("")) {
-			java.util.Scanner console = new java.util.Scanner(System.in);
-			toDo = console.nextLine();
+			BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
+			try {
+				toDo = console.readLine();
+			} catch (IOException ex) {
+				System.err.println("Failed reading from the command-line");
+			}
 		}
 
 		if (toDo.toUpperCase().equals("alibaba")) {
