@@ -11,7 +11,7 @@ import java.util.List;
 
 /**
  * Utility class for Accounts management.
- * Allows transfering account from accounts.txt to the DB or vice versa.
+ * Allows transferring account from accounts.txt to the DB or vice versa.
  * Also allows creating 41 test users, one admin and 40 user_{i},
  * all of them with username == password.
  *
