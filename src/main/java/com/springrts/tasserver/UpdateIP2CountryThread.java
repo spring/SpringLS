@@ -5,11 +5,15 @@
 package com.springrts.tasserver;
 
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import java.io.*;
-import java.util.*;
 
 /**
  * This thread will download IP2Country database (csv) files from two different

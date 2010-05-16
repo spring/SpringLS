@@ -24,7 +24,7 @@ public interface AccountsService {
 
 	/**
 	 * Returns the number of all active accounts.
-	 * An account has to fullfill two criterias to be considered active:
+	 * An account has to full fill two criteria to be considered active:
 	 * * last login is not more then 1 week ago
 	 * * rank is higher then Newbie/Rank 1
 	 */

@@ -159,7 +159,7 @@ public class Client {
 								   "with hosting battles.");
 			}
 		}
-		localIP = new String(ip); // will be changed later once client logs in
+		localIP = ip; // will be changed later once client logs in
 		udpSourcePort = 0; // yet unknown
 		selKey = null;
 		recvBuf = new StringBuilder();
@@ -377,7 +377,7 @@ public class Client {
 	 */
 	public void leaveAllChannels(String reason) {
 
-		while (channels.size() != 0) {
+		while (!channels.isEmpty()) {
 			leaveChannel(channels.get(0), reason);
 		}
 		this.channels.clear();

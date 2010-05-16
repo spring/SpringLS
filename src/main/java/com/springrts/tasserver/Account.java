@@ -309,14 +309,14 @@ public class Account implements Serializable {
 
 	private Account(Account acc) {
 
-		this.name              = new String(acc.getName());
-		this.password          = new String(acc.getPassword());
+		this.name              = acc.getName();
+		this.password          = acc.getPassword();
 		this.access            = acc.access;
 		this.lastUserId        = NO_USER_ID;
 		this.lastLogin         = acc.lastLogin;
-		this.lastIP            = new String(acc.getLastIP());
+		this.lastIP            = acc.getLastIP();
 		this.registrationDate  = acc.registrationDate;
-		this.lastCountry       = new String(acc.getLastCountry());
+		this.lastCountry       = acc.getLastCountry();
 		this.id                = acc.id;
 		this.bot               = acc.bot;
 		this.inGameTime        = acc.inGameTime;

@@ -98,15 +98,16 @@ public class Misc {
 	 * @see http://forum.java.sun.com/thread.jspa?threadID=619056&messageID=3477258
 	 */
 	public static String getLocalIPAddress() {
+
 		try {
-			Enumeration e = NetworkInterface.getNetworkInterfaces();
+			Enumeration<NetworkInterface> netfaces = NetworkInterface.getNetworkInterfaces();
 
-			while (e.hasMoreElements()) {
-				NetworkInterface netface = (NetworkInterface) e.nextElement();
-				Enumeration e2 = netface.getInetAddresses();
+			while (netfaces.hasMoreElements()) {
+				NetworkInterface netface = netfaces.nextElement();
+				Enumeration<InetAddress> addresses = netface.getInetAddresses();
 
-				while (e2.hasMoreElements()) {
-					InetAddress ip = (InetAddress) e2.nextElement();
+				while (addresses.hasMoreElements()) {
+					InetAddress ip = addresses.nextElement();
 					if (!ip.isLoopbackAddress() && ip.getHostAddress().indexOf(":") == -1) {
 						return ip.getHostAddress();
 					}
@@ -171,7 +172,7 @@ public class Misc {
 	public static Object resizeArray(Object oldArray, int newSize) {
 
 		int oldSize = java.lang.reflect.Array.getLength(oldArray);
-		Class elementType = oldArray.getClass().getComponentType();
+		Class<?> elementType = oldArray.getClass().getComponentType();
 		Object newArray = java.lang.reflect.Array.newInstance(
 				elementType, newSize);
 		int preserveLength = Math.min(oldSize, newSize);

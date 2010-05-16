@@ -600,13 +600,11 @@ public class TASServer {
 			readSelector.selectNow();
 
 			// fetch the keys
-			Set readyKeys = readSelector.selectedKeys();
+			Set<SelectionKey> readyKeys = readSelector.selectedKeys();
 
 			// run through the keys and process each one
-			Iterator i = readyKeys.iterator();
-			while (i.hasNext()) {
-				SelectionKey key = (SelectionKey) i.next();
-				i.remove();
+			for (SelectionKey key : readyKeys) {
+				readyKeys.remove(key);
 				SocketChannel channel = (SocketChannel) key.channel();
 				client = (Client) key.attachment();
 				if (client.isHalfDead()) {
@@ -2254,7 +2252,7 @@ public class TASServer {
 				client.getAccount().setLastCountry(client.getCountry());
 				client.getAccount().setLastIP(client.getIp());
 				if (commands[4].equals("*")) {
-					client.setLocalIP(new String(client.getIp()));
+					client.setLocalIP(client.getIp());
 				} else {
 					client.setLocalIP(commands[4]);
 				}

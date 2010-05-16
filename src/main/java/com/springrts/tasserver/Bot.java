@@ -50,8 +50,8 @@ public class Bot {
 
 	public Bot(String name, String ownerName, String specifier, int battleStatus, int teamColor) {
 
-		this.name = new String(name);
-		this.ownerName = new String(ownerName);
+		this.name = name;
+		this.ownerName = ownerName;
 		String[] specifierParts = specifier.split("\\|");
 		this.shortName = specifierParts[0];
 		this.version = ((specifierParts.length > 1) ? specifierParts[1] : "");

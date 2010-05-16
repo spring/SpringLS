@@ -30,18 +30,16 @@ public class ServerNotification {
 		this(title, "$TASServer");
 	}
 
-	public ServerNotification(String title, String author) {
+	public ServerNotification(String title, String author, String firstLine) {
 
 		this.time    = System.currentTimeMillis();
-		this.title   = new String(title);
-		this.author  = new String(author);
-		this.message = new StringBuilder("");
+		this.title   = title;
+		this.author  = author;
+		this.message = new StringBuilder(firstLine);
 	}
 
-	public ServerNotification(String title, String author, String firstLine) {
-		this(title, author);
-
-		this.addLine(firstLine);
+	public ServerNotification(String title, String author) {
+		this(title, author, "");
 	}
 
 	public void addLine(String line) {

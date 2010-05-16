@@ -95,7 +95,7 @@ public class Channels {
 	/** Sends a list of all open channels to a client */
 	public static void sendChannelListToClient(Client client) {
 
-		if (channels.size() == 0) {
+		if (channels.isEmpty()) {
 			// nothing to send
 			return;
 		}

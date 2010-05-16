@@ -39,16 +39,16 @@ class WebServer implements HttpConstants {
 	protected static Properties props = new Properties();
 
 	/* Where worker threads stand idle */
-	static Vector threads = new Vector();
+	protected static List<Worker> threads = Collections.synchronizedList(new LinkedList<Worker>());
 
 	/* the web server's virtual root */
-	static File root;
+	protected static File root;
 
 	/* timeout on client connections */
-	static int timeout = 0;
+	protected static int timeout = 0;
 
 	/* max # worker threads */
-	static int workers = 5;
+	protected static int workers = 5;
 
 
 	/* load www-server.properties from java.home */
@@ -119,7 +119,7 @@ class WebServer implements HttpConstants {
 		for (int i = 0; i < workers; ++i) {
 			Worker w = new Worker();
 			(new Thread(w, "worker #" + i)).start();
-			threads.addElement(w);
+			threads.add(w);
 		}
 
 		ServerSocket ss = new ServerSocket(port);
@@ -134,8 +134,8 @@ class WebServer implements HttpConstants {
 					ws.setSocket(s);
 					(new Thread(ws, "additional worker")).start();
 				} else {
-					w = (Worker) threads.elementAt(0);
-					threads.removeElementAt(0);
+					w = threads.get(0);
+					threads.remove(0);
 					w.setSocket(s);
 				}
 			}
@@ -183,13 +183,13 @@ class Worker extends WebServer implements HttpConstants, Runnable {
 			 * than numHandler connections.
 			 */
 			s = null;
-			Vector pool = WebServer.threads;
+			List<Worker> pool = WebServer.threads;
 			synchronized (pool) {
 				if (pool.size() >= WebServer.workers) {
 					/* too many threads, exit this one */
 					return;
 				} else {
-					pool.addElement(this);
+					pool.add(this);
 				}
 			}
 		}
@@ -326,7 +326,7 @@ class Worker extends WebServer implements HttpConstants, Runnable {
 				int ind = name.lastIndexOf('.');
 				String ct = null;
 				if (ind > 0) {
-					ct = (String) map.get(name.substring(ind));
+					ct = ext_type.get(name.substring(ind));
 				}
 				if (ct == null) {
 					ct = "unknown/unknown";
@@ -368,8 +368,8 @@ class Worker extends WebServer implements HttpConstants, Runnable {
 		}
 	}
 
-	/* mapping of file extensions to content-types */
-	static java.util.Hashtable map = new java.util.Hashtable();
+	/** mapping of file extensions to content-types */
+	private static Map<String, String> ext_type = new HashMap<String, String>();
 
 
 	static {
@@ -377,7 +377,7 @@ class Worker extends WebServer implements HttpConstants, Runnable {
 	}
 
 	static void setSuffix(String k, String v) {
-		map.put(k, v);
+		ext_type.put(k, v);
 	}
 
 	static void fillMap() {

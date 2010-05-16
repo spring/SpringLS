@@ -5,12 +5,16 @@
 package com.springrts.tasserver;
 
 
+import java.io.IOException;
+import java.io.InterruptedIOException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.util.Collections;
+import java.util.List;
+import java.util.LinkedList;
 
 /**
  * This is a simple UDP server that helps detecting source ports with some
@@ -25,8 +29,8 @@ public class NATHelpServer extends Thread {
 	private static final int buffer_size = 256;
 	private DatagramSocket socket = null;
 	private int port;
-	/** Has to be thread-safe (Vector is, most other List implementations are not) */
-	static public List<DatagramPacket> msgList = new Vector<DatagramPacket>();
+	/** Has to be thread-safe */
+	static public List<DatagramPacket> msgList = Collections.synchronizedList(new LinkedList<DatagramPacket>());
 
 	public NATHelpServer(int port) {
 		this.port = port;

@@ -43,18 +43,18 @@ public class Battle {
 		this.ID = IDCounter++;
 		this.type = type;
 		this.natType = natType;
-		this.title = new String(title);
+		this.title = title;
 		this.founder = founder;
 		this.clients = new ArrayList<Client>();
 		this.bots = new ArrayList<Bot>();
-		this.mapName = new String(mapName);
+		this.mapName = mapName;
 		this.maxPlayers = maxPlayers;
-		this.password = new String(password);
+		this.password = password;
 		this.port = port;
 		this.hashCode = hashCode;
 		this.rank = rank;
 		this.mapHash = mapHash;
-		this.modName = new String(modName);
+		this.modName = modName;
 		this.disabledUnits = new ArrayList<String>();
 		this.startRects = new ArrayList<StartRect>(TASServer.MAX_ALLY_TEAMS);
 		for (int at = 0; at < TASServer.MAX_ALLY_TEAMS; at++) {
@@ -162,7 +162,7 @@ public class Battle {
 
 	public String clientsToString() {
 
-		if (this.clients.size() == 0) {
+		if (this.clients.isEmpty()) {
 			return "";
 		}
 		StringBuilder sb = new StringBuilder(clients.get(0).getAccount().getName());
@@ -277,7 +277,7 @@ public class Battle {
 
 	public void sendDisabledUnitsListToClient(Client client) {
 
-		if (disabledUnits.size() == 0) {
+		if (disabledUnits.isEmpty()) {
 			// nothing to send
 			return ;
 		}
@@ -411,9 +411,7 @@ public class Battle {
 	private String joinScriptTags() {
 
 		StringBuilder joined = new StringBuilder();
-		Iterator it = scriptTags.entrySet().iterator();
-		while (it.hasNext()) {
-			Map.Entry e = (Map.Entry)it.next();
+		for (Map.Entry<String, String> e : scriptTags.entrySet()) {
 			if (joined.length() > 0) {
 				joined.append("\t");
 			}
@@ -424,7 +422,7 @@ public class Battle {
 
 	public void sendScriptTagsToClient(Client client) {
 
-		if (scriptTags.size() == 0) {
+		if (scriptTags.isEmpty()) {
 			// nothing to send
 			return;
 		}

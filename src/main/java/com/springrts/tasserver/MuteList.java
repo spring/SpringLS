@@ -37,8 +37,9 @@ public class MuteList {
 
 	/** Purges expired entries */
 	public void clearExpiredOnes() {
-		// remove any expired records (those with expire time 0 are persistent, we won't remove them):
-		for (int i = 0; i < usernames.size(); i++)
+		// remove any expired records
+		// (those with expire time 0 are persistent, we won't remove them):
+		for (int i = 0; i < usernames.size(); i++) {
 			if ((mutedUntil.get(i).longValue() <= System.currentTimeMillis()) && (mutedUntil.get(i).longValue() != 0)) {
 				channel.broadcast("<" + usernames.get(i) + "> has been unmuted (mute expired)");
 				usernames.remove(i);
@@ -46,15 +47,17 @@ public class MuteList {
 				IPs.remove(i);
 				i--;
 			}
+		}
 	}
 
 	public boolean isMuted(String username) {
 		clearExpiredOnes();
 
-		for (int i = 0; i < usernames.size(); i++)
+		for (int i = 0; i < usernames.size(); i++) {
 			if (usernames.get(i).equals(username)) {
 				return true;
 			}
+		}
 
 		return false;
 	}
@@ -62,8 +65,11 @@ public class MuteList {
 	public boolean isMuted(String username, String IP) {
 		clearExpiredOnes();
 
-		for (int i = 0; i < usernames.size(); i++)
-			if (usernames.get(i).equals(username) || ((IPs.get(i) != null) && (IPs.get(i).equals(IP)))) return true;
+		for (int i = 0; i < usernames.size(); i++) {
+			if (usernames.get(i).equals(username) || ((IPs.get(i) != null) && (IPs.get(i).equals(IP)))) {
+				return true;
+			}
+		}
 
 		return false;
 	}
@@ -86,8 +92,12 @@ public class MuteList {
 	 * @return false if already muted
 	 */
 	public boolean mute(String username, int seconds, String IP) {
-		for (int i = 0; i < usernames.size(); i++)
-			if (usernames.get(i).equals(username)) return false;
+
+		for (int i = 0; i < usernames.size(); i++) {
+			if (usernames.get(i).equals(username)) {
+				return false;
+			}
+		}
 
 		usernames.add(username);
 		Long until = new Long(0);
@@ -101,13 +111,15 @@ public class MuteList {
 	 * @return false if the user is not on the list
 	 */
 	public boolean unmute(String username) {
-		for (int i = 0; i < usernames.size(); i++)
+
+		for (int i = 0; i < usernames.size(); i++) {
 			if (usernames.get(i).equals(username)) {
 				usernames.remove(i);
 				mutedUntil.remove(i);
 				IPs.remove(i);
 				return true;
 			}
+		}
 
 		return false;
 	}
@@ -138,7 +150,7 @@ public class MuteList {
 	public boolean rename(String oldUsername, String newUsername) {
 		for (int i = 0; i < usernames.size(); i++) {
 			if (usernames.get(i).equals(oldUsername)) {
-				usernames.set(i, new String(newUsername));
+				usernames.set(i, newUsername);
 				return true;
 			}
 		}

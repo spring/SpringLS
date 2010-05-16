@@ -241,7 +241,7 @@ public class Statistics {
 				}
 
 				if (!found) {
-					mods.add(new String(Battles.getBattleByIndex(i).modName));
+					mods.add(Battles.getBattleByIndex(i).modName);
 					freq = (int[]) Misc.resizeArray(freq, freq.length + 1);
 					freq[freq.length - 1] = 1;
 				}
@@ -249,7 +249,7 @@ public class Statistics {
 		}
 
 		// now generate a list of top 5 mods with frequencies:
-		if (mods.size() == 0) {
+		if (mods.isEmpty()) {
 			return "0";
 		}
 		String result = "" + Math.min(5, mods.size()); // return 5 or less mods
@@ -303,7 +303,7 @@ public class Statistics {
 						}
 					}
 					if (!found) {
-						mods.add(new String(temp2[1 + i * 2]));
+						mods.add(temp2[1 + i * 2]);
 						freq = (int[]) Misc.resizeArray(freq, freq.length + 1);
 						freq[freq.length - 1] = Integer.parseInt(temp2[2 + i * 2]);
 					}
@@ -315,7 +315,7 @@ public class Statistics {
 		}
 
 		// now generate a list of top 5 mods with frequencies:
-		if (mods.size() == 0) {
+		if (mods.isEmpty()) {
 			return "0";
 		}
 		final int k = Math.min(5, mods.size()); // return 5 or less mods
