@@ -8,6 +8,8 @@ package com.springrts.tasserver;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import net.iharder.Base64;
+
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -258,26 +260,33 @@ public class Misc {
 	}
 
 	public static byte[] getMD5(String plainText) throws NoSuchAlgorithmException {
+
+		byte[] md5Digest = null;
+
 		MessageDigest mdAlgorithm = MessageDigest.getInstance("md5");
-
 		mdAlgorithm.update(plainText.getBytes());
+		md5Digest = mdAlgorithm.digest();
 
-		byte[] digest = mdAlgorithm.digest();
-		return digest;
+		return md5Digest;
 	}
 
 	/**
-	 * This method encodes plain-text passwords to md5 hashed ones in base-64 form.
+	 * This method encodes plain-text passwords to MD5 hashed ones
+	 * in base-64 form.
 	 */
 	public static String encodePassword(String plainPassword) {
+
+		byte[] md5Digest = null;
 		try {
-			return new sun.misc.BASE64Encoder().encode(getMD5(plainPassword));
+			md5Digest = getMD5(plainPassword);
 		} catch (Exception e) {
 			// this should not happen!
 			s_log.fatal("Failed encoding password", e);
 			TASServer.closeServerAndExit();
-			return "";
+			md5Digest = null;
 		}
+
+		return Base64.encodeBytes(md5Digest);
 	}
 
 	/**
