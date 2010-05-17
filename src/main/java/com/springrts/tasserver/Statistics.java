@@ -32,27 +32,35 @@ import java.io.IOException;
  *
  * @author Betalord
  */
-public class Statistics {
+public class Statistics implements ContextReceiver {
 
-	private static final Log s_log  = LogFactory.getLog(Statistics.class);
+	private final Log s_log  = LogFactory.getLog(Statistics.class);
 
-	public static long lastStatisticsUpdate = System.currentTimeMillis(); // time (System.currentTimeMillis()) when we last updated statistics
+	public long lastStatisticsUpdate = System.currentTimeMillis(); // time (System.currentTimeMillis()) when we last updated statistics
+
+	private Context context = null;
+
+
+	@Override
+	public void receiveContext(Context context) {
+		this.context = context;
+	}
 
 	/**
 	 * Saves Statistics to permanent storage.
 	 * @return -1 on error; otherwise: time (in milliseconds) it took
 	 *         to save the statistics file
 	 */
-	public static int saveStatisticsToDisk() {
+	public int saveStatisticsToDisk() {
 		long taken;
 		try {
 			lastStatisticsUpdate = System.currentTimeMillis();
-			taken = Statistics.autoUpdateStatisticsFile();
+			taken = autoUpdateStatisticsFile();
 			if (taken == -1) {
 				return -1;
 			}
-			Statistics.createAggregateFile(); // to simplify parsing
-			Statistics.generatePloticusImages();
+			createAggregateFile(); // to simplify parsing
+			generatePloticusImages();
 			s_log.info("*** Statistics saved to disk. Time taken: " + taken + " ms.");
 		} catch (Exception e) {
 			s_log.error("*** Failed saving statistics... Stack trace:", e);
@@ -66,15 +74,15 @@ public class Statistics {
 	 * and add latest statistics to it.
 	 * @return milliseconds taken to calculate statistics, or -1 if it fails
 	 */
-	private static long autoUpdateStatisticsFile() {
+	private long autoUpdateStatisticsFile() {
 
 		String fname = TASServer.STATISTICS_FOLDER + now("ddMMyy") + ".dat";
 		long startTime = System.currentTimeMillis();
 
 		int activeBattlesCount = 0;
-		for (int i = 0; i < Battles.getBattlesSize(); i++) {
-			if ((Battles.getBattleByIndex(i).getClientsSize() >= 1 /* at least 1 client + founder == 2 players */) &&
-					(Battles.getBattleByIndex(i).inGame())) {
+		for (int i = 0; i < context.getBattles().getBattlesSize(); i++) {
+			if ((context.getBattles().getBattleByIndex(i).getClientsSize() >= 1 /* at least 1 client + founder == 2 players */) &&
+					(context.getBattles().getBattleByIndex(i).inGame())) {
 				activeBattlesCount++;
 			}
 		}
@@ -84,10 +92,10 @@ public class Statistics {
 		try {
 			BufferedWriter out = new BufferedWriter(new FileWriter(fname, true));
 			out.write(new StringBuilder(now("HHmmss")).append(" ")
-					.append(Clients.getClientsSize()).append(" ")
+					.append(context.getClients().getClientsSize()).append(" ")
 					.append(activeBattlesCount).append(" ")
-					.append(TASServer.getAccountsService().getAccountsSize()).append(" ")
-					.append(TASServer.getAccountsService().getActiveAccountsSize()).append(" ")
+					.append(context.getAccountsService().getAccountsSize()).append(" ")
+					.append(context.getAccountsService().getActiveAccountsSize()).append(" ")
 					.append(topMods).append("\r\n").toString());
 			out.close();
 		} catch (IOException e) {
@@ -104,7 +112,7 @@ public class Statistics {
 	 * This will create "statistics.dat" file which will contain all records
 	 * from the last 7 days
 	 */
-	private static boolean createAggregateFile() {
+	private boolean createAggregateFile() {
 		String fname = TASServer.STATISTICS_FOLDER + "statistics.dat";
 
 		try {
@@ -138,7 +146,7 @@ public class Statistics {
 		return true;
 	}
 
-	private static boolean generatePloticusImages() {
+	private boolean generatePloticusImages() {
 		try {
 			String cmd;
 			String cmds[];
@@ -157,7 +165,7 @@ public class Statistics {
 			cmds[4] = TASServer.STATISTICS_FOLDER + "info.png";
 			cmds[5] = "lastupdate=" + lastUpdateFormatter.format(new Date());
 			cmds[6] = "uptime=" + Misc.timeToDHM(System.currentTimeMillis() - TASServer.upTime);
-			cmds[7] = "clients=" + Clients.getClientsSize();
+			cmds[7] = "clients=" + context.getClients().getClientsSize();
 			Runtime.getRuntime().exec(cmds).waitFor();
 
 			// generate "online clients diagram":
@@ -220,19 +228,19 @@ public class Statistics {
 	 * format: listlen "modname1" freq1 "modname2" freq" ...
 	 * where delimiter is TAB (not SPACE). An empty list is denoted by 0 value for listlen.
 	 */
-	private static String currentlyPopularModsList() {
+	private String currentlyPopularModsList() {
 
 		List<String> mods = new ArrayList<String>();
 		int[] freq = new int[0];
 		boolean found = false;
 
-		for (int i = 0; i < Battles.getBattlesSize(); i++) {
-			if ((Battles.getBattleByIndex(i).inGame()) && (Battles.getBattleByIndex(i).getClientsSize() >= 1)) {
+		for (int i = 0; i < context.getBattles().getBattlesSize(); i++) {
+			if ((context.getBattles().getBattleByIndex(i).inGame()) && (context.getBattles().getBattleByIndex(i).getClientsSize() >= 1)) {
 				// add to list or update in list:
 
 				found = false;
 				for (int j = 0; j < mods.size(); j++) {
-					if (mods.get(j).equals(Battles.getBattleByIndex(i).modName)) {
+					if (mods.get(j).equals(context.getBattles().getBattleByIndex(i).modName)) {
 						// mod already in the list. Just increase it's frequency:
 						freq[j]++;
 						found = true;
@@ -241,7 +249,7 @@ public class Statistics {
 				}
 
 				if (!found) {
-					mods.add(Battles.getBattleByIndex(i).modName);
+					mods.add(context.getBattles().getBattleByIndex(i).modName);
 					freq = (int[]) Misc.resizeArray(freq, freq.length + 1);
 					freq[freq.length - 1] = 1;
 				}
@@ -266,7 +274,7 @@ public class Statistics {
 	 * (other entries for the same hour will be ignored).
 	 * See comments for currentlyPopularModList() method for more info.
 	 */
-	private static String getPopularModsList(String date) {
+	private String getPopularModsList(String date) {
 
 		List<String> mods = new ArrayList<String>();
 		int[] freq = new int[0];
@@ -348,9 +356,11 @@ public class Statistics {
 	 * for more info on SimpleDateFormat.
 	 */
 	private static String now(String format) {
+
 		Date today = new Date();
 		SimpleDateFormat formatter = new SimpleDateFormat(format);
 		String current = formatter.format(today);
+
 		return current;
 	}
 }

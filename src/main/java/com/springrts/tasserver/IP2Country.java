@@ -14,16 +14,28 @@ import org.apache.commons.logging.LogFactory;
  * @author Betalord
  */
 public class IP2Country {
+	
+	private Log s_log  = LogFactory.getLog(IP2Country.class);
 
-	static private TreeSet<String> countries = new TreeSet<String>();
-	static private TreeMap<IPRange, IPRange> resolveTable = new TreeMap<IPRange, IPRange>();
-	private static final Log s_log  = LogFactory.getLog(IP2Country.class);
+	private TreeSet<String> countries = new TreeSet<String>();
+	private TreeMap<IPRange, IPRange> resolveTable = new TreeMap<IPRange, IPRange>();
 
-	public static boolean updateInProgress() {
-		return UpdateIP2CountryThread.inProgress();
+	private UpdateIP2CountryThread updater = null;
+	private Thread update_thread = null;
+
+
+	private static IP2Country singleton = new IP2Country();
+
+	public static IP2Country getInstance() {
+		return singleton;
 	}
 
-	public static boolean initializeAll(String fileName) {
+
+	public boolean updateInProgress() {
+		return ((updater != null) && updater.inProgress());
+	}
+
+	public boolean initializeAll(String fileName) {
 
 		try {
 			buildDatabase(fileName, resolveTable, countries);
@@ -43,16 +55,17 @@ public class IP2Country {
 	 * and update local database. Returns immediately (updating is done
 	 * in a background thread).
 	 */
-	public static void updateDatabase() {
+	public void updateDatabase() {
 
-		if (UpdateIP2CountryThread.inProgress()) {
+		if (updateInProgress()) {
 			// update already in progress. Let's just skip it ...
 			return;
 		}
 
-		Thread tmp = new UpdateIP2CountryThread();
-		tmp.setPriority(Thread.NORM_PRIORITY - 2);
-		tmp.start();
+		updater = new UpdateIP2CountryThread(this);
+		update_thread = new Thread(updater);
+		update_thread.setPriority(Thread.NORM_PRIORITY - 2);
+		update_thread.start();
 	}
 
 	/**
@@ -60,7 +73,7 @@ public class IP2Country {
 	 * produced by the UpdateIP2CountryThread class. Results are saved into 'resolveTable'
 	 * and 'countries' objects.
 	 */
-	public static void buildDatabase(String fromFile, TreeMap<IPRange, IPRange> resolveTable, TreeSet<String> countries) throws IOException {
+	public void buildDatabase(String fromFile, TreeMap<IPRange, IPRange> resolveTable, TreeSet<String> countries) throws IOException {
 		BufferedReader in = new BufferedReader(new FileReader(fromFile));
 
 		countries.clear();
@@ -84,7 +97,7 @@ public class IP2Country {
 	 * automatic merging / filtering of duplicate entries, which makes it much slower.
 	 * Should be called only from a separate thread when updating the database.
 	 */
-	public static void buildDatabaseSafe(String fromFile, TreeMap<IPRange, IPRange> resolveTable, TreeSet<String> countries) throws IOException {
+	public void buildDatabaseSafe(String fromFile, TreeMap<IPRange, IPRange> resolveTable, TreeSet<String> countries) throws IOException {
 		BufferedReader in = new BufferedReader(new FileReader(fromFile));
 
 		countries.clear();
@@ -180,7 +193,7 @@ public class IP2Country {
 	}
 
 	/** Will save given IP2County table to disk */
-	public static void saveDatabase(TreeMap resolveTable, String fileName) throws IOException {
+	public void saveDatabase(TreeMap resolveTable, String fileName) throws IOException {
 		PrintWriter out = null;
 		try {
 			out = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
@@ -196,13 +209,13 @@ public class IP2Country {
 	}
 
 	/** Will replace current "resolve" and "countries" tables with new ones */
-	public static void assignDatabase(TreeMap<IPRange, IPRange> newResolveTable, TreeSet<String> newCountries) {
+	public void assignDatabase(TreeMap<IPRange, IPRange> newResolveTable, TreeSet<String> newCountries) {
 		resolveTable = newResolveTable;
 		countries = newCountries;
 	}
 
 	/** For a given IP address it returns corresponding country code (2-chars wide) */
-	public static String getCountryCode(long IP) {
+	public String getCountryCode(long IP) {
 		String result = "XX";
 		try {
 			IPRange x = resolveTable.headMap(new IPRange(IP+1, IP+1, "XX")).lastKey(); // +1 because headMap() returns keys that are strictly less than given key

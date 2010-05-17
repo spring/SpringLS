@@ -15,7 +15,7 @@ import java.util.List;
  * @author Betalord
  * @author hoijui
  */
-public interface AccountsService {
+public interface AccountsService extends ContextReceiver {
 
 	/**
 	 * Returns the number of all accounts.

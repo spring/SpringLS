@@ -15,13 +15,13 @@ import java.util.*;
 /**
  * @author Betalord
  */
-public class Clients {
+public class Clients implements ContextReceiver {
 
-	private static final Log s_log  = LogFactory.getLog(Clients.class);
+	private final Log s_log  = LogFactory.getLog(Clients.class);
 
-	static private List<Client> clients = new ArrayList<Client>();
+	private List<Client> clients = new ArrayList<Client>();
 	/** A list of clients waiting to be killed (disconnected) */
-	static private List<Client> killList = new ArrayList<Client>();
+	private List<Client> killList = new ArrayList<Client>();
 	/**
 	 * KillList is used when we want to kill a client but not immediately
 	 * (within a loop, for example).
@@ -31,7 +31,7 @@ public class Clients {
 	 * consistency is required.
 	 * @see killList gives a reason for each scheduled kill
 	 */
-	static private List<String> reasonList = new ArrayList<String>();
+	private List<String> reasonList = new ArrayList<String>();
 
 	/**
 	 * Here we keep a list of clients who have their send queues not empty.
@@ -40,16 +40,29 @@ public class Clients {
 	 * if synchronized access is needed.
 	 * @see http://java.sun.com/j2se/1.5.0/docs/api/java/util/Collections.html#synchronizedList(java.util.List))
 	 */
-	static private Queue<Client> sendQueue = new LinkedList<Client>();
+	private Queue<Client> sendQueue = new LinkedList<Client>();
+
+	private Context context = null;
+
+
+	@Override
+	public void receiveContext(Context context) {
+
+		this.context = context;
+		for (Client client : clients) {
+			client.receiveContext(context);
+		}
+	}
 
 	/**
 	 * Will create new <code>Client</code> object, add it to the 'clients' list
 	 * and register its socket channel with 'readSelector'.
 	 * @param sendBufferSize specifies the sockets send buffer size.
 	 */
-	public static Client addNewClient(SocketChannel chan, Selector readSelector, int sendBufferSize) {
+	public Client addNewClient(SocketChannel chan, Selector readSelector, int sendBufferSize) {
 
 		Client client = new Client(chan);
+		client.receiveContext(context);
 		clients.add(client);
 
 		// register the channel with the selector
@@ -77,11 +90,11 @@ public class Clients {
 	 * Returns number of clients.
 	 * Includes those who have not logged in yet.
 	 */
-	public static int getClientsSize() {
+	public int getClientsSize() {
 		return clients.size();
 	}
 
-	public static Client getClient(String username) {
+	public Client getClient(String username) {
 
 		Client theClient = null;
 
@@ -97,7 +110,7 @@ public class Clients {
 	}
 
 	/** Returns null if index is out of bounds */
-	public static Client getClient(int index) {
+	public Client getClient(int index) {
 
 		try {
 			return clients.get(index);
@@ -107,7 +120,7 @@ public class Clients {
 	}
 
 	/** Returns true if user is logged in */
-	public static boolean isUserLoggedIn(Account acc) {
+	public boolean isUserLoggedIn(Account acc) {
 
 		boolean isLoggedIn = false;
 
@@ -121,7 +134,7 @@ public class Clients {
 		return isLoggedIn;
 	}
 
-	public static void sendToAllRegisteredUsers(String s) {
+	public void sendToAllRegisteredUsers(String s) {
 
 		for (int i = 0; i < clients.size(); i++) {
 			Client toBeNotified = clients.get(i);
@@ -132,7 +145,7 @@ public class Clients {
 	}
 
 	/** Sends text to all registered users except for the client */
-	public static void sendToAllRegisteredUsersExcept(Client client, String s) {
+	public void sendToAllRegisteredUsersExcept(Client client, String s) {
 
 		for (int i = 0; i < clients.size(); i++) {
 			Client toBeNotified = clients.get(i);
@@ -144,7 +157,7 @@ public class Clients {
 		}
 	}
 
-	public static void sendToAllAdministrators(String s) {
+	public void sendToAllAdministrators(String s) {
 
 		for (int i = 0; i < clients.size(); i++) {
 			Client toBeNotified = clients.get(i);
@@ -158,7 +171,7 @@ public class Clients {
 	 * Notifies client of all statuses, including his own
 	 * (but only if they are different from 0)
 	 */
-	public static void sendInfoOnStatusesToClient(Client client) {
+	public void sendInfoOnStatusesToClient(Client client) {
 
 		client.beginFastWrite();
 		for (int i = 0; i < clients.size(); i++) {
@@ -181,7 +194,7 @@ public class Clients {
 	 * Notifies all logged-in clients (including this client)
 	 * of the client's new status
 	 */
-	public static void notifyClientsOfNewClientStatus(Client client) {
+	public void notifyClientsOfNewClientStatus(Client client) {
 
 		sendToAllRegisteredUsers(new StringBuilder("CLIENTSTATUS ")
 				.append(client.getAccount().getName()).append(" ")
@@ -193,7 +206,7 @@ public class Clients {
 	 * This list includes the client itself, assuming he is already logged in
 	 * and in the list.
 	 */
-	public static void sendListOfAllUsersToClient(Client client) {
+	public void sendListOfAllUsersToClient(Client client) {
 
 		client.beginFastWrite();
 		for (int i = 0; i < clients.size(); i++) {
@@ -221,7 +234,7 @@ public class Clients {
 	 * The new client is not notified, because he is already notified
 	 * by some other method.
 	 */
-	public static void notifyClientsOfNewClientOnServer(Client client) {
+	public void notifyClientsOfNewClientOnServer(Client client) {
 
 		for (int i = 0; i < clients.size(); i++) {
 			Client toBeNotified = clients.get(i);
@@ -248,7 +261,7 @@ public class Clients {
 	 * He should also be notified through the JOINBATTLE command.
 	 * See the protocol description.
 	 */
-	public static void notifyClientsOfNewClientInBattle(Battle battle, Client client) {
+	public void notifyClientsOfNewClientInBattle(Battle battle, Client client) {
 
 		for (int i = 0; i < clients.size(); i++)  {
 			Client toBeNotified = clients.get(i);
@@ -261,7 +274,7 @@ public class Clients {
 	}
 
 	/** @see killClient() */
-	public static boolean killClient(Client client) {
+	public boolean killClient(Client client) {
 		return killClient(client, "");
 	}
 
@@ -272,7 +285,7 @@ public class Clients {
 	 * notify other users on same channel of this client's departure
 	 * reason (it may be left blank ("") to give no reason).
 	 */
-	public static boolean killClient(Client client, String reason) {
+	public boolean killClient(Client client, String reason) {
 
 		int index = clients.indexOf(client);
 		if (index == -1 || !client.isAlive()) {
@@ -289,12 +302,12 @@ public class Clients {
 		client.leaveAllChannels(reason);
 
 		if (client.getBattleID() != -1) {
-			Battle bat = Battles.getBattleByID(client.getBattleID());
+			Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 			if (bat == null) {
 				s_log.fatal("Invalid battle ID. Server will now exit!");
 				TASServer.closeServerAndExit();
 			}
-			Battles.leaveBattle(client, bat); // automatically checks if client is founder and closes the battle
+			context.getBattles().leaveBattle(client, bat); // automatically checks if client is founder and closes the battle
 		}
 
 		if (client.getAccount().getAccess() != Account.Access.NONE) {
@@ -309,7 +322,7 @@ public class Clients {
 		}
 
 		if (TASServer.LAN_MODE) {
-			TASServer.getAccountsService().removeAccount(client.getAccount());
+			context.getAccountsService().removeAccount(client.getAccount());
 		}
 
 		return true;
@@ -323,7 +336,7 @@ public class Clients {
 	 * since that would "broke" our loop, as we go from index 0 to the highest
 	 * index, which would be invalid as the highest index would decrease by 1.
 	 */
-	public static void killClientDelayed(Client client, String reason) {
+	public void killClientDelayed(Client client, String reason) {
 		killList.add(client);
 		reasonList.add(reason);
 		client.setHalfDead(true);
@@ -334,7 +347,7 @@ public class Clients {
 	 * Must only be called from the main server loop (at the end of it)!
 	 * Any redundant entries are ignored (cleared).
 	 */
-	public static void processKillList() {
+	public void processKillList() {
 		for (; killList.size() > 0;) {
 			killClient(killList.get(0), reasonList.get(0));
 			killList.remove(0);
@@ -348,7 +361,7 @@ public class Clients {
 	 * When it encounters first client that can't flush data, it will add
 	 * him to the queues tail and break the loop.
 	 */
-	public static void flushData() {
+	public void flushData() {
 		Client client;
 		while ((client = sendQueue.poll()) != null) {
 			if (!client.tryToFlushData()) {
@@ -359,7 +372,7 @@ public class Clients {
 	}
 
 	/** Adds client to the queue of clients who have more data to be sent */
-	public static void enqueueDelayedData(Client client) {
+	public void enqueueDelayedData(Client client) {
 		sendQueue.add(client);
 	}
 }

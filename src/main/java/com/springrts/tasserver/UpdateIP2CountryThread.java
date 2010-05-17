@@ -33,14 +33,29 @@ import org.apache.commons.logging.LogFactory;
  *
  * @author Betalord
  */
-public class UpdateIP2CountryThread extends Thread {
+public class UpdateIP2CountryThread implements Runnable, ContextReceiver {
 
-	private static final Log s_log  = LogFactory.getLog(UpdateIP2CountryThread.class);
+	private final Log s_log  = LogFactory.getLog(UpdateIP2CountryThread.class);
 
-	private static boolean inProgress; // true if updating is already in progress
-	private static final int DOWNLOAD_LIMIT = 1024 * 128; // in bytes per second. This is the maximum speed at which this thread will attempt to download files from the internet
+	private boolean inProgress; // true if updating is already in progress
+	private final int DOWNLOAD_LIMIT = 1024 * 128; // in bytes per second. This is the maximum speed at which this thread will attempt to download files from the internet
 
-	public static synchronized boolean inProgress() {
+	private Context context = null;
+
+	private IP2Country ip2Country = null;
+
+
+	public UpdateIP2CountryThread(IP2Country ip2Country) {
+		this.ip2Country = ip2Country;
+	}
+
+
+	@Override
+	public void receiveContext(Context context) {
+		this.context = context;
+	}
+
+	public synchronized boolean inProgress() {
 		return inProgress;
 	}
 
@@ -141,9 +156,9 @@ public class UpdateIP2CountryThread extends Thread {
 			time6 = System.currentTimeMillis();
 			TreeMap<IPRange, IPRange> iptable = new TreeMap<IPRange, IPRange>();
 			TreeSet<String> countries = new TreeSet<String>();
-			IP2Country.buildDatabaseSafe(tempIP2CountryFile, iptable, countries);
-			IP2Country.assignDatabase(iptable, countries);
-			IP2Country.saveDatabase(iptable, TASServer.IP2COUNTRY_FILENAME);
+			ip2Country.buildDatabaseSafe(tempIP2CountryFile, iptable, countries);
+			ip2Country.assignDatabase(iptable, countries);
+			ip2Country.saveDatabase(iptable, TASServer.IP2COUNTRY_FILENAME);
 			time6 = System.currentTimeMillis() - time6;
 
 			// add notification:
@@ -163,14 +178,14 @@ public class UpdateIP2CountryThread extends Thread {
 			sn.addLine(time5 + " ms - time taken to merge both files and write result to new file");
 			sn.addLine(time6 + " ms - time taken to build IP2Country database from the merged file, clean it up and save it back to disk");
 			sn.addLine(countries.size() + " countries mentioned in merged IP2Country database");
-			ServerNotifications.addNotification(sn);
+			context.getServerNotifications().addNotification(sn);
 
 			s_log.info("IP2Country has just been successfully updated.");
 		} catch (Exception e) {
 			ServerNotification sn = new ServerNotification("Unable to update IP2Country database");
 			sn.addLine("Attempt to update from online IP2Country database failed. Stack trace: ");
 			sn.addLine(Misc.exceptionToFullString(e));
-			ServerNotifications.addNotification(sn);
+			context.getServerNotifications().addNotification(sn);
 		} finally {
 			inProgress = false;
 

@@ -58,6 +58,14 @@ public class FSAccountsService extends AbstractAccountsService implements Accoun
 	 */
 	private static long lastSaveAccountsTime = System.currentTimeMillis();
 
+	private Context context = null;
+
+
+	@Override
+	public void receiveContext(Context context) {
+		this.context = context;
+	}
+
 	@Override
 	public int getAccountsSize() {
 		return accounts.size();
@@ -175,6 +183,7 @@ public class FSAccountsService extends AbstractAccountsService implements Accoun
 		List<Account> accounts_cpy = new ArrayList<Account>(accounts.size());
 		Collections.copy(accounts_cpy, accounts);
 		saveAccountsThread = new FSSaveAccountsThread(accounts_cpy);
+		saveAccountsThread.receiveContext(context);
 		saveAccountsThread.start();
 
 		if (block) {

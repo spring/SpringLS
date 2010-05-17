@@ -278,8 +278,6 @@ public class TASServer {
 	private static List<FailedLoginAttempt> failedLoginAttempts = new ArrayList<FailedLoginAttempt>(); // here we store information on latest failed login attempts. We use it to block users from brute-forcing other accounts
 	private static long lastFailedLoginsPurgeTime = System.currentTimeMillis(); // time when we last purged list of failed login attempts
 	private static final Log s_log  = LogFactory.getLog(TASServer.class);
-	private static AccountsService accountsService = null;
-	private static BanService banService = null;
 
 	private static Properties mavenProperties = null;
 	// database related:
@@ -304,6 +302,8 @@ public class TASServer {
 	public static CharsetDecoder asciiDecoder;
 	public static CharsetEncoder asciiEncoder;
 
+	private static Context context = null;
+
 	/**
 	 * In 'updateProperties' we store a list of Spring versions and server responses to them.
 	 * We use it when client doesn't have the latest Spring version or the lobby program
@@ -314,6 +314,7 @@ public class TASServer {
 	 */
 	private static Properties updateProperties = new Properties();
 	static NATHelpServer helpUDPsrvr;
+
 
 	public static void writeMainChanLog(String text) {
 		if (!LOG_MAIN_CHANNEL) {
@@ -485,7 +486,7 @@ public class TASServer {
 	public static void closeServerAndExit() {
 		s_log.info("Server stopped.");
 		if (!LAN_MODE && initializationFinished) {
-			TASServer.getAccountsService().saveAccounts(true); // we need to check if initialization has completed so that we don't save empty accounts array and so overwrite actual accounts
+			context.getAccountsService().saveAccounts(true); // we need to check if initialization has completed so that we don't save empty accounts array and so overwrite actual accounts
 		}
 		if (helpUDPsrvr != null && helpUDPsrvr.isAlive()) {
 			helpUDPsrvr.stopServer();
@@ -501,7 +502,7 @@ public class TASServer {
 				// add server notification:
 				ServerNotification sn = new ServerNotification("Server stopped");
 				sn.addLine("Server has just been stopped. See server log for more info.");
-				ServerNotifications.addNotification(sn);
+				context.getServerNotifications().addNotification(sn);
 			} catch (Exception e) {
 				// nevermind
 			}
@@ -573,7 +574,7 @@ public class TASServer {
 					continue;
 				}
 
-				Client client = Clients.addNewClient(clientChannel, readSelector, SEND_BUFFER_SIZE);
+				Client client = context.getClients().addNewClient(clientChannel, readSelector, SEND_BUFFER_SIZE);
 				if (client == null) {
 					continue;
 				}
@@ -624,10 +625,10 @@ public class TASServer {
 					s_log.warn(new StringBuilder("Flooding detected from ")
 							.append(client.getIp()).append(" (")
 							.append(client.getAccount().getName()).append(")").toString());
-					Clients.sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: Flooding has been detected from ")
+					context.getClients().sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: Flooding has been detected from ")
 							.append(client.getIp()).append(" (")
 							.append(client.getAccount().getName()).append("). User has been kicked.").toString());
-					Clients.killClient(client, "Disconnected due to excessive flooding");
+					context.getClients().killClient(client, "Disconnected due to excessive flooding");
 
 					// add server notification:
 					ServerNotification sn = new ServerNotification("Flooding detected");
@@ -635,7 +636,7 @@ public class TASServer {
 							.append(client.getIp()).append(" (")
 							.append(client.getAccount().getName()).append(").").toString());
 					sn.addLine("User has been kicked from the server.");
-					ServerNotifications.addNotification(sn);
+					context.getServerNotifications().addNotification(sn);
 
 					continue;
 				}
@@ -646,7 +647,7 @@ public class TASServer {
 						s_log.debug("Socket disconnected - killing client");
 					}
 					channel.close();
-					Clients.killClient(client); // will also close the socket channel
+					context.getClients().killClient(client); // will also close the socket channel
 				} else {
 					// use a CharsetDecoder to turn those bytes into a string
 					// and append to client's StringBuilder
@@ -673,7 +674,7 @@ public class TASServer {
 						tryToExecCommand(command, client);
 						time = System.currentTimeMillis() - time;
 						if (time > 200) {
-							Clients.sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: (DEBUG) User <")
+							context.getClients().sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: (DEBUG) User <")
 									.append(client.getAccount().getName()).append("> caused ")
 									.append(time).append(" ms load on the server. Command issued: ")
 									.append(command).toString());
@@ -690,7 +691,7 @@ public class TASServer {
 			s_log.info("exception during select(): possibly due to force disconnect. Killing the client ...");
 			try {
 				if (client != null) {
-					Clients.killClient(client, "Quit: connection lost");
+					context.getClients().killClient(client, "Quit: connection lost");
 				}
 			} catch (Exception e) {
 				// do nothing
@@ -700,7 +701,7 @@ public class TASServer {
 			s_log.info(new StringBuilder("exception in readIncomingMessages(): killing the client ... (").append(e.toString()).append(")").toString());
 			try {
 				if (client != null) {
-					Clients.killClient(client, "Quit: connection lost");
+					context.getClients().killClient(client, "Quit: connection lost");
 				}
 			} catch (Exception ex) {
 				// do nothing
@@ -718,7 +719,7 @@ public class TASServer {
 	}
 
 	private static Account verifyLogin(String user, String pass) {
-		Account acc = TASServer.getAccountsService().getAccount(user);
+		Account acc = context.getAccountsService().getAccount(user);
 		if (acc == null) {
 			return null;
 		}
@@ -753,9 +754,9 @@ public class TASServer {
 	private static boolean sendMOTDToClient(Client client) {
 		client.beginFastWrite();
 		client.sendLine(new StringBuilder("MOTD Welcome, ").append(client.getAccount().getName()).append("!").toString());
-		client.sendLine(new StringBuilder("MOTD There are currently ").append((Clients.getClientsSize() - 1)).append(" clients connected").toString()); // -1 is because we shouldn't count the client to which we are sending MOTD
-		client.sendLine(new StringBuilder("MOTD to server talking in ").append(Channels.getChannelsSize()).append(" open channels and").toString());
-		client.sendLine(new StringBuilder("MOTD participating in ").append(Battles.getBattlesSize()).append(" battles.").toString());
+		client.sendLine(new StringBuilder("MOTD There are currently ").append((context.getClients().getClientsSize() - 1)).append(" clients connected").toString()); // -1 is because we shouldn't count the client to which we are sending MOTD
+		client.sendLine(new StringBuilder("MOTD to server talking in ").append(context.getChannels().getChannelsSize()).append(" open channels and").toString());
+		client.sendLine(new StringBuilder("MOTD participating in ").append(context.getBattles().getBattlesSize()).append(" battles.").toString());
 		client.sendLine(new StringBuilder("MOTD Server's uptime is ").append(Misc.timeToDHM(System.currentTimeMillis() - upTime)).append(".").toString());
 		client.sendLine("MOTD");
 		String[] sl = MOTD.split("\n");
@@ -799,7 +800,7 @@ public class TASServer {
 		client.setRequestedBattleID(-1);
 		bat.addClient(client);
 	 	client.sendLine("JOINBATTLE " + bat.ID + " " + bat.hashCode); // notify client that he has successfully joined the battle
-		Clients.notifyClientsOfNewClientInBattle(bat, client);
+		context.getClients().notifyClientsOfNewClientInBattle(bat, client);
 		bat.notifyOfBattleStatuses(client);
 		bat.sendBotListToClient(client);
 		// tell host about this client's ip and UDP source port (if battle is hosted using one of the NAT traversal techniques):
@@ -888,7 +889,7 @@ public class TASServer {
 							.append(valid).append(")").toString());
 					return false;
 				}
-				Account acc = TASServer.getAccountsService().findAccountNoCase(commands[1]);
+				Account acc = context.getAccountsService().findAccountNoCase(commands[1]);
 				if (acc != null) {
 					client.sendLine("SERVERMSG Account already exists");
 					return false;
@@ -900,8 +901,8 @@ public class TASServer {
 				acc = new Account(
 						commands[1],
 						commands[2], client.getIp(), client.getCountry());
-				TASServer.getAccountsService().addAccount(acc);
-				TASServer.getAccountsService().saveAccounts(false); // let's save new accounts info to disk
+				context.getAccountsService().addAccount(acc);
+				context.getAccountsService().saveAccounts(false); // let's save new accounts info to disk
 				client.sendLine("SERVERMSG Account created.");
 			}
 			if (commands[0].equals("REGISTER")) {
@@ -940,7 +941,7 @@ public class TASServer {
 							.append(valid).append(")").toString());
 					return false;
 				}
-				Account acc = TASServer.getAccountsService().findAccountNoCase(commands[1]);
+				Account acc = context.getAccountsService().findAccountNoCase(commands[1]);
 				if (acc != null) {
 					client.sendLine("REGISTRATIONDENIED Account already exists");
 					return false;
@@ -955,7 +956,7 @@ public class TASServer {
 					/*if (registrationTimes.containsKey(client.ip)
 					&& (int)(registrationTimes.get(client.ip)) + 3600 > (System.currentTimeMillis()/1000)) {
 					client.sendLine("REGISTRATIONDENIED This ip has already registered an account recently");
-					Clients.sendToAllAdministrators("SERVERMSG Client at " + client.ip + "'s registration of " + commands[1] + " was blocked due to register spam");
+					context.getClients().sendToAllAdministrators("SERVERMSG Client at " + client.ip + "'s registration of " + commands[1] + " was blocked due to register spam");
 					return false;
 					}
 					registrationTimes.put(client.ip, (int)(System.currentTimeMillis()/1000));*/
@@ -967,19 +968,19 @@ public class TASServer {
 					try {
 					InetAddress.getByName(proxyDNS);
 					client.sendLine("REGISTRATIONDENIED Using a known proxy ip");
-					Clients.sendToAllAdministrators("SERVERMSG Client at " + client.ip + "'s registration of " + commands[1] + " was blocked as it is a proxy ip");
+					context.getClients().sendToAllAdministrators("SERVERMSG Client at " + client.ip + "'s registration of " + commands[1] + " was blocked as it is a proxy ip");
 					return false;
 					} catch (UnknownHostException e) {
 					}*/
 				}
-				Clients.sendToAllAdministrators(new StringBuilder("SERVERMSG New registration of <")
+				context.getClients().sendToAllAdministrators(new StringBuilder("SERVERMSG New registration of <")
 						.append(commands[1]).append("> at ")
 						.append(client.getIp()).toString());
 				acc = new Account(
 						commands[1],
 						commands[2], client.getIp(), client.getCountry());
-				TASServer.getAccountsService().addAccount(acc);
-				TASServer.getAccountsService().saveAccounts(false); // let's save new accounts info to disk
+				context.getAccountsService().addAccount(acc);
+				context.getAccountsService().saveAccounts(false); // let's save new accounts info to disk
 				client.sendLine("REGISTRATIONACCEPTED");
 			} else if (commands[0].equals("UPTIME")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.NORMAL) < 0) {
@@ -999,7 +1000,7 @@ public class TASServer {
 					return false;
 				}
 
-				Client target = Clients.getClient(commands[1]);
+				Client target = context.getClients().getClient(commands[1]);
 				String reason = "";
 				if (commands.length > 2) {
 					reason = new StringBuilder(" (reason: ").append(Misc.makeSentence(commands, 2)).append(")").toString();
@@ -1011,15 +1012,15 @@ public class TASServer {
 						.append(client.getAccount().getName()).append("> has kicked <")
 						.append(target.getAccount().getName()).append("> from server")
 						.append(reason).toString();
-				for (int i = 0; i < Channels.getChannelsSize(); i++) {
-					if (Channels.getChannel(i).isClientInThisChannel(target)) {
-						Channels.getChannel(i).broadcast(broadcastMsg);
+				for (int i = 0; i < context.getChannels().getChannelsSize(); i++) {
+					if (context.getChannels().getChannel(i).isClientInThisChannel(target)) {
+						context.getChannels().getChannel(i).broadcast(broadcastMsg);
 					}
 				}
 				target.sendLine(new StringBuilder("SERVERMSG You've been kicked from server by <")
 						.append(client.getAccount().getName()).append(">")
 						.append(reason).toString());
-				Clients.killClient(target, "Quit: kicked from server");
+				context.getClients().killClient(target, "Quit: kicked from server");
 			} else if (commands[0].equals("FLOODLEVEL")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
@@ -1047,11 +1048,11 @@ public class TASServer {
 					return false;
 				}
 
-				Client target = Clients.getClient(commands[1]);
+				Client target = context.getClients().getClient(commands[1]);
 				if (target == null) {
 					return false;
 				}
-				Clients.killClient(target);
+				context.getClients().killClient(target);
 			} else if (commands[0].equals("KILLIP")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
@@ -1065,11 +1066,11 @@ public class TASServer {
 					client.sendLine(new StringBuilder("SERVERMSG Invalid IP address/range: ").append(IP).toString());
 					return false;
 				}
-				for (int i = 0; i < Clients.getClientsSize(); i++) {
-					if (!isSameIP(sp1, Clients.getClient(i).getIp())) {
+				for (int i = 0; i < context.getClients().getClientsSize(); i++) {
+					if (!isSameIP(sp1, context.getClients().getClient(i).getIp())) {
 						continue;
 					}
-					Clients.killClient(Clients.getClient(i));
+					context.getClients().killClient(context.getClients().getClient(i));
 				}
 			} else if (commands[0].equals("WHITELIST")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
@@ -1126,19 +1127,19 @@ public class TASServer {
 					return false;
 				}
 
-				if (!TASServer.getAccountsService().removeAccount(commands[1])) {
+				if (!context.getAccountsService().removeAccount(commands[1])) {
 					return false;
 				}
 
 				// if any user is connected to this account, kick him:
-				for (int j = 0; j < Clients.getClientsSize(); j++) {
-					if (Clients.getClient(j).getAccount().getName().equals(commands[1])) {
-						Clients.killClient(Clients.getClient(j));
+				for (int j = 0; j < context.getClients().getClientsSize(); j++) {
+					if (context.getClients().getClient(j).getAccount().getName().equals(commands[1])) {
+						context.getClients().killClient(context.getClients().getClient(j));
 						j--;
 					}
 				}
 
-				TASServer.getAccountsService().saveAccounts(false); // let's save new accounts info to disk
+				context.getAccountsService().saveAccounts(false); // let's save new accounts info to disk
 				client.sendLine(new StringBuilder("SERVERMSG You have successfully removed <")
 						.append(commands[1]).append("> account!").toString());
 			} else if (commands[0].equals("STOPSERVER")) {
@@ -1159,7 +1160,7 @@ public class TASServer {
 					return false;
 				}
 
-				TASServer.getAccountsService().saveAccounts(false);
+				context.getAccountsService().saveAccounts(false);
 				client.sendLine("SERVERMSG Accounts will be saved in a background thread.");
 			} else if (commands[0].equals("CHANGEACCOUNTPASS")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
@@ -1169,7 +1170,7 @@ public class TASServer {
 					return false;
 				}
 
-				Account acc = TASServer.getAccountsService().getAccount(commands[1]);
+				Account acc = context.getAccountsService().getAccount(commands[1]);
 				if (acc == null) {
 					return false;
 				}
@@ -1180,21 +1181,21 @@ public class TASServer {
 
 				final String oldPasswd = acc.getPassword();
 				acc.setPassword(commands[2]);
-				final boolean mergeOk = TASServer.getAccountsService().mergeAccountChanges(acc, acc.getName());
+				final boolean mergeOk = context.getAccountsService().mergeAccountChanges(acc, acc.getName());
 				if (!mergeOk) {
 					acc.setPassword(oldPasswd);
 					client.sendLine("SERVERMSG CHANGEACCOUNTPASS failed: Failed saving to persistent storage.");
 					return false;
 				}
 
-				TASServer.getAccountsService().saveAccounts(false); // save changes
+				context.getAccountsService().saveAccounts(false); // save changes
 
 				// add server notification:
 				ServerNotification sn = new ServerNotification("Account password changed by admin");
 				sn.addLine(new StringBuilder("Admin <")
 						.append(client.getAccount().getName()).append("> has changed password for account <")
 						.append(acc.getName()).append(">").toString());
-				ServerNotifications.addNotification(sn);
+				context.getServerNotifications().addNotification(sn);
 			} else if (commands[0].equals("CHANGEACCOUNTACCESS")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
@@ -1210,7 +1211,7 @@ public class TASServer {
 					return false;
 				}
 
-				Account acc = TASServer.getAccountsService().getAccount(commands[1]);
+				Account acc = context.getAccountsService().getAccount(commands[1]);
 				if (acc == null) {
 					return false;
 				}
@@ -1221,7 +1222,7 @@ public class TASServer {
 				account_new.setBot(Account.extractBot(newAccessBifField));
 				account_new.setInGameTime(Account.extractInGameTime(newAccessBifField));
 				account_new.setAgreementAccepted(Account.extractAgreementAccepted(newAccessBifField));
-				final boolean mergeOk = TASServer.getAccountsService().mergeAccountChanges(account_new, account_new.getName());
+				final boolean mergeOk = context.getAccountsService().mergeAccountChanges(account_new, account_new.getName());
 				if (mergeOk) {
 					acc = account_new;
 				} else {
@@ -1230,12 +1231,12 @@ public class TASServer {
 					return false;
 				}
 
-				TASServer.getAccountsService().saveAccounts(false); // save changes
+				context.getAccountsService().saveAccounts(false); // save changes
 				// just in case if rank got changed: FIXME?
-				//Client target=Clients.getClient(commands[1]);
+				//Client target=context.getClients().getClient(commands[1]);
 				//target.setRankToStatus(client.account.getRank().ordinal());
 				//if(target.alive)
-				//	Clients.notifyClientsOfNewClientStatus(target);
+				//	context.getClients().notifyClientsOfNewClientStatus(target);
 
 				client.sendLine(new StringBuilder("SERVERMSG You have changed ACCESS for <")
 						.append(acc.getName()).append("> successfully.").toString());
@@ -1248,7 +1249,7 @@ public class TASServer {
 				sn.addLine(new StringBuilder("Old access code: ")
 						.append(oldAccessBitField).append(". New code: ")
 						.append(newAccessBifField).toString());
-				ServerNotifications.addNotification(sn);
+				context.getServerNotifications().addNotification(sn);
 			} else if (commands[0].equals("GETACCOUNTACCESS")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
@@ -1257,7 +1258,7 @@ public class TASServer {
 					return false;
 				}
 
-				Account acc = TASServer.getAccountsService().getAccount(commands[1]);
+				Account acc = context.getAccountsService().getAccount(commands[1]);
 				if (acc == null) {
 					client.sendLine(new StringBuilder("SERVERMSG User <")
 							.append(commands[1]).append("> not found!").toString());
@@ -1277,25 +1278,25 @@ public class TASServer {
 
 				redirectToIP = commands[1];
 				redirect = true;
-				Clients.sendToAllRegisteredUsers("BROADCAST Server has entered redirection mode");
+				context.getClients().sendToAllRegisteredUsers("BROADCAST Server has entered redirection mode");
 
 				// add server notification:
 				ServerNotification sn = new ServerNotification("Entered redirection mode");
 				sn.addLine(new StringBuilder("Admin <").append(client.getAccount().getName()).append("> has enabled redirection mode. New address: ").append(redirectToIP).toString());
-				ServerNotifications.addNotification(sn);
+				context.getServerNotifications().addNotification(sn);
 			} else if (commands[0].equals("REDIRECTOFF")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 
 				redirect = false;
-				Clients.sendToAllRegisteredUsers("BROADCAST Server has left redirection mode");
+				context.getClients().sendToAllRegisteredUsers("BROADCAST Server has left redirection mode");
 
 				// add server notification:
 				ServerNotification sn = new ServerNotification("Redirection mode disabled");
 				sn.addLine(new StringBuilder("Admin <").append(client.getAccount().getName())
 						.append("> has disabled redirection mode.").toString());
-				ServerNotifications.addNotification(sn);
+				context.getServerNotifications().addNotification(sn);
 			} else if (commands[0].equals("BROADCAST")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
@@ -1304,7 +1305,7 @@ public class TASServer {
 					return false;
 				}
 
-				Clients.sendToAllRegisteredUsers(new StringBuilder("BROADCAST ")
+				context.getClients().sendToAllRegisteredUsers(new StringBuilder("BROADCAST ")
 						.append(Misc.makeSentence(commands, 1)).toString());
 			} else if (commands[0].equals("BROADCASTEX")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
@@ -1314,7 +1315,7 @@ public class TASServer {
 					return false;
 				}
 
-				Clients.sendToAllRegisteredUsers(new StringBuilder("SERVERMSGBOX ")
+				context.getClients().sendToAllRegisteredUsers(new StringBuilder("SERVERMSGBOX ")
 						.append(Misc.makeSentence(commands, 1)).toString());
 			} else if (commands[0].equals("ADMINBROADCAST")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
@@ -1324,7 +1325,7 @@ public class TASServer {
 					return false;
 				}
 
-				Clients.sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: ")
+				context.getClients().sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: ")
 						.append(Misc.makeSentence(commands, 1)).toString());
 			} else if (commands[0].equals("GETACCOUNTCOUNT")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
@@ -1335,7 +1336,7 @@ public class TASServer {
 				}
 
 				client.sendLine(new StringBuilder("SERVERMSG ")
-						.append(TASServer.getAccountsService().getAccountsSize()).toString());
+						.append(context.getAccountsService().getAccountsSize()).toString());
 			} else if (commands[0].equals("FINDIP")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
 					return false;
@@ -1352,20 +1353,20 @@ public class TASServer {
 					return false;
 				}
 
-				for (int i = 0; i < Clients.getClientsSize(); i++) {
-					if (!isSameIP(sp1, Clients.getClient(i).getIp())) {
+				for (int i = 0; i < context.getClients().getClientsSize(); i++) {
+					if (!isSameIP(sp1, context.getClients().getClient(i).getIp())) {
 						continue;
 					}
 
 					found = true;
 					client.sendLine(new StringBuilder("SERVERMSG ")
 							.append(IP).append(" is bound to: ")
-							.append(Clients.getClient(i).getAccount().getName()).toString());
+							.append(context.getClients().getClient(i).getAccount().getName()).toString());
 				}
 
 				// now let's check if this ip matches any recently used ip:
-				Account lastAct = TASServer.getAccountsService().findAccountByLastIP(IP);
-				if (lastAct != null && Clients.getClient(lastAct.getName()) == null) { // user is offline
+				Account lastAct = context.getAccountsService().findAccountByLastIP(IP);
+				if (lastAct != null && context.getClients().getClient(lastAct.getName()) == null) { // user is offline
 					found = true;
 					client.sendLine(new StringBuilder("SERVERMSG ")
 							.append(IP).append(" was recently bound to: ")
@@ -1384,14 +1385,14 @@ public class TASServer {
 					return false;
 				}
 
-				Account acc = TASServer.getAccountsService().getAccount(commands[1]);
+				Account acc = context.getAccountsService().getAccount(commands[1]);
 				if (acc == null) {
 					client.sendLine(new StringBuilder("SERVERMSG User ")
 							.append(commands[1]).append(" not found!").toString());
 					return false;
 				}
 
-				boolean online = Clients.isUserLoggedIn(acc);
+				boolean online = context.getClients().isUserLoggedIn(acc);
 				client.sendLine(new StringBuilder("SERVERMSG ")
 						.append(commands[1]).append("'s last IP was ")
 						.append(acc.getLastIP()).append(" (")
@@ -1404,7 +1405,7 @@ public class TASServer {
 					return false;
 				}
 
-				Account acc = TASServer.getAccountsService().getAccount(commands[1]);
+				Account acc = context.getAccountsService().getAccount(commands[1]);
 				if (acc == null) {
 					client.sendLine(new StringBuilder("SERVERMSG Account <")
 							.append(commands[1]).append("> does not exist.").toString());
@@ -1424,7 +1425,7 @@ public class TASServer {
 					return false;
 				}
 
-				Client targetClient = Clients.getClient(commands[1]);
+				Client targetClient = context.getClients().getClient(commands[1]);
 				if (targetClient == null) {
 					return false;
 				}
@@ -1441,7 +1442,7 @@ public class TASServer {
 					return false;
 				}
 
-				Client targetClient = Clients.getClient(commands[1]);
+				Client targetClient = context.getClients().getClient(commands[1]);
 				if (targetClient == null) {
 					return false;
 				}
@@ -1455,7 +1456,7 @@ public class TASServer {
 					return false;
 				}
 
-				Client targetClient = Clients.getClient(commands[1]);
+				Client targetClient = context.getClients().getClient(commands[1]);
 				if (targetClient == null) {
 					return false;
 				}
@@ -1480,7 +1481,7 @@ public class TASServer {
 					if (commands.length != 2) {
 						return false;
 					}
-					Account acc = TASServer.getAccountsService().getAccount(commands[1]);
+					Account acc = context.getAccountsService().getAccount(commands[1]);
 					if (acc == null) {
 						client.sendLine(new StringBuilder("SERVERMSG GETINGAMETIME failed: user ")
 								.append(commands[1]).append(" not found!").toString());
@@ -1507,13 +1508,13 @@ public class TASServer {
 					return false;
 				}
 
-				Battle bat = Battles.getBattleByID(battleID);
+				Battle bat = context.getBattles().getBattleByID(battleID);
 				if (bat == null) {
 					client.sendLine("SERVERMSG Error: unknown BATTLE_ID!");
 					return false;
 				}
 
-				Battles.closeBattleAndNotifyAll(bat);
+				context.getBattles().closeBattleAndNotifyAll(bat);
 
 			} else if (commands[0].equals("MUTE")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
@@ -1523,7 +1524,7 @@ public class TASServer {
 					return false;
 				}
 
-				Channel chan = Channels.getChannel(commands[1]);
+				Channel chan = context.getChannels().getChannel(commands[1]);
 				if (chan == null) {
 					client.sendLine(new StringBuilder("SERVERMSG MUTE failed: Channel #").append(commands[1]).append(" does not exist!").toString());
 					return false;
@@ -1535,7 +1536,7 @@ public class TASServer {
 					return false;
 				}
 
-				Account targetAccount = TASServer.getAccountsService().getAccount(username);
+				Account targetAccount = context.getAccountsService().getAccount(username);
 				if (targetAccount == null) {
 					client.sendLine(new StringBuilder("SERVERMSG MUTE failed: User <").append(username).append("> does not exist").toString());
 					return false;
@@ -1576,7 +1577,7 @@ public class TASServer {
 					return false;
 				}
 
-				Channel chan = Channels.getChannel(commands[1]);
+				Channel chan = context.getChannels().getChannel(commands[1]);
 				if (chan == null) {
 					client.sendLine(new StringBuilder("SERVERMSG UNMUTE failed: Channel #").append(commands[1]).append(" does not exist!").toString());
 					return false;
@@ -1604,7 +1605,7 @@ public class TASServer {
 					return false;
 				}
 
-				Channel chan = Channels.getChannel(commands[1]);
+				Channel chan = context.getChannels().getChannel(commands[1]);
 				if (chan == null) {
 					client.sendLine(new StringBuilder("SERVERMSG MUTELIST failed: Channel #")
 							.append(commands[1]).append(" does not exist!").toString());
@@ -1636,7 +1637,7 @@ public class TASServer {
 					return false;
 				}
 
-				Channel chan = Channels.getChannel(commands[1]);
+				Channel chan = context.getChannels().getChannel(commands[1]);
 				if (chan == null) {
 					client.sendLine(new StringBuilder("SERVERMSG CHANNELMESSAGE failed: Channel #")
 							.append(commands[1]).append(" does not exist!").toString());
@@ -1653,7 +1654,7 @@ public class TASServer {
 				}
 
 				client.sendLine(new StringBuilder("SERVERMSG Country = ")
-						.append(IP2Country.getCountryCode(Misc.IP2Long(Misc.makeSentence(commands, 1)))).toString());
+						.append(IP2Country.getInstance().getCountryCode(Misc.IP2Long(Misc.makeSentence(commands, 1)))).toString());
 			} else if (commands[0].equals("REINITIP2COUNTRY")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
@@ -1662,7 +1663,7 @@ public class TASServer {
 					return false;
 				}
 
-				if (IP2Country.initializeAll(Misc.makeSentence(commands, 1))) {
+				if (IP2Country.getInstance().initializeAll(Misc.makeSentence(commands, 1))) {
 					client.sendLine("SERVERMSG IP2COUNTRY database initialized successfully!");
 				} else {
 					client.sendLine("SERVERMSG Error while initializing IP2COUNTRY database!");
@@ -1675,13 +1676,13 @@ public class TASServer {
 					return false;
 				}
 
-				if (IP2Country.updateInProgress()) {
+				if (IP2Country.getInstance().updateInProgress()) {
 					client.sendLine("SERVERMSG IP2Country database update is already in progress, try again later.");
 					return false;
 				}
 
 				client.sendLine("SERVERMSG Updating IP2country database ... Server will notify of success via server notification system.");
-				IP2Country.updateDatabase();
+				IP2Country.getInstance().updateDatabase();
 			} else if (commands[0].equals("RETRIEVELATESTBANLIST")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
@@ -1715,7 +1716,7 @@ public class TASServer {
 					return false;
 				}
 
-				Client targetClient = Clients.getClient(commands[1]);
+				Client targetClient = context.getClients().getClient(commands[1]);
 				if (targetClient == null) {
 					client.sendLine(new StringBuilder("SERVERMSG <")
 							.append(commands[1]).append("> not found!").toString());
@@ -1732,7 +1733,7 @@ public class TASServer {
 					return false;
 				}
 
-				int taken = Statistics.saveStatisticsToDisk();
+				int taken = context.getStatistics().saveStatisticsToDisk();
 				if (taken == -1) {
 					client.sendLine("SERVERMSG Unable to update statistics!");
 				} else {
@@ -1779,14 +1780,14 @@ public class TASServer {
 					return false;
 				}
 
-				Account acc = TASServer.getAccountsService().getAccount(commands[1]);
+				Account acc = context.getAccountsService().getAccount(commands[1]);
 				if (acc == null) {
 					client.sendLine(new StringBuilder("SERVERMSG GETLASTLOGINTIME failed: <")
 							.append(commands[1]).append("> not found!").toString());
 					return false;
 				}
 
-				if (Clients.getClient(acc.getName()) == null) {
+				if (context.getClients().getClient(acc.getName()) == null) {
 					client.sendLine(new StringBuilder("SERVERMSG <")
 							.append(acc.getName()).append(">'s last login was on ")
 							.append(Misc.easyDateFormat(acc.getLastLogin(), "d MMM yyyy HH:mm:ss z")).toString());
@@ -1803,7 +1804,7 @@ public class TASServer {
 					return false;
 				}
 
-				Channel chan = Channels.getChannel(commands[1]);
+				Channel chan = context.getChannels().getChannel(commands[1]);
 				if (chan == null) {
 					client.sendLine(new StringBuilder("SERVERMSG Error: Channel does not exist: ").append(commands[1]).toString());
 					return false;
@@ -1837,13 +1838,13 @@ public class TASServer {
 					return false;
 				}
 
-				Channel chan = Channels.getChannel(commands[1]);
+				Channel chan = context.getChannels().getChannel(commands[1]);
 				if (chan == null) {
 					client.sendLine(new StringBuilder("SERVERMSG Error: Channel does not exist: ").append(commands[1]).toString());
 					return false;
 				}
 
-				Client target = Clients.getClient(commands[2]);
+				Client target = context.getClients().getClient(commands[2]);
 				if (target == null) {
 					client.sendLine(new StringBuilder("SERVERMSG Error: <").append(commands[2]).append("> not found!").toString());
 					return false;
@@ -1877,7 +1878,7 @@ public class TASServer {
 					return false;
 				}
 
-				if (ServerNotifications.addNotification(new ServerNotification("Admin notification", client.getAccount().getName(), Misc.makeSentence(commands, 1)))) {
+				if (context.getServerNotifications().addNotification(new ServerNotification("Admin notification", client.getAccount().getName(), Misc.makeSentence(commands, 1)))) {
 					client.sendLine("SERVERMSG Notification added.");
 				} else {
 					client.sendLine("SERVERMSG Error while adding notification! Notification not added.");
@@ -1891,7 +1892,7 @@ public class TASServer {
 					return false;
 				}
 
-				Client c = Clients.getClient(commands[1]);
+				Client c = context.getClients().getClient(commands[1]);
 				if (c == null) {
 					client.sendLine(new StringBuilder("SERVERMSG Error: user <").append(commands[1]).append("> not found online!").toString());
 					return false;
@@ -1971,7 +1972,7 @@ public class TASServer {
 					return false;
 				}
 
-				Account acc = TASServer.getAccountsService().getAccount(commands[1]);
+				Account acc = context.getAccountsService().getAccount(commands[1]);
 				if (acc == null) {
 					client.sendLine(new StringBuilder("SERVERMSG User <").append(commands[1]).append("> not found!").toString());
 					return false;
@@ -1979,7 +1980,7 @@ public class TASServer {
 
 				final boolean wasBot = acc.isBot();
 				acc.setBot((mode == 0) ? false : true);
-				final boolean mergeOk = TASServer.getAccountsService().mergeAccountChanges(acc, acc.getName());
+				final boolean mergeOk = context.getAccountsService().mergeAccountChanges(acc, acc.getName());
 				if (!mergeOk) {
 					acc.setBot(wasBot);
 					client.sendLine("SERVERMSG SETBOTMODE failed: Failed saving to persistent storage.");
@@ -1997,7 +1998,7 @@ public class TASServer {
 					return false;
 				}
 
-				Account acc = TASServer.getAccountsService().getAccount(commands[1]);
+				Account acc = context.getAccountsService().getAccount(commands[1]);
 				if (acc == null) {
 					client.sendLine(new StringBuilder("SERVERMSG User <").append(commands[1]).append("> not found!").toString());
 					return false;
@@ -2040,7 +2041,7 @@ public class TASServer {
 					return false;
 				}
 
-				Account acc = TASServer.getAccountsService().getAccount(commands[1]);
+				Account acc = context.getAccountsService().getAccount(commands[1]);
 				if (acc == null) {
 					client.sendLine(new StringBuilder("SERVERMSG User <").append(commands[1]).append("> not found!").toString());
 					return false;
@@ -2057,7 +2058,7 @@ public class TASServer {
 					return false;
 				}
 
-				Client targetClient = Clients.getClient(commands[1]);
+				Client targetClient = context.getClients().getClient(commands[1]);
 				if (targetClient == null) {
 					client.sendLine(new StringBuilder("SERVERMSG <").append(commands[1]).append("> not found or is not currently online!").toString());
 					return false;
@@ -2075,8 +2076,8 @@ public class TASServer {
 					reason.append(" (reason: ").append(Misc.makeSentence(commands, 1)).append(")");
 				}
 
-				while (Clients.getClientsSize() > 0) {
-					Clients.killClient(Clients.getClient(0), (reason.length() == 0 ? "Disconnected by server" : "Disconnected by server: " + reason));
+				while (context.getClients().getClientsSize() > 0) {
+					context.getClients().killClient(context.getClients().getClient(0), (reason.length() == 0 ? "Disconnected by server" : "Disconnected by server: " + reason));
 				}
 			} else if (commands[0].equals("OUTPUTDBDRIVERSTATUS")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
@@ -2089,7 +2090,7 @@ public class TASServer {
 					return false;
 				}
 
-				Channels.sendChannelListToClient(client);
+				context.getChannels().sendChannelListToClient(client);
 			} else if (commands[0].equals("REQUESTUPDATEFILE")) {
 				//***if (client.account.getAccess() > Account.Access.NONE) return false;
 				if (commands.length < 2) {
@@ -2110,7 +2111,7 @@ public class TASServer {
 
 				// kill client if no update has been found for him:
 				if (response.substring(0, 12).toUpperCase().equals("SERVERMSGBOX")) {
-					Clients.killClient(client);
+					context.getClients().killClient(client);
 				}
 			} else if (commands[0].equals("LOGIN")) {
 				if (client.getAccount().getAccess() != Account.Access.NONE) {
@@ -2118,7 +2119,7 @@ public class TASServer {
 					return false; // user with accessLevel > 0 cannot re-login
 				}
 
-				if (!loginEnabled && TASServer.getAccountsService().getAccount(commands[1]).getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
+				if (!loginEnabled && context.getAccountsService().getAccount(commands[1]).getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
 					client.sendLine("DENIED Sorry, logging in is currently disabled");
 					return false;
 				}
@@ -2172,7 +2173,7 @@ public class TASServer {
 						recordFailedLoginAttempt(username);
 						if (!attempt.logged) {
 							attempt.logged = true;
-							Clients.sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: Too many failed login attempts for <")
+							context.getClients().sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: Too many failed login attempts for <")
 									.append(username).append("> from ")
 									.append(client.getIp()).append(". Blocking for 30 seconds. Will not notify any longer.").toString());
 							// add server notification:
@@ -2180,7 +2181,7 @@ public class TASServer {
 							sn.addLine(new StringBuilder("Too many failed login attempts for <")
 									.append(username).append("> from ")
 									.append(client.getIp()).append(". Blocking for 30 seconds.").toString());
-							ServerNotifications.addNotification(sn);
+							context.getServerNotifications().addNotification(sn);
 						}
 						return false;
 					}
@@ -2191,11 +2192,11 @@ public class TASServer {
 						recordFailedLoginAttempt(username);
 						return false;
 					}
-					if (Clients.isUserLoggedIn(acc)) {
+					if (context.getClients().isUserLoggedIn(acc)) {
 						client.sendLine("DENIED Already logged in");
 						return false;
 					}
-					BanEntry ban = getBanService().getBanEntry(username, Misc.IP2Long(client.getIp()), userID);
+					BanEntry ban = context.getBanService().getBanEntry(username, Misc.IP2Long(client.getIp()), userID);
 					if (ban != null && ban.isActive()) {
 						client.sendLine(new StringBuilder("DENIED You are banned from this server! (Reason: ")
 								.append(ban.getPublicReason()).append("). Please contact server administrator.").toString());
@@ -2210,13 +2211,13 @@ public class TASServer {
 					if (!acc.isAgreementAccepted()) {
 						// user has obviously accepted the agreement... Let's update it
 						acc.setAgreementAccepted(true);
-						final boolean mergeOk = TASServer.getAccountsService().mergeAccountChanges(acc, acc.getName());
+						final boolean mergeOk = context.getAccountsService().mergeAccountChanges(acc, acc.getName());
 						if (!mergeOk) {
 							acc.setAgreementAccepted(false);
 							client.sendLine("DENIED Failed saving 'agreement accepted' to persistent storage.");
 							return false;
 						}
-						TASServer.getAccountsService().saveAccounts(false);
+						context.getAccountsService().saveAccounts(false);
 					}
 					if (acc.getLastLogin() + 5000 > System.currentTimeMillis()) {
 						client.sendLine("DENIED This account has already connected in the last 5 seconds");
@@ -2227,7 +2228,7 @@ public class TASServer {
 					if (commands[1].equals("")) {
 						client.sendLine("DENIED Cannot login with null username");
 					}
-					Account acc = TASServer.getAccountsService().getAccount(commands[1]);
+					Account acc = context.getAccountsService().getAccount(commands[1]);
 					if (acc != null) {
 						client.sendLine("DENIED Player with same name already logged in");
 						return false;
@@ -2238,7 +2239,7 @@ public class TASServer {
 					}
 					acc = new Account(commands[1], commands[2], "?", "XX");
 					acc.setAccess(accessLvl);
-					TASServer.getAccountsService().addAccount(acc);
+					context.getAccountsService().addAccount(acc);
 					client.setAccount(acc);
 				}
 
@@ -2258,7 +2259,7 @@ public class TASServer {
 				}
 				client.setLobbyVersion(lobbyVersion);
 				client.getAccount().setLastUserId(userID);
-				final boolean mergeOk = TASServer.getAccountsService().mergeAccountChanges( client.getAccount(), client.getAccount().getName());
+				final boolean mergeOk = context.getAccountsService().mergeAccountChanges( client.getAccount(), client.getAccount().getName());
 				if (!mergeOk) {
 					s_log.info(new StringBuilder("Failed saving login info to persistent storage for user: ").append(client.getAccount().getName()).toString());
 					return false;
@@ -2267,15 +2268,15 @@ public class TASServer {
 				// do the notifying and all:
 				client.sendLine(new StringBuilder("ACCEPTED ").append(client.getAccount().getName()).toString());
 				sendMOTDToClient(client);
-				Clients.sendListOfAllUsersToClient(client);
-				Battles.sendInfoOnBattlesToClient(client);
-				Clients.sendInfoOnStatusesToClient(client);
+				context.getClients().sendListOfAllUsersToClient(client);
+				context.getBattles().sendInfoOnBattlesToClient(client);
+				context.getClients().sendInfoOnStatusesToClient(client);
 				// notify client that we've finished sending login info:
 				client.sendLine("LOGININFOEND");
 
 				// notify everyone about new client:
-				Clients.notifyClientsOfNewClientOnServer(client);
-				Clients.notifyClientsOfNewClientStatus(client);
+				context.getClients().notifyClientsOfNewClientOnServer(client);
+				context.getClients().notifyClientsOfNewClientStatus(client);
 
 				if (s_log.isDebugEnabled()) {
 					s_log.debug(new StringBuilder("User just logged in: ").append(client.getAccount().getName()).toString());
@@ -2283,7 +2284,7 @@ public class TASServer {
 			} else if (commands[0].equals("CONFIRMAGREEMENT")) {
 				// update client's temp account (he is not logged in yet since he needs to confirm the agreement before server will allow him to log in):
 				client.getAccount().setAgreementAccepted(true);
-				final boolean mergeOk = TASServer.getAccountsService().mergeAccountChanges( client.getAccount(), client.getAccount().getName());
+				final boolean mergeOk = context.getAccountsService().mergeAccountChanges( client.getAccount(), client.getAccount().getName());
 				if (!mergeOk) {
 					s_log.debug(new StringBuilder("Failed saving 'agreement accepted' state to persistent storage for user: ").append(client.getAccount().getName()).toString());
 					return false;
@@ -2308,7 +2309,7 @@ public class TASServer {
 				}
 
 				client.getAccount().setLastUserId(userID);
-				final boolean mergeOk = TASServer.getAccountsService().mergeAccountChanges( client.getAccount(), client.getAccount().getName());
+				final boolean mergeOk = context.getAccountsService().mergeAccountChanges( client.getAccount(), client.getAccount().getName());
 				if (!mergeOk) {
 					client.sendLine("SERVERMSG Failed saving last userid to persistent storage");
 					return false;
@@ -2320,7 +2321,7 @@ public class TASServer {
 						.append(client.getAccount().getName()).append("> has generated a new user ID: ")
 						.append(commands[1]).append("(")
 						.append(userID).append(")").toString());
-				ServerNotifications.addNotification(sn);
+				context.getServerNotifications().addNotification(sn);
 			} else if (commands[0].equals("RENAMEACCOUNT")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
@@ -2343,15 +2344,15 @@ public class TASServer {
 					return false;
 				}
 
-				Account acc = TASServer.getAccountsService().findAccountNoCase(commands[1]);
+				Account acc = context.getAccountsService().findAccountNoCase(commands[1]);
 				if (acc != null && acc != client.getAccount()) {
 					client.sendLine("SERVERMSG RENAMEACCOUNT failed: Account with same username already exists!");
 					return false;
 				}
 
 				// make sure all mutes are accordingly adjusted to new username:
-				for (int i = 0; i < Channels.getChannelsSize(); i++) {
-					Channels.getChannel(i).getMuteList().rename(client.getAccount().getName(), commands[1]);
+				for (int i = 0; i < context.getChannels().getChannelsSize(); i++) {
+					context.getChannels().getChannel(i).getMuteList().rename(client.getAccount().getName(), commands[1]);
 				}
 
 				final String oldName = client.getAccount().getName();
@@ -2359,7 +2360,7 @@ public class TASServer {
 				account_new.setName(commands[1]);
 				account_new.setLastLogin(System.currentTimeMillis());
 				account_new.setLastIP(client.getIp());
-				final boolean mergeOk = TASServer.getAccountsService().mergeAccountChanges(account_new, client.getAccount().getName());
+				final boolean mergeOk = context.getAccountsService().mergeAccountChanges(account_new, client.getAccount().getName());
 				if (mergeOk) {
 					client.setAccount(account_new);
 				} else {
@@ -2370,9 +2371,9 @@ public class TASServer {
 				client.sendLine(new StringBuilder("SERVERMSG Your account has been renamed to <")
 						.append(account_new.getName())
 						.append(">. Reconnect with new account (you will now be automatically disconnected)!").toString());
-				Clients.killClient(client, "Quit: renaming account");
-				TASServer.getAccountsService().saveAccounts(false); // let's save new accounts info to disk
-				Clients.sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: User <")
+				context.getClients().killClient(client, "Quit: renaming account");
+				context.getAccountsService().saveAccounts(false); // let's save new accounts info to disk
+				context.getClients().sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: User <")
 						.append(oldName).append("> has just renamed his account to <")
 						.append(client.getAccount().getName()).append(">").toString());
 
@@ -2381,7 +2382,7 @@ public class TASServer {
 				sn.addLine(new StringBuilder("User <")
 						.append(oldName).append("> has renamed his account to <")
 						.append(client.getAccount().getName()).append(">").toString());
-				ServerNotifications.addNotification(sn);
+				context.getServerNotifications().addNotification(sn);
 			} else if (commands[0].equals("CHANGEPASSWORD")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
@@ -2411,14 +2412,14 @@ public class TASServer {
 
 				final String oldPasswd = client.getAccount().getPassword();
 				client.getAccount().setPassword(commands[2]);
-				final boolean mergeOk = TASServer.getAccountsService().mergeAccountChanges( client.getAccount(), client.getAccount().getName());
+				final boolean mergeOk = context.getAccountsService().mergeAccountChanges( client.getAccount(), client.getAccount().getName());
 				if (!mergeOk) {
 					client.getAccount().setPassword(oldPasswd);
 					client.sendLine("SERVERMSG CHANGEPASSWORD failed: Failed saving to persistent storage.");
 					return false;
 				}
 
-				TASServer.getAccountsService().saveAccounts(false); // let's save new accounts info to disk
+				context.getAccountsService().saveAccounts(false); // let's save new accounts info to disk
 				client.sendLine("SERVERMSG Your password has been successfully updated!");
 			} else if (commands[0].equals("JOIN")) {
 				if (commands.length < 2) {
@@ -2429,7 +2430,7 @@ public class TASServer {
 				}
 
 				// check if channel name is OK:
-				String valid = Channels.isChanNameValid(commands[1]);
+				String valid = context.getChannels().isChanNameValid(commands[1]);
 				if (valid != null) {
 					client.sendLine(new StringBuilder("JOINFAILED Bad channel name (\"#")
 							.append(commands[1]).append("\"). Reason: ")
@@ -2438,7 +2439,7 @@ public class TASServer {
 				}
 
 				// check if key is correct (if channel is locked):
-				Channel chan = Channels.getChannel(commands[1]);
+				Channel chan = context.getChannels().getChannel(commands[1]);
 				if ((chan != null) && (chan.isLocked()) && (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0 /* we will allow admins to join locked channels */)) {
 					if (!Misc.makeSentence(commands, 2).equals(chan.getKey())) {
 						client.sendLine(new StringBuilder("JOINFAILED ").append(commands[1]).append(" Wrong key (this channel is locked)!").toString());
@@ -2452,8 +2453,8 @@ public class TASServer {
 					return false;
 				}
 				client.sendLine(new StringBuilder("JOIN ").append(commands[1]).toString());
-				Channels.sendChannelInfoToClient(chan, client);
-				Channels.notifyClientsOfNewClientInChannel(chan, client);
+				context.getChannels().sendChannelInfoToClient(chan, client);
+				context.getChannels().notifyClientsOfNewClientInChannel(chan, client);
 			} else if (commands[0].equals("LEAVE")) {
 				if (commands.length < 2) {
 					return false;
@@ -2462,7 +2463,7 @@ public class TASServer {
 					return false;
 				}
 
-				Channel chan = Channels.getChannel(commands[1]);
+				Channel chan = context.getChannels().getChannel(commands[1]);
 				if (chan == null) {
 					return false;
 				}
@@ -2476,7 +2477,7 @@ public class TASServer {
 					return false;
 				}
 
-				Channel chan = Channels.getChannel(commands[1]);
+				Channel chan = context.getChannels().getChannel(commands[1]);
 				if (chan == null) {
 					client.sendLine(new StringBuilder("SERVERMSG Error: Channel does not exist: ").append(commands[1]).toString());
 					return false;
@@ -2530,7 +2531,7 @@ public class TASServer {
 							.append(client.getAccount().getName()).append(") [exceeded max. chat message size]").toString());
 					client.sendLine(new StringBuilder("SERVERMSG Flooding detected - you have exceeded maximum allowed chat message size (")
 							.append(maxChatMessageLength).append(" bytes). Your message has been ignored.").toString());
-					Clients.sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: Flooding has been detected from ")
+					context.getClients().sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: Flooding has been detected from ")
 							.append(client.getIp()).append(" (")
 							.append(client.getAccount().getName()).append(") - exceeded maximum chat message size. Ignoring ...").toString());
 					return false;
@@ -2570,7 +2571,7 @@ public class TASServer {
 							.append(") [exceeded max. chat message size]").toString());
 					client.sendLine(new StringBuilder("SERVERMSG Flooding detected - you have exceeded maximum allowed chat message size (")
 							.append(maxChatMessageLength).append(" bytes). Your message has been ignored.").toString());
-					Clients.sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: Flooding has been detected from ")
+					context.getClients().sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: Flooding has been detected from ")
 							.append(client.getIp()).append(" (")
 							.append(client.getAccount().getName())
 							.append(") - exceeded maximum chat message size. Ignoring ...").toString());
@@ -2589,7 +2590,7 @@ public class TASServer {
 					return false;
 				}
 
-				Client target = Clients.getClient(commands[1]);
+				Client target = context.getClients().getClient(commands[1]);
 				if (target == null) {
 					return false;
 				}
@@ -2602,7 +2603,7 @@ public class TASServer {
 							.append(client.getAccount().getName()).append(") [exceeded max. chat message size]").toString());
 					client.sendLine(new StringBuilder("SERVERMSG Flooding detected - you have exceeded maximum allowed chat message size (")
 							.append(maxChatMessageLength).append(" bytes). Your message has been ignored.").toString());
-					Clients.sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: Flooding has been detected from ")
+					context.getClients().sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: Flooding has been detected from ")
 							.append(client.getIp()).append(" (")
 							.append(client.getAccount().getName())
 							.append(") - exceeded maximum chat message size. Ignoring ...").toString());
@@ -2635,7 +2636,7 @@ public class TASServer {
 					return false;
 				}
 
-				Battle bat = Battles.getBattleByID(battleID);
+				Battle bat = context.getBattles().getBattleByID(battleID);
 
 				if (bat == null) {
 					client.sendLine("JOINBATTLEFAILED Invalid battle ID!");
@@ -2670,10 +2671,10 @@ public class TASServer {
 				if (commands.length != 2) return false;
 				if (client.getAccount().getAccess().compareTo(Account.Access.NORMAL) < 0) return false;
 				if (client.getBattleID() == -1) return false;
-				Battle bat = Battles.getBattleByID(client.getBattleID());
+				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 				if (bat == null) return false;
 				if (bat.founder != client) return false; // only founder can accept battle join
-				Client joiningClient = Clients.getClient(commands[1]);
+				Client joiningClient = context.getClients().getClient(commands[1]);
 				if (joiningClient == null) return false;
 				if (joiningClient.getRequestedBattleID() !=  client.getBattleID()) return false;
 				notifyClientJoinedBattle(joiningClient,bat);
@@ -2681,10 +2682,10 @@ public class TASServer {
 				if (commands.length < 2) return false;
 				if (client.getAccount().getAccess().compareTo(Account.Access.NORMAL) < 0) return false;
 				if (client.getBattleID() == -1) return false;
-				Battle bat = Battles.getBattleByID(client.getBattleID());
+				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 				if (bat == null) return false;
 				if (bat.founder != client) return false; // only founder can deny battle join
-				Client joiningClient = Clients.getClient(commands[1]);
+				Client joiningClient = context.getClients().getClient(commands[1]);
 				if (joiningClient == null) return false;
 				if (joiningClient.getRequestedBattleID() !=  client.getBattleID()) return false;
 				joiningClient.setRequestedBattleID(-1);
@@ -2704,9 +2705,9 @@ public class TASServer {
 				if (client.getBattleID() == -1) {
 					return false; // this may happen when client sent LEAVEBATTLE command right after he was kicked from the battle, for example.
 				}
-				Battle bat = Battles.getBattleByID(client.getBattleID());
+				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 				verifyBattle(bat);
-				Battles.leaveBattle(client, bat); // automatically checks if client is a founder and closes battle
+				context.getBattles().leaveBattle(client, bat); // automatically checks if client is a founder and closes battle
 			} else if (commands[0].equals("OPENBATTLE")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
@@ -2715,24 +2716,24 @@ public class TASServer {
 					client.sendLine("OPENBATTLEFAILED You are already hosting a battle!");
 					return false;
 				}
-				Battle bat = Battles.createBattleFromString(command, client);
+				Battle bat = context.getBattles().createBattleFromString(command, client);
 				if (bat == null) {
 					client.sendLine("OPENBATTLEFAILED Invalid command format or bad arguments");
 					return false;
 				}
-				Battles.addBattle(bat);
+				context.getBattles().addBattle(bat);
 				client.setBattleStatus(0); // reset client's battle status
 				client.setBattleID(bat.ID);
 				client.setRequestedBattleID(-1);
 
 				boolean local;
-				for (int i = 0; i < Clients.getClientsSize(); i++) {
-					if (Clients.getClient(i).getAccount().getAccess().compareTo(Account.Access.NORMAL) < 0) {
+				for (int i = 0; i < context.getClients().getClientsSize(); i++) {
+					if (context.getClients().getClient(i).getAccount().getAccess().compareTo(Account.Access.NORMAL) < 0) {
 						continue;
 					}
 					// make sure that clients behind NAT get local IPs and not external ones:
-					local = client.getIp().equals(Clients.getClient(i).getIp());
-					Clients.getClient(i).sendLine(bat.createBattleOpenedCommandEx(local));
+					local = client.getIp().equals(context.getClients().getClient(i).getIp());
+					context.getClients().getClient(i).sendLine(bat.createBattleOpenedCommandEx(local));
 				}
 
 				client.sendLine(new StringBuilder("OPENBATTLE ").append(bat.ID).toString()); // notify client that he successfully opened a new battle
@@ -2749,7 +2750,7 @@ public class TASServer {
 					return false;
 				}
 
-				Battle bat = Battles.getBattleByID(client.getBattleID());
+				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 				if (bat == null) {
 					return false;
 				}
@@ -2831,7 +2832,7 @@ public class TASServer {
 				if (client.getInGameFromStatus() != tmp2) {
 					// user changed his in-game status.
 					if (tmp2 == false) { // client just entered game
-						Battle bat = Battles.getBattleByID(client.getBattleID());
+						Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 						if ((bat != null) && (bat.getClientsSize() > 0)) {
 							client.setInGameTime(System.currentTimeMillis());
 						} else {
@@ -2848,7 +2849,7 @@ public class TASServer {
 							if (rankChanged) {
 								client.setRankToStatus(client.getAccount().getRank().ordinal());
 							}
-							final boolean mergeOk = TASServer.getAccountsService().mergeAccountChanges( client.getAccount(), client.getAccount().getName());
+							final boolean mergeOk = context.getAccountsService().mergeAccountChanges( client.getAccount(), client.getAccount().getName());
 							if (!mergeOk) {
 								// as this is no serious problem, only log a message
 								s_log.warn(new StringBuilder("Failed updating users in-game-time in persistent storage: ")
@@ -2858,7 +2859,7 @@ public class TASServer {
 						}
 					}
 				}
-				Clients.notifyClientsOfNewClientStatus(client);
+				context.getClients().notifyClientsOfNewClientStatus(client);
 			} else if (commands[0].equals("SAYBATTLE")) {
 				if (commands.length < 2) {
 					return false;
@@ -2870,7 +2871,7 @@ public class TASServer {
 				if (client.getBattleID() == -1) {
 					return false;
 				}
-				Battle bat = Battles.getBattleByID(client.getBattleID());
+				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 				if (bat == null) {
 					return false;
 				}
@@ -2884,7 +2885,7 @@ public class TASServer {
 							.append(") [exceeded max. chat message size]").toString());
 					client.sendLine(new StringBuilder("SERVERMSG Flooding detected - you have exceeded maximum allowed chat message size (")
 							.append(maxChatMessageLength).append(" bytes). Your message has been ignored.").toString());
-					Clients.sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: Flooding has been detected from ")
+					context.getClients().sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: Flooding has been detected from ")
 							.append(client.getIp()).append(" (")
 							.append(client.getAccount().getName())
 							.append(") - exceeded maximum chat message size. Ignoring ...").toString());
@@ -2905,7 +2906,7 @@ public class TASServer {
 				if (client.getBattleID() == -1) {
 					return false;
 				}
-				Battle bat = Battles.getBattleByID(client.getBattleID());
+				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 				if (bat == null) {
 					return false;
 				}
@@ -2919,7 +2920,7 @@ public class TASServer {
 							.append(") [exceeded max. chat message size]").toString());
 					client.sendLine(new StringBuilder("SERVERMSG Flooding detected - you have exceeded maximum allowed chat message size (")
 							.append(maxChatMessageLength).append(" bytes). Your message has been ignored.").toString());
-					Clients.sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: Flooding has been detected from ")
+					context.getClients().sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: Flooding has been detected from ")
 							.append(client.getIp()).append(" (")
 							.append(client.getAccount().getName())
 							.append(") - exceeded maximum chat message size. Ignoring ...").toString());
@@ -2940,7 +2941,7 @@ public class TASServer {
 				if (client.getBattleID() == -1) {
 					return false;
 				}
-				Battle bat = Battles.getBattleByID(client.getBattleID());
+				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 				if (bat == null) {
 					return false;
 				}
@@ -2961,7 +2962,7 @@ public class TASServer {
 				bat.mapName = Misc.makeSentence(commands, 4);
 				bat.locked = locked;
 				bat.mapHash = maphash;
-				Clients.sendToAllRegisteredUsers(new StringBuilder("UPDATEBATTLEINFO ")
+				context.getClients().sendToAllRegisteredUsers(new StringBuilder("UPDATEBATTLEINFO ")
 						.append(bat.ID).append(" ")
 						.append(spectatorCount).append(" ")
 						.append(Misc.boolToStr(bat.locked)).append(" ")
@@ -2978,7 +2979,7 @@ public class TASServer {
 				if (client.getBattleID() == -1) {
 					return false;
 				}
-				Battle bat = Battles.getBattleByID(client.getBattleID());
+				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 				if (bat == null) {
 					return false;
 				}
@@ -2995,7 +2996,7 @@ public class TASServer {
 					return false;
 				}
 
-				Client target = Clients.getClient(commands[1]);
+				Client target = context.getClients().getClient(commands[1]);
 				if (target == null) {
 					return false;
 				}
@@ -3016,14 +3017,14 @@ public class TASServer {
 				if (client.getBattleID() == -1) {
 					return false;
 				}
-				Battle bat = Battles.getBattleByID(client.getBattleID());
+				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 				if (bat == null) {
 					return false;
 				}
 				if (bat.founder != client) {
 					return false; // only founder can kick other clients
 				}
-				Client target = Clients.getClient(commands[1]);
+				Client target = context.getClients().getClient(commands[1]);
 				if (target == null) {
 					return false;
 				}
@@ -3049,7 +3050,7 @@ public class TASServer {
 				if (client.getBattleID() == -1) {
 					return false;
 				}
-				Battle bat = Battles.getBattleByID(client.getBattleID());
+				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 				if (bat == null) {
 					return false;
 				}
@@ -3066,7 +3067,7 @@ public class TASServer {
 					return false;
 				}
 
-				Client target = Clients.getClient(commands[1]);
+				Client target = context.getClients().getClient(commands[1]);
 				if (target == null) {
 					return false;
 				}
@@ -3087,7 +3088,7 @@ public class TASServer {
 				if (client.getBattleID() == -1) {
 					return false;
 				}
-				Battle bat = Battles.getBattleByID(client.getBattleID());
+				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 				if (bat == null) {
 					return false;
 				}
@@ -3104,7 +3105,7 @@ public class TASServer {
 					return false;
 				}
 
-				Client target = Clients.getClient(commands[1]);
+				Client target = context.getClients().getClient(commands[1]);
 				if (target == null) {
 					return false;
 				}
@@ -3125,7 +3126,7 @@ public class TASServer {
 				if (client.getBattleID() == -1) {
 					return false;
 				}
-				Battle bat = Battles.getBattleByID(client.getBattleID());
+				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 				if (bat == null) {
 					return false;
 				}
@@ -3139,7 +3140,7 @@ public class TASServer {
 					return false;
 				}
 
-				Client target = Clients.getClient(commands[1]);
+				Client target = context.getClients().getClient(commands[1]);
 				if (target == null) {
 					return false;
 				}
@@ -3160,14 +3161,14 @@ public class TASServer {
 				if (client.getBattleID() == -1) {
 					return false;
 				}
-				Battle bat = Battles.getBattleByID(client.getBattleID());
+				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 				if (bat == null) {
 					return false;
 				}
 				if (bat.founder != client) {
 					return false; // only founder can force spectator mode
 				}
-				Client target = Clients.getClient(commands[1]);
+				Client target = context.getClients().getClient(commands[1]);
 				if (target == null) {
 					return false;
 				}
@@ -3192,7 +3193,7 @@ public class TASServer {
 					return false;
 				}
 
-				Battle bat = Battles.getBattleByID(client.getBattleID());
+				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 				verifyBattle(bat);
 
 				int value;
@@ -3242,7 +3243,7 @@ public class TASServer {
 					return false;
 				}
 
-				Battle bat = Battles.getBattleByID(client.getBattleID());
+				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 				verifyBattle(bat);
 
 				Bot bot = bat.getBot(commands[1]);
@@ -3267,7 +3268,7 @@ public class TASServer {
 					return false;
 				}
 
-				Battle bat = Battles.getBattleByID(client.getBattleID());
+				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 				verifyBattle(bat);
 
 				Bot bot = bat.getBot(commands[1]);
@@ -3315,7 +3316,7 @@ public class TASServer {
 				if (client.getBattleID() == -1) {
 					return false;
 				}
-				Battle bat = Battles.getBattleByID(client.getBattleID());
+				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 				if (bat == null) {
 					return false;
 				}
@@ -3343,7 +3344,7 @@ public class TASServer {
 				if (client.getBattleID() == -1) {
 					return false;
 				}
-				Battle bat = Battles.getBattleByID(client.getBattleID());
+				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 				if (bat == null) {
 					return false;
 				}
@@ -3366,7 +3367,7 @@ public class TASServer {
 				if (client.getBattleID() == -1) {
 					return false;
 				}
-				Battle bat = Battles.getBattleByID(client.getBattleID());
+				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 				if (bat == null) {
 					return false;
 				}
@@ -3386,7 +3387,7 @@ public class TASServer {
 					return false;
 				}
 				if (client.getAccount().getAccess().compareTo(Account.Access.PRIVILEGED) < 0) { // normal user
-					Client target = Clients.getClient(commands[1]);
+					Client target = context.getClients().getClient(commands[1]);
 					if (target == null) {
 						return false;
 					}
@@ -3396,7 +3397,7 @@ public class TASServer {
 						return false;
 					}
 
-					Battle bat = Battles.getBattleByID(client.getBattleID());
+					Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 					verifyBattle(bat);
 
 					if (!bat.isClientInBattle(commands[1])) {
@@ -3412,7 +3413,7 @@ public class TASServer {
 
 					target.sendLine(new StringBuilder("RING ").append(client.getAccount().getName()).toString());
 				} else { // privileged user
-					Client target = Clients.getClient(commands[1]);
+					Client target = context.getClients().getClient(commands[1]);
 					if (target == null) {
 						return false;
 					}
@@ -3431,7 +3432,7 @@ public class TASServer {
 					return false;
 				}
 
-				Battle bat = Battles.getBattleByID(client.getBattleID());
+				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 				verifyBattle(bat);
 
 				if (bat.founder != client) {
@@ -3448,7 +3449,7 @@ public class TASServer {
 				} catch (NumberFormatException e) {
 					client.sendLine(new StringBuilder("SERVERMSG Serious error: inconsistent data (")
 							.append(commands[0]).append(" command). You will now be disconnected ...").toString());
-					Clients.killClient(client, "Quit: inconsistent data");
+					context.getClients().killClient(client, "Quit: inconsistent data");
 					return false;
 				}
 
@@ -3456,7 +3457,7 @@ public class TASServer {
 				if (startRect.enabled) {
 					client.sendLine(new StringBuilder("SERVERMSG Serious error: inconsistent data (")
 							.append(commands[0]).append(" command). You will now be disconnected ...").toString());
-					Clients.killClient(client, "Quit: inconsistent data");
+					context.getClients().killClient(client, "Quit: inconsistent data");
 					return false;
 				}
 
@@ -3484,7 +3485,7 @@ public class TASServer {
 					return false;
 				}
 
-				Battle bat = Battles.getBattleByID(client.getBattleID());
+				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 				verifyBattle(bat);
 
 				if (bat.founder != client) {
@@ -3497,7 +3498,7 @@ public class TASServer {
 				} catch (NumberFormatException e) {
 					client.sendLine(new StringBuilder("SERVERMSG Serious error: inconsistent data (")
 							.append(commands[0]).append(" command). You will now be disconnected ...").toString());
-					Clients.killClient(client, "Quit: inconsistent data");
+					context.getClients().killClient(client, "Quit: inconsistent data");
 					return false;
 				}
 
@@ -3505,7 +3506,7 @@ public class TASServer {
 				if (!startRect.enabled) {
 					client.sendLine(new StringBuilder("SERVERMSG Serious error: inconsistent data (")
 							.append(commands[0]).append(" command). You will now be disconnected ...").toString());
-					Clients.killClient(client, "Quit: inconsistent data");
+					context.getClients().killClient(client, "Quit: inconsistent data");
 					return false;
 				}
 
@@ -3524,7 +3525,7 @@ public class TASServer {
 					return false;
 				}
 
-				Battle bat = Battles.getBattleByID(client.getBattleID());
+				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 				verifyBattle(bat);
 
 				bat.tempReplayScript.clear();
@@ -3537,7 +3538,7 @@ public class TASServer {
 					return false;
 				}
 
-				Battle bat = Battles.getBattleByID(client.getBattleID());
+				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 				verifyBattle(bat);
 
 				bat.tempReplayScript.add(Misc.makeSentence(commands, 1));
@@ -3550,7 +3551,7 @@ public class TASServer {
 					return false;
 				}
 
-				Battle bat = Battles.getBattleByID(client.getBattleID());
+				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 				verifyBattle(bat);
 
 				// copy temp script to active script:
@@ -3566,7 +3567,7 @@ public class TASServer {
 					return false;
 				}
 
-				Battle bat = Battles.getBattleByID(client.getBattleID());
+				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 				verifyBattle(bat);
 
 				if (bat.founder != client) {
@@ -3577,7 +3578,7 @@ public class TASServer {
 					// kill client since it is not using this command correctly
 					client.sendLine(new StringBuilder("SERVERMSG Serious error: inconsistent data (")
 							.append(commands[0]).append(" command). You will now be disconnected ...").toString());
-					Clients.killClient(client, "Quit: inconsistent data");
+					context.getClients().killClient(client, "Quit: inconsistent data");
 					return false;
 				}
 
@@ -3674,7 +3675,7 @@ public class TASServer {
 					return false;
 				}
 
-				Battle bat = Battles.getBattleByID(client.getBattleID());
+				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 				verifyBattle(bat);
 
 				if (bat.founder != client) {
@@ -3685,7 +3686,7 @@ public class TASServer {
 					// kill client since it is not using this command correctly
 					client.sendLine(new StringBuilder("SERVERMSG Serious error: inconsistent data (")
 							.append(commands[0]).append(" command). You will now be disconnected ...").toString());
-					Clients.killClient(client, "Quit: inconsistent data");
+					context.getClients().killClient(client, "Quit: inconsistent data");
 					return false;
 				}
 
@@ -3848,9 +3849,62 @@ public class TASServer {
 			closeServerAndExit();
 		}
 
+
 		s_log.info(new StringBuilder("TASServer ")
 				.append(getAppVersion()).append(" started on ")
 				.append(Misc.easyDateFormat("yyyy.MM.dd 'at' hh:mm:ss z")).toString());
+
+
+		context = new Context();
+
+		List<ContextReceiver> contextReceivers = new LinkedList<ContextReceiver>();
+
+		Battles battles = new Battles();
+		context.setBattles(battles);
+
+		Channels channels = new Channels();
+		context.setChannels(channels);
+
+		Clients clients = new Clients();
+		context.setClients(clients);
+
+		ServerNotifications serverNotifications = new ServerNotifications();
+		context.setServerNotifications(serverNotifications);
+
+		Statistics statistics = new Statistics();
+		context.setStatistics(statistics);
+
+		AccountsService accountsService = null;
+		if (!LAN_MODE && useUserDB) {
+			accountsService = new JPAAccountsService();
+		} else {
+			accountsService = new FSAccountsService();
+		}
+		context.setAccountsService(accountsService);
+
+		BanService banService = null;
+		if (!LAN_MODE) {
+			try {
+				banService = new JPABanService();
+			} catch (Exception pex) {
+				banService = new DummyBanService();
+				s_log.warn("Failed to access database for ban entries, bans are not supported!", pex);
+			}
+		} else {
+			banService = new DummyBanService();
+		}
+		context.setBanService(banService);
+
+
+		contextReceivers.add(battles);
+		contextReceivers.add(clients);
+		contextReceivers.add(serverNotifications);
+		contextReceivers.add(statistics);
+		
+		for (ContextReceiver contextReceiver : contextReceivers) {
+			contextReceiver.receiveContext(context);
+		}
+
 
 		// switch to lan mode if user accounts information is not present:
 		if (!LAN_MODE) {
@@ -3861,8 +3915,8 @@ public class TASServer {
 		}
 
 		if (!LAN_MODE) {
-			TASServer.getAccountsService().loadAccounts();
-			getBanService();
+			context.getAccountsService().loadAccounts();
+			context.getBanService();
 			readAgreement();
 		} else {
 			s_log.info("LAN mode enabled");
@@ -3913,7 +3967,7 @@ public class TASServer {
 		}
 
 		long tempTime = System.currentTimeMillis();
-		if (IP2Country.initializeAll(IP2COUNTRY_FILENAME)) {
+		if (IP2Country.getInstance().initializeAll(IP2COUNTRY_FILENAME)) {
 			tempTime = System.currentTimeMillis() - tempTime;
 			s_log.info(new StringBuilder("<IP2Country> loaded in ")
 					.append(tempTime).append(" ms.").toString());
@@ -3932,9 +3986,9 @@ public class TASServer {
 		ServerNotification sn = new ServerNotification("Server started");
 		sn.addLine(new StringBuilder("Server has been started on port ")
 				.append(serverPort).append(". There are ")
-				.append(TASServer.getAccountsService().getAccountsSize())
+				.append(context.getAccountsService().getAccountsSize())
 				.append(" accounts currently loaded. See server log for more info.").toString());
-		ServerNotifications.addNotification(sn);
+		context.getServerNotifications().addNotification(sn);
 
 		initializationFinished = true; // we're through the initialization part
 
@@ -3948,13 +4002,13 @@ public class TASServer {
 			readIncomingMessages();
 
 			// flush any data that is waiting to be sent
-			Clients.flushData();
+			context.getClients().flushData();
 
 			// reset received bytes count every n seconds
 			if (System.currentTimeMillis() - lastFloodCheckedTime > recvRecordPeriod * 1000) {
 				lastFloodCheckedTime = System.currentTimeMillis();
-				for (int i = 0; i < Clients.getClientsSize(); i++) {
-					Clients.getClient(i).setDataOverLastTimePeriod(0);
+				for (int i = 0; i < context.getClients().getClientsSize(); i++) {
+					context.getClients().getClient(i).setDataOverLastTimePeriod(0);
 				}
 			}
 
@@ -3962,25 +4016,25 @@ public class TASServer {
 			if (System.currentTimeMillis() - lastTimeoutCheck > TIMEOUT_CHECK) {
 				lastTimeoutCheck = System.currentTimeMillis();
 				long now = System.currentTimeMillis();
-				for (int i = 0; i < Clients.getClientsSize(); i++) {
-					if (Clients.getClient(i).isHalfDead()) {
+				for (int i = 0; i < context.getClients().getClientsSize(); i++) {
+					if (context.getClients().getClient(i).isHalfDead()) {
 						continue; // already scheduled for kill
 					}
-					if (now - Clients.getClient(i).getTimeOfLastReceive() > timeoutLength) {
+					if (now - context.getClients().getClient(i).getTimeOfLastReceive() > timeoutLength) {
 						s_log.warn(new StringBuilder("Timeout detected from ")
-								.append(Clients.getClient(i).getAccount().getName()).append(" (")
-								.append(Clients.getClient(i).getIp()).append("). Client has been scheduled for kill ...").toString());
-						Clients.killClientDelayed(Clients.getClient(i), "Quit: timeout");
+								.append(context.getClients().getClient(i).getAccount().getName()).append(" (")
+								.append(context.getClients().getClient(i).getIp()).append("). Client has been scheduled for kill ...").toString());
+						context.getClients().killClientDelayed(context.getClients().getClient(i), "Quit: timeout");
 					}
 				}
 			}
 
 			// kill all clients scheduled to be killed:
-			Clients.processKillList();
+			context.getClients().processKillList();
 
 			// update statistics:
-			if ((RECORD_STATISTICS) && (System.currentTimeMillis() - Statistics.lastStatisticsUpdate > saveStatisticsInterval)) {
-				Statistics.saveStatisticsToDisk();
+			if ((RECORD_STATISTICS) && (System.currentTimeMillis() - context.getStatistics().lastStatisticsUpdate > saveStatisticsInterval)) {
+				context.getStatistics().saveStatisticsToDisk();
 			}
 
 			// check UDP server for any new packets:
@@ -3994,7 +4048,7 @@ public class TASServer {
 							.append(address.getHostAddress()).append(" from port ")
 							.append(p).toString());
 				}
-				Client client = Clients.getClient(data);
+				Client client = context.getClients().getClient(data);
 				if (client == null) {
 					continue;
 				}
@@ -4003,13 +4057,13 @@ public class TASServer {
 			}
 
 			// save accounts info to disk on regular intervals:
-			TASServer.getAccountsService().saveAccountsIfNeeded();
+			context.getAccountsService().saveAccountsIfNeeded();
 
 			// purge mute lists of all channels on regular intervals:
 			if (System.currentTimeMillis() - lastMutesPurgeTime > purgeMutesInterval) {
 				lastMutesPurgeTime = System.currentTimeMillis();
-				for (int i = 0; i < Channels.getChannelsSize(); i++) {
-					Channels.getChannel(i).getMuteList().clearExpiredOnes();
+				for (int i = 0; i < context.getChannels().getChannelsSize(); i++) {
+					context.getChannels().getChannel(i).getMuteList().clearExpiredOnes();
 				}
 			}
 
@@ -4034,7 +4088,7 @@ public class TASServer {
 
 		// close everything:
 		if (!LAN_MODE) {
-			TASServer.getAccountsService().saveAccounts(true);
+			context.getAccountsService().saveAccounts(true);
 		}
 		if (helpUDPsrvr.isAlive()) {
 			helpUDPsrvr.stopServer();
@@ -4054,35 +4108,8 @@ public class TASServer {
 		// add server notification:
 		sn = new ServerNotification("Server stopped");
 		sn.addLine("Server has just been stopped gracefully. See server log for more info.");
-		ServerNotifications.addNotification(sn);
+		context.getServerNotifications().addNotification(sn);
 
 		s_log.info("Server closed gracefully!");
-	}
-
-	static AccountsService getAccountsService() {
-
-		if (accountsService == null) {
-			if (useUserDB) {
-				accountsService = new JPAAccountsService();
-			} else {
-				accountsService = new FSAccountsService();
-			}
-		}
-
-		return accountsService;
-	}
-
-	static BanService getBanService() {
-
-		if (banService == null) {
-			try {
-				banService = new JPABanService();
-			} catch (Exception pex) {
-				banService = new DummyBanService();
-				s_log.warn("Failed to access database for ban entries, bans are not supported!", pex);
-			}
-		}
-
-		return banService;
 	}
 }

@@ -21,7 +21,7 @@ import java.util.*;
  * @see Account
  * @author Betalord
  */
-public class Client {
+public class Client implements ContextReceiver {
 
 	private static final Log s_log  = LogFactory.getLog(Client.class);
 
@@ -142,13 +142,17 @@ public class Client {
 	 */
 	private boolean handleBattleJoinAuthorization;
 
+	private Context context = null;
+
+
 	public Client(SocketChannel sockChan) {
-		alive = true;
+
+		this.alive = true;
 
 		// no info on user/pass, zero access
-		account = new Account();
+		this.account = new Account();
 		this.sockChan = sockChan;
-		ip = sockChan.socket().getInetAddress().getHostAddress();
+		this.ip = sockChan.socket().getInetAddress().getHostAddress();
 		// this fixes the issue with local user connecting to server as "127.0.0.1" (he can't host battles with that ip):
 		if (ip.equals("127.0.0.1") || ip.equals("localhost")) {
 			String newIP = Misc.getLocalIPAddress();
@@ -164,7 +168,7 @@ public class Client {
 		selKey = null;
 		recvBuf = new StringBuilder();
 		status = 0;
-		country = IP2Country.getCountryCode(Misc.IP2Long(ip));
+		country = IP2Country.getInstance().getCountryCode(Misc.IP2Long(ip));
 		battleStatus = 0;
 		teamColor = 0;
 		inGameTime = 0;
@@ -175,6 +179,11 @@ public class Client {
 		timeOfLastReceive = System.currentTimeMillis();
 	}
 
+
+	@Override
+	public void receiveContext(Context context) {
+		this.context = context;
+	}
 
 	@Override
 	public int hashCode() {
@@ -257,7 +266,7 @@ public class Client {
 
 			if ((sockChan == null) || (!sockChan.isConnected())) {
 				s_log.warn("SocketChannel is not ready to be written to. Killing the client next loop ...");
-				Clients.killClientDelayed(this, "Quit: undefined connection error");
+				context.getClients().killClientDelayed(this, "Quit: undefined connection error");
 				return false;
 			}
 
@@ -266,7 +275,7 @@ public class Client {
 				buf = TASServer.asciiEncoder.encode(CharBuffer.wrap(data));
 			} catch (CharacterCodingException e) {
 				s_log.warn("Unable to encode message. Killing the client next loop ...", e);
-				Clients.killClientDelayed(this, "Quit: undefined encoder error");
+				context.getClients().killClientDelayed(this, "Quit: undefined encoder error");
 				return false;
 			}
 
@@ -276,12 +285,12 @@ public class Client {
 				sendQueue.add(buf);
 				boolean empty = tryToFlushData();
 				if (!empty) {
-					Clients.enqueueDelayedData(this);
+					context.getClients().enqueueDelayedData(this);
 				}
 			}
 		} catch (Exception e) {
 			s_log.error("Failed sending data (undefined). Killing the client next loop ...", e);
-			Clients.killClientDelayed(this, "Quit: undefined connection error");
+			context.getClients().killClientDelayed(this, "Quit: undefined connection error");
 			return false;
 		}
 		return true;
@@ -323,10 +332,10 @@ public class Client {
 	 */
 	public Channel joinChannel(String chanName) {
 
-		Channel chan = Channels.getChannel(chanName);
+		Channel chan = context.getChannels().getChannel(chanName);
 		if (chan == null) {
 			chan = new Channel(chanName);
-			Channels.addChannel(chan);
+			context.getChannels().addChannel(chan);
 		} else if (this.channels.indexOf(chan) != -1) {
 			// already in the channel
 			return null;
@@ -352,7 +361,7 @@ public class Client {
 				// in a channels list. If we would keep it, the channels list
 				// would grow larger and larger in time.
 				// We don't want that!
-				Channels.removeChannel(chan);
+				context.getChannels().removeChannel(chan);
 			} else {
 				if (!reason.equals("")) {
 					reason = " " + reason;
@@ -429,12 +438,12 @@ public class Client {
 			} catch (ClosedChannelException cce) {
 				// no point sending the rest to the closed channel
 				if (alive) {
-					Clients.killClientDelayed(this, "Quit: socket channel closed exception");
+					context.getClients().killClientDelayed(this, "Quit: socket channel closed exception");
 				}
 				break;
 			} catch (IOException io) {
 				if (alive) {
-					Clients.killClientDelayed(this, "Quit: socket channel closed exception");
+					context.getClients().killClientDelayed(this, "Quit: socket channel closed exception");
 				}
 				break;
 			}

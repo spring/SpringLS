@@ -29,9 +29,11 @@ import java.util.*;
  *
  * @author Betalord
  */
-public class FSSaveAccountsThread extends Thread {
+public class FSSaveAccountsThread extends Thread implements ContextReceiver {
 
 	private static final Log s_log  = LogFactory.getLog(FSSaveAccountsThread.class);
+
+	private Context context = null;
 
 	/**
 	 * Duplicated accounts.
@@ -39,8 +41,15 @@ public class FSSaveAccountsThread extends Thread {
 	 */
 	private List<Account> dupAccounts;
 
+
 	public FSSaveAccountsThread(List<Account> dupAccounts) {
 		this.dupAccounts = dupAccounts;
+	}
+
+
+	@Override
+	public void receiveContext(Context context) {
+		this.context = context;
 	}
 
 	@Override
@@ -63,7 +72,7 @@ public class FSSaveAccountsThread extends Thread {
 			// add server notification:
 			ServerNotification sn = new ServerNotification("Error saving accounts");
 			sn.addLine("Serious error: accounts info could not be saved to disk. Exception trace:" + Misc.exceptionToFullString(e));
-			ServerNotifications.addNotification(sn);
+			context.getServerNotifications().addNotification(sn);
 
 			return;
 		}

@@ -11,11 +11,19 @@ import java.util.List;
 /**
  * @author Betalord
  */
-public class Battles {
+public class Battles implements ContextReceiver {
 
-	private static List<Battle> battles = new ArrayList<Battle>();
+	private List<Battle> battles = new ArrayList<Battle>();
 
-	public static int getBattlesSize() {
+	private Context context = null;
+
+
+	@Override
+	public void receiveContext(Context context) {
+		this.context = context;
+	}
+
+	public int getBattlesSize() {
 		return battles.size();
 	}
 
@@ -23,7 +31,7 @@ public class Battles {
 	 * If battle with ID 'battleID' exist, it is returned,
 	 * or else null is returned.
 	 */
-	public static Battle getBattleByID(int battleID) {
+	public Battle getBattleByID(int battleID) {
 		for (int i = 0; i < battles.size(); i++) {
 			if (battles.get(i).ID == battleID) {
 				return battles.get(i);
@@ -33,7 +41,7 @@ public class Battles {
 	}
 
 	/** Returns null if index is out of bounds */
-	public static Battle getBattleByIndex(int index) {
+	public Battle getBattleByIndex(int index) {
 		try {
 			return battles.get(index);
 		} catch (IndexOutOfBoundsException e) {
@@ -42,13 +50,13 @@ public class Battles {
 	}
 
 	/** Will close given battle and notify all clients about it */
-	public static void closeBattleAndNotifyAll(Battle battle) {
+	public void closeBattleAndNotifyAll(Battle battle) {
 
 		for (int i = 0; i < battle.getClientsSize(); i++) {
 			battle.getClient(i).setBattleID(-1);
 		}
 		battle.founder.setBattleID(-1);
-		Clients.sendToAllRegisteredUsers("BATTLECLOSED " + battle.ID);
+		context.getClients().sendToAllRegisteredUsers("BATTLECLOSED " + battle.ID);
 		battles.remove(battle);
 	}
 
@@ -57,7 +65,7 @@ public class Battles {
 	 * client is founder and closes the battle in that case. All client's bots in this
 	 * battle are removed as well.
 	 */
-	public static boolean leaveBattle(Client client, Battle battle) {
+	public boolean leaveBattle(Client client, Battle battle) {
 
 		if (battle.founder == client) {
 			closeBattleAndNotifyAll(battle);
@@ -67,7 +75,7 @@ public class Battles {
 			}
 			client.setBattleID(-1);
 			battle.removeClientBots(client);
-			Clients.sendToAllRegisteredUsers(new StringBuilder("LEFTBATTLE ")
+			context.getClients().sendToAllRegisteredUsers(new StringBuilder("LEFTBATTLE ")
 					.append(battle.ID).append(" ")
 					.append(client.getAccount().getName()).toString());
 		}
@@ -79,7 +87,7 @@ public class Battles {
 	 * Will send a list of all active battles and users participating in it to
 	 * the given client
 	 */
-	public static void sendInfoOnBattlesToClient(Client client) {
+	public void sendInfoOnBattlesToClient(Client client) {
 
 		client.beginFastWrite();
 		for (int i = 0; i < battles.size(); i++) {
@@ -111,7 +119,7 @@ public class Battles {
 	 * battle attributes from it.
 	 * @return the created battle or 'null' on failure
 	 */
-	public static Battle createBattleFromString(String s, Client founder) {
+	public Battle createBattleFromString(String s, Client founder) {
 
 		String[] parsed = s.split(" ");
 		if (parsed.length < 10) {
@@ -163,7 +171,7 @@ public class Battles {
 	/**
 	 * Will add this battle object to battle list
 	 */
-	public static void addBattle(Battle battle) {
+	public void addBattle(Battle battle) {
 		battles.add(battle);
 	}
 }

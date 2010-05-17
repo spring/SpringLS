@@ -13,16 +13,16 @@ import java.util.List;
  */
 public class Channels {
 
-	static private List<Channel> channels = new ArrayList<Channel>();
+	private List<Channel> channels = new ArrayList<Channel>();
 
-	public static int getChannelsSize() {
+	public int getChannelsSize() {
 		return channels.size();
 	}
 
 	/**
 	 * Returns <code>null</code> if channel does not exist (is not open)
 	 */
-	public static Channel getChannel(String chanName) {
+	public Channel getChannel(String chanName) {
 
 		for (int i = 0; i < channels.size(); i++) {
 			if (channels.get(i).getName().equals(chanName)) {
@@ -35,7 +35,7 @@ public class Channels {
 	/**
 	 * Returns <code>null</code> if index is out of bounds
 	 */
-	public static Channel getChannel(int index) {
+	public Channel getChannel(int index) {
 		try {
 			return channels.get(index);
 		} catch (IndexOutOfBoundsException e) {
@@ -43,7 +43,7 @@ public class Channels {
 		}
 	}
 
-	public static boolean addChannel(Channel chan) {
+	public boolean addChannel(Channel chan) {
 		if (getChannel(chan.getName()) != null) {
 			// channel already exists!
 			return false;
@@ -56,7 +56,7 @@ public class Channels {
 	 * Removes channel from channel list.
 	 * @return <code>true</code> if channel was found
 	 */
-	public static boolean removeChannel(Channel chan) {
+	public boolean removeChannel(Channel chan) {
 		return channels.remove(chan);
 	}
 
@@ -64,7 +64,7 @@ public class Channels {
 	 * Sends information about all clients in a channel to  a specific client.
 	 * Also sets the topic of the channel for that client.
 	 */
-	public static boolean sendChannelInfoToClient(Channel chan, Client client) {
+	public boolean sendChannelInfoToClient(Channel chan, Client client) {
 		client.beginFastWrite();
 		// it always sends info about at least one client;
 		// the one to whom this list must be sent
@@ -100,7 +100,7 @@ public class Channels {
 	/**
 	 * Sends a list of all open channels to a client
 	 */
-	public static void sendChannelListToClient(Client client) {
+	public void sendChannelListToClient(Client client) {
 
 		if (channels.isEmpty()) {
 			// nothing to send
@@ -115,7 +115,7 @@ public class Channels {
 		client.endFastWrite();
 	}
 
-	public static void notifyClientsOfNewClientInChannel(Channel chan, Client client) {
+	public void notifyClientsOfNewClientInChannel(Channel chan, Client client) {
 
 		for (int i = 0; i < chan.getClientsSize(); i++) {
 			Client toBeNotified = chan.getClient(i);
@@ -129,7 +129,7 @@ public class Channels {
 	 * Returns <code>null</code> if the channel name is valid,
 	 * an error description otherwise.
 	 */
-	public static String isChanNameValid(String channame) {
+	public String isChanNameValid(String channame) {
 
 		if (channame.length() > 20) {
 			return "Channel name too long";

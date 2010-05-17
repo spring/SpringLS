@@ -13,20 +13,28 @@ import java.io.*;
 /**
  * @author Betalord
  */
-public class ServerNotifications {
+public class ServerNotifications implements ContextReceiver {
 
-	private static final Log s_log  = LogFactory.getLog(ServerNotifications.class);
+	private final Log s_log  = LogFactory.getLog(ServerNotifications.class);
 	/**
 	 * This will also get saved with notifications, just in case the format
 	 * of notification files changes in the future.
 	 */
-	public static final String NOTIFICATION_SYSTEM_VERSION = "1.0";
+	public final String NOTIFICATION_SYSTEM_VERSION = "1.0";
+
+	private Context context = null;
+
+
+	@Override
+	public void receiveContext(Context context) {
+		this.context = context;
+	}
 
 	/**
 	 * NOTE: This method may be called from multiple threads simultaneously,
 	 *       so do not remove the 'synchronized' identifier!
 	 */
-	public static synchronized boolean addNotification(ServerNotification sn) {
+	public synchronized boolean addNotification(ServerNotification sn) {
 
 		if (TASServer.LAN_MODE) {
 			return false; // ignore notifications if server is running in lan mode!
@@ -44,7 +52,7 @@ public class ServerNotifications {
 			out.close();
 		} catch (IOException e) {
 			s_log.error("Unable to write file <" + fname + ">. Server notification will not be saved!");
-			Clients.sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Serious problem: Unable to save server notification (notification dropped).");
+			context.getClients().sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Serious problem: Unable to save server notification (notification dropped).");
 			return false;
 		}
 

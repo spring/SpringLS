@@ -32,6 +32,7 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 	private Query q_fetchByLowerName = null;
 	private Query q_fetchByLastIP = null;
 
+
 	public JPAAccountsService() {
 
 		EntityManagerFactory emf = Persistence.createEntityManagerFactory("tasserver");
@@ -44,6 +45,11 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 		q_fetchByName   = em.createQuery("SELECT a FROM Account a WHERE a.name = :name");
 		q_fetchByLowerName = em.createQuery("SELECT a FROM Account a WHERE (LOWER(a.name) = :lowerName)");
 		q_fetchByLastIP = em.createQuery("SELECT a FROM Account a WHERE a.lastIP = :ip");
+	}
+
+
+	@Override
+	public void receiveContext(Context context) {
 	}
 
 	@Override
