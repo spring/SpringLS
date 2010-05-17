@@ -23,17 +23,22 @@ public class Clients {
 	/** A list of clients waiting to be killed (disconnected) */
 	static private List<Client> killList = new ArrayList<Client>();
 	/**
-	 * KillList is used when we want to kill a client but not immediately (within a loop, for example).
+	 * KillList is used when we want to kill a client but not immediately
+	 * (within a loop, for example).
 	 * Client on the list will get killed after main server loop reaches its end.
 	 * Also see killClientDelayed() method. Any redundant entries will be
 	 * removed (client will be killed only once), so no additional logic for
-	 * consistency is required. */
-	static private List<String>reasonList = new ArrayList<String>(); // used with killList list (gives reason for each scheduled kill)
+	 * consistency is required.
+	 * @see killList gives a reason for each scheduled kill
+	 */
+	static private List<String> reasonList = new ArrayList<String>();
 
 	/**
 	 * Here we keep a list of clients who have their send queues not empty.
-	 * This collection is not synchronized! Use Collections.synchronizedList to wrap it if synchronized
-	 * access is needed. (http://java.sun.com/j2se/1.5.0/docs/api/java/util/Collections.html#synchronizedList(java.util.List))
+	 * This collection is not synchronized!
+	 * Use <code>Collections.synchronizedList(List)</code> to wrap it,
+	 * if synchronized access is needed.
+	 * @see http://java.sun.com/j2se/1.5.0/docs/api/java/util/Collections.html#synchronizedList(java.util.List))
 	 */
 	static private Queue<Client> sendQueue = new LinkedList<Client>();
 
@@ -68,7 +73,10 @@ public class Clients {
 		return client;
 	}
 
-	/** Returns number of clients (including those who haven't logged in yet) */
+	/**
+	 * Returns number of clients.
+	 * Includes those who have not logged in yet.
+	 */
 	public static int getClientsSize() {
 		return clients.size();
 	}
@@ -181,8 +189,9 @@ public class Clients {
 	}
 
 	/**
-	 * Sends a list of all users connected to the server to client (this list includes
-	 * the client itself, assuming he is already logged in and in the list)
+	 * Sends a list of all users connected to the server to a client.
+	 * This list includes the client itself, assuming he is already logged in
+	 * and in the list.
 	 */
 	public static void sendListOfAllUsersToClient(Client client) {
 
@@ -307,11 +316,12 @@ public class Clients {
 	}
 
 	/**
-	 * This method will cause the client to be killed, but not immediately - it will do it
-	 * once main server loop reaches its end. We need this on some occassions when we iterate
-	 * through the clients list - we don't want client to be removed from the clients list
-	 * since that would "broke" our loop (since we go from index 0 to highest index, which
-	 * would be invalid as highest index would decrease by 1).
+	 * This method will cause the client to be killed, but not immediately.
+	 * It will do it once the main server loop reaches its end.
+	 * We need this on some occasions while we iterating through
+	 * the clients list. We do not want client to be removed from the list,
+	 * since that would "broke" our loop, as we go from index 0 to the highest
+	 * index, which would be invalid as the highest index would decrease by 1.
 	 */
 	public static void killClientDelayed(Client client, String reason) {
 		killList.add(client);
@@ -333,9 +343,10 @@ public class Clients {
 	}
 
 	/**
-	 * This will try to go through the list of clients that still have pending data to be sent
-	 * and will try to send it. When it encounters first client that can't flush data, it will add
-	 * him to the queue's tail and break the loop.
+	 * This will try to go through the list of clients that still have pending
+	 * data to be sent and will try to send it.
+	 * When it encounters first client that can't flush data, it will add
+	 * him to the queues tail and break the loop.
 	 */
 	public static void flushData() {
 		Client client;

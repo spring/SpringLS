@@ -19,7 +19,9 @@ public class Channels {
 		return channels.size();
 	}
 
-	/** Returns <code>null</code> if channel does not exist (is not open) */
+	/**
+	 * Returns <code>null</code> if channel does not exist (is not open)
+	 */
 	public static Channel getChannel(String chanName) {
 
 		for (int i = 0; i < channels.size(); i++) {
@@ -30,7 +32,9 @@ public class Channels {
 		return null;
 	}
 
-	/** Returns <code>null</code> if index is out of bounds */
+	/**
+	 * Returns <code>null</code> if index is out of bounds
+	 */
 	public static Channel getChannel(int index) {
 		try {
 			return channels.get(index);
@@ -71,7 +75,8 @@ public class Channels {
 		for (int i = 0; i < chan.getClientsSize(); i++) {
 			sb.append(' ').append(chan.getClient(i).getAccount().getName());
 			c++;
-			// 10 is the maximum number of users in a single line (we would like to avoid too long lines, but it is not vital)
+			// 10 is the maximum number of users in a single line
+			// (we would like to avoid too long lines, but it is not vital)
 			if (c > 10) {
 				client.sendLine(sb.toString());
 				sb = new StringBuilder();
@@ -92,7 +97,9 @@ public class Channels {
 		return true;
 	}
 
-	/** Sends a list of all open channels to a client */
+	/**
+	 * Sends a list of all open channels to a client
+	 */
 	public static void sendChannelListToClient(Client client) {
 
 		if (channels.isEmpty()) {

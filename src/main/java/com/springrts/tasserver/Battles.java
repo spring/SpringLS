@@ -75,16 +75,21 @@ public class Battles {
 		return true;
 	}
 
-	/** Will send a list of all active battles and users participating in it to the given client */
+	/**
+	 * Will send a list of all active battles and users participating in it to
+	 * the given client
+	 */
 	public static void sendInfoOnBattlesToClient(Client client) {
 
 		client.beginFastWrite();
 		for (int i = 0; i < battles.size(); i++) {
 			Battle bat = battles.get(i);
-			// make sure that clients behind NAT get local IPs and not external ones:
+			// make sure that clients behind NAT get local IPs and not external ones
 			boolean local = bat.founder.getIp().equals(client.getIp());
 			client.sendLine(bat.createBattleOpenedCommandEx(local));
-			// we have to send UPDATEBATTLEINFO command too in order to tell the user how many spectators are in the battle, for example.
+			// We have to send UPDATEBATTLEINFO command too,
+			// in order to tell the user how many spectators are in the battle,
+			// for example.
 			client.sendLine(new StringBuilder("UPDATEBATTLEINFO ")
 					.append(bat.ID).append(" ")
 					.append(bat.spectatorCount()).append(" ")
@@ -155,7 +160,9 @@ public class Battles {
 		return new Battle(type, natType, founder, pass, port, maxPlayers, hash, rank, maphash, parsed2[0], parsed2[1], parsed2[2]);
 	}
 
-	/** Will add this battle object to battle list */
+	/**
+	 * Will add this battle object to battle list
+	 */
 	public static void addBattle(Battle battle) {
 		battles.add(battle);
 	}
