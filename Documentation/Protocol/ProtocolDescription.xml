@@ -896,8 +896,11 @@
         Can be 0 or 1 (0 = normal battle, 1 = battle replay)
         </Argument>
         <Argument Name="natType" Optional="no" Sentence="no">
-        NAT traversal method used by the host. Must be a number (0 means no NAT traversal
-        technique should be applied).
+        NAT traversal method used by the host.
+        Must be one of:
+        0: none
+        1: Hole punching
+        2: Fixed source ports
         </Argument>
         <Argument Name="password" Optional="no" Sentence="no">
         Must be "*" if founder does not wish to have password-protected game.
@@ -944,8 +947,11 @@
         Can be 0 or 1 (0 = normal battle, 1 = battle replay)
         </Argument>
         <Argument Name="natType" Optional="no" Sentence="no">
-        NAT traversal method used by the host. Must be a number (0 means no NAT traversal
-        technique should be applied).
+        NAT traversal method used by the host.
+        Must be one of:
+        0: none
+        1: Hole punching
+        2: Fixed source ports
         </Argument>
         <Argument Name="founder" Optional="no" Sentence="no">
         Username of the client who started this battle.
