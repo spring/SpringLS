@@ -11,9 +11,68 @@ import java.util.List;
 /**
  * @author Betalord
  */
-public class Channels {
+public class Channels implements ContextReceiver, LiveStateListener {
 
-	private List<Channel> channels = new ArrayList<Channel>();
+	private List<Channel> channels;
+	private Context context;
+	public static final String MATCH_NO_CHANNEL = "^%%%%%%%$";
+	private String channelsToLogRegex;
+
+
+	public Channels() {
+
+		channels = new ArrayList<Channel>();
+		context = null;
+		channelsToLogRegex = MATCH_NO_CHANNEL;
+	}
+
+
+	public String getChannelsToLogRegex() {
+		return channelsToLogRegex;
+	}
+
+	public void setChannelsToLogRegex(String channelsToLogRegex) {
+		this.channelsToLogRegex = channelsToLogRegex;
+	}
+
+	@Override
+	public void receiveContext(Context context) {
+
+		this.context = context;
+		for (Channel channel : channels) {
+			channel.receiveContext(context);
+		}
+	}
+
+	@Override
+	public void starting() {
+
+		for (Channel channel : channels) {
+			channel.starting();
+		}
+	}
+	@Override
+	public void started() {
+
+		for (Channel channel : channels) {
+			channel.started();
+		}
+	}
+
+	@Override
+	public void stopping() {
+
+		for (Channel channel : channels) {
+			channel.stopping();
+		}
+	}
+	@Override
+	public void stopped() {
+
+		for (Channel channel : channels) {
+			channel.stopped();
+		}
+	}
 
 	public int getChannelsSize() {
 		return channels.size();
@@ -43,12 +102,14 @@ public class Channels {
 		}
 	}
 
-	public boolean addChannel(Channel chan) {
-		if (getChannel(chan.getName()) != null) {
+	public boolean addChannel(Channel channel) {
+
+		if (getChannel(channel.getName()) != null) {
 			// channel already exists!
 			return false;
 		}
-		channels.add(chan);
+		channel.receiveContext(context);
+		channels.add(channel);
 		return true;
 	}
 
@@ -57,7 +118,14 @@ public class Channels {
 	 * @return <code>true</code> if channel was found
 	 */
 	public boolean removeChannel(Channel chan) {
-		return channels.remove(chan);
+
+		boolean removed = channels.remove(chan);
+
+		if (removed) {
+			chan.shutdown();
+		}
+
+		return removed;
 	}
 
 	/**

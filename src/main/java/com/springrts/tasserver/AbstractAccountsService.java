@@ -16,6 +16,43 @@ public abstract class AbstractAccountsService implements AccountsService {
 
 	private static final Log s_log  = LogFactory.getLog(AbstractAccountsService.class);
 
+	private Context context = null;
+	private boolean started = false;
+
+
+	protected AbstractAccountsService() {}
+
+
+	@Override
+	public final void receiveContext(Context context) {
+		this.context = context;
+	}
+	protected Context getContext() {
+		return context;
+	}
+
+	@Override
+	public void starting() {}
+	@Override
+	public void started() {
+		started = true;
+	}
+
+	@Override
+	public void stopping() {
+
+		if (!getContext().getServer().isLanMode() && started) {
+			// We need to check if initialization has completed,
+			// so that we do not save an empty accounts arra,
+			// and therefore overwrite actual accounts
+			saveAccounts(true);
+		}
+	}
+	@Override
+	public void stopped() {
+		started = false;
+	}
+
 	@Override
 	public boolean addAccountWithCheck(Account acc) {
 

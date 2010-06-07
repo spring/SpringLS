@@ -275,19 +275,15 @@ public class Misc {
 	 * This method encodes plain-text passwords to MD5 hashed ones
 	 * in base-64 form.
 	 */
-	public static String encodePassword(String plainPassword) {
+	public static String encodePassword(String plainPassword) throws Exception {
+
+		String encodedPassword = null;
 
 		byte[] md5Digest = null;
-		try {
-			md5Digest = getMD5(plainPassword);
-		} catch (Exception e) {
-			// this should not happen!
-			s_log.fatal("Failed encoding password", e);
-			TASServer.closeServerAndExit();
-			md5Digest = null;
-		}
+		md5Digest = getMD5(plainPassword);
+		encodedPassword = Base64.encodeBytes(md5Digest);
 
-		return Base64.encodeBytes(md5Digest);
+		return encodedPassword;
 	}
 
 	/**
@@ -494,4 +490,77 @@ public class Misc {
 		return (battleStatus & 0xF0FFFFFF) | (side << 24);
 	}
 	// END: various methods dealing with battleStatus
+
+	public static  boolean isSameIP(final String ip1, final String ip2) {
+
+		String[] ip1_s = ip1.split("\\.");
+		String[] ip2_s = ip2.split("\\.");
+
+		return isSameIP(ip1_s, ip2_s);
+	}
+	public static  boolean isSameIP(final String[] ip1_s, final String ip2) {
+
+		String[] ip2_s = ip2.split("\\.");
+
+		return isSameIP(ip1_s, ip2_s);
+	}
+	public static  boolean isSameIP(final String[] ip1_s, final String[] ip2_s) {
+
+		if        (!ip1_s[0].equals("*") && !ip1_s[0].equals(ip2_s[0])) {
+			return false;
+		} else if (!ip1_s[1].equals("*") && !ip1_s[1].equals(ip2_s[1])) {
+			return false;
+		} else if (!ip1_s[2].equals("*") && !ip1_s[2].equals(ip2_s[2])) {
+			return false;
+		} else if (!ip1_s[3].equals("*") && !ip1_s[3].equals(ip2_s[3])) {
+			return false;
+		}
+
+		return true;
+	}
+
+	private static Properties mavenProperties = null;
+	/**
+	 * Reads this applications Maven properties file in the
+	 * META-INF directory of the class-path.
+	 */
+	public static Properties getMavenProperties() {
+
+		if (mavenProperties == null) {
+			try {
+				final String pomPropsLoc = "/META-INF/maven/com.springrts/tasserver/pom.properties";
+				InputStream propFileIn = Misc.class.getResourceAsStream(pomPropsLoc);
+				if (propFileIn == null) {
+					throw new IOException("Failed locating resource in the classpath: " + pomPropsLoc);
+				}
+				mavenProperties = new Properties();
+				mavenProperties.load(propFileIn);
+			} catch (Exception ex) {
+				s_log.warn("Failed reading the Maven properties file", ex);
+				mavenProperties = null;
+			}
+		}
+
+		return mavenProperties;
+	}
+
+	/**
+	 * Reads this applications version from the Maven properties file in the
+	 * META-INF directory.
+	 */
+	public static String getAppVersion() {
+
+		String appVersion = null;
+
+		Properties myProperties = getMavenProperties();
+		if (myProperties != null) {
+			appVersion = myProperties.getProperty("version", null);
+		}
+
+		if (appVersion == null) {
+			s_log.warn("Failed getting the Applications version from the Maven properties file");
+		}
+
+		return appVersion;
+	}
 }

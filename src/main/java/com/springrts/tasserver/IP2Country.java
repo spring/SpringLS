@@ -23,6 +23,9 @@ public class IP2Country {
 	private UpdateIP2CountryThread updater = null;
 	private Thread update_thread = null;
 
+	private final static String DEFAULT_DATA_FILE = "ip2country.dat";
+	private File dataFile;
+
 
 	private static IP2Country singleton = new IP2Country();
 
@@ -30,19 +33,32 @@ public class IP2Country {
 		return singleton;
 	}
 
+	public IP2Country() {
+		dataFile = new File(DEFAULT_DATA_FILE);
+	}
+
+
+	public File getDataFile() {
+		return dataFile;
+	}
+
+	public void setDataFile(File dataFile) {
+		this.dataFile = dataFile;
+	}
 
 	public boolean updateInProgress() {
 		return ((updater != null) && updater.inProgress());
 	}
 
-	public boolean initializeAll(String fileName) {
+	public boolean initializeAll() {
 
 		try {
-			buildDatabase(fileName, resolveTable, countries);
-			s_log.info("Using IP2Country info from file '" + fileName + "'.");
+			buildDatabase(dataFile, resolveTable, countries);
+			s_log.info("Using IP2Country info from file '" + dataFile.getAbsolutePath() + "'.");
 		} catch (IOException e) {
 			s_log.warn(new StringBuilder("Could not find or read from file '")
-					.append(fileName).append("'. Not using any IP2Country info.").toString());
+					.append(dataFile.getAbsolutePath())
+					.append("'. Not using any IP2Country info.").toString());
 			s_log.debug("... reason:", e);
 			return false;
 		}
@@ -69,12 +85,13 @@ public class IP2Country {
 	}
 
 	/**
-	 * Will build IP2Country database from a custom format IP2Country file which is
-	 * produced by the UpdateIP2CountryThread class. Results are saved into 'resolveTable'
-	 * and 'countries' objects.
+	 * Will build IP2Country database from a custom format IP2Country file which
+	 * is produced by the UpdateIP2CountryThread class.
+	 * Results are saved into 'resolveTable' and 'countries' objects.
 	 */
-	public void buildDatabase(String fromFile, TreeMap<IPRange, IPRange> resolveTable, TreeSet<String> countries) throws IOException {
-		BufferedReader in = new BufferedReader(new FileReader(fromFile));
+	public void buildDatabase(File from, TreeMap<IPRange, IPRange> resolveTable, TreeSet<String> countries) throws IOException {
+
+		BufferedReader in = new BufferedReader(new FileReader(from));
 
 		countries.clear();
 		resolveTable.clear();
@@ -193,13 +210,14 @@ public class IP2Country {
 	}
 
 	/** Will save given IP2County table to disk */
-	public void saveDatabase(TreeMap resolveTable, String fileName) throws IOException {
+	public void saveDatabase(TreeMap<IPRange, IPRange> resolveTable, String fileName) throws IOException {
+
 		PrintWriter out = null;
 		try {
 			out = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
 
-			for (Iterator it = resolveTable.values().iterator(); it.hasNext(); ) {
-				out.println(it.next().toString());
+			for (IPRange ipRange : resolveTable.values()) {
+				out.println(ipRange.toString());
 			}
 		} finally {
 			if (out != null) {

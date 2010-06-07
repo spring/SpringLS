@@ -49,7 +49,8 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 
 
 	@Override
-	public void receiveContext(Context context) {
+	public boolean isReadyToOperate() {
+		return true;
 	}
 
 	@Override

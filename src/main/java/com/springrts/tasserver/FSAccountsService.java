@@ -9,6 +9,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
@@ -20,8 +21,11 @@ public class FSAccountsService extends AbstractAccountsService implements Accoun
 
 	private static final Log s_log  = LogFactory.getLog(FSAccountsService.class);
 
+	public static final String ACCOUNTS_INFO_FILEPATH = "accounts.txt";
+
 	// note: ArrayList is not synchronized!
-	// Use Vector class instead if multiple threads are going to access it
+	// Use Collections.synchronizedList(...) instead,
+	// if multiple threads are going to access it
 	private static List<Account> accounts = new ArrayList<Account>();
 	private static FSSaveAccountsThread saveAccountsThread = null;
 	private static int biggestAccountId = 1000;
@@ -58,12 +62,16 @@ public class FSAccountsService extends AbstractAccountsService implements Accoun
 	 */
 	private static long lastSaveAccountsTime = System.currentTimeMillis();
 
-	private Context context = null;
-
 
 	@Override
-	public void receiveContext(Context context) {
-		this.context = context;
+	public boolean isReadyToOperate() {
+
+		if (!(new File(ACCOUNTS_INFO_FILEPATH)).exists()) {
+			s_log.warn("Accounts info file not found");
+			return false;
+		}
+
+		return true;
 	}
 
 	@Override
@@ -140,7 +148,7 @@ public class FSAccountsService extends AbstractAccountsService implements Accoun
 	public boolean loadAccounts() {
 		long time = System.currentTimeMillis();
 		try {
-			BufferedReader in = new BufferedReader(new FileReader(TASServer.ACCOUNTS_INFO_FILEPATH));
+			BufferedReader in = new BufferedReader(new FileReader(ACCOUNTS_INFO_FILEPATH));
 
 			accounts.clear();
 
@@ -159,11 +167,11 @@ public class FSAccountsService extends AbstractAccountsService implements Accoun
 
 		} catch (IOException e) {
 			// catch possible io errors from readLine()
-			s_log.error("Failed updating accounts info from " + TASServer.ACCOUNTS_INFO_FILEPATH + "! Skipping ...", e);
+			s_log.error("Failed updating accounts info from " + ACCOUNTS_INFO_FILEPATH + "! Skipping ...", e);
 			return false;
 		}
 
-		s_log.info(accounts.size() + " accounts information read from " + TASServer.ACCOUNTS_INFO_FILEPATH + " (" + (System.currentTimeMillis() - time) + " ms)");
+		s_log.info(accounts.size() + " accounts information read from " + ACCOUNTS_INFO_FILEPATH + " (" + (System.currentTimeMillis() - time) + " ms)");
 
 		return true;
 	}
@@ -182,8 +190,8 @@ public class FSAccountsService extends AbstractAccountsService implements Accoun
 		lastSaveAccountsTime = System.currentTimeMillis();
 		List<Account> accounts_cpy = new ArrayList<Account>(accounts.size());
 		Collections.copy(accounts_cpy, accounts);
-		saveAccountsThread = new FSSaveAccountsThread(accounts_cpy);
-		saveAccountsThread.receiveContext(context);
+		saveAccountsThread = new FSSaveAccountsThread(new File(ACCOUNTS_INFO_FILEPATH), accounts_cpy);
+		saveAccountsThread.receiveContext(getContext());
 		saveAccountsThread.start();
 
 		if (block) {
@@ -203,9 +211,11 @@ public class FSAccountsService extends AbstractAccountsService implements Accoun
 	 */
 	@Override
 	public void saveAccountsIfNeeded() {
-		if ((!TASServer.LAN_MODE) && (System.currentTimeMillis() - lastSaveAccountsTime > saveAccountInfoInterval)) {
+
+		// note: lastSaveAccountsTime will get updated in saveAccounts() method!
+		long timeSinceLastSave = System.currentTimeMillis() - lastSaveAccountsTime;
+		if (!getContext().getServer().isLanMode() && (timeSinceLastSave > saveAccountInfoInterval)) {
 			saveAccounts(false);
-			// note: lastSaveAccountsTime will get updated in saveAccounts() method!
 		}
 	}
 
@@ -266,7 +276,7 @@ public class FSAccountsService extends AbstractAccountsService implements Accoun
 		final String[] ip_s = ip.split("\\.");
 		for (int i = 0; i < getAccountsSize(); i++) {
 			Account act_tmp = getAccount(i);
-			if (!TASServer.isSameIP(ip_s, act_tmp.getLastIP())) {
+			if (!Misc.isSameIP(ip_s, act_tmp.getLastIP())) {
 				continue;
 			}
 			account = act_tmp;

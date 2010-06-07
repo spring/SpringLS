@@ -66,7 +66,13 @@ public class AccountUtils {
 			// ignore
 		}
 
-		String userPasswd = Misc.encodePassword(userName);
+		String userPasswd = null;
+		try {
+			userPasswd = Misc.encodePassword(userName);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			return null;
+		}
 		return new Account(userName, userPasswd, localIP, countryCode2L);
 	}
 
@@ -116,9 +122,9 @@ public class AccountUtils {
 			moveAccountsFromDBtoFS();
 		} else {
 			System.out.println("Specify one of these (be carefull! No \"Are you sure?\" protection):");
-			System.out.println("\talibaba [FS] - creates one admin account and 40 users (user_0, ...), all with username==password (default: on the DB, if 2nd arg == FS -> in " + TASServer.ACCOUNTS_INFO_FILEPATH + ")");
-			System.out.println("\tFS2DB        - copy all accounts from " + TASServer.ACCOUNTS_INFO_FILEPATH + " to the Accounts DB");
-			System.out.println("\tDB2FS        - copy all accounts from the Accounts DB to " + TASServer.ACCOUNTS_INFO_FILEPATH);
+			System.out.println("\talibaba [FS] - creates one admin account and 40 users (user_0, ...), all with username==password (default: on the DB, if 2nd arg == FS -> in " + FSAccountsService.ACCOUNTS_INFO_FILEPATH + ")");
+			System.out.println("\tFS2DB        - copy all accounts from " + FSAccountsService.ACCOUNTS_INFO_FILEPATH + " to the Accounts DB");
+			System.out.println("\tDB2FS        - copy all accounts from the Accounts DB to " + FSAccountsService.ACCOUNTS_INFO_FILEPATH);
 		}
 	}
 }

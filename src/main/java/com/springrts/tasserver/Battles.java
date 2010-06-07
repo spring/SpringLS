@@ -13,14 +13,22 @@ import java.util.List;
  */
 public class Battles implements ContextReceiver {
 
-	private List<Battle> battles = new ArrayList<Battle>();
-
+	private List<Battle> battles;
 	private Context context = null;
+
+
+	public Battles() {
+		this.battles = new ArrayList<Battle>();
+	}
 
 
 	@Override
 	public void receiveContext(Context context) {
+
 		this.context = context;
+		for (Battle battle : battles) {
+			battle.receiveContext(context);
+		}
 	}
 
 	public int getBattlesSize() {
@@ -165,13 +173,17 @@ public class Battles implements ContextReceiver {
 			return null;
 		}
 
-		return new Battle(type, natType, founder, pass, port, maxPlayers, hash, rank, maphash, parsed2[0], parsed2[1], parsed2[2]);
+		Battle battle = new Battle(type, natType, founder, pass, port, maxPlayers, hash, rank, maphash, parsed2[0], parsed2[1], parsed2[2]);
+
+		return battle;
 	}
 
 	/**
 	 * Will add this battle object to battle list
 	 */
 	public void addBattle(Battle battle) {
+
 		battles.add(battle);
+		battle.receiveContext(context);
 	}
 }

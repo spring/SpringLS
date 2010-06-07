@@ -15,7 +15,12 @@ import java.util.List;
  * @author Betalord
  * @author hoijui
  */
-public interface AccountsService extends ContextReceiver {
+public interface AccountsService extends ContextReceiver, LiveStateListener {
+
+	/**
+	 * Checks resources required for the service to operate.
+	 */
+	public boolean isReadyToOperate();
 
 	/**
 	 * Returns the number of all accounts.

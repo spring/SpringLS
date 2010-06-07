@@ -305,7 +305,7 @@ public class Clients implements ContextReceiver {
 			Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 			if (bat == null) {
 				s_log.fatal("Invalid battle ID. Server will now exit!");
-				TASServer.closeServerAndExit();
+				context.getServer().closeServerAndExit();
 			}
 			context.getBattles().leaveBattle(client, bat); // automatically checks if client is founder and closes the battle
 		}
@@ -321,7 +321,7 @@ public class Clients implements ContextReceiver {
 			}
 		}
 
-		if (TASServer.LAN_MODE) {
+		if (context.getServer().isLanMode()) {
 			context.getAccountsService().removeAccount(client.getAccount());
 		}
 

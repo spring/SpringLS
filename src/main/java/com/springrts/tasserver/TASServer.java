@@ -218,8 +218,6 @@
 package com.springrts.tasserver;
 
 
-import org.apache.commons.logging.*;
-
 import java.util.*;
 import java.io.*;
 import java.net.*;
@@ -227,82 +225,96 @@ import java.nio.*;
 import java.nio.channels.*;
 import java.nio.charset.*;
 import java.util.regex.*;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * @author Betalord
  */
-public class TASServer {
+public class TASServer implements LiveStateListener {
 
-	private static String MOTD = "Enjoy your stay :-)";
-	private static String agreement = ""; // agreement which is sent to user upon first login. User must send CONFIRMAGREEMENT command to confirm the agreement before server allows him to log in. See LOGIN command implementation for more details.
-	static long upTime;
-	static String latestSpringVersion = "*"; // this is sent via welcome message to every new client who connects to the server
-	private static final String MOTD_FILENAME = "motd.txt";
-	private static final String AGREEMENT_FILENAME = "agreement.rtf";
-	static final String ACCOUNTS_INFO_FILEPATH = "accounts.txt";
-	static final String SERVER_NOTIFICATION_FOLDER = "./notifs";
-	static final String IP2COUNTRY_FILENAME = "ip2country.dat";
-	static final String UPDATE_PROPERTIES_FILENAME = "updates.xml";
-	private static final int DEFAULT_SERVER_PORT = 8200; // default server (TCP) port
-	private static int serverPort = DEFAULT_SERVER_PORT; // actual server (TCP) port to be used (or currently in use)
-	static int NAT_TRAVERSAL_PORT = 8201; // default UDP port used with some NAT traversal technique. If this port is not forwarded, hole punching technique will not work.
-	static final int TIMEOUT_CHECK = 5000;
-	static int timeoutLength = 50000; // in milliseconds
-	static boolean LAN_MODE = false;
-	private static boolean redirect = false; // if true, server is redirection clients to new ip
-	private static String redirectToIP = ""; // new ip to which clients are redirected if (redirected==true)
-	private static boolean RECORD_STATISTICS = false; // if true, statistics are saved to disk on regular intervals
-	static String PLOTICUS_FULLPATH = "./ploticus/bin/pl"; // see http://ploticus.sourceforge.net/ for more info on ploticus
-	static String STATISTICS_FOLDER = "./stats/";
-	static long saveStatisticsInterval = 1000 * 60 * 20; // in milliseconds
-	static boolean LOG_MAIN_CHANNEL = false; // if true, server will keep a log of all conversations from channel #main (in file "MainChanLog.log")
-	private static PrintStream mainChanLog;
-	private static String lanAdminUsername = "admin"; // default lan admin account. Can be overwritten with -LANADMIN switch. Used only when server is running in lan mode!
-	private static String lanAdminPassword = Misc.encodePassword("admin");
-	private static List<String> whiteList = new LinkedList<String>();
-	private static long purgeMutesInterval = 1000 * 3; // in miliseconds. On this interval, all channels' mute lists will be checked for expirations and purged accordingly.
-	private static long lastMutesPurgeTime = System.currentTimeMillis(); // time when we last purged mute lists of all channels
-	private static final Collection<String> reservedAccountNames = Arrays.asList(new String[] {"TASServer", "Server", "server"}); // accounts with these names cannot be registered (since they may be used internally by the server)
-	private static final long minSleepTimeBetweenMapGrades = 5; // minimum time (in seconds) required between two consecutive MAPGRADES command sent by the client. We need this to ensure that client doesn't send MAPGRADES command too often as it creates much load on the server.
+	private String MOTD = "Enjoy your stay :-)";
 	/**
-	 * Max number of teams supported by Spring.
-	 * Should be equal to MAX_TEAMS in springs GlobalConstants.h.
+	 * Agreement which is sent to user upon first login.
+	 * User must send CONFIRMAGREEMENT command to confirm the agreement
+	 * before the server allows him to log in.
+	 * See LOGIN command implementation for more details.
 	 */
-	public static final int MAX_TEAMS = 255;
+	private String agreement = "";
+	private final String MOTD_FILENAME = "motd.txt";
+	private final String AGREEMENT_FILENAME = "agreement.rtf";
+	final String UPDATE_PROPERTIES_FILENAME = "updates.xml";
+	final int TIMEOUT_CHECK = 5000;
+	/** in milliseconds */
+	int timeoutLength = 50000;
+	/** if true, server is redirection clients to new IP */
+	private boolean redirect = false;
+	/** new IP to which clients are redirected if (redirected==true) */
+	private String redirectToIP = "";
 	/**
-	 * Max number of ally teams supported by Spring.
-	 * Should be equal to MAX_TEAMS in springs GlobalConstants.h.
+	 * If true, the server will keep a log of all conversations from
+	 * the channel #main (in file "MainChanLog.log")
 	 */
-	public static final int MAX_ALLY_TEAMS = MAX_TEAMS;
-	private static boolean initializationFinished = false; // we set this to 'true' just before we enter the main loop. We need this information when saving accounts for example, so that we don't dump empty accounts to disk when an error has occured before initialization has been completed
-	private static List<FailedLoginAttempt> failedLoginAttempts = new ArrayList<FailedLoginAttempt>(); // here we store information on latest failed login attempts. We use it to block users from brute-forcing other accounts
-	private static long lastFailedLoginsPurgeTime = System.currentTimeMillis(); // time when we last purged list of failed login attempts
+	//boolean logMainChannel = false;
+	private List<String> whiteList = new LinkedList<String>();
+	/**
+	 * In this interval, all channel mute lists will be checked
+	 * for expirations and purged accordingly. In milliseconds.
+	 */
+	private long purgeMutesInterval = 1000 * 3;
+	/**
+	 * Time when we last purged mute lists of all channels.
+	 * @see System.currentTimeMillis()
+	 */
+	private long lastMutesPurgeTime = System.currentTimeMillis();
+	/**
+	 * Accounts with these names can not be registered,
+	 * as they may be used internally by the server.
+	 */
+	private final Collection<String> reservedAccountNames = Arrays.asList(new String[] {"TASServer", "Server", "server"});
+	/**
+	 * Minimum time (in seconds) required between two consecutive MAPGRADES
+	 * commands sent by the client.
+	 * We need this to ensure that client does not send the MAPGRADES command
+	 * too often, as it creates a big load on the server.
+	 */
+	private final long minSleepTimeBetweenMapGrades = 5;
+	/**
+	 * We set this to 'true' just before we enter the main loop.
+	 * We need this information when saving accounts for example,
+	 * so that we don not dump empty accounts to disk when an error has occurred
+	 * before initialization has been completed.
+	 */
+	private boolean initializationFinished = false;
+	/**
+	 * Here we store information on latest failed login attempts.
+	 * We use it to block users from brute-forcing other accounts.
+	 */
+	private List<FailedLoginAttempt> failedLoginAttempts = new ArrayList<FailedLoginAttempt>();
+	/** Time when we last purged list of failed login attempts */
+	private long lastFailedLoginsPurgeTime = System.currentTimeMillis();
 	private static final Log s_log  = LogFactory.getLog(TASServer.class);
 
-	private static Properties mavenProperties = null;
+	//private Properties mavenProperties = null;
 	// database related:
-	private static  boolean useUserDB = false;
-	private static final int READ_BUFFER_SIZE = 256; // size of the ByteBuffer used to read data from the socket channel. This size doesn't really matter - server will work with any size (tested with READ_BUFFER_SIZE==1), but too small buffer size may impact the performance.
-	private static final int SEND_BUFFER_SIZE = 8192 * 2; // socket's send buffer size
-	private static final long MAIN_LOOP_SLEEP = 10L;
-	public static final int NO_MSG_ID = -1; // meaning message isn't using an ID (see protocol description on message/command IDs)
-	private static int recvRecordPeriod = 10; // in seconds. Length of time period for which we keep record of bytes received from client. Used with anti-flood protection.
-	private static int maxBytesAlert = 20000; // maximum number of bytes received in the last recvRecordPeriod seconds from a single client before we raise "flood alert". Used with anti-flood protection.
-	private static int maxBytesAlertForBot = 50000; // same as 'maxBytesAlert' but is used for clients in "bot mode" only (see client.status bits)
-	private static long lastFloodCheckedTime = System.currentTimeMillis(); // time (in same format as System.currentTimeMillis) when we last updated it. Used with anti-flood protection.
-	private static long maxChatMessageLength = 1024; // used with basic anti-flood protection. Any chat messages (channel or private chat messages) longer than this are considered flooding. Used with following commands: SAY, SAYEX, SAYPRIVATE, SAYBATTLE, SAYBATTLEEX
-	public static boolean regEnabled = true;
-	public static boolean loginEnabled = true;
-	private static long lastTimeoutCheck = System.currentTimeMillis(); // time (System.currentTimeMillis()) when we last checked for timeouts from clients
-	private static ServerSocketChannel sSockChan;
-	private static Selector readSelector;
-	//***private static SelectionKey selectKey;
-	private static boolean running;
-	private static ByteBuffer readBuffer = ByteBuffer.allocateDirect(READ_BUFFER_SIZE); // see http://java.sun.com/j2se/1.5.0/docs/api/java/nio/ByteBuffer.html for difference between direct and non-direct buffers. In this case we should use direct buffers, this is also used by the author of java.nio chat example (see links) upon which this code is built on.
-	public static CharsetDecoder asciiDecoder;
-	public static CharsetEncoder asciiEncoder;
-
-	private static Context context = null;
+	private final int READ_BUFFER_SIZE = 256; // size of the ByteBuffer used to read data from the socket channel. This size doesn't really matter - server will work with any size (tested with READ_BUFFER_SIZE==1), but too small buffer size may impact the performance.
+	private final int SEND_BUFFER_SIZE = 8192 * 2; // socket's send buffer size
+	private final long MAIN_LOOP_SLEEP = 10L;
+	private int recvRecordPeriod = 10; // in seconds. Length of time period for which we keep record of bytes received from client. Used with anti-flood protection.
+	private int maxBytesAlert = 20000; // maximum number of bytes received in the last recvRecordPeriod seconds from a single client before we raise "flood alert". Used with anti-flood protection.
+	private int maxBytesAlertForBot = 50000; // same as 'maxBytesAlert' but is used for clients in "bot mode" only (see client.status bits)
+	private long lastFloodCheckedTime = System.currentTimeMillis(); // time (in same format as System.currentTimeMillis) when we last updated it. Used with anti-flood protection.
+	private long maxChatMessageLength = 1024; // used with basic anti-flood protection. Any chat messages (channel or private chat messages) longer than this are considered flooding. Used with following commands: SAY, SAYEX, SAYPRIVATE, SAYBATTLE, SAYBATTLEEX
+	public boolean regEnabled = true;
+	public boolean loginEnabled = true;
+	private long lastTimeoutCheck = System.currentTimeMillis(); // time (System.currentTimeMillis()) when we last checked for timeouts from clients
+	private ServerSocketChannel sSockChan;
+	private Selector readSelector;
+	//***private SelectionKey selectKey;
+	private boolean running;
+	private ByteBuffer readBuffer = ByteBuffer.allocateDirect(READ_BUFFER_SIZE); // see http://java.sun.com/j2se/1.5.0/docs/api/java/nio/ByteBuffer.html for difference between direct and non-direct buffers. In this case we should use direct buffers, this is also used by the author of java.nio chat example (see links) upon which this code is built on.
+	
+	private Context context = null;
 
 	/**
 	 * In 'updateProperties' we store a list of Spring versions and server responses to them.
@@ -312,25 +324,11 @@ public class TASServer {
 	 * Each text field associated with a key contains a full string that will be send to the client
 	 * as a response, so it should contain a full server command.
 	 */
-	private static Properties updateProperties = new Properties();
-	static NATHelpServer helpUDPsrvr;
+	private Properties updateProperties = new Properties();
 
-
-	public static void writeMainChanLog(String text) {
-		if (!LOG_MAIN_CHANNEL) {
-			return;
-		}
-
-		try {
-			mainChanLog.println(new StringBuilder(Misc.easyDateFormat("<HH:mm:ss> ")).append(text).toString());
-		} catch (Exception e) {
-			TASServer.LOG_MAIN_CHANNEL = false;
-			s_log.error("Unable to write main channel log file (MainChanLog.log)", e);
-		}
-	}
 
 	/** Reads MOTD from disk (if file is found) */
-	private static boolean readMOTD(String fileName) {
+	private boolean readMOTD(String fileName) {
 		StringBuilder newMOTD = new StringBuilder();
 		try {
 			BufferedReader in = new BufferedReader(new FileReader(fileName));
@@ -350,7 +348,7 @@ public class TASServer {
 		return true;
 	}
 
-	private static boolean readUpdateProperties(String fileName) {
+	private boolean readUpdateProperties(String fileName) {
 		FileInputStream fStream = null;
 		try {
 			fStream = new FileInputStream(fileName);
@@ -368,7 +366,7 @@ public class TASServer {
 		return true;
 	}
 
-	private static boolean writeUpdateProperties(String fileName) {
+	private boolean writeUpdateProperties(String fileName) {
 		FileOutputStream fStream = null;
 		try {
 			fStream = new FileOutputStream(fileName);
@@ -386,82 +384,31 @@ public class TASServer {
 		return true;
 	}
 
-	public static boolean isSameIP(final String ip1, final String ip2) {
-
-		String[] ip1_s = ip1.split("\\.");
-		String[] ip2_s = ip2.split("\\.");
-
-		return isSameIP(ip1_s, ip2_s);
+	@Override
+	public void starting() {
+		s_log.info("starting...");
 	}
-	public static boolean isSameIP(final String[] ip1_s, final String ip2) {
+	@Override
+	public void started() {
 
-		String[] ip2_s = ip2.split("\\.");
-
-		return isSameIP(ip1_s, ip2_s);
-	}
-	public static boolean isSameIP(final String[] ip1_s, final String[] ip2_s) {
-
-		if        (!ip1_s[0].equals("*") && !ip1_s[0].equals(ip2_s[0])) {
-			return false;
-		} else if (!ip1_s[1].equals("*") && !ip1_s[1].equals(ip2_s[1])) {
-			return false;
-		} else if (!ip1_s[2].equals("*") && !ip1_s[2].equals(ip2_s[2])) {
-			return false;
-		} else if (!ip1_s[3].equals("*") && !ip1_s[3].equals(ip2_s[3])) {
-			return false;
-		}
-
-		return true;
+		s_log.info(new StringBuilder("TASServer ")
+				.append(Misc.getAppVersion()).append(" started on ")
+				.append(Misc.easyDateFormat("yyyy.MM.dd 'at' hh:mm:ss z")).toString());
 	}
 
-	/**
-	 * Reads this applications Maven properties file in the
-	 * META-INF directory of the class-path.
-	 */
-	private static Properties getMavenProperties() {
-
-		Properties pomProps = null;
-
-		try {
-			final String pomPropsLoc = "/META-INF/maven/com.springrts/tasserver/pom.properties";
-			InputStream propFileIn = TASServer.class.getResourceAsStream(pomPropsLoc);
-			if (propFileIn == null) {
-				throw new IOException("Failed locating resource in the classpath: " + pomPropsLoc);
-			}
-			pomProps = new Properties();
-			pomProps.load(propFileIn);
-		} catch (Exception ex) {
-			s_log.warn("Failed reading the Maven properties file", ex);
-			pomProps = null;
-		}
-
-		return pomProps;
+	@Override
+	public void stopping() {
+		s_log.info("stopping...");
 	}
+	@Override
+	public void stopped() {
 
-	/**
-	 * Reads this applications version from the Maven properties file in the
-	 * META-INF directory.
-	 */
-	public static String getAppVersion() {
-
-		String appVersion = null;
-
-		if (mavenProperties == null) {
-			mavenProperties = getMavenProperties();
-		}
-		if (mavenProperties != null) {
-			appVersion = mavenProperties.getProperty("version", null);
-		}
-
-		if (appVersion == null) {
-			s_log.warn("Failed getting the Applications version from the Maven properties file");
-		}
-
-		return appVersion;
+		running = false;
+		s_log.info("stopped on " + Misc.easyDateFormat("yyyy.MM.dd 'at' hh:mm:ss z"));
 	}
 
 	/** Reads agreement from disk (if file is found) */
-	private static void readAgreement() {
+	private void readAgreement() {
 		StringBuilder newAgreement = new StringBuilder();
 		try {
 			BufferedReader in = new BufferedReader(new FileReader(AGREEMENT_FILENAME));
@@ -483,57 +430,14 @@ public class TASServer {
 		}
 	}
 
-	public static void closeServerAndExit() {
-		s_log.info("Server stopped.");
-		if (!LAN_MODE && initializationFinished) {
-			context.getAccountsService().saveAccounts(true); // we need to check if initialization has completed so that we don't save empty accounts array and so overwrite actual accounts
-		}
-		if (helpUDPsrvr != null && helpUDPsrvr.isAlive()) {
-			helpUDPsrvr.stopServer();
-			try {
-				helpUDPsrvr.join(1000); // give it 1 second to shut down gracefully
-			} catch (InterruptedException e) {
-			}
-		}
-		if (LOG_MAIN_CHANNEL) {
-			try {
-				mainChanLog.close();
+	private boolean startServer() {
 
-				// add server notification:
-				ServerNotification sn = new ServerNotification("Server stopped");
-				sn.addLine("Server has just been stopped. See server log for more info.");
-				context.getServerNotifications().addNotification(sn);
-			} catch (Exception e) {
-				// nevermind
-			}
-		}
-		running = false;
-		System.exit(0);
-	}
+		context.starting();
 
-	private static boolean changeCharset(String newCharset) throws IllegalCharsetNameException, UnsupportedCharsetException {
-		CharsetDecoder dec;
-		CharsetEncoder enc;
+		int port = context.getServer().getPort();
 
-		dec = Charset.forName(newCharset).newDecoder();
-		enc = Charset.forName(newCharset).newEncoder();
-
-		asciiDecoder = dec;
-		asciiDecoder.replaceWith("?");
-		asciiDecoder.onUnmappableCharacter(CodingErrorAction.REPLACE);
-		asciiDecoder.onMalformedInput(CodingErrorAction.REPLACE);
-
-		asciiEncoder = enc;
-		asciiEncoder.replaceWith(new byte[]{(byte) '?'});
-		asciiEncoder.onUnmappableCharacter(CodingErrorAction.REPLACE);
-		asciiEncoder.onMalformedInput(CodingErrorAction.REPLACE);
-
-		return true;
-	}
-
-	private static boolean startServer(int port) {
 		try {
-			changeCharset("ISO-8859-1"); // initializes asciiDecoder and asciiEncoder
+			context.getServer().setCharset("ISO-8859-1"); // initializes asciiDecoder and asciiEncoder
 
 			// open a non-blocking server socket channel
 			sSockChan = ServerSocketChannel.open();
@@ -552,13 +456,16 @@ public class TASServer {
 			return false;
 		}
 
-		s_log.info(new StringBuilder("Port ").append(port)
-				.append(" is open\nListening for connections ...").toString());
+		s_log.info(new StringBuilder("Listening for connections on TCP port ")
+				.append(port)
+				.append(" ...").toString());
+
+		context.started();
 
 		return true;
 	}
 
-	private static void acceptNewConnections() {
+	private void acceptNewConnections() {
 		try {
 			SocketChannel clientChannel;
 			// since sSockChan is non-blocking, this will return immediately
@@ -593,7 +500,7 @@ public class TASServer {
 		}
 	}
 
-	private static void readIncomingMessages() {
+	private void readIncomingMessages() {
 		Client client = null;
 
 		try {
@@ -620,8 +527,8 @@ public class TASServer {
 				client.addToDataOverLastTimePeriod(nbytes);
 
 				// basic anti-flood protection:
-				if ((client.getAccount().getAccess().compareTo(Account.Access.ADMIN) >= 0) && (((client.getBotModeFromStatus() == false) && (client.getDataOverLastTimePeriod() > TASServer.maxBytesAlert)) ||
-						((client.getBotModeFromStatus() == true) && (client.getDataOverLastTimePeriod() > TASServer.maxBytesAlertForBot)))) {
+				if ((client.getAccount().getAccess().compareTo(Account.Access.ADMIN) >= 0) && (((client.getBotModeFromStatus() == false) && (client.getDataOverLastTimePeriod() > maxBytesAlert)) ||
+						((client.getBotModeFromStatus() == true) && (client.getDataOverLastTimePeriod() > maxBytesAlertForBot)))) {
 					s_log.warn(new StringBuilder("Flooding detected from ")
 							.append(client.getIp()).append(" (")
 							.append(client.getAccount().getName()).append(")").toString());
@@ -652,7 +559,7 @@ public class TASServer {
 					// use a CharsetDecoder to turn those bytes into a string
 					// and append to client's StringBuilder
 					readBuffer.flip();
-					String str = asciiDecoder.decode(readBuffer).toString();
+					String str = context.getServer().getAsciiDecoder().decode(readBuffer).toString();
 					readBuffer.clear();
 					client.getRecvBuf().append(str);
 
@@ -710,15 +617,15 @@ public class TASServer {
 		}
 	}
 
-	private static void verifyBattle(Battle battle) {
+	private void verifyBattle(Battle battle) {
 
 		if (battle == null) {
 			s_log.fatal("Invalid battle ID. Server will now exit!");
-			closeServerAndExit();
+			context.getServer().closeServerAndExit();
 		}
 	}
 
-	private static Account verifyLogin(String user, String pass) {
+	private Account verifyLogin(String user, String pass) {
 		Account acc = context.getAccountsService().getAccount(user);
 		if (acc == null) {
 			return null;
@@ -730,7 +637,7 @@ public class TASServer {
 		}
 	}
 
-	private static void recordFailedLoginAttempt(String username) {
+	private void recordFailedLoginAttempt(String username) {
 		FailedLoginAttempt attempt = findFailedLoginAttempt(username);
 		if (attempt == null) {
 			attempt = new FailedLoginAttempt(username, 0, 0);
@@ -741,7 +648,7 @@ public class TASServer {
 	}
 
 	/** @return 'null' if no record found */
-	private static FailedLoginAttempt findFailedLoginAttempt(String username) {
+	private FailedLoginAttempt findFailedLoginAttempt(String username) {
 		for (int i = 0; i < failedLoginAttempts.size(); i++) {
 			if (failedLoginAttempts.get(i).username.equals(username)) {
 				return failedLoginAttempts.get(i);
@@ -751,13 +658,13 @@ public class TASServer {
 	}
 
 	/** Sends "message of the day" (MOTD) to client */
-	private static boolean sendMOTDToClient(Client client) {
+	private boolean sendMOTDToClient(Client client) {
 		client.beginFastWrite();
 		client.sendLine(new StringBuilder("MOTD Welcome, ").append(client.getAccount().getName()).append("!").toString());
 		client.sendLine(new StringBuilder("MOTD There are currently ").append((context.getClients().getClientsSize() - 1)).append(" clients connected").toString()); // -1 is because we shouldn't count the client to which we are sending MOTD
 		client.sendLine(new StringBuilder("MOTD to server talking in ").append(context.getChannels().getChannelsSize()).append(" open channels and").toString());
 		client.sendLine(new StringBuilder("MOTD participating in ").append(context.getBattles().getBattlesSize()).append(" battles.").toString());
-		client.sendLine(new StringBuilder("MOTD Server's uptime is ").append(Misc.timeToDHM(System.currentTimeMillis() - upTime)).append(".").toString());
+		client.sendLine(new StringBuilder("MOTD Server's uptime is ").append(Misc.timeToDHM(System.currentTimeMillis() - context.getServer().getStartTime())).append(".").toString());
 		client.sendLine("MOTD");
 		String[] sl = MOTD.split("\n");
 		for (int i = 0; i < sl.length; i++) {
@@ -767,7 +674,7 @@ public class TASServer {
 		return true;
 	}
 
-	private static void sendAgreementToClient(Client client) {
+	private void sendAgreementToClient(Client client) {
 		client.beginFastWrite();
 		String[] sl = agreement.split("\n");
 		for (int i = 0; i < sl.length; i++) {
@@ -777,7 +684,7 @@ public class TASServer {
 		client.endFastWrite();
 	}
 
-	public static boolean redirectAndKill(Socket socket) {
+	public boolean redirectAndKill(Socket socket) {
 		if (!redirect) {
 			return false;
 		}
@@ -790,7 +697,7 @@ public class TASServer {
 		return true;
 	}
 
-	public static void notifyClientJoinedBattle(Client client, Battle bat) {
+	public void notifyClientJoinedBattle(Client client, Battle bat) {
 		// This non-object oriented function is ugly, but Client and Battle classes are made in such a way that
 		// they do not handle players notifications, which is made in TASServer class...
 		
@@ -821,7 +728,7 @@ public class TASServer {
 
 	/* Note: this method is not synchronized!
 	 * Note2: this method may be called recursively! */
-	public static boolean tryToExecCommand(String command, Client client) {
+	public boolean tryToExecCommand(String command, Client client) {
 		command = command.trim();
 		if (command.equals("")) {
 			return false;
@@ -839,13 +746,13 @@ public class TASServer {
 			}
 		}
 
-		int ID = NO_MSG_ID;
+		int msgId = Client.NO_MSG_ID;
 		if (command.charAt(0) == '#') {
 			try {
 				if (!command.matches("^#\\d+\\s[\\s\\S]*")) {
 					return false; // malformed command
 				}
-				ID = Integer.parseInt(command.substring(1).split("\\s")[0]);
+				msgId = Integer.parseInt(command.substring(1).split("\\s")[0]);
 				// remove ID field from the rest of command:
 				command = command.replaceFirst("#\\d+\\s", "");
 			} catch (NumberFormatException e) {
@@ -859,7 +766,7 @@ public class TASServer {
 		String[] commands = command.split(" ");
 		commands[0] = commands[0].toUpperCase();
 
-		client.setSendMsgID(ID);
+		client.setSendMsgID(msgId);
 
 		try {
 			if (commands[0].equals("PING")) {
@@ -894,7 +801,7 @@ public class TASServer {
 					client.sendLine("SERVERMSG Account already exists");
 					return false;
 				}
-				if (TASServer.reservedAccountNames.contains(commands[1])) {
+				if (reservedAccountNames.contains(commands[1])) {
 					client.sendLine("SERVERMSG Invalid account name - you are trying to register a reserved account name");
 					return false;
 				}
@@ -921,7 +828,7 @@ public class TASServer {
 					return false;
 				}
 
-				if (LAN_MODE) { // no need to register account in LAN mode since it accepts any username
+				if (context.getServer().isLanMode()) { // no need to register account in LAN mode since it accepts any username
 					client.sendLine("REGISTRATIONDENIED Can't register in LAN-mode. Login with any username and password to proceed");
 					return false;
 				}
@@ -948,7 +855,7 @@ public class TASServer {
 				}
 
 				// check for reserved names:
-				if (TASServer.reservedAccountNames.contains(commands[1])) {
+				if (reservedAccountNames.contains(commands[1])) {
 					client.sendLine("REGISTRATIONDENIED Invalid account name - you are trying to register a reserved account name");
 						return false;
 				}
@@ -991,7 +898,7 @@ public class TASServer {
 				}
 
 				client.sendLine(new StringBuilder("SERVERMSG Server's uptime is ")
-						.append(Misc.timeToDHM(System.currentTimeMillis() - upTime)).toString());
+						.append(Misc.timeToDHM(System.currentTimeMillis() - context.getServer().getStartTime())).toString());
 			} /* some admin/moderator specific commands: */ else if (commands[0].equals("KICKUSER")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
 					return false;
@@ -1067,7 +974,7 @@ public class TASServer {
 					return false;
 				}
 				for (int i = 0; i < context.getClients().getClientsSize(); i++) {
-					if (!isSameIP(sp1, context.getClients().getClient(i).getIp())) {
+					if (!Misc.isSameIP(sp1, context.getClients().getClient(i).getIp())) {
 						continue;
 					}
 					context.getClients().killClient(context.getClients().getClient(i));
@@ -1154,7 +1061,7 @@ public class TASServer {
 					return false;
 				}
 
-				closeServerAndExit();
+				context.getServer().closeServerAndExit();
 			} else if (commands[0].equals("SAVEACCOUNTS")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
@@ -1354,7 +1261,7 @@ public class TASServer {
 				}
 
 				for (int i = 0; i < context.getClients().getClientsSize(); i++) {
-					if (!isSameIP(sp1, context.getClients().getClient(i).getIp())) {
+					if (!Misc.isSameIP(sp1, context.getClients().getClient(i).getIp())) {
 						continue;
 					}
 
@@ -1663,7 +1570,8 @@ public class TASServer {
 					return false;
 				}
 
-				if (IP2Country.getInstance().initializeAll(Misc.makeSentence(commands, 1))) {
+				IP2Country.getInstance().setDataFile(new File(Misc.makeSentence(commands, 1)));
+				if (IP2Country.getInstance().initializeAll()) {
 					client.sendLine("SERVERMSG IP2COUNTRY database initialized successfully!");
 				} else {
 					client.sendLine("SERVERMSG Error while initializing IP2COUNTRY database!");
@@ -1698,7 +1606,7 @@ public class TASServer {
 				}
 
 				try {
-					changeCharset(commands[1]);
+					context.getServer().setCharset(commands[1]);
 				} catch (IllegalCharsetNameException e) {
 					client.sendLine(new StringBuilder("SERVERMSG Error: Illegal charset name: ").append(commands[1]).toString());
 					return false;
@@ -2018,9 +1926,9 @@ public class TASServer {
 					return false;
 				}
 
-				latestSpringVersion = commands[1];
+				context.setEngine(new Engine(commands[1]));
 
-				client.sendLine(new StringBuilder("SERVERMSG Latest spring version has been set to ").append(latestSpringVersion).toString());
+				client.sendLine(new StringBuilder("SERVERMSG Latest spring version has been set to ").append(context.getEngine().getVersion()).toString());
 			} else if (commands[0].equals("RELOADUPDATEPROPERTIES")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
@@ -2162,7 +2070,7 @@ public class TASServer {
 					return false;
 				}
 
-				if (!LAN_MODE) { // "normal", non-LAN mode
+				if (!context.getServer().isLanMode()) { // "normal", non-LAN mode
 					String username = commands[1];
 					String password = commands[2];
 
@@ -2224,7 +2132,7 @@ public class TASServer {
 						return false;
 					}
 					client.setAccount(acc);
-				} else { // LAN_MODE == true
+				} else { // lanMode == true
 					if (commands[1].equals("")) {
 						client.sendLine("DENIED Cannot login with null username");
 					}
@@ -2234,7 +2142,7 @@ public class TASServer {
 						return false;
 					}
 					Account.Access accessLvl = Account.Access.NORMAL;
-					if ((commands[1].equals(lanAdminUsername)) && (commands[2].equals(lanAdminPassword))) {
+					if ((commands[1].equals(context.getServer().getLanAdminUsername())) && (commands[2].equals(context.getServer().getLanAdminPassword()))) {
 						accessLvl = Account.Access.ADMIN;
 					}
 					acc = new Account(commands[1], commands[2], "?", "XX");
@@ -2246,7 +2154,7 @@ public class TASServer {
 				// set client's status:
 				client.setRankToStatus(client.getAccount().getRank().ordinal());
 				client.setBotModeToStatus(client.getAccount().isBot());
-				client.setAccessToStatus((((client.getAccount().getAccess().compareTo(Account.Access.PRIVILEGED) >= 0) && (!LAN_MODE)) ? true : false));
+				client.setAccessToStatus((((client.getAccount().getAccess().compareTo(Account.Access.PRIVILEGED) >= 0) && (!context.getServer().isLanMode())) ? true : false));
 
 				client.setCpu(cpu);
 				client.getAccount().setLastLogin(System.currentTimeMillis());
@@ -2332,7 +2240,7 @@ public class TASServer {
 					return false;
 				}
 
-				if (LAN_MODE) {
+				if (context.getServer().isLanMode()) {
 					client.sendLine("SERVERMSG RENAMEACCOUNT failed: You cannot rename your account while server is running in LAN mode since you have no account!");
 					return false;
 				}
@@ -2393,7 +2301,7 @@ public class TASServer {
 					return false;
 				}
 
-				if (LAN_MODE) {
+				if (context.getServer().isLanMode()) {
 					client.sendLine("SERVERMSG CHANGEPASSWORD failed: You cannot change your password while server is running in LAN mode!");
 					return false;
 				}
@@ -3063,7 +2971,7 @@ public class TASServer {
 				} catch (NumberFormatException e) {
 					return false;
 				}
-				if ((value < 0) || (value > TASServer.MAX_TEAMS - 1)) {
+				if ((value < 0) || (value > context.getEngine().getMaxTeams() - 1)) {
 					return false;
 				}
 
@@ -3101,7 +3009,7 @@ public class TASServer {
 				} catch (NumberFormatException e) {
 					return false;
 				}
-				if ((value < 0) || (value > TASServer.MAX_TEAMS - 1)) {
+				if ((value < 0) || (value > context.getEngine().getMaxTeams() - 1)) {
 					return false;
 				}
 
@@ -3704,7 +3612,7 @@ public class TASServer {
 				return false;
 			}
 		} finally {
-			client.setSendMsgID(NO_MSG_ID);
+			client.setSendMsgID(Client.NO_MSG_ID);
 		}
 
 
@@ -3716,7 +3624,7 @@ public class TASServer {
 	 * Processes all command line arguments in 'args'.
 	 * Raises an exception in case of errors.
 	 */
-	public static void processCommandLineArguments(String[] args) throws IOException, Exception {
+	public static void processCommandLineArguments(Context context, String[] args) throws IOException, Exception {
 
 		// process command line arguments:
 		String s;
@@ -3728,36 +3636,35 @@ public class TASServer {
 					if ((p < 1) || (p > 65535)) {
 						throw new IOException();
 					}
-					serverPort = p;
+					context.getServer().setPort(p);
 					i++; // we must skip port number parameter in the next iteration
 				} else if (s.equals("LAN")) {
-					LAN_MODE = true;
+					context.getServer().setLanMode(true);
 				} else if (s.equals("STATISTICS")) {
-					RECORD_STATISTICS = true;
+					context.getStatistics().setRecording(true);
 				} else if (s.equals("NATPORT")) {
 					int p = Integer.parseInt(args[i + 1]);
 					if ((p < 1) || (p > 65535)) {
 						throw new IOException();
 					}
-					NAT_TRAVERSAL_PORT = p;
+					context.getNatHelpServer().setPort(p);
 					i++; // we must skip port number parameter in the next iteration
 				} else if (s.equals("LOGMAIN")) {
-					LOG_MAIN_CHANNEL = true;
+					context.getChannels().setChannelsToLogRegex("^main$");
 				} else if (s.equals("LANADMIN")) {
-					lanAdminUsername = args[i + 1];
-					lanAdminPassword = Misc.encodePassword(args[i + 2]);
+					String lanAdmin_username = args[i + 1];
+					String lanAdmin_password = Misc.encodePassword(args[i + 2]);
 
 					String error;
-					if ((error = Account.isOldUsernameValid(lanAdminUsername)) != null) {
-						s_log.warn(new StringBuilder("Lan admin username is not valid: ")
-								.append(error).toString());
-						throw new Exception();
+					if ((error = Account.isOldUsernameValid(lanAdmin_username)) != null) {
+						throw new IllegalArgumentException("LAN admin username is not valid: " + error);
 					}
-					if ((error = Account.isPasswordValid(lanAdminPassword)) != null) {
-						s_log.warn(new StringBuilder("Lan admin password is not valid: ")
-								.append(error).toString());
-						throw new Exception();
+					if ((error = Account.isPasswordValid(lanAdmin_password)) != null) {
+						throw new IllegalArgumentException("LAN admin password is not valid: " + error);
 					}
+					context.getServer().setLanAdminUsername(lanAdmin_username);
+					context.getServer().setLanAdminPassword(lanAdmin_password);
+
 					i += 2; // we must skip username and password parameters in next iteration
 				} else if (s.equals("LOADARGS")) {
 					try {
@@ -3765,7 +3672,7 @@ public class TASServer {
 						String line;
 						while ((line = in.readLine()) != null) {
 							try {
-								processCommandLineArguments(line.split(" "));
+								processCommandLineArguments(context, line.split(" "));
 							} catch (Exception e) {
 								s_log.error(new StringBuilder("Error in reading ")
 										.append(args[i + 1]).append(" (invalid line)").toString(), e);
@@ -3778,10 +3685,11 @@ public class TASServer {
 					}
 					i++; // we must skip filename parameter in the next iteration
 				} else if (s.equals("LATESTSPRINGVERSION")) {
-					latestSpringVersion = args[i + 1];
+					String latestSpringVersion = args[i + 1];
+					context.setEngine(new Engine(latestSpringVersion));
 					i++; // to skip Spring version argument
 				} else if (s.equals("USERDB")) {
-					useUserDB = true;
+					context.getServer().setUseUserDB(true);
 				} else {
 					s_log.error("Invalid commandline argument");
 					throw new IOException();
@@ -3793,89 +3701,83 @@ public class TASServer {
 		}
 	}
 
+	public static void printCommandLineArgumentsHelp() {
+
+		System.out.println("Usage:");
+		System.out.println("");
+		System.out.println("-PORT [number]");
+		System.out.println("  Server will host on port [number]. If command is omitted,");
+		System.out.println("  default port will be used.");
+		System.out.println("");
+		System.out.println("-LAN");
+		System.out.println("  Server will run in \"LAN mode\", meaning any user can login as");
+		System.out.println("  long as he uses unique username (password is ignored).");
+		System.out.println("  Note: Server will accept users from outside the local network too.");
+		System.out.println("");
+		System.out.println("-STATISTICS");
+		System.out.println("  Server will create and save statistics on disk on predefined intervals.");
+		System.out.println("");
+		System.out.println("-NATPORT [number]");
+		System.out.println("  Server will use this port with some NAT traversal techniques. If command is omitted,");
+		System.out.println("  default port will be used.");
+		System.out.println("");
+		System.out.println("-LOGMAIN");
+		System.out.println("  Server will log all conversations from channel #main to MainChanLog.log");
+		System.out.println("");
+		System.out.println("-LANADMIN [username] [password]");
+		System.out.println("  Will override default lan admin account. Use this account to set up your lan server");
+		System.out.println("  at runtime.");
+		System.out.println("");
+		System.out.println("-LOADARGS [filename]");
+		System.out.println("  Will read command-line arguments from the specified file. You can freely combine actual");
+		System.out.println("  command-line arguments with the ones from the file (if duplicate args are specified, the last");
+		System.out.println("  one will prevail).");
+		System.out.println("");
+		System.out.println("-LATESTSPRINGVERSION [version]");
+		System.out.println("  Will set latest Spring version to this string. By default no value is set (defaults to \"*\").");
+		System.out.println("  This is used to tell clients which version is the latest one so that they know when to update.");
+		System.out.println("");
+		System.out.println("-DBURL [url]");
+		System.out.println("  Will set URL of the database (used only in \"normal mode\", not LAN mode).");
+		System.out.println("");
+		System.out.println("-DBUSERNAME [username]");
+		System.out.println("  Will set username for the database (used only in \"normal mode\", not LAN mode).");
+		System.out.println("");
+		System.out.println("-DBPASSWORD [password]");
+		System.out.println("  Will set password for the database (used only in \"normal mode\", not LAN mode).");
+		System.out.println("");
+		System.out.println("-USERDB");
+		System.out.println("  Instead of accounts.txt, use the DB (used only in \"normal mode\", not LAN mode).");
+		System.out.println("");
+	}
+
 	public static void main(String[] args) {
+
+		Context context = new Context();
+		context.init();
 
 		// process command line arguments:
 		try {
-			processCommandLineArguments(args);
-		} catch (Exception e) {
-			System.out.println("Bad arguments. Usage:");
+			processCommandLineArguments(context, args);
+		} catch (Exception ex) {
+			s_log.warn("Bad command line arguments", ex);
+			System.out.println("Bad command line arguments.");
 			System.out.println("");
-			System.out.println("-PORT [number]");
-			System.out.println("  Server will host on port [number]. If command is omitted,");
-			System.out.println("  default port will be used.");
-			System.out.println("");
-			System.out.println("-LAN");
-			System.out.println("  Server will run in \"LAN mode\", meaning any user can login as");
-			System.out.println("  long as he uses unique username (password is ignored).");
-			System.out.println("  Note: Server will accept users from outside the local network too.");
-			System.out.println("");
-			System.out.println("-STATISTICS");
-			System.out.println("  Server will create and save statistics on disk on predefined intervals.");
-			System.out.println("");
-			System.out.println("-NATPORT [number]");
-			System.out.println("  Server will use this port with some NAT traversal techniques. If command is omitted,");
-			System.out.println("  default port will be used.");
-			System.out.println("");
-			System.out.println("-LOGMAIN");
-			System.out.println("  Server will log all conversations from channel #main to MainChanLog.log");
-			System.out.println("");
-			System.out.println("-LANADMIN [username] [password]");
-			System.out.println("  Will override default lan admin account. Use this account to set up your lan server");
-			System.out.println("  at runtime.");
-			System.out.println("");
-			System.out.println("-LOADARGS [filename]");
-			System.out.println("  Will read command-line arguments from the specified file. You can freely combine actual");
-			System.out.println("  command-line arguments with the ones from the file (if duplicate args are specified, the last");
-			System.out.println("  one will prevail).");
-			System.out.println("");
-			System.out.println("-LATESTSPRINGVERSION [version]");
-			System.out.println("  Will set latest Spring version to this string. By default no value is set (defaults to \"*\").");
-			System.out.println("  This is used to tell clients which version is the latest one so that they know when to update.");
-			System.out.println("");
-			System.out.println("-DBURL [url]");
-			System.out.println("  Will set URL of the database (used only in \"normal mode\", not LAN mode).");
-			System.out.println("");
-			System.out.println("-DBUSERNAME [username]");
-			System.out.println("  Will set username for the database (used only in \"normal mode\", not LAN mode).");
-			System.out.println("");
-			System.out.println("-DBPASSWORD [password]");
-			System.out.println("  Will set password for the database (used only in \"normal mode\", not LAN mode).");
-			System.out.println("");
-			System.out.println("-USERDB");
-			System.out.println("  Instead of accounts.txt, use the DB (used only in \"normal mode\", not LAN mode).");
-			System.out.println("");
-
-			closeServerAndExit();
+			printCommandLineArgumentsHelp();
+			System.exit(1);
 		}
 
+		TASServer tasServer = new TASServer(context);
+	}
 
-		s_log.info(new StringBuilder("TASServer ")
-				.append(getAppVersion()).append(" started on ")
-				.append(Misc.easyDateFormat("yyyy.MM.dd 'at' hh:mm:ss z")).toString());
+	public TASServer(Context context) {
 
+		this.context = context;
 
-		context = new Context();
-
-		List<ContextReceiver> contextReceivers = new LinkedList<ContextReceiver>();
-
-		Battles battles = new Battles();
-		context.setBattles(battles);
-
-		Channels channels = new Channels();
-		context.setChannels(channels);
-
-		Clients clients = new Clients();
-		context.setClients(clients);
-
-		ServerNotifications serverNotifications = new ServerNotifications();
-		context.setServerNotifications(serverNotifications);
-
-		Statistics statistics = new Statistics();
-		context.setStatistics(statistics);
+		context.addLiveStateListener(this);
 
 		AccountsService accountsService = null;
-		if (!LAN_MODE && useUserDB) {
+		if (!context.getServer().isLanMode() && context.getServer().isUseUserDB()) {
 			accountsService = new JPAAccountsService();
 		} else {
 			accountsService = new FSAccountsService();
@@ -3883,7 +3785,7 @@ public class TASServer {
 		context.setAccountsService(accountsService);
 
 		BanService banService = null;
-		if (!LAN_MODE) {
+		if (!context.getServer().isLanMode()) {
 			try {
 				banService = new JPABanService();
 			} catch (Exception pex) {
@@ -3895,26 +3797,18 @@ public class TASServer {
 		}
 		context.setBanService(banService);
 
-
-		contextReceivers.add(battles);
-		contextReceivers.add(clients);
-		contextReceivers.add(serverNotifications);
-		contextReceivers.add(statistics);
-		
-		for (ContextReceiver contextReceiver : contextReceivers) {
-			contextReceiver.receiveContext(context);
-		}
+		context.push();
 
 
-		// switch to lan mode if user accounts information is not present:
-		if (!LAN_MODE) {
-			if (!(new File(ACCOUNTS_INFO_FILEPATH)).exists()) {
-				s_log.warn("Accounts info file not found, switching to \"lan mode\" ...");
-				LAN_MODE = true;
+		// switch to LAN mode if user accounts information is not present:
+		if (!context.getServer().isLanMode()) {
+			if (!context.getAccountsService().isReadyToOperate()) {
+				s_log.warn("Accounts service not ready, switching to \"LAN mode\" ...");
+				context.getServer().setLanMode(true);
 			}
 		}
 
-		if (!LAN_MODE) {
+		if (!context.getServer().isLanMode()) {
 			context.getAccountsService().loadAccounts();
 			context.getBanService();
 			readAgreement();
@@ -3922,70 +3816,32 @@ public class TASServer {
 			s_log.info("LAN mode enabled");
 		}
 
-		if (RECORD_STATISTICS) {
-			// create statistics folder if it doesn't exist yet:
-			File file = new File(STATISTICS_FOLDER);
-			if (!file.exists()) {
-				boolean success = (file.mkdir());
-				if (!success) {
-					s_log.error(new StringBuilder("Unable to create folder: ").append(STATISTICS_FOLDER).toString());
-				} else {
-					s_log.info(new StringBuilder("Created missing folder: ").append(STATISTICS_FOLDER).toString());
-				}
-			}
-		}
-
-		if (LOG_MAIN_CHANNEL) {
-			try {
-				mainChanLog = new PrintStream(new BufferedOutputStream(new FileOutputStream("MainChanLog.log", true)), true);
-				writeMainChanLog(new StringBuilder("Log started on ")
-						.append(Misc.easyDateFormat("dd/MM/yy")).toString());
-			} catch (Exception e) {
-				LOG_MAIN_CHANNEL = false;
-				s_log.error("Unable to open main channel log file (MainChanLog.log)", e);
-			}
-		}
-
-		// create notifications folder if it doesn't exist yet:
-		if (!LAN_MODE) {
-			File file = new File(SERVER_NOTIFICATION_FOLDER);
-			if (!file.exists()) {
-				boolean success = (file.mkdir());
-				if (!success) {
-					s_log.error(new StringBuilder("Unable to create folder: ").append(SERVER_NOTIFICATION_FOLDER).toString());
-				} else {
-					s_log.info(new StringBuilder("Created missing folder: ").append(SERVER_NOTIFICATION_FOLDER).toString());
-				}
-			}
-		}
-
 		readMOTD(MOTD_FILENAME);
-		upTime = System.currentTimeMillis();
+		context.getServer().setStartTime(System.currentTimeMillis());
 
 		if (readUpdateProperties(UPDATE_PROPERTIES_FILENAME)) {
 			s_log.info(new StringBuilder("\"Update properties\" read from ").append(UPDATE_PROPERTIES_FILENAME).toString());
 		}
 
 		long tempTime = System.currentTimeMillis();
-		if (IP2Country.getInstance().initializeAll(IP2COUNTRY_FILENAME)) {
+		if (IP2Country.getInstance().initializeAll()) {
 			tempTime = System.currentTimeMillis() - tempTime;
 			s_log.info(new StringBuilder("<IP2Country> loaded in ")
 					.append(tempTime).append(" ms.").toString());
 		}
 
 		// start "help UDP" server:
-		helpUDPsrvr = new NATHelpServer(NAT_TRAVERSAL_PORT);
-		helpUDPsrvr.start();
+		context.getNatHelpServer().startServer();
 
 		// start server:
-		if (!startServer(serverPort)) {
-			closeServerAndExit();
+		if (!startServer()) {
+			context.getServer().closeServerAndExit();
 		}
 
 		// add server notification:
 		ServerNotification sn = new ServerNotification("Server started");
 		sn.addLine(new StringBuilder("Server has been started on port ")
-				.append(serverPort).append(". There are ")
+				.append(context.getServer().getPort()).append(". There are ")
 				.append(context.getAccountsService().getAccountsSize())
 				.append(" accounts currently loaded. See server log for more info.").toString());
 		context.getServerNotifications().addNotification(sn);
@@ -4032,14 +3888,11 @@ public class TASServer {
 			// kill all clients scheduled to be killed:
 			context.getClients().processKillList();
 
-			// update statistics:
-			if ((RECORD_STATISTICS) && (System.currentTimeMillis() - context.getStatistics().lastStatisticsUpdate > saveStatisticsInterval)) {
-				context.getStatistics().saveStatisticsToDisk();
-			}
+			context.getStatistics().update();
 
 			// check UDP server for any new packets:
-			while (NATHelpServer.msgList.size() > 0) {
-				DatagramPacket packet = NATHelpServer.msgList.remove(0);
+			while (context.getNatHelpServer().msgList.size() > 0) {
+				DatagramPacket packet = context.getNatHelpServer().msgList.remove(0);
 				InetAddress address = packet.getAddress();
 				int p = packet.getPort();
 				String data = new String(packet.getData(), packet.getOffset(), packet.getLength());
@@ -4087,22 +3940,11 @@ public class TASServer {
 		}
 
 		// close everything:
-		if (!LAN_MODE) {
+		if (!context.getServer().isLanMode()) {
 			context.getAccountsService().saveAccounts(true);
 		}
-		if (helpUDPsrvr.isAlive()) {
-			helpUDPsrvr.stopServer();
-			try {
-				helpUDPsrvr.join(1000); // give it 1 second to shut down gracefully
-			} catch (InterruptedException e) {
-			}
-		}
-		if (LOG_MAIN_CHANNEL) {
-			try {
-				mainChanLog.close();
-			} catch (Exception e) {
-				// ignore
-			}
+		if (context.getNatHelpServer().isRunning()) {
+			context.getNatHelpServer().stopServer();
 		}
 
 		// add server notification:

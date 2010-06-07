@@ -158,7 +158,7 @@ public class UpdateIP2CountryThread implements Runnable, ContextReceiver {
 			TreeSet<String> countries = new TreeSet<String>();
 			ip2Country.buildDatabaseSafe(tempIP2CountryFile, iptable, countries);
 			ip2Country.assignDatabase(iptable, countries);
-			ip2Country.saveDatabase(iptable, TASServer.IP2COUNTRY_FILENAME);
+			ip2Country.saveDatabase(iptable, ip2Country.getDataFile().getAbsolutePath());
 			time6 = System.currentTimeMillis() - time6;
 
 			// add notification:

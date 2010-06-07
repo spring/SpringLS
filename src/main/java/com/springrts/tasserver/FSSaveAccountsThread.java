@@ -9,6 +9,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -36,13 +37,20 @@ public class FSSaveAccountsThread extends Thread implements ContextReceiver {
 	private Context context = null;
 
 	/**
+	 * Where to save the accounts to.
+	 */
+	private File saveFile;
+
+	/**
 	 * Duplicated accounts.
-	 * Needed to ensure thread safety as well as accounts state consistency
+	 * Needed to ensure thread safety as well as accounts state consistency.
 	 */
 	private List<Account> dupAccounts;
 
 
-	public FSSaveAccountsThread(List<Account> dupAccounts) {
+	public FSSaveAccountsThread(File saveFile, List<Account> dupAccounts) {
+
+		this.saveFile = saveFile;
 		this.dupAccounts = dupAccounts;
 	}
 
@@ -59,7 +67,7 @@ public class FSSaveAccountsThread extends Thread implements ContextReceiver {
 		long time = System.currentTimeMillis();
 
 		try {
-			PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(TASServer.ACCOUNTS_INFO_FILEPATH)));
+			PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(saveFile)));
 
 			for (int i = 0; i < dupAccounts.size(); i++) {
 				out.println(FSAccountsService.toPersistentString(dupAccounts.get(i)));
@@ -67,7 +75,7 @@ public class FSSaveAccountsThread extends Thread implements ContextReceiver {
 
 			out.close();
 		} catch (IOException e) {
-			s_log.error("Failed writing accounts info to " + TASServer.ACCOUNTS_INFO_FILEPATH + "!", e);
+			s_log.error("Failed writing accounts info to " + saveFile.getAbsolutePath() + "!", e);
 
 			// add server notification:
 			ServerNotification sn = new ServerNotification("Error saving accounts");
@@ -77,7 +85,7 @@ public class FSSaveAccountsThread extends Thread implements ContextReceiver {
 			return;
 		}
 
-		s_log.info(dupAccounts.size() + " accounts information written to " + TASServer.ACCOUNTS_INFO_FILEPATH + " successfully (" + (System.currentTimeMillis() - time) + " ms).");
+		s_log.info(dupAccounts.size() + " accounts information written to " + saveFile.getAbsolutePath() + " successfully (" + (System.currentTimeMillis() - time) + " ms).");
 
 		// let garbage collector free the duplicate accounts list:
 		dupAccounts = null;

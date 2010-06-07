@@ -11,7 +11,7 @@ import org.apache.commons.logging.LogFactory;
 /**
  * @author Betalord
  */
-public class Battle {
+public class Battle implements ContextReceiver {
 
 	private static int IDCounter; // this is the ID that the next battle will have
 
@@ -38,6 +38,16 @@ public class Battle {
 	public List<String> replayScript; // contains lines of the script file
 	public List<String> tempReplayScript; // here we save script lines until we receive SCRIPTEND command. Then we copy it to "replayScript" object and notify all clients about it.
 
+	private Context context = null;
+
+
+	@Override
+	public void receiveContext(Context context) {
+
+		this.context = context;
+		initStartRects();
+	}
+
 
 	public Battle(int type, int natType, Client founder, String password, int port, int maxPlayers, int hashCode, int rank, int mapHash, String mapName, String title, String modName) {
 		this.ID = IDCounter++;
@@ -56,19 +66,24 @@ public class Battle {
 		this.mapHash = mapHash;
 		this.modName = modName;
 		this.disabledUnits = new ArrayList<String>();
-		this.startRects = new ArrayList<StartRect>(TASServer.MAX_ALLY_TEAMS);
-		for (int at = 0; at < TASServer.MAX_ALLY_TEAMS; at++) {
-			this.startRects.add(new StartRect());
-		}
 		this.locked = false; // we assume this by default. Client must make sure it is unlocked.
 		this.scriptTags = new HashMap<String, String>();
 		this.replayScript = new ArrayList<String>();
 		this.tempReplayScript = new ArrayList<String>();
 	}
 
+	private void initStartRects() {
+
+		int maxAllyTeams = context.getEngine().getMaxAllyTeams();
+		this.startRects = new ArrayList<StartRect>(maxAllyTeams);
+		for (int at = 0; at < maxAllyTeams; at++) {
+			this.startRects.add(new StartRect());
+		}
+	}
+
 	/**
 	 * Creates BATTLEOPENED command from this battle and returns it as a result
-	 * using the external ip.
+	 * using the external IP.
 	 */
 	public String createBattleOpenedCommand() {
 		return createBattleOpenedCommandEx(false);
@@ -76,7 +91,7 @@ public class Battle {
 
 	/**
 	 * Same as createBattleOpenedCommand() but requires sender to specify
-	 * what ip to use (local or external).
+	 * what IP to use (local or external).
 	 * @see #createBattleOpenedCommand()
 	 */
 	public String createBattleOpenedCommandEx(boolean local) {

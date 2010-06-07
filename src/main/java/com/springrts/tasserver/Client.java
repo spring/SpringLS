@@ -24,6 +24,11 @@ import java.util.*;
 public class Client implements ContextReceiver {
 
 	private static final Log s_log  = LogFactory.getLog(Client.class);
+	/**
+	 * Indicates a message is not using an ID
+	 * (see protocol description on message/command IDs)
+	 */
+	public static final int NO_MSG_ID = -1;
 
 	/**
 	 * If false, then this client is not "valid" anymore.
@@ -88,7 +93,7 @@ public class Client implements ContextReceiver {
 	 * Use setSendMsgID() and resetSendMsgID() methods to manipulate it.
 	 * NO_MSG_ID means no ID is used.
 	 */
-	private int msgID = TASServer.NO_MSG_ID;
+	private int msgID = NO_MSG_ID;
 	/**
 	 * Queue of "delayed data".
 	 * We failed sending this the first time, so we will have to try sending it
@@ -239,7 +244,7 @@ public class Client implements ContextReceiver {
 		}
 
 		// prefix message with a message ID:
-		if (msgID != TASServer.NO_MSG_ID) {
+		if (msgID != NO_MSG_ID) {
 			text = "#" + msgID + " " + text;
 		}
 
@@ -272,7 +277,7 @@ public class Client implements ContextReceiver {
 
 			ByteBuffer buf;
 			try{
-				buf = TASServer.asciiEncoder.encode(CharBuffer.wrap(data));
+				buf = context.getServer().getAsciiEncoder().encode(CharBuffer.wrap(data));
 			} catch (CharacterCodingException e) {
 				s_log.warn("Unable to encode message. Killing the client next loop ...", e);
 				context.getClients().killClientDelayed(this, "Quit: undefined encoder error");
@@ -298,10 +303,10 @@ public class Client implements ContextReceiver {
 
 	public void sendWelcomeMessage() {
 		sendLine(new StringBuilder("TASServer ")
-				.append(TASServer.getAppVersion()).append(" ")
-				.append(TASServer.latestSpringVersion).append(" ")
-				.append(TASServer.NAT_TRAVERSAL_PORT).append(" ")
-				.append(TASServer.LAN_MODE ? 1 : 0).toString());
+				.append(Misc.getAppVersion()).append(" ")
+				.append(context.getEngine().getVersion()).append(" ")
+				.append(context.getNatHelpServer().getPort()).append(" ")
+				.append(context.getServer().isLanMode() ? 1 : 0).toString());
 	}
 
 	/** Should only be called by Clients.killClient() method! */
@@ -456,7 +461,7 @@ public class Client implements ContextReceiver {
 
 		if (fastWrite != null) {
 			s_log.fatal("Invalid use of beginFastWrite(). Check your code! Shutting down the server ...");
-			TASServer.closeServerAndExit();
+			context.getServer().closeServerAndExit();
 		}
 
 		fastWrite = new StringBuilder();
@@ -466,7 +471,7 @@ public class Client implements ContextReceiver {
 
 		if (fastWrite == null) {
 			s_log.fatal("Invalid use of endFastWrite(). Check your code! Shutting down the server ...");
-			TASServer.closeServerAndExit();
+			context.getServer().closeServerAndExit();
 		}
 
 		String data = fastWrite.toString();
@@ -501,11 +506,15 @@ public class Client implements ContextReceiver {
 	}
 
 	public void setInGameToStatus(boolean inGame) {
-		status = (status & 0xFFFFFFFE) | (inGame ? 1 : 0);
+
+		int newBitValue = (inGame ? 1 : 0);
+		status = (status & 0xFFFFFFFE) | newBitValue;
 	}
 
 	public void setAwayBitToStatus(boolean away) {
-		status = (status & 0xFFFFFFFD) | ((away ? 1 : 0) << 1);
+
+		int newBitValue = ((away ? 1 : 0) << 1);
+		status = (status & 0xFFFFFFFD) | newBitValue;
 	}
 
 	public void setRankToStatus(int rank) {
@@ -513,11 +522,15 @@ public class Client implements ContextReceiver {
 	}
 
 	public void setAccessToStatus(boolean access) {
-		status = (status & 0xFFFFFFDF) | ((access ? 1 : 0) << 5);
+
+		int newBitValue = ((access ? 1 : 0) << 5);
+		status = (status & 0xFFFFFFDF) | newBitValue;
 	}
 
 	public void setBotModeToStatus(boolean isBot) {
-		status = (status & 0xFFFFFFBF) | ((isBot ? 1 : 0) << 6);
+
+		int newBitValue = ((isBot ? 1 : 0) << 6);
+		status = (status & 0xFFFFFFBF) | newBitValue;
 	}
 
 	/**

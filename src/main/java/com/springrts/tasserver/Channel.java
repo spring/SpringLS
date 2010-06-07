@@ -5,6 +5,10 @@
 package com.springrts.tasserver;
 
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -14,9 +18,11 @@ import java.util.List;
 /**
  * @author Betalord
  */
-public class Channel {
+public class Channel implements ContextReceiver, LiveStateListener {
 
 	private static final Log s_log  = LogFactory.getLog(Channel.class);
+
+	private static final String logFilesDir  = "./";
 
 	private String name;
 	private String topic; // "" represents no topic (topic is disabled for this channel)
@@ -29,12 +35,47 @@ public class Channel {
 	 * (not allowed to talk in the channel).
 	 */
 	private MuteList muteList = new MuteList(this);
+	/** If not <code>null</code>, this channel gets logged to a file. */
+	private File logFile;
+	private boolean logging;
+	/** If not <code>null</code>, this channel gets logged to a file. */
+	private PrintStream fileLog;
+	private Context context = null;
+
 
 	public Channel(String channelName) {
-		name = new String(channelName);
+
+		name = channelName;
 		topic = "";
 		topicAuthor = "";
 		clients = new ArrayList<Client>();
+		logFile = new File(logFilesDir, "channel_" + name + ".log");
+		logging = false;
+		fileLog = null;
+	}
+
+
+	@Override
+	public void receiveContext(Context context) {
+
+		this.context = context;
+		actualiseToConfiguration();
+	}
+
+	@Override
+	public void starting() {}
+	@Override
+	public void started() {}
+
+	@Override
+	public void stopping() {
+		setLogging(false);
+	}
+	@Override
+	public void stopped() {}
+
+	private void actualiseToConfiguration() {
+		setLogging(name.matches(context.getChannels().getChannelsToLogRegex()));
 	}
 
 	public boolean equals(Channel chan) {
@@ -74,7 +115,7 @@ public class Channel {
 	public void broadcast(String msg) {
 
 		if (msg.trim().equals("")) {
-			// do nto send any message
+			// do not send empty messages
 			return;
 		}
 
@@ -120,8 +161,10 @@ public class Channel {
 
 	/** Sends a text to all clients in this channel */
 	public void sendLineToClients(String s) {
-		if (name.toUpperCase().equals("MAIN") && TASServer.LOG_MAIN_CHANNEL) {
-			TASServer.writeMainChanLog(s);
+		
+		if (fileLog != null) {
+			fileLog.println(Misc.easyDateFormat("<HH:mm:ss> "));
+			fileLog.println(s);
 		}
 		for (int i = 0; i < clients.size(); i++) {
 			clients.get(i).sendLine(s);
@@ -154,5 +197,50 @@ public class Channel {
 	 */
 	public MuteList getMuteList() {
 		return muteList;
+	}
+
+	public boolean isLogging() {
+		return logging;
+	}
+
+	public File getLogFile() {
+		return logFile;
+	}
+
+	public boolean setLogging(boolean enabled) {
+
+		// only change if change is needed
+		if (enabled != isLogging()) {
+			if (enabled) {
+				try {
+					fileLog = new PrintStream(new BufferedOutputStream(new FileOutputStream(logFile, true)), true);
+					fileLog.println();
+					fileLog.print("Log started on ");
+					fileLog.println(Misc.easyDateFormat("dd/MM/yy"));
+					logging = true;
+				} catch (Exception e) {
+					logFile = null;
+					fileLog = null;
+					s_log.error("Unable to open channel log file for channel " +
+							name + ": " + logFile.getAbsolutePath(), e);
+				}
+			} else {
+				try {
+					fileLog.close();
+				} catch (Exception e) {
+					// ignore
+				}
+				logFile = null;
+				fileLog = null;
+				logging = false;
+			}
+		}
+
+		return (isLogging() == enabled);
+	}
+
+	/** Called when the server is shutting down */
+	void shutdown() {
+		setLogging(false);
 	}
 }

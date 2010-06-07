@@ -12,6 +12,7 @@ import java.util.*;
 import java.text.*;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -36,14 +37,60 @@ public class Statistics implements ContextReceiver {
 
 	private final Log s_log  = LogFactory.getLog(Statistics.class);
 
-	public long lastStatisticsUpdate = System.currentTimeMillis(); // time (System.currentTimeMillis()) when we last updated statistics
+	/** in milliseconds */
+	private final long saveStatisticsInterval = 1000 * 60 * 20;
+	private final String PLOTICUS_FULLPATH = "./ploticus/bin/pl"; // see http://ploticus.sourceforge.net/ for more info on ploticus
+	private final String STATISTICS_FOLDER = "./stats/";
+
+	/**
+	 * Time when we last updated statistics.
+	 * @see System.currentTimeMillis()
+	 */
+	public long lastStatisticsUpdate;
 
 	private Context context = null;
+
+	/**
+	 * Whether statistics are recorded to disc on regular intervals or not.
+	 */
+	private boolean recording;
+
+
+	public Statistics() {
+
+		lastStatisticsUpdate = System.currentTimeMillis();
+		recording = false;
+	}
 
 
 	@Override
 	public void receiveContext(Context context) {
 		this.context = context;
+	}
+
+
+	/**
+	 * This is called from the main game loop.
+	 */
+	public void update() {
+
+		if (recording && (System.currentTimeMillis() - lastStatisticsUpdate > saveStatisticsInterval)) {
+			saveStatisticsToDisk();
+		}
+	}
+
+	private void ensureStatsDirExists() {
+
+		// create statistics folder if it does not exist yet
+		File file = new File(STATISTICS_FOLDER);
+		if (!file.exists()) {
+			boolean success = (file.mkdir());
+			if (!success) {
+				s_log.error(new StringBuilder("Unable to create folder: ").append(STATISTICS_FOLDER).toString());
+			} else {
+				s_log.info(new StringBuilder("Created missing folder: ").append(STATISTICS_FOLDER).toString());
+			}
+		}
 	}
 
 	/**
@@ -52,8 +99,11 @@ public class Statistics implements ContextReceiver {
 	 *         to save the statistics file
 	 */
 	public int saveStatisticsToDisk() {
+
 		long taken;
 		try {
+			ensureStatsDirExists();
+
 			lastStatisticsUpdate = System.currentTimeMillis();
 			taken = autoUpdateStatisticsFile();
 			if (taken == -1) {
@@ -76,7 +126,7 @@ public class Statistics implements ContextReceiver {
 	 */
 	private long autoUpdateStatisticsFile() {
 
-		String fname = TASServer.STATISTICS_FOLDER + now("ddMMyy") + ".dat";
+		String fname = STATISTICS_FOLDER + now("ddMMyy") + ".dat";
 		long startTime = System.currentTimeMillis();
 
 		int activeBattlesCount = 0;
@@ -113,7 +163,7 @@ public class Statistics implements ContextReceiver {
 	 * from the last 7 days
 	 */
 	private boolean createAggregateFile() {
-		String fname = TASServer.STATISTICS_FOLDER + "statistics.dat";
+		String fname = STATISTICS_FOLDER + "statistics.dat";
 
 		try {
 			BufferedWriter out = new BufferedWriter(new FileWriter(fname, false)); // overwrite if it exists, or create new one
@@ -126,7 +176,7 @@ public class Statistics implements ContextReceiver {
 				Date temp = new Date();
 				temp.setTime(today.getTime() - (i - 1) * 1000 * 60 * 60 * 24);
 				try {
-					BufferedReader in = new BufferedReader(new FileReader(TASServer.STATISTICS_FOLDER + formatter.format(temp) + ".dat"));
+					BufferedReader in = new BufferedReader(new FileReader(STATISTICS_FOLDER + formatter.format(temp) + ".dat"));
 					//***s_log.info("--- Found: <" + TASServer.STATISTICS_FOLDER + formatter.format(temp) + ".dat>");
 					while ((line = in.readLine()) != null) {
 						out.write(new StringBuilder(formatter.format(temp)).append(" ").append(line).append("\r\n").toString());
@@ -155,56 +205,57 @@ public class Statistics implements ContextReceiver {
 			Date endDate = formatter.parse(now("ddMMyy"));
 			Date startDate = new Date();
 			startDate.setTime(endDate.getTime() - 6 * 1000 * 60 * 60 * 24);
+			long upTime = System.currentTimeMillis() - context.getServer().getStartTime();
 
 			// generate "server stats diagram":
 			cmds = new String[8];
-			cmds[0] = TASServer.PLOTICUS_FULLPATH;
+			cmds[0] = PLOTICUS_FULLPATH;
 			cmds[1] = "-png";
-			cmds[2] = TASServer.STATISTICS_FOLDER + "info.pl";
+			cmds[2] = STATISTICS_FOLDER + "info.pl";
 			cmds[3] = "-o";
-			cmds[4] = TASServer.STATISTICS_FOLDER + "info.png";
+			cmds[4] = STATISTICS_FOLDER + "info.png";
 			cmds[5] = "lastupdate=" + lastUpdateFormatter.format(new Date());
-			cmds[6] = "uptime=" + Misc.timeToDHM(System.currentTimeMillis() - TASServer.upTime);
+			cmds[6] = "uptime=" + Misc.timeToDHM(upTime);
 			cmds[7] = "clients=" + context.getClients().getClientsSize();
 			Runtime.getRuntime().exec(cmds).waitFor();
 
 			// generate "online clients diagram":
-			cmd = new StringBuilder(TASServer.PLOTICUS_FULLPATH)
+			cmd = new StringBuilder(PLOTICUS_FULLPATH)
 					.append(" -png ")
-					.append(TASServer.STATISTICS_FOLDER)
-					.append("clients.pl -o ").append(TASServer.STATISTICS_FOLDER)
+					.append(STATISTICS_FOLDER)
+					.append("clients.pl -o ").append(STATISTICS_FOLDER)
 					.append("clients.png startdate=").append(formatter.format(startDate))
 					.append(" enddate=").append(formatter.format(endDate))
-					.append(" datafile=").append(TASServer.STATISTICS_FOLDER)
+					.append(" datafile=").append(STATISTICS_FOLDER)
 					.append("statistics.dat").toString();
 			Runtime.getRuntime().exec(cmd).waitFor();
 
 			// generate "active battles diagram":
-			cmd = new StringBuilder(TASServer.PLOTICUS_FULLPATH)
-					.append(" -png ").append(TASServer.STATISTICS_FOLDER)
-					.append("battles.pl -o ").append(TASServer.STATISTICS_FOLDER)
+			cmd = new StringBuilder(PLOTICUS_FULLPATH)
+					.append(" -png ").append(STATISTICS_FOLDER)
+					.append("battles.pl -o ").append(STATISTICS_FOLDER)
 					.append("battles.png startdate=").append(formatter.format(startDate))
 					.append(" enddate=").append(formatter.format(endDate))
-					.append(" datafile=").append(TASServer.STATISTICS_FOLDER).append("statistics.dat").toString();
+					.append(" datafile=").append(STATISTICS_FOLDER).append("statistics.dat").toString();
 			Runtime.getRuntime().exec(cmd).waitFor();
 
 			// generate "accounts diagram":
-			cmd = new StringBuilder(TASServer.PLOTICUS_FULLPATH)
-					.append(" -png ").append(TASServer.STATISTICS_FOLDER)
-					.append("accounts.pl -o ").append(TASServer.STATISTICS_FOLDER)
+			cmd = new StringBuilder(PLOTICUS_FULLPATH)
+					.append(" -png ").append(STATISTICS_FOLDER)
+					.append("accounts.pl -o ").append(STATISTICS_FOLDER)
 					.append("accounts.png startdate=").append(formatter.format(startDate))
 					.append(" enddate=").append(formatter.format(endDate))
-					.append(" datafile=").append(TASServer.STATISTICS_FOLDER).append("statistics.dat").toString();
+					.append(" datafile=").append(STATISTICS_FOLDER).append("statistics.dat").toString();
 			Runtime.getRuntime().exec(cmd).waitFor();
 
 			// generate "popular mods chart":
 			String[] params = getPopularModsList(now("ddMMyy")).split(("\t"));
 			cmds = new String[params.length + 5];
-			cmds[0] = TASServer.PLOTICUS_FULLPATH;
+			cmds[0] = PLOTICUS_FULLPATH;
 			cmds[1] = "-png";
-			cmds[2] = TASServer.STATISTICS_FOLDER + "mods.pl";
+			cmds[2] = STATISTICS_FOLDER + "mods.pl";
 			cmds[3] = "-o";
-			cmds[4] = TASServer.STATISTICS_FOLDER + "mods.png";
+			cmds[4] = STATISTICS_FOLDER + "mods.png";
 			cmds[5] = "count=" + Integer.parseInt(params[0]);
 			for (int i = 1; i < params.length; i++) {
 				if (i % 2 == 1) {
@@ -284,7 +335,7 @@ public class Statistics implements ContextReceiver {
 			int lastHour = -1;
 			String line;
 			String sHour;
-			BufferedReader in = new BufferedReader(new FileReader(TASServer.STATISTICS_FOLDER + date + ".dat"));
+			BufferedReader in = new BufferedReader(new FileReader(STATISTICS_FOLDER + date + ".dat"));
 			while ((line = in.readLine()) != null) {
 				sHour = line.substring(0, 2); // 00 .. 23
 				if (lastHour == Integer.parseInt(sHour)) {
@@ -362,5 +413,21 @@ public class Statistics implements ContextReceiver {
 		String current = formatter.format(today);
 
 		return current;
+	}
+
+	/**
+	 * Whether statistics are recorded or not.
+	 * @return the recording
+	 */
+	public boolean isRecording() {
+		return recording;
+	}
+
+	/**
+	 * Whether statistics are recorded or not.
+	 * @param recording the recording to set
+	 */
+	public void setRecording(boolean recording) {
+		this.recording = recording;
 	}
 }

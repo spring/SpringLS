@@ -25,13 +25,14 @@ public class MuteList {
 	 * If user is not muted by IP (but only by username), the corresponding
 	 * IP in this list is set to 'null'.
 	 */
-	private ArrayList<String> IPs;
+	private ArrayList<String> ips;
 	private Channel channel;
 
 	public MuteList(Channel channel) {
-		usernames = new ArrayList<String>();
-		mutedUntil = new ArrayList<Long>();
-		IPs = new ArrayList<String>();
+
+		this.usernames = new ArrayList<String>();
+		this.mutedUntil = new ArrayList<Long>();
+		this.ips = new ArrayList<String>();
 		this.channel = channel;
 	}
 
@@ -44,7 +45,7 @@ public class MuteList {
 				channel.broadcast("<" + usernames.get(i) + "> has been unmuted (mute expired)");
 				usernames.remove(i);
 				mutedUntil.remove(i);
-				IPs.remove(i);
+				ips.remove(i);
 				i--;
 			}
 		}
@@ -66,7 +67,7 @@ public class MuteList {
 		clearExpiredOnes();
 
 		for (int i = 0; i < usernames.size(); i++) {
-			if (usernames.get(i).equals(username) || ((IPs.get(i) != null) && (IPs.get(i).equals(IP)))) {
+			if (usernames.get(i).equals(username) || ((ips.get(i) != null) && (ips.get(i).equals(IP)))) {
 				return true;
 			}
 		}
@@ -77,8 +78,8 @@ public class MuteList {
 	public boolean isIPMuted(String IP) {
 		clearExpiredOnes();
 
-		for (int i = 0; i < IPs.size(); i++) {
-			if ((IPs.get(i) != null) && (IPs.get(i).equals(IP))) return true;
+		for (int i = 0; i < ips.size(); i++) {
+			if ((ips.get(i) != null) && (ips.get(i).equals(IP))) return true;
 		}
 
 		return false;
@@ -103,7 +104,7 @@ public class MuteList {
 		Long until = new Long(0);
 		if (seconds != 0) until = new Long(System.currentTimeMillis() + seconds*1000);
 		mutedUntil.add(until);
-		IPs.add(IP);
+		ips.add(IP);
 		return true;
 	}
 
@@ -116,7 +117,7 @@ public class MuteList {
 			if (usernames.get(i).equals(username)) {
 				usernames.remove(i);
 				mutedUntil.remove(i);
-				IPs.remove(i);
+				ips.remove(i);
 				return true;
 			}
 		}
@@ -144,7 +145,7 @@ public class MuteList {
 	 * @return 'null' if no IP is set for the user
 	 */
 	public String getIP(int index) {
-		return IPs.get(index);
+		return ips.get(index);
 	}
 
 	public boolean rename(String oldUsername, String newUsername) {

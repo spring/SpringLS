@@ -20,14 +20,37 @@ public class ServerNotifications implements ContextReceiver {
 	 * This will also get saved with notifications, just in case the format
 	 * of notification files changes in the future.
 	 */
-	public final String NOTIFICATION_SYSTEM_VERSION = "1.0";
+	public static final String NOTIFICATION_SYSTEM_VERSION = "1.0";
+
+	private static final String DEFAULT_DIR = "./notifs";
+	private File notificationsDir;
 
 	private Context context = null;
+
+
+	public ServerNotifications() {
+		this.notificationsDir = new File(DEFAULT_DIR);
+	}
 
 
 	@Override
 	public void receiveContext(Context context) {
 		this.context = context;
+	}
+
+	private void ensureNotifsDirExists() {
+
+		// create notifications dir if it does not yet exist
+		if (!context.getServer().isLanMode()) {
+			if (!notificationsDir.exists()) {
+				boolean success = notificationsDir.mkdir();
+				if (!success) {
+					s_log.error("Unable to create folder: " + notificationsDir);
+				} else {
+					s_log.info("Created missing folder: " + notificationsDir);
+				}
+			}
+		}
 	}
 
 	/**
@@ -36,10 +59,11 @@ public class ServerNotifications implements ContextReceiver {
 	 */
 	public synchronized boolean addNotification(ServerNotification sn) {
 
-		if (TASServer.LAN_MODE) {
+		if (context.getServer().isLanMode()) {
 			return false; // ignore notifications if server is running in lan mode!
 		}
-		String fname = TASServer.SERVER_NOTIFICATION_FOLDER + "/" + Misc.easyDateFormat("yyyyMMdd");
+		ensureNotifsDirExists();
+		String fname = notificationsDir + "/" + Misc.easyDateFormat("yyyyMMdd");
 		int counter = 1;
 		while ((new File(fname + "_" + counter)).exists()) {
 			counter++;
