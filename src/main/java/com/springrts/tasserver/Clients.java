@@ -301,7 +301,7 @@ public class Clients implements ContextReceiver {
 		// let's remove client from all channels he is participating in:
 		client.leaveAllChannels(reason);
 
-		if (client.getBattleID() != -1) {
+		if (client.getBattleID() != Battle.NO_BATTLE_ID) {
 			Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 			if (bat == null) {
 				s_log.fatal("Invalid battle ID. Server will now exit!");

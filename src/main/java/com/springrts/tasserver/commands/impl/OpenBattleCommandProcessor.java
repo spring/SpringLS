@@ -30,7 +30,7 @@ public class OpenBattleCommandProcessor extends AbstractCommandProcessor
 			return false;
 		}
 
-		if (client.getBattleID() != -1) {
+		if (client.getBattleID() != Battle.NO_BATTLE_ID) {
 			client.sendLine("OPENBATTLEFAILED You are already hosting a battle!");
 			return false;
 		}
@@ -42,7 +42,7 @@ public class OpenBattleCommandProcessor extends AbstractCommandProcessor
 		getContext().getBattles().addBattle(bat);
 		client.setBattleStatus(0); // reset client's battle status
 		client.setBattleID(bat.ID);
-		client.setRequestedBattleID(-1);
+		client.setRequestedBattleID(Battle.NO_BATTLE_ID);
 
 		boolean local;
 		Clients clients = getContext().getClients();

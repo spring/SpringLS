@@ -708,7 +708,7 @@ public class TASServer implements LiveStateListener {
 		// do the actually joining and notifying:
 		client.setBattleStatus(0); // reset client's battle status
 		client.setBattleID(bat.ID);
-		client.setRequestedBattleID(-1);
+		client.setRequestedBattleID(Battle.NO_BATTLE_ID);
 		bat.addClient(client);
 	 	client.sendLine("JOINBATTLE " + bat.ID + " " + bat.hashCode); // notify client that he has successfully joined the battle
 		context.getClients().notifyClientsOfNewClientInBattle(bat, client);
@@ -2552,7 +2552,7 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
-				if (client.getBattleID() != -1) { // can't join a battle if already participating in another battle
+				if (client.getBattleID() != Battle.NO_BATTLE_ID) { // can't join a battle if already participating in another battle
 					client.sendLine("JOINBATTLEFAILED Cannot participate in multiple battles at the same time!");
 					return false;
 				}
@@ -2591,7 +2591,7 @@ public class TASServer implements LiveStateListener {
 			} else if (commands[0].equals("JOINBATTLEACCEPT")) {
 				if (commands.length != 2) return false;
 				if (client.getAccount().getAccess().compareTo(Account.Access.NORMAL) < 0) return false;
-				if (client.getBattleID() == -1) return false;
+				if (client.getBattleID() == Battle.NO_BATTLE_ID) return false;
 				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 				if (bat == null) return false;
 				if (bat.founder != client) return false; // only founder can accept battle join
@@ -2602,14 +2602,14 @@ public class TASServer implements LiveStateListener {
 			} else if (commands[0].equals("JOINBATTLEDENY")) {
 				if (commands.length < 2) return false;
 				if (client.getAccount().getAccess().compareTo(Account.Access.NORMAL) < 0) return false;
-				if (client.getBattleID() == -1) return false;
+				if (client.getBattleID() == Battle.NO_BATTLE_ID) return false;
 				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 				if (bat == null) return false;
 				if (bat.founder != client) return false; // only founder can deny battle join
 				Client joiningClient = context.getClients().getClient(commands[1]);
 				if (joiningClient == null) return false;
 				if (joiningClient.getRequestedBattleID() !=  client.getBattleID()) return false;
-				joiningClient.setRequestedBattleID(-1);
+				joiningClient.setRequestedBattleID(Battle.NO_BATTLE_ID);
 				if(commands.length > 2) {
 				    joiningClient.sendLine("JOINBATTLEFAILED Denied by battle founder - " + Misc.makeSentence(commands, 2));
 				} else {
@@ -2623,7 +2623,7 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
-				if (client.getBattleID() == -1) {
+				if (client.getBattleID() == Battle.NO_BATTLE_ID) {
 					return false; // this may happen when client sent LEAVEBATTLE command right after he was kicked from the battle, for example.
 				}
 				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
@@ -2637,7 +2637,7 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
-				if (client.getBattleID() == -1) {
+				if (client.getBattleID() == Battle.NO_BATTLE_ID) {
 					return false;
 				}
 
@@ -2759,7 +2759,7 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
-				if (client.getBattleID() == -1) {
+				if (client.getBattleID() == Battle.NO_BATTLE_ID) {
 					return false;
 				}
 				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
@@ -2794,7 +2794,7 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
-				if (client.getBattleID() == -1) {
+				if (client.getBattleID() == Battle.NO_BATTLE_ID) {
 					return false;
 				}
 				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
@@ -2829,7 +2829,7 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
-				if (client.getBattleID() == -1) {
+				if (client.getBattleID() == Battle.NO_BATTLE_ID) {
 					return false;
 				}
 				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
@@ -2867,7 +2867,7 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
-				if (client.getBattleID() == -1) {
+				if (client.getBattleID() == Battle.NO_BATTLE_ID) {
 					return false;
 				}
 				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
@@ -2905,7 +2905,7 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
-				if (client.getBattleID() == -1) {
+				if (client.getBattleID() == Battle.NO_BATTLE_ID) {
 					return false;
 				}
 				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
@@ -2938,7 +2938,7 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
-				if (client.getBattleID() == -1) {
+				if (client.getBattleID() == Battle.NO_BATTLE_ID) {
 					return false;
 				}
 				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
@@ -2976,7 +2976,7 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
-				if (client.getBattleID() == -1) {
+				if (client.getBattleID() == Battle.NO_BATTLE_ID) {
 					return false;
 				}
 				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
@@ -3014,7 +3014,7 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
-				if (client.getBattleID() == -1) {
+				if (client.getBattleID() == Battle.NO_BATTLE_ID) {
 					return false;
 				}
 				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
@@ -3049,7 +3049,7 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
-				if (client.getBattleID() == -1) {
+				if (client.getBattleID() == Battle.NO_BATTLE_ID) {
 					return false;
 				}
 				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
@@ -3080,7 +3080,7 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
-				if (client.getBattleID() == -1) {
+				if (client.getBattleID() == Battle.NO_BATTLE_ID) {
 					return false;
 				}
 
@@ -3130,7 +3130,7 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
-				if (client.getBattleID() == -1) {
+				if (client.getBattleID() == Battle.NO_BATTLE_ID) {
 					return false;
 				}
 
@@ -3155,7 +3155,7 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
-				if (client.getBattleID() == -1) {
+				if (client.getBattleID() == Battle.NO_BATTLE_ID) {
 					return false;
 				}
 
@@ -3204,7 +3204,7 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
-				if (client.getBattleID() == -1) {
+				if (client.getBattleID() == Battle.NO_BATTLE_ID) {
 					return false;
 				}
 				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
@@ -3232,7 +3232,7 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
-				if (client.getBattleID() == -1) {
+				if (client.getBattleID() == Battle.NO_BATTLE_ID) {
 					return false;
 				}
 				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
@@ -3255,7 +3255,7 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
-				if (client.getBattleID() == -1) {
+				if (client.getBattleID() == Battle.NO_BATTLE_ID) {
 					return false;
 				}
 				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
@@ -3283,7 +3283,7 @@ public class TASServer implements LiveStateListener {
 						return false;
 					}
 
-					if (client.getBattleID() == -1) {
+					if (client.getBattleID() == Battle.NO_BATTLE_ID) {
 						client.sendLine("SERVERMSG RING command failed: You can only ring players participating in your own battle!");
 						return false;
 					}
@@ -3319,7 +3319,7 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
-				if (client.getBattleID() == -1) {
+				if (client.getBattleID() == Battle.NO_BATTLE_ID) {
 					return false;
 				}
 
@@ -3372,7 +3372,7 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
-				if (client.getBattleID() == -1) {
+				if (client.getBattleID() == Battle.NO_BATTLE_ID) {
 					return false;
 				}
 
@@ -3412,7 +3412,7 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
-				if (client.getBattleID() == -1) {
+				if (client.getBattleID() == Battle.NO_BATTLE_ID) {
 					return false;
 				}
 
@@ -3425,7 +3425,7 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
-				if (client.getBattleID() == -1) {
+				if (client.getBattleID() == Battle.NO_BATTLE_ID) {
 					return false;
 				}
 
@@ -3438,7 +3438,7 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
-				if (client.getBattleID() == -1) {
+				if (client.getBattleID() == Battle.NO_BATTLE_ID) {
 					return false;
 				}
 
@@ -3454,7 +3454,7 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
-				if (client.getBattleID() == -1) {
+				if (client.getBattleID() == Battle.NO_BATTLE_ID) {
 					return false;
 				}
 
@@ -3562,7 +3562,7 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
-				if (client.getBattleID() == -1) {
+				if (client.getBattleID() == Battle.NO_BATTLE_ID) {
 					return false;
 				}
 

@@ -61,9 +61,9 @@ public class Battles implements ContextReceiver {
 	public void closeBattleAndNotifyAll(Battle battle) {
 
 		for (int i = 0; i < battle.getClientsSize(); i++) {
-			battle.getClient(i).setBattleID(-1);
+			battle.getClient(i).setBattleID(Battle.NO_BATTLE_ID);
 		}
-		battle.founder.setBattleID(-1);
+		battle.founder.setBattleID(Battle.NO_BATTLE_ID);
 		context.getClients().sendToAllRegisteredUsers("BATTLECLOSED " + battle.ID);
 		battles.remove(battle);
 	}
@@ -81,7 +81,7 @@ public class Battles implements ContextReceiver {
 			if (client.getBattleID() != battle.ID || !battle.removeClient(client)) {
 				return false;
 			}
-			client.setBattleID(-1);
+			client.setBattleID(Battle.NO_BATTLE_ID);
 			battle.removeClientBots(client);
 			context.getClients().sendToAllRegisteredUsers(new StringBuilder("LEFTBATTLE ")
 					.append(battle.ID).append(" ")

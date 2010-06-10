@@ -177,8 +177,8 @@ public class Client implements ContextReceiver {
 		battleStatus = 0;
 		teamColor = 0;
 		inGameTime = 0;
-		battleID = -1;
-		requestedBattleID = -1;
+		battleID = Battle.NO_BATTLE_ID;
+		requestedBattleID = Battle.NO_BATTLE_ID;
 		cpu = 0;
 
 		timeOfLastReceive = System.currentTimeMillis();

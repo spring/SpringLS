@@ -15,6 +15,8 @@ public class Battle implements ContextReceiver {
 
 	private static int IDCounter; // this is the ID that the next battle will have
 
+	/** This is used as a null kind of value, whenever we want to refer to no-battle. */
+	public static final int NO_BATTLE_ID = -1;
 	public int ID; // each battle has it's own unique ID
 	public int type; // 0 = normal battle, 1 = battle replay
 	public int natType; // NAT traversal technique used by the host. Use 0 for none.
