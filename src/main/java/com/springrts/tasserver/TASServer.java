@@ -609,7 +609,7 @@ public class TASServer implements LiveStateListener {
 			}
 			s_log.debug("... the exception was:", ioe);
 		} catch (Exception e) {
-			s_log.info(new StringBuilder("exception in readIncomingMessages(): killing the client ... (").append(e.toString()).append(")").toString());
+			s_log.info("exception in readIncomingMessages(): killing the client ... ", e);
 			try {
 				if (client != null) {
 					context.getClients().killClient(client, "Quit: connection lost");
