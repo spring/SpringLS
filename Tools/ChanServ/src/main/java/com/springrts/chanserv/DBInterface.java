@@ -11,6 +11,7 @@ import java.sql.*;
  * @author Betalord
  */
 public class DBInterface {
+
 	private Connection conn;
 	private Statement stmt;
 
@@ -23,6 +24,7 @@ public class DBInterface {
 	}
 
 	public boolean loadJDBCDriver() {
+
 		try {
 			// The newInstance() call is a work around for some
 			// broken Java implementations
@@ -37,6 +39,7 @@ public class DBInterface {
 	}
 
 	public boolean connectToDatabase(String url, String username, String password) {
+
 		Log.log("Trying to connect to database ...");
 		try {
 			conn = DriverManager.getConnection(url, username, password);
@@ -53,6 +56,7 @@ public class DBInterface {
 
 	/** returns null if error occurs */
 	public ResultSet execQuery(String query) {
+
 		try {
 			ResultSet rs = stmt.executeQuery(query);
 			return rs;
@@ -62,9 +66,12 @@ public class DBInterface {
 		}
 	}
 
-	/** use for only those SQL statements that do not return any result.
-	 * Returns false in case of any error. */
+	/**
+	 * Use for only those SQL statements that do not return any result.
+	 * Returns false in case of any error.
+	 */
 	public boolean execUpdate(String query) {
+
 		try {
 			stmt.executeUpdate(query);
 			return true;
@@ -75,13 +82,15 @@ public class DBInterface {
 	}
 
 	public void printSQLException(SQLException e) {
+
 		Log.log("SQLException: " + e.getMessage());
 		Log.log("SQLState: " + e.getSQLState());
 		Log.log("VendorError: " + e.getErrorCode());
 	}
 
-	/** returns true if table with specified name exists in the database */
+	/** Returns true if table with specified name exists in the database */
 	public boolean doesTableExist(String table) throws SQLException {
+
 		stmt.execute("SHOW TABLES LIKE '" + table + "'");
 		ResultSet rs = stmt.getResultSet();
 		return rs.next();

@@ -116,7 +116,7 @@ public class LogCleaner extends TimerTask {
 					}
 
 					if (lineCount == 0) {
-					update.append( "INSERT INTO `" + name + "` (stamp, line) values (?, ?)" );
+						update.append("INSERT INTO `").append(name).append("` (stamp, line) values (?, ?)");
 					} else {
 						update.append( ","+ Misc.EOL + "(?, ?)" );
 					}

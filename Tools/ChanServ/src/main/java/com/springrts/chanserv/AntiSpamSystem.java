@@ -6,6 +6,7 @@ package com.springrts.chanserv;
 
 
 import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * @author Betalord
@@ -95,38 +96,58 @@ class SpamSettings {
 }
 
 class AntiSpamTask extends TimerTask {
-	// here we will reduce penalty points for all users
+	
+	/** Here we will reduce penalty points for all users */
+	@Override
 	public void run() {
 		if (!ChanServ.isConnected()) return;
 		synchronized (AntiSpamSystem.spamRecords) {
-			for (Iterator it = AntiSpamSystem.spamRecords.values().iterator(); it.hasNext(); ) {
-				SpamRecord rec = (SpamRecord)it.next();
-
-				rec.penaltyPoints = Math.max(0, rec.penaltyPoints - 1.0); // reduce by 1.0 penalty point each second
-				if (rec.penaltyPoints == 0)
-					it.remove();
+			for (Entry<String, SpamRecord> record : AntiSpamSystem.spamRecords.entrySet()) {
+				SpamRecord rec = record.getValue();
+				// reduce by 1.0 penalty point each second
+				rec.penaltyPoints = Math.max(0, rec.penaltyPoints - 1.0);
+				if (rec.penaltyPoints == 0) {
+					AntiSpamSystem.spamRecords.remove(record.getKey());
+				}
 			}
 		}
 	}
 }
 
-public class AntiSpamSystem {
+class AntiSpamSystem {
 
-	final static int CHECK_CLIENTSTATUSCHANGE_INTERVAL = 3000; // in milliseconds. Once every so milliseconds, we will reset the counter in Client class that counts how many CLIENTSTATUS command have been received from a user
-	final static float MAX_CLIENTSTATUSCHANGE_FREQUENCY = 5.0f; // max frequency of CLIENTSTATUS command (if we receive more than this times per second, we have a problem. We must still check MIN_CLIENTSTATUCCHANGE_COUNT_BEFORE_ALERT before taking actions, because a user might change status quickly (in few milliseconds) by accident (if spring crashes, for example)
+	/**
+	 * Once every so milliseconds, we will reset the counter in the Client
+	 * that counts how many CLIENTSTATUS command have been received from a user
+	 * In milliseconds.
+	 */
+	final static int CHECK_CLIENTSTATUSCHANGE_INTERVAL = 3000;
+	/** Max frequency of CLIENTSTATUS command.
+	 * If we receive more than this times per second,
+	 * we have a problem.
+	 * We must still check MIN_CLIENTSTATUCCHANGE_COUNT_BEFORE_ALERT before
+	 * taking actions, because a user might change status quickly
+	 * (in few milliseconds) by accident (if spring crashes, for example).
+	 */
+	final static float MAX_CLIENTSTATUSCHANGE_FREQUENCY = 5.0f;
 	final static int MIN_CLIENTSTATUCCHANGE_COUNT_BEFORE_ALERT = 5;
 
-	// as a key in this list we use a combination of "channame:username"
-	static protected Map<String, SpamRecord> spamRecords;
+	/** as a key in this list we use a combination of "channame:username" */
+	protected static final Map<String, SpamRecord> spamRecords = new HashMap<String, SpamRecord>();
 
-	// spam settings for each individual channel:
-	static protected Map<String, SpamSettings> spamSettings;
+	/** spam settings for each individual channel */
+	protected static Map<String, SpamSettings> spamSettings;
 
-	static private Timer antiSpamTimer;
+	private static Timer antiSpamTimer;
 
-	// initializes the anti-spam system
+
+	private AntiSpamSystem() {
+	}
+
+
+	/** Initializes the anti-spam system */
 	public static void initialize() {
-		spamRecords = new HashMap<String, SpamRecord>();
+
 		spamSettings = new HashMap<String, SpamSettings>();
 
 		antiSpamTimer = new Timer();
@@ -135,7 +156,7 @@ public class AntiSpamSystem {
 				1000); // subsequent rate
 	}
 
-	// stops the anti-spam system
+	/** Stops the anti-spam system */
 	public static void uninitialize() {
 		try {
 			antiSpamTimer.cancel();
@@ -144,8 +165,12 @@ public class AntiSpamSystem {
 		}
 	}
 
-	/* call this method when user says something in the channel using SAY or SAYEX command */
+	/**
+	 * Call this method when user says something in the channel using SAY
+	 * or SAYEX command
+	 */
 	public static void processUserMsg(String chan, String user, String msg) {
+
 		synchronized (spamRecords) {
 			String key = chan + ":" + user;
 			SpamSettings settings = spamSettings.get(chan);
@@ -174,6 +199,7 @@ public class AntiSpamSystem {
 	}
 
 	public static void processClientStatusChange(Client client) {
+
 		if (System.currentTimeMillis() - client.clientStatusChangeCheckpoint > CHECK_CLIENTSTATUSCHANGE_INTERVAL) {
 			// reset the counter:
 			client.clientStatusChangeCheckpoint = System.currentTimeMillis();
@@ -195,6 +221,7 @@ public class AntiSpamSystem {
 	}
 
 	public static void setSpamSettingsForChannel(String chan, String settings) {
+
 		SpamSettings ss = SpamSettings.stringToSpamSettings(settings);
 		if (ss == null) {
 			Log.error("AntiSpamSystem: malformed settings string in setSpamSettingsForChannel(): " + settings);
@@ -205,6 +232,7 @@ public class AntiSpamSystem {
 	}
 
 	private static void muteUser(String chan, String user) {
+
 		ChanServ.sendLine("MUTE " + chan + " " + user + " 15");
 		ChanServ.sendLine("SAYPRIVATE " + user + " You have been temporarily muted due to spamming in channel #" + chan + ". You may get temporarily banned if you will continue to spam this channel.");
 	}

@@ -5,7 +5,8 @@
 package com.springrts.chanserv;
 
 
-import java.util.*;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Static channels are those for which we don't want ChanServ to moderate them,
@@ -22,8 +23,8 @@ public class Channel {
 	public boolean isStatic = true; // if true, then this channel is a static one and not registered one (we can't register this channel at all)
 	public String key = ""; // if "" then no key is set (channel is unlocked)
 	public String founder; // username of the founder of this channel. Founder is the "owner" of the channel, he can assign operators etc.
-	private Vector/*String*/ operators = new Vector();
-	private Vector/*String*/ clients = new Vector();
+	private List<String> operators = new ArrayList<String>();
+	private List<String> clients = new ArrayList<String>();
 	public boolean antispam; // if true, users will be automatically muted if spamming is detected from them
 	public String antispamSettings; // anti-spam settings for this channel, used with AntiSpamSystem
 
@@ -63,7 +64,7 @@ public class Channel {
 		return true;
 	}
 
-	public Vector getOperatorList() {
+	public List<String> getOperatorList() {
 		return operators;
 	}
 
@@ -80,8 +81,9 @@ public class Channel {
 	}
 
 	public String getClient(int index) {
+
 		try{
-			return (String)clients.get(index);
+			return clients.get(index);
 		} catch (ArrayIndexOutOfBoundsException e) {
 			return null;
 		}
