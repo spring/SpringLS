@@ -29,6 +29,11 @@ public class Client implements ContextReceiver {
 	 * (see protocol description on message/command IDs)
 	 */
 	public static final int NO_MSG_ID = -1;
+	
+	/**
+	 * Indicates that no script-password is set.
+	 */
+	public static final String NO_SCRIPT_PASSWORD = "";
 
 	/**
 	 * If false, then this client is not "valid" anymore.
@@ -149,6 +154,14 @@ public class Client implements ContextReceiver {
 
 	private Context context = null;
 
+	/**
+	 * Script password for the battle this client currently is in.
+	 * If it is not currently in a battle, this is irrelevant.
+	 * The script password is used for spoof-protection, which means
+	 * someone illegally joining the battle under wrong user-name.
+	 */
+	private String scriptPassword;
+
 
 	public Client(SocketChannel sockChan) {
 
@@ -180,6 +193,7 @@ public class Client implements ContextReceiver {
 		battleID = Battle.NO_BATTLE_ID;
 		requestedBattleID = Battle.NO_BATTLE_ID;
 		cpu = 0;
+		scriptPassword = NO_SCRIPT_PASSWORD;
 
 		timeOfLastReceive = System.currentTimeMillis();
 	}
@@ -700,7 +714,11 @@ public class Client implements ContextReceiver {
 	 * @param battleID the battleID to set
 	 */
 	public void setBattleID(int battleID) {
+
 		this.battleID = battleID;
+		if (battleID == Battle.NO_BATTLE_ID) {
+			setScriptPassword(NO_SCRIPT_PASSWORD);
+		}
 	}
 
 	/**
@@ -832,6 +850,26 @@ public class Client implements ContextReceiver {
 	 */
 	public void setTimeOfLastReceive(long timeOfLastReceive) {
 		this.timeOfLastReceive = timeOfLastReceive;
+	}
+
+	/**
+	 * Returns the clients script password for the battle it currently is in.
+	 * If it is not currently in a battle, this is irrelevant.
+	 * The script password is used for spoof-protection, which means
+	 * someone illegally joining the battle under wrong user-name.
+	 */
+	public String getScriptPassword() {
+		return scriptPassword;
+	}
+
+	/**
+	 * Sets the clients script password for the battle it currently is in.
+	 * If it is not currently in a battle, this is irrelevant.
+	 * The script password is used for spoof-protection, which means
+	 * someone illegally joining the battle under wrong user-name.
+	 */
+	public void setScriptPassword(String scriptPassword) {
+		this.scriptPassword = scriptPassword;
 	}
 
 	/**

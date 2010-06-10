@@ -710,7 +710,8 @@ public class TASServer implements LiveStateListener {
 		client.setBattleID(bat.ID);
 		client.setRequestedBattleID(Battle.NO_BATTLE_ID);
 		bat.addClient(client);
-	 	client.sendLine("JOINBATTLE " + bat.ID + " " + bat.hashCode); // notify client that he has successfully joined the battle
+	 	// notify client that he has successfully joined the battle
+		client.sendLine("JOINBATTLE " + bat.ID + " " + bat.hashCode);
 		context.getClients().notifyClientsOfNewClientInBattle(bat, client);
 		bat.notifyOfBattleStatuses(client);
 		bat.sendBotListToClient(client);
@@ -2579,6 +2580,10 @@ public class TASServer implements LiveStateListener {
 				if (bat.locked) {
 					client.sendLine("JOINBATTLEFAILED You cannot join locked battles!");
 					return false;
+				}
+
+				if (commands.length > 3) {
+					client.setScriptPassword(commands[3]);
 				}
 
 				if (bat.founder.isHandleBattleJoinAuthorization()) {

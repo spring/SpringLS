@@ -263,12 +263,15 @@ public class Clients implements ContextReceiver {
 	 */
 	public void notifyClientsOfNewClientInBattle(Battle battle, Client client) {
 
-		for (int i = 0; i < clients.size(); i++)  {
-			Client toBeNotified = clients.get(i);
+		String cmdBase = "JOINEDBATTLE " + battle.ID + " " + client.getAccount().getName();
+		for (Client toBeNotified : clients)  {
 			if (toBeNotified.getAccount().getAccess().compareTo(Account.Access.NORMAL) >= 0) {
-				toBeNotified.sendLine(new StringBuilder("JOINEDBATTLE ")
-						.append(battle.ID).append(" ")
-						.append(client.getAccount().getName()).toString());
+				StringBuilder cmd = new StringBuilder(cmdBase);
+				if ((toBeNotified.equals(battle.founder) || toBeNotified.equals(client)) &&
+						(!client.getScriptPassword().equals(Client.NO_SCRIPT_PASSWORD))) {
+					cmd.append(" ").append(client.getScriptPassword());
+				}
+				toBeNotified.sendLine(cmd.toString());
 			}
 		}
 	}
