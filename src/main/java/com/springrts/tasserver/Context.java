@@ -65,7 +65,7 @@ public class Context implements LiveStateListener {
 		}
 	}
 
-	private void addContextReceiver(ContextReceiver contextReceiver) {
+	public void addContextReceiver(ContextReceiver contextReceiver) {
 
 		if (!contextReceivers.contains(contextReceiver)) {
 			contextReceivers.add(contextReceiver);

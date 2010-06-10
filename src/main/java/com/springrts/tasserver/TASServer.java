@@ -218,6 +218,9 @@
 package com.springrts.tasserver;
 
 
+import com.springrts.tasserver.commands.CommandProcessingException;
+import com.springrts.tasserver.commands.CommandProcessor;
+import com.springrts.tasserver.commands.CommandProcessors;
 import java.util.*;
 import java.io.*;
 import java.net.*;
@@ -315,6 +318,7 @@ public class TASServer implements LiveStateListener {
 	private ByteBuffer readBuffer = ByteBuffer.allocateDirect(READ_BUFFER_SIZE); // see http://java.sun.com/j2se/1.5.0/docs/api/java/nio/ByteBuffer.html for difference between direct and non-direct buffers. In this case we should use direct buffers, this is also used by the author of java.nio chat example (see links) upon which this code is built on.
 	
 	private Context context = null;
+	private CommandProcessors commandProcessors = null;
 
 	/**
 	 * In 'updateProperties' we store a list of Spring versions and server responses to them.
@@ -769,12 +773,22 @@ public class TASServer implements LiveStateListener {
 		client.setSendMsgID(msgId);
 
 		try {
-			if (commands[0].equals("PING")) {
-				//***if (client.account.getAccess().compareTo(Account.Access.NORMAL) < 0) return false;
-
-				client.sendLine("PONG");
-			}
-			if (commands[0].equals("CREATEACCOUNT")) {
+			CommandProcessor cp = commandProcessors.get(commands[0]);
+			if (cp != null) {
+				List<String> args = new ArrayList<String>(Arrays.asList(commands));
+				args.remove(0);
+				try {
+					boolean ret = cp.process(client, args);
+					if (!ret) {
+						return false;
+					}
+				} catch (CommandProcessingException ex) {
+					s_log.debug(cp.getClass().getCanonicalName() +
+							" failed to handle command from client: \"" +
+							Misc.makeSentence(commands) + "\"", ex);
+					return false;
+				}
+			} else if (commands[0].equals("CREATEACCOUNT")) {
 				if (client.getAccount().getAccess() != Account.Access.ADMIN) {
 					return false;
 				}
@@ -811,8 +825,7 @@ public class TASServer implements LiveStateListener {
 				context.getAccountsService().addAccount(acc);
 				context.getAccountsService().saveAccounts(false); // let's save new accounts info to disk
 				client.sendLine("SERVERMSG Account created.");
-			}
-			if (commands[0].equals("REGISTER")) {
+			} else if (commands[0].equals("REGISTER")) {
 				if (commands.length != 3) {
 					client.sendLine("REGISTRATIONDENIED Bad command arguments");
 					return false;
@@ -2616,36 +2629,6 @@ public class TASServer implements LiveStateListener {
 				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 				verifyBattle(bat);
 				context.getBattles().leaveBattle(client, bat); // automatically checks if client is a founder and closes battle
-			} else if (commands[0].equals("OPENBATTLE")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.NORMAL) < 0) {
-					return false;
-				}
-				if (client.getBattleID() != -1) {
-					client.sendLine("OPENBATTLEFAILED You are already hosting a battle!");
-					return false;
-				}
-				Battle bat = context.getBattles().createBattleFromString(command, client);
-				if (bat == null) {
-					client.sendLine("OPENBATTLEFAILED Invalid command format or bad arguments");
-					return false;
-				}
-				context.getBattles().addBattle(bat);
-				client.setBattleStatus(0); // reset client's battle status
-				client.setBattleID(bat.ID);
-				client.setRequestedBattleID(-1);
-
-				boolean local;
-				for (int i = 0; i < context.getClients().getClientsSize(); i++) {
-					if (context.getClients().getClient(i).getAccount().getAccess().compareTo(Account.Access.NORMAL) < 0) {
-						continue;
-					}
-					// make sure that clients behind NAT get local IPs and not external ones:
-					local = client.getIp().equals(context.getClients().getClient(i).getIp());
-					context.getClients().getClient(i).sendLine(bat.createBattleOpenedCommandEx(local));
-				}
-
-				client.sendLine(new StringBuilder("OPENBATTLE ").append(bat.ID).toString()); // notify client that he successfully opened a new battle
-				client.sendLine("REQUESTBATTLESTATUS");
 			} else if (commands[0].equals("MYBATTLESTATUS")) {
 				if (commands.length != 3) {
 					return false;
@@ -3617,7 +3600,6 @@ public class TASServer implements LiveStateListener {
 
 
 		return true;
-
 	} // tryToExecCommand()
 
 	/**
@@ -3773,8 +3755,10 @@ public class TASServer implements LiveStateListener {
 	public TASServer(Context context) {
 
 		this.context = context;
+		this.commandProcessors = new CommandProcessors();
 
 		context.addLiveStateListener(this);
+		context.addContextReceiver(commandProcessors);
 
 		AccountsService accountsService = null;
 		if (!context.getServer().isLanMode() && context.getServer().isUseUserDB()) {
@@ -3799,6 +3783,7 @@ public class TASServer implements LiveStateListener {
 
 		context.push();
 
+		commandProcessors.init();
 
 		// switch to LAN mode if user accounts information is not present:
 		if (!context.getServer().isLanMode()) {

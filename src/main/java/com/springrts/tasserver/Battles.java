@@ -127,19 +127,18 @@ public class Battles implements ContextReceiver {
 	 * battle attributes from it.
 	 * @return the created battle or 'null' on failure
 	 */
-	public Battle createBattleFromString(String s, Client founder) {
+	public Battle createBattleFromString(List<String> args, Client founder) {
 
-		String[] parsed = s.split(" ");
-		if (parsed.length < 10) {
+		if (args.size() < 9) {
 			return null;
 		}
 
-		String[] parsed2 = Misc.makeSentence(parsed, 9).split("\t");
+		String[] parsed2 = Misc.makeSentence(args, 8).split("\t");
 		if (parsed2.length != 3) {
 			return null;
 		}
 
-		String pass = parsed[3];
+		String pass = args.get(2);
 		if (!pass.equals("*") && !pass.matches("^[A-Za-z0-9_]+$")) {
 			// invalid characters in the password
 			return null;
@@ -154,14 +153,14 @@ public class Battles implements ContextReceiver {
 		int maphash;
 
 		try {
-			type = Integer.parseInt(parsed[1]);
-			natType = Integer.parseInt(parsed[2]);
-			// parsed[3] is password
-			port = Integer.parseInt(parsed[4]);
-			maxPlayers = Integer.parseInt(parsed[5]);
-			hash = Integer.parseInt(parsed[6]);
-			rank = Integer.decode(parsed[7]);
-			maphash = Integer.decode(parsed[8]);
+			type = Integer.parseInt(args.get(0));
+			natType = Integer.parseInt(args.get(1));
+			// args.get(2) is password
+			port = Integer.parseInt(args.get(3));
+			maxPlayers = Integer.parseInt(args.get(4));
+			hash = Integer.parseInt(args.get(5));
+			rank = Integer.decode(args.get(6));
+			maphash = Integer.decode(args.get(7));
 		} catch (NumberFormatException e) {
 			return null;
 		}

@@ -51,14 +51,30 @@ public class Misc {
 			return "";
 		}
 
-		StringBuilder result = new StringBuilder();
-		result.append(a[startIndex]);
+		StringBuilder result = new StringBuilder(a[startIndex]);
 		for (int i = startIndex + 1; i < a.length; i++) {
 			result.append(" ");
 			result.append(a[i]);
 		}
 
 		return result.toString();
+	}
+	public static String makeSentence(String[] a) {
+		return makeSentence(a, 0);
+	}
+
+	public static String makeSentence(List<String> sl, int startIndex) {
+
+		if (startIndex > (sl.size() - 1)) {
+			return "";
+		}
+
+		StringBuilder res = new StringBuilder(sl.get(startIndex));
+		for (int i = startIndex+1; i < sl.size(); i++) {
+			res.append(" ").append(sl.get(i));
+		}
+
+		return res.toString();
 	}
 
 	public static String boolToStr(boolean b) {
