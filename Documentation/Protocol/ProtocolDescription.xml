@@ -999,9 +999,10 @@
         <Argument Name="BATTLE_ID" Optional="no" Sentence="no"/>
         <Argument Name="password" Optional="yes" Sentence="no"/>
         <Argument Name="scriptPassword" Optional="yes" Sentence="no">
-        Used for spoof-protection, which means, someone is trying
-        to join the battle under wrong user-name.
-        If this is set, password has to be set to, but it may be empty.
+        A random, client-generated string wich will be written to script.txt
+        by the host, to avoid account spoofing (= someone is trying to join
+        the battle under wrong user-name).
+        If set, the password has to be set too, even if it is empty.
         </Argument>
       </Arguments>
       <Description>
@@ -1065,8 +1066,9 @@
         <Argument Name="BATTLE_ID" Optional="no" Sentence="no"/>
         <Argument Name="username" Optional="no" Sentence="no"/>
         <Argument Name="scriptPassword" Optional="yes" Sentence="no">
-        Used for spoof-protection, which means, someone is trying
-        to join the battle under wrong user-name.
+        A random, client-generated string wich will be written to script.txt
+        by the host, to avoid account spoofing (= someone is trying to join
+        the battle under wrong user-name).
         </Argument>
       </Arguments>
       <Description>
