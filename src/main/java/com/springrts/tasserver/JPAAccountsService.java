@@ -55,7 +55,14 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 		em.getTransaction().commit();
 	}
 	private void rollback() {
-		em.getTransaction().rollback();
+
+		try {
+			if (em.getTransaction().isActive()) {
+				em.getTransaction().rollback();
+			}
+		} catch (PersistenceException ex) {
+			s_log.error("Failed to rollback a transaction", ex);
+		}
 	}
 
 
