@@ -398,6 +398,8 @@ public class TASServer implements LiveStateListener {
 		s_log.info(new StringBuilder("TASServer ")
 				.append(Misc.getAppVersion()).append(" started on ")
 				.append(Misc.easyDateFormat("yyyy.MM.dd 'at' hh:mm:ss z")).toString());
+
+		createAdminIfNoUsers();
 	}
 
 	@Override
@@ -3681,6 +3683,35 @@ public class TASServer implements LiveStateListener {
 				throw new IOException();
 			}
 		}
+	}
+
+	/**
+	 * Adds a default administrator account, if not running in LAN mode,
+	 * and if there are no accounts in the active accounts service.
+	 */
+	private void createAdminIfNoUsers() {
+
+		if (!context.getServer().isLanMode()) {
+			AccountsService accountsService = context.getAccountsService();
+			if (accountsService.getAccountsSize() == 0) {
+				String username = "admin";
+				String password = "admin";
+				s_log.info("As there are no accounts yet, we are creating an admin account: username=\"" + username + "\", password=\"" + password + "\"");
+				Account admin = createAdmin(username, password);
+				accountsService.addAccount(admin);
+				accountsService.saveAccountsIfNeeded();
+			}
+		}
+	}
+
+	/**
+	 * Creates a simple account with administrator rights.
+	 */
+	private static Account createAdmin(String username, String password) {
+
+		Account admin = new Account(username, Misc.encodePassword(password), Account.NO_ACCOUNT_LAST_IP, Account.NO_ACCOUNT_LAST_COUNTRY);
+		admin.setAccess(Account.Access.ADMIN);
+		return admin;
 	}
 
 	public static void printCommandLineArgumentsHelp() {
