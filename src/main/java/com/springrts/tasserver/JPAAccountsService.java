@@ -8,6 +8,7 @@ package com.springrts.tasserver;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.NoResultException;
 import javax.persistence.Persistence;
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
@@ -176,6 +177,10 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 			q_fetchByName.setParameter("name", username);
 			act = (Account) q_fetchByName.getSingleResult();
 			commit();
+		} catch (NoResultException ex) {
+			s_log.trace("Failed fetching an account by name: " + username + " (user not found)", ex);
+			rollback();
+			act = null;
 		} catch (Exception ex) {
 			s_log.trace("Failed fetching an account by name: " + username, ex);
 			rollback();
