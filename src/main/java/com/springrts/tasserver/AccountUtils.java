@@ -66,13 +66,7 @@ public class AccountUtils {
 			// ignore
 		}
 
-		String userPasswd = null;
-		try {
-			userPasswd = Misc.encodePassword(userName);
-		} catch (Exception ex) {
-			ex.printStackTrace();
-			return null;
-		}
+		String userPasswd = Misc.encodePassword(userName);
 		return new Account(userName, userPasswd, localIP, countryCode2L);
 	}
 

@@ -291,12 +291,16 @@ public class Misc {
 	 * This method encodes plain-text passwords to MD5 hashed ones
 	 * in base-64 form.
 	 */
-	public static String encodePassword(String plainPassword) throws Exception {
+	public static String encodePassword(String plainPassword) {
 
 		String encodedPassword = null;
 
 		byte[] md5Digest = null;
-		md5Digest = getMD5(plainPassword);
+		try {
+			md5Digest = getMD5(plainPassword);
+		} catch (NoSuchAlgorithmException ex) {
+			s_log.error("Failed to encode password", ex);
+		}
 		encodedPassword = Base64.encodeBytes(md5Digest);
 
 		return encodedPassword;

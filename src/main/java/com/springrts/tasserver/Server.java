@@ -75,12 +75,7 @@ public class Server implements ContextReceiver {
 		lanMode = false;
 		startTime = System.currentTimeMillis();
 		lanAdminUsername = DEFAULT_LAN_ADMIN_USERNAME;
-		try {
-			lanAdminPassword = Misc.encodePassword(DEFAULT_LAN_ADMIN_PASSWORD);
-		} catch (Exception ex) {
-			s_log.error("Failed to encode LAN mode default admin password", ex);
-			lanAdminPassword = null;
-		}
+		lanAdminPassword = Misc.encodePassword(DEFAULT_LAN_ADMIN_PASSWORD);
 		port = DEFAULT_PORT;
 		useUserDB = false;
 	}
