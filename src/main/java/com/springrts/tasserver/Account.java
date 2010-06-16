@@ -50,7 +50,7 @@ public class Account implements Serializable {
 		}
 
 		/**
-		 * Returns the minimum required ammount of in-game time to optain
+		 * Returns the minimum required amount of in-game time to obtain
 		 * this rank, in seconds.
 		 * @return min. in-game time in seconds
 		 */
@@ -74,9 +74,11 @@ public class Account implements Serializable {
 		ADMIN;
 	}
 
-	public static int NO_USER_ID = 0;
-	public static int NO_ACCOUNT_ID = 0;
-	public static int NEW_ACCOUNT_ID = -1;
+	public static final int NO_USER_ID = 0;
+	public static final int NO_ACCOUNT_ID = 0;
+	public static final int NEW_ACCOUNT_ID = -1;
+	public static final String NO_ACCOUNT_LAST_IP = "?";
+	public static final String NO_ACCOUNT_LAST_COUNTRY = "XX";
 
 
 	// BEGIN: User specific data (stored in the DB)
@@ -127,7 +129,7 @@ public class Account implements Serializable {
 
 	/**
 	 * Date of when the name registered this account.
-	 * In miliseconds, 0 means registration date is unknown.
+	 * In milliseconds, 0 means registration date is unknown.
 	 * This applies to users that registered in some early version,
 	 * when this field was not yet present. Note that this field was first
 	 * introduced with Spring 0.67b3, Dec 18 2005.
@@ -260,8 +262,8 @@ public class Account implements Serializable {
 		this.registrationDate  = 0;
 		this.lastLogin         = 0;
 		this.lastUserId        = NO_ACCOUNT_ID;
-		this.lastIP            = "?";
-		this.lastCountry       = "XX";
+		this.lastIP            = NO_ACCOUNT_LAST_IP;
+		this.lastCountry       = NO_ACCOUNT_LAST_COUNTRY;
 		this.inGameTime        = 0;
 		this.access            = Access.NONE;
 		this.bot               = false;
@@ -686,7 +688,7 @@ public class Account implements Serializable {
 
 	/**
 	 * Date of when the name registered this account.
-	 * In miliseconds (refers to System.currentTimeMillis()). 0 means
+	 * In milliseconds (refers to System.currentTimeMillis()). 0 means
 	 * registration date is unknown. This applies to users that registered in
 	 * some early version, when this field was not yet present. Note that this
 	 * field was first introduced with Spring 0.67b3, Dec 18 2005.
