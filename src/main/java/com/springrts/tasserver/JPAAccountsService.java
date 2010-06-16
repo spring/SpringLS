@@ -81,8 +81,8 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 			activeAccounts = (int) (long) (Long) (q_size_active.getSingleResult());
 			em.getTransaction().commit();
 		} catch (Exception ex) {
-			em.getTransaction().rollback();
 			s_log.error("Failed fetching active accounts", ex);
+			em.getTransaction().rollback();
 			activeAccounts = -1;
 		}
 
@@ -159,8 +159,8 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 			act = (Account) q_fetchByName.getSingleResult();
 			em.getTransaction().commit();
 		} catch (Exception ex) {
-			em.getTransaction().rollback();
 			s_log.trace("Failed fetching an account by name: " + username, ex);
+			em.getTransaction().rollback();
 			act = null;
 		}
 
@@ -233,8 +233,8 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 			acts = (List<Account>) (q_list.getResultList());
 			em.getTransaction().commit();
 		} catch (Exception ex) {
-			em.getTransaction().rollback();
 			s_log.error("Failed fetching all accounts", ex);
+			em.getTransaction().rollback();
 			acts = null;
 		}
 
