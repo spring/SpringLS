@@ -92,6 +92,12 @@
   <RecentChanges>
   <p>
 
+  <b><u>Version 0.36:</u></b><br />
+  <ul>
+    <li>scriptPassword argument added: This change affects the following commands:
+        JOINBATTLE, JOINEDBATTLE.</li>
+  </ul>
+
   <b><u>Version 0.35:</u></b><br />
   <ul>
     <li>New 'servermode' argument has been added to TASSERVER command.</li>
@@ -992,6 +998,12 @@
       <Arguments>
         <Argument Name="BATTLE_ID" Optional="no" Sentence="no"/>
         <Argument Name="password" Optional="yes" Sentence="no"/>
+        <Argument Name="scriptPassword" Optional="yes" Sentence="no">
+        A random, client-generated string wich will be written to script.txt
+        by the host, to avoid account spoofing (= someone is trying to join
+        the battle under wrong user-name).
+        If set, the password has to be set too, even if it is empty.
+        </Argument>
       </Arguments>
       <Description>
       Sent by a client trying to join a battle. Password is an optional parameter.
@@ -1053,6 +1065,11 @@
       <Arguments>
         <Argument Name="BATTLE_ID" Optional="no" Sentence="no"/>
         <Argument Name="username" Optional="no" Sentence="no"/>
+        <Argument Name="scriptPassword" Optional="yes" Sentence="no">
+        A random, client-generated string wich will be written to script.txt
+        by the host, to avoid account spoofing (= someone is trying to join
+        the battle under wrong user-name).
+        </Argument>
       </Arguments>
       <Description>
       Sent by server to all clients when a new client joins the battle.
