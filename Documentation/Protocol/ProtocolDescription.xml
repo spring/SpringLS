@@ -322,8 +322,10 @@
         By default, all the optional functionalities are considered as not supported by the client.
         The currently compatibility flags are:<br />
         'a': client supports accountIDs sent in <clink name="ADDUSER"/> command<br />
-        'b': client supports battle authorization system (<clink name="JOINBATTLEREQUEST"/>, 
-        <clink name="JOINBATTLEACCEPT"/> and <clink name="JOINBATTLEDENY"/> commands)
+        'b': client supports battle authorization system (<clink name="JOINBATTLEREQUEST"/>,
+        <clink name="JOINBATTLEACCEPT"/> and <clink name="JOINBATTLEDENY"/> commands)<br />
+        'sp': client supports scriptPassword sent in the
+              <clink name="JOINEDBATTLE"/> command
         </Argument>
       </Arguments>
       <Description>

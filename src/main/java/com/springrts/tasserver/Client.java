@@ -162,6 +162,12 @@ public class Client implements ContextReceiver {
 	 */
 	private String scriptPassword;
 
+	/**
+	 * Does the client accept the scriptPassord argument to the
+	 * JOINEDBATTLE command?
+	 */
+	private boolean scriptPasswordSupported;
+
 
 	public Client(SocketChannel sockChan) {
 
@@ -194,6 +200,7 @@ public class Client implements ContextReceiver {
 		requestedBattleID = Battle.NO_BATTLE_ID;
 		cpu = 0;
 		scriptPassword = NO_SCRIPT_PASSWORD;
+		scriptPasswordSupported = false;
 
 		timeOfLastReceive = System.currentTimeMillis();
 	}
@@ -902,6 +909,22 @@ public class Client implements ContextReceiver {
 	 */
 	public void setHandleBattleJoinAuthorization(boolean handleBattleJoinAuthorization) {
 		this.handleBattleJoinAuthorization = handleBattleJoinAuthorization;
+	}
+
+	/**
+	 * Does the client accept the scriptPassord argument to the
+	 * JOINEDBATTLE command?
+	 */
+	public boolean isScriptPassordSupported() {
+		return scriptPasswordSupported;
+	}
+
+	/**
+	 * Does the client accept the scriptPassord argument to the
+	 * JOINEDBATTLE command?
+	 */
+	public void setScriptPassordSupported(boolean supported) {
+		scriptPasswordSupported = supported;
 	}
 
 	/**

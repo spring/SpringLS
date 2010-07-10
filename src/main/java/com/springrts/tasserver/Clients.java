@@ -268,6 +268,7 @@ public class Clients implements ContextReceiver {
 			if (toBeNotified.getAccount().getAccess().compareTo(Account.Access.NORMAL) >= 0) {
 				StringBuilder cmd = new StringBuilder(cmdBase);
 				if ((toBeNotified.equals(battle.founder) || toBeNotified.equals(client)) &&
+						client.isScriptPassordSupported() &&
 						(!client.getScriptPassword().equals(Client.NO_SCRIPT_PASSWORD))) {
 					cmd.append(" ").append(client.getScriptPassword());
 				}

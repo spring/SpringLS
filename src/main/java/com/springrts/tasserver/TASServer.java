@@ -2081,6 +2081,7 @@ public class TASServer implements LiveStateListener {
 					// handle flags ...
 					client.setAcceptAccountIDs(compatFlags.contains("a"));
 					client.setHandleBattleJoinAuthorization(compatFlags.contains("b"));
+					client.setScriptPassordSupported(compatFlags.contains("sp"));
 				}
 
 				int cpu;
