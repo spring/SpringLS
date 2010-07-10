@@ -95,7 +95,7 @@
   <b><u>Version 0.36:</u></b><br />
   <ul>
     <li>scriptPassword argument added: This change affects the following commands:
-        JOINBATTLE, JOINEDBATTLE.</li>
+        LOGIN, JOINBATTLE, JOINEDBATTLE.</li>
   </ul>
 
   <b><u>Version 0.35:</u></b><br />
@@ -317,10 +317,10 @@
         </Argument>
         <Argument Name="compFlags" Optional="yes" Sentence="yes">
         When connecting, the lobby client can tell the lobby server it is compatible with some
-        optional functionalities that break backward compatibility. Each character of the
+        optional functionalities that break backward compatibility. Each flag in the space separated
         compFlags parameter indicates a specific functionality (like IRC user/channel flags).
         By default, all the optional functionalities are considered as not supported by the client.
-        Currently there are two compatibility flags:<br />
+        The currently compatibility flags are:<br />
         'a': client supports accountIDs sent in <clink name="ADDUSER"/> command<br />
         'b': client supports battle authorization system (<clink name="JOINBATTLEREQUEST"/>, 
         <clink name="JOINBATTLEACCEPT"/> and <clink name="JOINBATTLEDENY"/> commands)

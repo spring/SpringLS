@@ -2066,16 +2066,21 @@ public class TASServer implements LiveStateListener {
 					}
 				}
 				if (args2.length > 2) {
-					if (args2[2].indexOf('a') >= 0) {
-						client.setAcceptAccountIDs(true);
-					}else{
-						client.setAcceptAccountIDs(false);
+					// prepare the compatibility flags (space separated)
+					String compatFlags_str = Misc.makeSentence(args2, 2);
+					String[] compatFlags_split = compatFlags_str.split(" ");
+					ArrayList<String> compatFlags = new ArrayList<String>(compatFlags_split.length + 1);
+					compatFlags.addAll(Arrays.asList(compatFlags_split));
+					// split old flags for backwards compatibility,
+					// as there were no spaces in the past
+					if (compatFlags.remove("ab") || compatFlags.remove("ba")) {
+						compatFlags.add("a");
+						compatFlags.add("b");
 					}
-					if (args2[2].indexOf('b') >= 0) {
-						client.setHandleBattleJoinAuthorization(true);
-					}else{
-						client.setHandleBattleJoinAuthorization(false);
-					}
+
+					// handle flags ...
+					client.setAcceptAccountIDs(compatFlags.contains("a"));
+					client.setHandleBattleJoinAuthorization(compatFlags.contains("b"));
 				}
 
 				int cpu;
