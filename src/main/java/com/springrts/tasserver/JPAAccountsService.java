@@ -75,17 +75,18 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 	@Override
 	public int getAccountsSize() {
 
+		int accounts = -1;
+
 		try {
 			begin();
 			long numAccounts = (Long) (q_size.getSingleResult());
 			commit();
-			return (int)numAccounts;
+			accounts = (int) numAccounts;
 		} catch (Exception ex) {
 			s_log.error("Failed fetching number of accounts", ex);
-			rollback();
 		}
 
-		return -1;
+		return accounts;
 	}
 
 	@Override
@@ -101,7 +102,6 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 			commit();
 		} catch (Exception ex) {
 			s_log.error("Failed fetching active accounts", ex);
-			rollback();
 			activeAccounts = -1;
 		}
 
@@ -179,11 +179,9 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 			commit();
 		} catch (NoResultException ex) {
 			s_log.trace("Failed fetching an account by name: " + username + " (user not found)", ex);
-			rollback();
 			act = null;
 		} catch (Exception ex) {
 			s_log.trace("Failed fetching an account by name: " + username, ex);
-			rollback();
 			act = null;
 		}
 
@@ -202,7 +200,6 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 			commit();
 		} catch (Exception ex) {
 			s_log.trace("Failed fetching an account by name (case-insensitive)", ex);
-			rollback();
 			act = null;
 		}
 
@@ -221,7 +218,6 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 			commit();
 		} catch (Exception ex) {
 			s_log.trace("Failed fetching an account by last ip", ex);
-			rollback();
 			act = null;
 		}
 
@@ -257,7 +253,6 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 			commit();
 		} catch (Exception ex) {
 			s_log.error("Failed fetching all accounts", ex);
-			rollback();
 			acts = null;
 		}
 
