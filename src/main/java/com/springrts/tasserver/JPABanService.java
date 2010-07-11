@@ -9,6 +9,7 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
+import javax.persistence.PersistenceException;
 import javax.persistence.Query;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -43,17 +44,33 @@ public class JPABanService implements BanService {
 		q_fetch       = em.createQuery("SELECT b FROM BanEntry b WHERE ((b.username = :username) OR ((b.ipStart <= :ip) AND (b.ipStart >= :ip)) OR (b.userId >= :userId))");
 	}
 
+	private void begin() {
+		em.getTransaction().begin();
+	}
+	private void commit() {
+		em.getTransaction().commit();
+	}
+	private void rollback() {
+
+		try {
+			if (em.getTransaction().isActive()) {
+				em.getTransaction().rollback();
+			}
+		} catch (PersistenceException ex) {
+			s_log.error("Failed to rollback a transaction", ex);
+		}
+	}
+
 	@Override
 	public int getBansSize() {
 
 		try {
-			em.getTransaction().begin();
+			begin();
 			long numBans = (Long) (q_size.getSingleResult());
-			em.getTransaction().commit();
+			commit();
 			return (int)numBans;
 		} catch (Exception ex) {
 			s_log.error("Failed fetching number of bans", ex);
-			em.getTransaction().rollback();
 		}
 
 		return -1;
@@ -63,13 +80,12 @@ public class JPABanService implements BanService {
 	public int getActiveBansSize() {
 
 		try {
-			em.getTransaction().begin();
+			begin();
 			long numBans = (Long) (q_size_active.getSingleResult());
-			em.getTransaction().commit();
+			commit();
 			return (int)numBans;
 		} catch (Exception ex) {
 			s_log.error("Failed fetching number of bans", ex);
-			em.getTransaction().rollback();
 		}
 
 		return -1;
@@ -79,12 +95,12 @@ public class JPABanService implements BanService {
 	public void addBanEntry(BanEntry ban) {
 
 		try {
-			em.getTransaction().begin();
+			begin();
 			em.persist(ban);
-			em.getTransaction().commit();
+			commit();
 		} catch (Exception ex) {
 			s_log.error("Failed adding a ban", ex);
-			em.getTransaction().rollback();
+			rollback();
 		}
 	}
 
@@ -94,13 +110,13 @@ public class JPABanService implements BanService {
 		boolean removed = false;
 
 		try {
-			em.getTransaction().begin();
+			begin();
 			em.remove(ban);
-			em.getTransaction().commit();
+			commit();
 			removed = true;
 		} catch (Exception ex) {
 			s_log.error("Failed removing a ban", ex);
-			em.getTransaction().rollback();
+			rollback();
 		}
 
 		return removed;
@@ -112,14 +128,13 @@ public class JPABanService implements BanService {
 		BanEntry ban = null;
 
 		try {
-			em.getTransaction().begin();
+			begin();
 			q_fetch.setParameter("username", username);
 			q_fetch.setParameter("ip", IP);
 			q_fetch.setParameter("userId", userID);
 			ban = (BanEntry) q_fetch.getSingleResult();
-			em.getTransaction().commit();
+			commit();
 		} catch (Exception ex) {
-			em.getTransaction().rollback();
 			s_log.trace("Failed fetching a ban", ex);
 			ban = null;
 		}
@@ -133,13 +148,13 @@ public class JPABanService implements BanService {
 		boolean replaced = false;
 
 		try {
-			em.getTransaction().begin();
+			begin();
 			em.merge(ban);
-			em.getTransaction().commit();
+			commit();
 			replaced = true;
 		} catch (Exception ex) {
 			s_log.error("Failed replacing a ban", ex);
-			em.getTransaction().rollback();
+			rollback();
 		}
 
 		return replaced;
@@ -151,11 +166,10 @@ public class JPABanService implements BanService {
 		List<BanEntry> bans = null;
 
 		try {
-			em.getTransaction().begin();
+			begin();
 			bans = (List<BanEntry>) (q_list.getResultList());
-			em.getTransaction().commit();
+			commit();
 		} catch (Exception ex) {
-			em.getTransaction().rollback();
 			s_log.error("Failed fetching all bans", ex);
 			bans = null;
 		}
@@ -169,11 +183,10 @@ public class JPABanService implements BanService {
 		List<BanEntry> bans = null;
 
 		try {
-			em.getTransaction().begin();
+			begin();
 			bans = (List<BanEntry>) (q_list_active.getResultList());
-			em.getTransaction().commit();
+			commit();
 		} catch (Exception ex) {
-			em.getTransaction().rollback();
 			s_log.error("Failed fetching all bans", ex);
 			bans = null;
 		}
