@@ -86,7 +86,7 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 		EntityManager em = null;
 		try {
 			em = begin();
-			long numAccounts = (Long) (em.createNamedQuery("size").getSingleResult());
+			long numAccounts = (Long) (em.createNamedQuery("acc_size").getSingleResult());
 			commit(em);
 			accounts = (int) numAccounts;
 		} catch (Exception ex) {
@@ -107,7 +107,7 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 		EntityManager em = null;
 		try {
 			em = begin();
-			Query q_size_active = em.createNamedQuery("size_active");
+			Query q_size_active = em.createNamedQuery("acc_size_active");
 			final long oneWeekAgo = System.currentTimeMillis() - (1000 * 60 * 60 * 24 * 7);
 			q_size_active.setParameter("oneWeekAgo", oneWeekAgo);
 			activeAccounts = (int) (long) (Long) (q_size_active.getSingleResult());
@@ -202,7 +202,7 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 		EntityManager em = null;
 		try {
 			em = begin();
-			Query q_fetchByName = em.createNamedQuery("fetchByName");
+			Query q_fetchByName = em.createNamedQuery("acc_fetchByName");
 			q_fetchByName.setParameter("name", username);
 			act = (Account) q_fetchByName.getSingleResult();
 			commit(em);
@@ -228,7 +228,7 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 		EntityManager em = null;
 		try {
 			em = begin();
-			Query q_fetchByLowerName = em.createNamedQuery("fetchByLowerName");
+			Query q_fetchByLowerName = em.createNamedQuery("acc_fetchByLowerName");
 			q_fetchByLowerName.setParameter("lowerName", username.toLowerCase());
 			act = (Account) q_fetchByLowerName.getSingleResult();
 			commit(em);
@@ -251,7 +251,7 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 		EntityManager em = null;
 		try {
 			em = begin();
-			Query q_fetchByLastIP = em.createNamedQuery("fetchByLastIP");
+			Query q_fetchByLastIP = em.createNamedQuery("acc_fetchByLastIP");
 			q_fetchByLastIP.setParameter("ip", ip);
 			act = (Account) q_fetchByLastIP.getSingleResult();
 			commit(em);
@@ -296,7 +296,7 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 		EntityManager em = null;
 		try {
 			em = begin();
-			acts = (List<Account>) (em.createNamedQuery("list").getResultList());
+			acts = (List<Account>) (em.createNamedQuery("acc_list").getResultList());
 			commit(em);
 		} catch (Exception ex) {
 			s_log.error("Failed fetching all accounts", ex);
