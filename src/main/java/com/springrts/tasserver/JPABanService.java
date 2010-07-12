@@ -25,52 +25,64 @@ public class JPABanService implements BanService {
 
 	private static final Log s_log  = LogFactory.getLog(JPABanService.class);
 
-	private EntityManager em = null;
-	private Query q_size = null;
-	private Query q_size_active = null;
-	private Query q_list = null;
-	private Query q_list_active = null;
-	private Query q_fetch = null;
+	private EntityManagerFactory emf;
 
 	public JPABanService() {
-
-		EntityManagerFactory emf = Persistence.createEntityManagerFactory("tasserver");
-		em = emf.createEntityManager();
-
-		q_size        = em.createQuery("SELECT count(b.id) FROM BanEntry b");
-		q_size_active = em.createQuery("SELECT count(b.id) FROM BanEntry b WHERE ((b.enabled = TRUE) AND (b.expireDate IS NULL OR b.expireDate > CURRENT_TIMESTAMP))");
-		q_list        = em.createQuery("SELECT b FROM BanEntry b");
-		q_list_active = em.createQuery("SELECT b FROM BanEntry b WHERE ((b.enabled = TRUE) AND (b.expireDate IS NULL OR b.expireDate > CURRENT_TIMESTAMP))");
-		q_fetch       = em.createQuery("SELECT b FROM BanEntry b WHERE ((b.username = :username) OR ((b.ipStart <= :ip) AND (b.ipStart >= :ip)) OR (b.userId >= :userId))");
+		emf = Persistence.createEntityManagerFactory("tasserver");
 	}
 
-	private void begin() {
+	private EntityManager begin() {
+
+		EntityManager em = emf.createEntityManager();
 		em.getTransaction().begin();
+		return em;
 	}
-	private void commit() {
+	private void commit(EntityManager em) {
 		em.getTransaction().commit();
 	}
-	private void rollback() {
+	private void rollback(EntityManager em) {
 
-		try {
-			if (em.getTransaction().isActive()) {
-				em.getTransaction().rollback();
+		if (em == null) {
+			s_log.error("Failed to create an entity manager");
+		} else {
+			try {
+				if (em.getTransaction().isActive()) {
+					em.getTransaction().rollback();
+				}
+			} catch (PersistenceException ex) {
+				s_log.error("Failed to rollback a transaction", ex);
 			}
-		} catch (PersistenceException ex) {
-			s_log.error("Failed to rollback a transaction", ex);
+		}
+	}
+	private void close(EntityManager em) {
+
+		if (em == null) {
+			s_log.error("Failed to create an entity manager");
+		} else {
+			try {
+				if (em.isOpen()) {
+					em.close();
+				}
+			} catch (IllegalStateException ex) {
+				s_log.error("Failed to close an entity manager", ex);
+			}
 		}
 	}
 
 	@Override
 	public int getBansSize() {
 
+		EntityManager em = null;
 		try {
-			begin();
-			long numBans = (Long) (q_size.getSingleResult());
-			commit();
+			em = begin();
+			long numBans = (Long) (em.createNamedQuery("size").getSingleResult());
+			commit(em);
 			return (int)numBans;
 		} catch (Exception ex) {
 			s_log.error("Failed fetching number of bans", ex);
+		} finally {
+			close(em);
+			em = null;
 		}
 
 		return -1;
@@ -79,28 +91,38 @@ public class JPABanService implements BanService {
 	@Override
 	public int getActiveBansSize() {
 
+		int activeBans = -1;
+
+		EntityManager em = null;
 		try {
-			begin();
-			long numBans = (Long) (q_size_active.getSingleResult());
-			commit();
-			return (int)numBans;
+			em = begin();
+			long numBans = (Long) (em.createNamedQuery("size_active").getSingleResult());
+			commit(em);
+			activeBans = (int) numBans;
 		} catch (Exception ex) {
 			s_log.error("Failed fetching number of bans", ex);
+		} finally {
+			close(em);
+			em = null;
 		}
 
-		return -1;
+		return activeBans;
 	}
 
 	@Override
 	public void addBanEntry(BanEntry ban) {
 
+		EntityManager em = null;
 		try {
-			begin();
+			em = begin();
 			em.persist(ban);
-			commit();
+			commit(em);
 		} catch (Exception ex) {
 			s_log.error("Failed adding a ban", ex);
-			rollback();
+			rollback(em);
+		} finally {
+			close(em);
+			em = null;
 		}
 	}
 
@@ -109,14 +131,18 @@ public class JPABanService implements BanService {
 
 		boolean removed = false;
 
+		EntityManager em = null;
 		try {
-			begin();
+			em = begin();
 			em.remove(ban);
-			commit();
+			commit(em);
 			removed = true;
 		} catch (Exception ex) {
 			s_log.error("Failed removing a ban", ex);
-			rollback();
+			rollback(em);
+		} finally {
+			close(em);
+			em = null;
 		}
 
 		return removed;
@@ -127,16 +153,21 @@ public class JPABanService implements BanService {
 
 		BanEntry ban = null;
 
+		EntityManager em = null;
 		try {
-			begin();
+			em = begin();
+			Query q_fetch = em.createNamedQuery("fetch");
 			q_fetch.setParameter("username", username);
 			q_fetch.setParameter("ip", IP);
 			q_fetch.setParameter("userId", userID);
 			ban = (BanEntry) q_fetch.getSingleResult();
-			commit();
+			commit(em);
 		} catch (Exception ex) {
 			s_log.trace("Failed fetching a ban", ex);
 			ban = null;
+		} finally {
+			close(em);
+			em = null;
 		}
 
 		return ban;
@@ -147,14 +178,18 @@ public class JPABanService implements BanService {
 
 		boolean replaced = false;
 
+		EntityManager em = null;
 		try {
-			begin();
+			em = begin();
 			em.merge(ban);
-			commit();
+			commit(em);
 			replaced = true;
 		} catch (Exception ex) {
 			s_log.error("Failed replacing a ban", ex);
-			rollback();
+			rollback(em);
+		} finally {
+			close(em);
+			em = null;
 		}
 
 		return replaced;
@@ -165,13 +200,17 @@ public class JPABanService implements BanService {
 
 		List<BanEntry> bans = null;
 
+		EntityManager em = null;
 		try {
-			begin();
-			bans = (List<BanEntry>) (q_list.getResultList());
-			commit();
+			em = begin();
+			bans = (List<BanEntry>) (em.createNamedQuery("list").getResultList());
+			commit(em);
 		} catch (Exception ex) {
 			s_log.error("Failed fetching all bans", ex);
 			bans = null;
+		} finally {
+			close(em);
+			em = null;
 		}
 
 		return bans;
@@ -182,13 +221,17 @@ public class JPABanService implements BanService {
 
 		List<BanEntry> bans = null;
 
+		EntityManager em = null;
 		try {
-			begin();
-			bans = (List<BanEntry>) (q_list_active.getResultList());
-			commit();
+			em = begin();
+			bans = (List<BanEntry>) (em.createNamedQuery("list_active").getResultList());
+			commit(em);
 		} catch (Exception ex) {
 			s_log.error("Failed fetching all bans", ex);
 			bans = null;
+		} finally {
+			close(em);
+			em = null;
 		}
 
 		return bans;

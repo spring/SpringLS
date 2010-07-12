@@ -13,6 +13,13 @@ import javax.persistence.*;
  */
 @Entity
 @Table(name="BanEntries")
+@NamedQueries({
+	@NamedQuery(name="size", query="SELECT count(b.id) FROM BanEntry b"),
+	@NamedQuery(name="size_active", query="SELECT count(b.id) FROM BanEntry b WHERE ((b.enabled = TRUE) AND (b.expireDate IS NULL OR b.expireDate > CURRENT_TIMESTAMP))"),
+	@NamedQuery(name="list", query="SELECT b FROM BanEntry b"),
+	@NamedQuery(name="list_active", query="SELECT b FROM BanEntry b WHERE ((b.enabled = TRUE) AND (b.expireDate IS NULL OR b.expireDate > CURRENT_TIMESTAMP))"),
+	@NamedQuery(name="fetch", query="SELECT b FROM BanEntry b WHERE ((b.username = :username) OR ((b.ipStart <= :ip) AND (b.ipStart >= :ip)) OR (b.userId >= :userId))")
+})
 public class BanEntry implements Serializable {
 
 	@Id

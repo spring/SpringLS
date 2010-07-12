@@ -20,6 +20,16 @@ import javax.persistence.*;
  */
 @Entity
 @Table(name="users")
+@NamedQueries({
+	@NamedQuery(name="size", query="SELECT count(a.id) FROM Account a"),
+//	@NamedQuery(name="size_active", query="SELECT count(a.id) FROM Account a WHERE ((a.inGameTime >= :minInGameTime) AND (a.lastLogin > :oneWeekAgo))"),
+//	q_size_active.setParameter("minInGameTime", Account.Rank.Beginner.getRequiredTime());
+	@NamedQuery(name="size_active", query="SELECT count(a.id) FROM Account a WHERE ((a.inGameTime >= " + /*Account.Rank.Beginner.getRequiredTime()*/(5 * 60 * 60) + ") AND (a.lastLogin > :oneWeekAgo))"),
+	@NamedQuery(name="list", query="SELECT a FROM Account a"),
+	@NamedQuery(name="fetchByName", query="SELECT a FROM Account a WHERE a.name = :name"),
+	@NamedQuery(name="fetchByLowerName", query="SELECT a FROM Account a WHERE (LOWER(a.name) = :lowerName)"),
+	@NamedQuery(name="fetchByLastIP", query="SELECT a FROM Account a WHERE a.lastIP = :ip")
+})
 public class Account implements Serializable {
 
 	private static final Log s_log  = LogFactory.getLog(Account.class);

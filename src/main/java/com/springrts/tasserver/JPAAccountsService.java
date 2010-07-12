@@ -26,43 +26,49 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 
 	private static final Log s_log  = LogFactory.getLog(JPAAccountsService.class);
 
-	private EntityManager em = null;
-	private Query q_size = null;
-	private Query q_size_active = null;
-	private Query q_list = null;
-	private Query q_fetchByName = null;
-	private Query q_fetchByLowerName = null;
-	private Query q_fetchByLastIP = null;
+	private EntityManagerFactory emf = null;
 
 
 	public JPAAccountsService() {
 
-		EntityManagerFactory emf = Persistence.createEntityManagerFactory("tasserver");
-		em = emf.createEntityManager();
-
-		q_size          = em.createQuery("SELECT count(a.id) FROM Account a");
-		q_size_active   = em.createQuery("SELECT count(a.id) FROM Account a WHERE ((a.inGameTime >= :minInGameTime) AND (a.lastLogin > :oneWeekAgo))");
-		q_size_active.setParameter("minInGameTime", Account.Rank.Beginner.getRequiredTime());
-		q_list          = em.createQuery("SELECT a FROM Account a");
-		q_fetchByName   = em.createQuery("SELECT a FROM Account a WHERE a.name = :name");
-		q_fetchByLowerName = em.createQuery("SELECT a FROM Account a WHERE (LOWER(a.name) = :lowerName)");
-		q_fetchByLastIP = em.createQuery("SELECT a FROM Account a WHERE a.lastIP = :ip");
+		emf = Persistence.createEntityManagerFactory("tasserver");
 	}
 
-	private void begin() {
+	private EntityManager begin() {
+
+		EntityManager em = emf.createEntityManager();
 		em.getTransaction().begin();
+		return em;
 	}
-	private void commit() {
+	private void commit(EntityManager em) {
 		em.getTransaction().commit();
 	}
-	private void rollback() {
+	private void rollback(EntityManager em) {
 
-		try {
-			if (em.getTransaction().isActive()) {
-				em.getTransaction().rollback();
+		if (em == null) {
+			s_log.error("Failed to create an entity manager");
+		} else {
+			try {
+				if (em.getTransaction().isActive()) {
+					em.getTransaction().rollback();
+				}
+			} catch (PersistenceException ex) {
+				s_log.error("Failed to rollback a transaction", ex);
 			}
-		} catch (PersistenceException ex) {
-			s_log.error("Failed to rollback a transaction", ex);
+		}
+	}
+	private void close(EntityManager em) {
+
+		if (em == null) {
+			s_log.error("Failed to create an entity manager");
+		} else {
+			try {
+				if (em.isOpen()) {
+					em.close();
+				}
+			} catch (IllegalStateException ex) {
+				s_log.error("Failed to close an entity manager", ex);
+			}
 		}
 	}
 
@@ -77,13 +83,17 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 
 		int accounts = -1;
 
+		EntityManager em = null;
 		try {
-			begin();
-			long numAccounts = (Long) (q_size.getSingleResult());
-			commit();
+			em = begin();
+			long numAccounts = (Long) (em.createNamedQuery("size").getSingleResult());
+			commit(em);
 			accounts = (int) numAccounts;
 		} catch (Exception ex) {
 			s_log.error("Failed fetching number of accounts", ex);
+		} finally {
+			close(em);
+			em = null;
 		}
 
 		return accounts;
@@ -94,15 +104,20 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 
 		int activeAccounts = -1;
 
+		EntityManager em = null;
 		try {
-			begin();
+			em = begin();
+			Query q_size_active = em.createNamedQuery("size_active");
 			final long oneWeekAgo = System.currentTimeMillis() - (1000 * 60 * 60 * 24 * 7);
 			q_size_active.setParameter("oneWeekAgo", oneWeekAgo);
 			activeAccounts = (int) (long) (Long) (q_size_active.getSingleResult());
-			commit();
+			commit(em);
 		} catch (Exception ex) {
 			s_log.error("Failed fetching active accounts", ex);
 			activeAccounts = -1;
+		} finally {
+			close(em);
+			em = null;
 		}
 
 		return activeAccounts;
@@ -122,30 +137,38 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 	@Override
 	public void addAccount(Account acc) {
 
+		EntityManager em = null;
 		try {
-			begin();
+			em = begin();
 			em.persist(acc);
-			commit();
+			commit(em);
 		} catch (Exception ex) {
 			s_log.error("Failed adding an account", ex);
-			rollback();
+			rollback(em);
+		} finally {
+			close(em);
+			em = null;
 		}
 	}
 
 	@Override
 	public void addAccounts(Iterable<Account> accs) {
 
+		EntityManager em = null;
 		try {
-			begin();
+			em = begin();
 
 			for (Account acc : accs) {
 				em.merge(acc);
 			}
 
-			commit();
+			commit(em);
 		} catch (Exception ex) {
 			s_log.error("Failed adding an account", ex);
-			rollback();
+			rollback(em);
+		} finally {
+			close(em);
+			em = null;
 		}
 	}
 
@@ -154,14 +177,18 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 
 		boolean removed = false;
 
+		EntityManager em = null;
 		try {
-			begin();
+			em = begin();
 			em.remove(acc);
-			commit();
+			commit(em);
 			removed = true;
 		} catch (Exception ex) {
 			s_log.error("Failed removing an account", ex);
-			rollback();
+			rollback(em);
+		} finally {
+			close(em);
+			em = null;
 		}
 
 		return removed;
@@ -172,17 +199,22 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 
 		Account act = null;
 
+		EntityManager em = null;
 		try {
-			begin();
+			em = begin();
+			Query q_fetchByName = em.createNamedQuery("fetchByName");
 			q_fetchByName.setParameter("name", username);
 			act = (Account) q_fetchByName.getSingleResult();
-			commit();
+			commit(em);
 		} catch (NoResultException ex) {
 			s_log.trace("Failed fetching an account by name: " + username + " (user not found)", ex);
 			act = null;
 		} catch (Exception ex) {
 			s_log.trace("Failed fetching an account by name: " + username, ex);
 			act = null;
+		} finally {
+			close(em);
+			em = null;
 		}
 
 		return act;
@@ -193,14 +225,19 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 
 		Account act = null;
 
+		EntityManager em = null;
 		try {
-			begin();
+			em = begin();
+			Query q_fetchByLowerName = em.createNamedQuery("fetchByLowerName");
 			q_fetchByLowerName.setParameter("lowerName", username.toLowerCase());
 			act = (Account) q_fetchByLowerName.getSingleResult();
-			commit();
+			commit(em);
 		} catch (Exception ex) {
 			s_log.trace("Failed fetching an account by name (case-insensitive)", ex);
 			act = null;
+		} finally {
+			close(em);
+			em = null;
 		}
 
 		return act;
@@ -211,14 +248,19 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 
 		Account act = null;
 
+		EntityManager em = null;
 		try {
-			begin();
+			em = begin();
+			Query q_fetchByLastIP = em.createNamedQuery("fetchByLastIP");
 			q_fetchByLastIP.setParameter("ip", ip);
 			act = (Account) q_fetchByLastIP.getSingleResult();
-			commit();
+			commit(em);
 		} catch (Exception ex) {
 			s_log.trace("Failed fetching an account by last ip", ex);
 			act = null;
+		} finally {
+			close(em);
+			em = null;
 		}
 
 		return act;
@@ -229,14 +271,18 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 
 		boolean replaced = false;
 
+		EntityManager em = null;
 		try {
-			begin();
+			em = begin();
 			em.merge(account);
-			commit();
+			commit(em);
 			replaced = true;
 		} catch (Exception ex) {
 			s_log.error("Failed replacing an account", ex);
-			rollback();
+			rollback(em);
+		} finally {
+			close(em);
+			em = null;
 		}
 
 		return replaced;
@@ -247,13 +293,17 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 
 		List<Account> acts = null;
 
+		EntityManager em = null;
 		try {
-			begin();
-			acts = (List<Account>) (q_list.getResultList());
-			commit();
+			em = begin();
+			acts = (List<Account>) (em.createNamedQuery("list").getResultList());
+			commit(em);
 		} catch (Exception ex) {
 			s_log.error("Failed fetching all accounts", ex);
 			acts = null;
+		} finally {
+			close(em);
+			em = null;
 		}
 
 		return acts;
