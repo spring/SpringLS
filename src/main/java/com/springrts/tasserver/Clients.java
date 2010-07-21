@@ -315,7 +315,7 @@ public class Clients implements ContextReceiver {
 		}
 
 		if (client.getAccount().getAccess() != Account.Access.NONE) {
-			sendToAllRegisteredUsers("REMOVEUSER %s" + client.getAccount().getName());
+			sendToAllRegisteredUsers("REMOVEUSER " + client.getAccount().getName());
 			if (s_log.isDebugEnabled()) {
 				s_log.debug("Registered user killed: " + client.getAccount().getName());
 			}
