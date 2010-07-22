@@ -3353,18 +3353,18 @@ public class TASServer implements LiveStateListener {
 				}
 
 				StartRect startRect = bat.startRects.get(allyno);
-				if (startRect.enabled) {
+				if (startRect.isEnabled()) {
 					client.sendLine(new StringBuilder("SERVERMSG Serious error: inconsistent data (")
 							.append(commands[0]).append(" command). You will now be disconnected ...").toString());
 					context.getClients().killClient(client, "Quit: inconsistent data");
 					return false;
 				}
 
-				startRect.enabled = true;
-				startRect.left = left;
-				startRect.top = top;
-				startRect.right = right;
-				startRect.bottom = bottom;
+				startRect.setEnabled(true);
+				startRect.setLeft(left);
+				startRect.setTop(top);
+				startRect.setRight(right);
+				startRect.setBottom(bottom);
 
 				bat.sendToAllExceptFounder(new StringBuilder("ADDSTARTRECT ")
 						.append(allyno).append(" ")
@@ -3402,14 +3402,14 @@ public class TASServer implements LiveStateListener {
 				}
 
 				StartRect startRect = bat.startRects.get(allyno);
-				if (!startRect.enabled) {
+				if (!startRect.isEnabled()) {
 					client.sendLine(new StringBuilder("SERVERMSG Serious error: inconsistent data (")
 							.append(commands[0]).append(" command). You will now be disconnected ...").toString());
 					context.getClients().killClient(client, "Quit: inconsistent data");
 					return false;
 				}
 
-				startRect.enabled = false;
+				startRect.setEnabled(false);
 
 				bat.sendToAllExceptFounder(new StringBuilder("REMOVESTARTRECT ").append(allyno).toString());
 			} else if (commands[0].equals("SCRIPTSTART")) {

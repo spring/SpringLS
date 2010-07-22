@@ -437,13 +437,13 @@ public class Battle implements ContextReceiver {
 
 		for (int i = 0; i < startRects.size(); i++) {
 			StartRect curStartRect = startRects.get(i);
-			if (curStartRect.enabled) {
+			if (curStartRect.isEnabled()) {
 				client.sendLine(new StringBuilder("ADDSTARTRECT ")
 						.append(i).append(" ")
-						.append(curStartRect.left).append(" ")
-						.append(curStartRect.top).append(" ")
-						.append(curStartRect.right).append(" ")
-						.append(curStartRect.bottom).toString());
+						.append(curStartRect.getLeft()).append(" ")
+						.append(curStartRect.getTop()).append(" ")
+						.append(curStartRect.getRight()).append(" ")
+						.append(curStartRect.getBottom()).toString());
 			}
 		}
 	}
