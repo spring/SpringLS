@@ -10,6 +10,12 @@
 	<name>TASServer</name>
 	<description>A Spring RTS Lobby Server</description>
 	<url>http://springrts.com</url>
+	<inceptionYear>2005</inceptionYear>
+
+	<issueManagement>
+		<system>Mantis</system>
+		<url>http://springrts.com/mantis/</url>
+	</issueManagement>
 
 	<build>
 		<defaultGoal>package</defaultGoal>
