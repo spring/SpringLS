@@ -79,7 +79,9 @@ public class MuteList {
 		clearExpiredOnes();
 
 		for (int i = 0; i < ips.size(); i++) {
-			if ((ips.get(i) != null) && (ips.get(i).equals(IP))) return true;
+			if ((ips.get(i) != null) && (ips.get(i).equals(IP))) {
+				return true;
+			}
 		}
 
 		return false;
@@ -102,7 +104,9 @@ public class MuteList {
 
 		usernames.add(username);
 		Long until = new Long(0);
-		if (seconds != 0) until = new Long(System.currentTimeMillis() + seconds*1000);
+		if (seconds != 0) {
+			until = new Long(System.currentTimeMillis() + seconds * 1000);
+		}
 		mutedUntil.add(until);
 		ips.add(IP);
 		return true;
@@ -131,14 +135,22 @@ public class MuteList {
 	}
 
 	public String getUsername(int index) {
-		if (index > usernames.size()-1) return ""; else return usernames.get(index);
+		if (index > usernames.size()-1) {
+			return "";
+		} else {
+			return usernames.get(index);
+		}
 	}
 
 	public long getRemainingSeconds(int index) {
 		// note: you shouldn't call clearExpiredOnes() here! (see "MUTELIST" command to see why)
-		if (index > mutedUntil.size()-1) return -1;
-		if (mutedUntil.get(index).longValue() == 0) return 0;
-		else return (mutedUntil.get(index).longValue() - System.currentTimeMillis()) / 1000;
+		if (index > mutedUntil.size()-1) {
+			return -1;
+		} else if (mutedUntil.get(index).longValue() == 0) {
+			return 0;
+		} else {
+			return (mutedUntil.get(index).longValue() - System.currentTimeMillis()) / 1000;
+		}
 	}
 
 	/**

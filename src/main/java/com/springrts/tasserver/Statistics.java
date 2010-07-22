@@ -46,7 +46,7 @@ public class Statistics implements ContextReceiver {
 	 * Time when we last updated statistics.
 	 * @see System.currentTimeMillis()
 	 */
-	public long lastStatisticsUpdate;
+	private long lastStatisticsUpdate;
 
 	private Context context = null;
 

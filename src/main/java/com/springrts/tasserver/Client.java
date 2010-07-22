@@ -227,7 +227,7 @@ public class Client implements ContextReceiver {
 			return false;
 		}
 		final Client other = (Client) obj;
-		if (this.sockChan != other.sockChan && (this.sockChan == null || !this.sockChan.equals(other.sockChan))) {
+		if (this.sockChan != other.getSockChan() && (this.sockChan == null || !this.sockChan.equals(other.getSockChan()))) {
 			return false;
 		}
 		return true;

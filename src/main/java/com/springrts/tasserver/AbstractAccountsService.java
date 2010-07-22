@@ -24,7 +24,7 @@ public abstract class AbstractAccountsService implements AccountsService {
 
 
 	@Override
-	public final void receiveContext(Context context) {
+	public void receiveContext(Context context) {
 		this.context = context;
 	}
 	protected Context getContext() {

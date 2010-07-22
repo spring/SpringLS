@@ -36,12 +36,12 @@ public class Battles implements ContextReceiver {
 	}
 
 	/**
-	 * If battle with ID 'battleID' exist, it is returned,
+	 * If battle with id 'battleID' exist, it is returned,
 	 * or else null is returned.
 	 */
 	public Battle getBattleByID(int battleID) {
 		for (int i = 0; i < battles.size(); i++) {
-			if (battles.get(i).ID == battleID) {
+			if (battles.get(i).id == battleID) {
 				return battles.get(i);
 			}
 		}
@@ -64,7 +64,7 @@ public class Battles implements ContextReceiver {
 			battle.getClient(i).setBattleID(Battle.NO_BATTLE_ID);
 		}
 		battle.founder.setBattleID(Battle.NO_BATTLE_ID);
-		context.getClients().sendToAllRegisteredUsers("BATTLECLOSED " + battle.ID);
+		context.getClients().sendToAllRegisteredUsers("BATTLECLOSED " + battle.id);
 		battles.remove(battle);
 	}
 
@@ -78,13 +78,13 @@ public class Battles implements ContextReceiver {
 		if (battle.founder == client) {
 			closeBattleAndNotifyAll(battle);
 		} else {
-			if (client.getBattleID() != battle.ID || !battle.removeClient(client)) {
+			if (client.getBattleID() != battle.id || !battle.removeClient(client)) {
 				return false;
 			}
 			client.setBattleID(Battle.NO_BATTLE_ID);
 			battle.removeClientBots(client);
 			context.getClients().sendToAllRegisteredUsers(new StringBuilder("LEFTBATTLE ")
-					.append(battle.ID).append(" ")
+					.append(battle.id).append(" ")
 					.append(client.getAccount().getName()).toString());
 		}
 
@@ -107,14 +107,14 @@ public class Battles implements ContextReceiver {
 			// in order to tell the user how many spectators are in the battle,
 			// for example.
 			client.sendLine(new StringBuilder("UPDATEBATTLEINFO ")
-					.append(bat.ID).append(" ")
+					.append(bat.id).append(" ")
 					.append(bat.spectatorCount()).append(" ")
 					.append(Misc.boolToStr(bat.locked)).append(" ")
 					.append(bat.mapHash).append(" ")
 					.append(bat.mapName).toString());
 			for (int j = 0; j < bat.getClientsSize(); j++) {
 				client.sendLine(new StringBuilder("JOINEDBATTLE ")
-						.append(bat.ID).append(" ")
+						.append(bat.id).append(" ")
 						.append(bat.getClient(j).getAccount().getName()).toString());
 			}
 		}

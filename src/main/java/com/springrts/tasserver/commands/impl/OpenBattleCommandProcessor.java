@@ -24,7 +24,8 @@ public class OpenBattleCommandProcessor extends AbstractCommandProcessor
 
 	@Override
 	public boolean process(Client client, List<String> args)
-			throws CommandProcessingException {
+			throws CommandProcessingException
+	{
 		boolean checksOk = super.process(client, args);
 		if (!checksOk) {
 			return false;
@@ -41,7 +42,7 @@ public class OpenBattleCommandProcessor extends AbstractCommandProcessor
 		}
 		getContext().getBattles().addBattle(bat);
 		client.setBattleStatus(0); // reset client's battle status
-		client.setBattleID(bat.ID);
+		client.setBattleID(bat.id);
 		client.setRequestedBattleID(Battle.NO_BATTLE_ID);
 
 		boolean local;
@@ -57,7 +58,7 @@ public class OpenBattleCommandProcessor extends AbstractCommandProcessor
 		}
 
 		// notify client that he successfully opened a new battle
-		client.sendLine("OPENBATTLE " + bat.ID);
+		client.sendLine("OPENBATTLE " + bat.id);
 		client.sendLine("REQUESTBATTLESTATUS");
 		return true;
 	}

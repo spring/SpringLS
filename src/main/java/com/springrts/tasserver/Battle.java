@@ -13,32 +13,75 @@ import org.apache.commons.logging.LogFactory;
  */
 public class Battle implements ContextReceiver {
 
-	private static int IDCounter; // this is the ID that the next battle will have
+	/** the id that the next battle will have */
+	private static int nextId;
 
-	/** This is used as a null kind of value, whenever we want to refer to no-battle. */
+	/**
+	 * This is used as a null kind of value,
+	 * whenever we want to refer to no-battle.
+	 */
 	public static final int NO_BATTLE_ID = -1;
-	public int ID; // each battle has it's own unique ID
-	public int type; // 0 = normal battle, 1 = battle replay
-	public int natType; // NAT traversal technique used by the host. Use 0 for none.
-	public String title; // description of the battle set by founder of the battle
-	public Client founder; // founder (host) of the battle
-	private List<Client> clients; // clients without the founder (host)
-	private List<Bot> bots; // bots added by clients participating in this battle
+	/** unique id */
+	public int id;
+	/** 0 = normal battle, 1 = battle replay */
+	public int type;
+	/** NAT traversal technique used by the host. Use 0 for none. */
+	public int natType;
+	/** description set by the founder of the battle */
+	public String title;
+	/** founder (host) of the battle */
+	public Client founder;
+	/** clients without the founder (host) */
+	private List<Client> clients;
+	/** bots added by clients participating in this battle */
+	private List<Bot> bots;
+	/** name of the map currently selected for this battle */
 	public String mapName;
+	/** maximum number of players (including bots) that can participate */
 	public int maxPlayers;
-	public String password; // use restricted() method to find out if battle is password-protected
+	/** use restricted() method to find out if battle is password-protected */
+	public String password;
+	/** IP port number this battle will be hosted on (default is 8452). */
 	public int port;
-	public int hashCode; // see notes for description!
-	public int rank; // if 0, no rank limit is set. If 1 or higher, only players with this rank (or higher) can join the battle (Note: rank index 1 means seconds rank, not the first one, since you can't limit game to players of the first rank because that means game is open to all players and you don't have to limit it in that case)
-	public int mapHash; // see protocol description for details!
+	/** see notes for description */
+	public int hashCode;
+	/**
+	 * If 0, no rank limit is set.
+	 * If 1 or higher, only players with this rank (or higher)
+	 * can join the battle
+	 * (Note: rank index 1 means seconds rank, not the first one,
+	 * since you can not limit the game to players of the first rank,
+	 * because that means the game is open to all players
+	 * and you do not have to limit it in that case)
+	 */
+	public int rank;
+	/** see protocol description for details */
+	public int mapHash;
+	/** see protocol description for details */
 	public String modName;
+	/** list of unit-definition names which are not allowed to be built */
 	public List<String> disabledUnits;
+	/** list of start rectangles */
 	public List<StartRect> startRects;
-	public boolean locked; // if true, battle is locked and noone can join it (until lock is released by founder)
+	/**
+	 * if the battle is locked, no-one can join it
+	 * (until the lock is released by founder)
+	 */
+	public boolean locked;
+	/**  */
 	public Map<String, String> scriptTags;
-	// following elements are used only with type=1:
-	public List<String> replayScript; // contains lines of the script file
-	public List<String> tempReplayScript; // here we save script lines until we receive SCRIPTEND command. Then we copy it to "replayScript" object and notify all clients about it.
+	/**
+	 * contains lines of the script file.
+	 * This is only used if type == 1.
+	 */
+	public List<String> replayScript;
+	/**
+	 * Stores script lines until we receive the SCRIPTEND command.
+	 * Then we copy it to the "replayScript" object,
+	 * and notify all clients about it.
+	 * This is only used if type == 1.
+	 */
+	public List<String> tempReplayScript;
 
 	private Context context = null;
 
@@ -52,7 +95,7 @@ public class Battle implements ContextReceiver {
 
 
 	public Battle(int type, int natType, Client founder, String password, int port, int maxPlayers, int hashCode, int rank, int mapHash, String mapName, String title, String modName) {
-		this.ID = IDCounter++;
+		this.id = nextId++;
 		this.type = type;
 		this.natType = natType;
 		this.title = title;
@@ -106,7 +149,7 @@ public class Battle implements ContextReceiver {
 		}
 
 		return new StringBuilder("BATTLEOPENED ")
-				.append(ID).append(" ")
+				.append(id).append(" ")
 				.append(type).append(" ")
 				.append(natType).append(" ")
 				.append(founder.getAccount().getName()).append(" ")
@@ -355,7 +398,7 @@ public class Battle implements ContextReceiver {
 			Bot bot = bots.get(i);
 			if (bot.getOwnerName().equals(client.getAccount().getName())) {
 				sendToAllClients(new StringBuilder("REMOVEBOT ")
-						.append(ID).append(" ")
+						.append(id).append(" ")
 						.append(bot.getName()).toString());
 				bots.remove(bot);
 				return true;
@@ -381,7 +424,7 @@ public class Battle implements ContextReceiver {
 		for (int i = 0; i < bots.size(); i++) {
 			Bot bot = bots.get(i);
 			client.sendLine(new StringBuilder("ADDBOT ")
-					.append(ID).append(" ")
+					.append(id).append(" ")
 					.append(bot.getName()).append(" ")
 					.append(bot.getOwnerName()).append(" ")
 					.append(bot.getBattleStatus()).append(" ")

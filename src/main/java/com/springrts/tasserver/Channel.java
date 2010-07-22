@@ -79,7 +79,7 @@ public class Channel implements ContextReceiver, LiveStateListener {
 	}
 
 	public boolean equals(Channel chan) {
-		return this.name.equals(chan.name);
+		return this.name.equals(chan.getName());
 	}
 
 	public String getTopic() {

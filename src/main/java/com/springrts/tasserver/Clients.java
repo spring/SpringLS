@@ -263,7 +263,7 @@ public class Clients implements ContextReceiver {
 	 */
 	public void notifyClientsOfNewClientInBattle(Battle battle, Client client) {
 
-		String cmdBase = "JOINEDBATTLE " + battle.ID + " " + client.getAccount().getName();
+		String cmdBase = "JOINEDBATTLE " + battle.id + " " + client.getAccount().getName();
 		for (Client toBeNotified : clients)  {
 			if (toBeNotified.getAccount().getAccess().compareTo(Account.Access.NORMAL) >= 0) {
 				StringBuilder cmd = new StringBuilder(cmdBase);

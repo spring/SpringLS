@@ -323,16 +323,16 @@ public class Account implements Serializable {
 
 		this.name              = acc.getName();
 		this.password          = acc.getPassword();
-		this.access            = acc.access;
+		this.access            = acc.getAccess();
 		this.lastUserId        = NO_USER_ID;
-		this.lastLogin         = acc.lastLogin;
+		this.lastLogin         = acc.getLastLogin();
 		this.lastIP            = acc.getLastIP();
-		this.registrationDate  = acc.registrationDate;
+		this.registrationDate  = acc.getRegistrationDate();
 		this.lastCountry       = acc.getLastCountry();
-		this.id                = acc.id;
-		this.bot               = acc.bot;
-		this.inGameTime        = acc.inGameTime;
-		this.agreementAccepted = acc.agreementAccepted;
+		this.id                = acc.getId();
+		this.bot               = acc.isBot();
+		this.inGameTime        = acc.getInGameTime();
+		this.agreementAccepted = acc.isAgreementAccepted();
 	}
 
 	@Override
@@ -378,7 +378,7 @@ public class Account implements Serializable {
 			return false;
 		}
 		final Account other = (Account) obj;
-		if ((this.getName() == null) ? (other.getName() != null) : !this.name.equals(other.name)) {
+		if ((this.getName() == null) ? (other.getName() != null) : !this.name.equals(other.getName())) {
 			return false;
 		}
 		return true;

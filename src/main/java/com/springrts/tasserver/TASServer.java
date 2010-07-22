@@ -249,7 +249,7 @@ public class TASServer implements LiveStateListener {
 	final String UPDATE_PROPERTIES_FILENAME = "updates.xml";
 	final int TIMEOUT_CHECK = 5000;
 	/** in milliseconds */
-	int timeoutLength = 50000;
+	private int timeoutLength = 50000;
 	/** if true, server is redirection clients to new IP */
 	private boolean redirect = false;
 	/** new IP to which clients are redirected if (redirected==true) */
@@ -276,20 +276,6 @@ public class TASServer implements LiveStateListener {
 	 */
 	private final Collection<String> reservedAccountNames = Arrays.asList(new String[] {"TASServer", "Server", "server"});
 	/**
-	 * Minimum time (in seconds) required between two consecutive MAPGRADES
-	 * commands sent by the client.
-	 * We need this to ensure that client does not send the MAPGRADES command
-	 * too often, as it creates a big load on the server.
-	 */
-	private final long minSleepTimeBetweenMapGrades = 5;
-	/**
-	 * We set this to 'true' just before we enter the main loop.
-	 * We need this information when saving accounts for example,
-	 * so that we don not dump empty accounts to disk when an error has occurred
-	 * before initialization has been completed.
-	 */
-	private boolean initializationFinished = false;
-	/**
 	 * Here we store information on latest failed login attempts.
 	 * We use it to block users from brute-forcing other accounts.
 	 */
@@ -298,8 +284,6 @@ public class TASServer implements LiveStateListener {
 	private long lastFailedLoginsPurgeTime = System.currentTimeMillis();
 	private static final Log s_log  = LogFactory.getLog(TASServer.class);
 
-	//private Properties mavenProperties = null;
-	// database related:
 	private final int READ_BUFFER_SIZE = 256; // size of the ByteBuffer used to read data from the socket channel. This size doesn't really matter - server will work with any size (tested with READ_BUFFER_SIZE==1), but too small buffer size may impact the performance.
 	private final int SEND_BUFFER_SIZE = 8192 * 2; // socket's send buffer size
 	private final long MAIN_LOOP_SLEEP = 10L;
@@ -308,12 +292,11 @@ public class TASServer implements LiveStateListener {
 	private int maxBytesAlertForBot = 50000; // same as 'maxBytesAlert' but is used for clients in "bot mode" only (see client.status bits)
 	private long lastFloodCheckedTime = System.currentTimeMillis(); // time (in same format as System.currentTimeMillis) when we last updated it. Used with anti-flood protection.
 	private long maxChatMessageLength = 1024; // used with basic anti-flood protection. Any chat messages (channel or private chat messages) longer than this are considered flooding. Used with following commands: SAY, SAYEX, SAYPRIVATE, SAYBATTLE, SAYBATTLEEX
-	public boolean regEnabled = true;
-	public boolean loginEnabled = true;
+	private boolean regEnabled = true;
+	private boolean loginEnabled = true;
 	private long lastTimeoutCheck = System.currentTimeMillis(); // time (System.currentTimeMillis()) when we last checked for timeouts from clients
 	private ServerSocketChannel sSockChan;
 	private Selector readSelector;
-	//***private SelectionKey selectKey;
 	private boolean running;
 	private ByteBuffer readBuffer = ByteBuffer.allocateDirect(READ_BUFFER_SIZE); // see http://java.sun.com/j2se/1.5.0/docs/api/java/nio/ByteBuffer.html for difference between direct and non-direct buffers. In this case we should use direct buffers, this is also used by the author of java.nio chat example (see links) upon which this code is built on.
 	
@@ -357,24 +340,6 @@ public class TASServer implements LiveStateListener {
 		try {
 			fStream = new FileInputStream(fileName);
 			updateProperties.loadFromXML(fStream);
-		} catch (IOException e) {
-			return false;
-		} finally {
-			if (fStream != null) {
-				try {
-					fStream.close();
-				} catch (IOException e) {
-				}
-			}
-		}
-		return true;
-	}
-
-	private boolean writeUpdateProperties(String fileName) {
-		FileOutputStream fStream = null;
-		try {
-			fStream = new FileOutputStream(fileName);
-			updateProperties.storeToXML(fStream, null);
 		} catch (IOException e) {
 			return false;
 		} finally {
@@ -709,11 +674,11 @@ public class TASServer implements LiveStateListener {
 		
 		// do the actually joining and notifying:
 		client.setBattleStatus(0); // reset client's battle status
-		client.setBattleID(bat.ID);
+		client.setBattleID(bat.id);
 		client.setRequestedBattleID(Battle.NO_BATTLE_ID);
 		bat.addClient(client);
 	 	// notify client that he has successfully joined the battle
-		client.sendLine("JOINBATTLE " + bat.ID + " " + bat.hashCode);
+		client.sendLine("JOINBATTLE " + bat.id + " " + bat.hashCode);
 		context.getClients().notifyClientsOfNewClientInBattle(bat, client);
 		bat.notifyOfBattleStatuses(client);
 		bat.sendBotListToClient(client);
@@ -760,7 +725,7 @@ public class TASServer implements LiveStateListener {
 					return false; // malformed command
 				}
 				msgId = Integer.parseInt(command.substring(1).split("\\s")[0]);
-				// remove ID field from the rest of command:
+				// remove id field from the rest of command:
 				command = command.replaceFirst("#\\d+\\s", "");
 			} catch (NumberFormatException e) {
 				return false; // this means that the command is malformed
@@ -2602,26 +2567,56 @@ public class TASServer implements LiveStateListener {
 				}
 
 			} else if (commands[0].equals("JOINBATTLEACCEPT")) {
-				if (commands.length != 2) return false;
-				if (client.getAccount().getAccess().compareTo(Account.Access.NORMAL) < 0) return false;
-				if (client.getBattleID() == Battle.NO_BATTLE_ID) return false;
+				if (commands.length != 2) {
+					return false;
+				} else if (client.getAccount().getAccess().compareTo(Account.Access.NORMAL) < 0) {
+					return false;
+				} else if (client.getBattleID() == Battle.NO_BATTLE_ID) {
+					return false;
+				}
+
+				// check battle
 				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
-				if (bat == null) return false;
-				if (bat.founder != client) return false; // only founder can accept battle join
+				if (bat == null) {
+					return false;
+				} else if (bat.founder != client) {
+					// only founder can accept battle join
+					return false;
+				}
+
+				// check client
 				Client joiningClient = context.getClients().getClient(commands[1]);
-				if (joiningClient == null) return false;
-				if (joiningClient.getRequestedBattleID() !=  client.getBattleID()) return false;
+				if (joiningClient == null) {
+					return false;
+				} else if (joiningClient.getRequestedBattleID() !=  client.getBattleID()) {
+					return false;
+				}
+
 				notifyClientJoinedBattle(joiningClient,bat);
 			} else if (commands[0].equals("JOINBATTLEDENY")) {
-				if (commands.length < 2) return false;
-				if (client.getAccount().getAccess().compareTo(Account.Access.NORMAL) < 0) return false;
-				if (client.getBattleID() == Battle.NO_BATTLE_ID) return false;
+				if (commands.length < 2) {
+					return false;
+				}
+				if (client.getAccount().getAccess().compareTo(Account.Access.NORMAL) < 0) {
+					return false;
+				}
+				if (client.getBattleID() == Battle.NO_BATTLE_ID) {
+					return false;
+				}
 				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
-				if (bat == null) return false;
-				if (bat.founder != client) return false; // only founder can deny battle join
+				if (bat == null) {
+					return false;
+				}
+				if (bat.founder != client) {
+					return false;
+				} // only founder can deny battle join
 				Client joiningClient = context.getClients().getClient(commands[1]);
-				if (joiningClient == null) return false;
-				if (joiningClient.getRequestedBattleID() !=  client.getBattleID()) return false;
+				if (joiningClient == null) {
+					return false;
+				}
+				if (joiningClient.getRequestedBattleID() !=  client.getBattleID()) {
+					return false;
+				}
 				joiningClient.setRequestedBattleID(Battle.NO_BATTLE_ID);
 				if(commands.length > 2) {
 				    joiningClient.sendLine("JOINBATTLEFAILED Denied by battle founder - " + Misc.makeSentence(commands, 2));
@@ -2867,7 +2862,7 @@ public class TASServer implements LiveStateListener {
 				bat.locked = locked;
 				bat.mapHash = maphash;
 				context.getClients().sendToAllRegisteredUsers(new StringBuilder("UPDATEBATTLEINFO ")
-						.append(bat.ID).append(" ")
+						.append(bat.id).append(" ")
 						.append(spectatorCount).append(" ")
 						.append(Misc.boolToStr(bat.locked)).append(" ")
 						.append(maphash).append(" ")
@@ -3128,7 +3123,7 @@ public class TASServer implements LiveStateListener {
 				bat.addBot(bot);
 
 				bat.sendToAllClients(new StringBuilder("ADDBOT ")
-						.append(bat.ID).append(" ")
+						.append(bat.id).append(" ")
 						.append(bot.getName()).append(" ")
 						.append(bot.getOwnerName()).append(" ")
 						.append(bot.getBattleStatus()).append(" ")
@@ -3158,7 +3153,7 @@ public class TASServer implements LiveStateListener {
 				bat.removeBot(bot);
 
 				bat.sendToAllClients(new StringBuilder("REMOVEBOT ")
-						.append(bat.ID).append(" ")
+						.append(bat.id).append(" ")
 						.append(bot.getName()).toString());
 			} else if (commands[0].equals("UPDATEBOT")) {
 				if (commands.length != 4) {
@@ -3205,7 +3200,7 @@ public class TASServer implements LiveStateListener {
 				//*** add: force ally and color number if someone else is using his team number already
 
 				bat.sendToAllClients(new StringBuilder("UPDATEBOT ")
-						.append(bat.ID).append(" ")
+						.append(bat.id).append(" ")
 						.append(bot.getName()).append(" ")
 						.append(bot.getBattleStatus()).append(" ")
 						.append(bot.getTeamColor()).toString());
@@ -3872,8 +3867,6 @@ public class TASServer implements LiveStateListener {
 				.append(context.getAccountsService().getAccountsSize())
 				.append(" accounts currently loaded. See server log for more info.").toString());
 		context.getServerNotifications().addNotification(sn);
-
-		initializationFinished = true; // we're through the initialization part
 
 		running = true;
 		while (running) { // main loop
