@@ -42,7 +42,7 @@ public class OpenBattleCommandProcessor extends AbstractCommandProcessor
 		}
 		getContext().getBattles().addBattle(bat);
 		client.setBattleStatus(0); // reset client's battle status
-		client.setBattleID(bat.id);
+		client.setBattleID(bat.getId());
 		client.setRequestedBattleID(Battle.NO_BATTLE_ID);
 
 		boolean local;
@@ -58,7 +58,7 @@ public class OpenBattleCommandProcessor extends AbstractCommandProcessor
 		}
 
 		// notify client that he successfully opened a new battle
-		client.sendLine("OPENBATTLE " + bat.id);
+		client.sendLine("OPENBATTLE " + bat.getId());
 		client.sendLine("REQUESTBATTLESTATUS");
 		return true;
 	}

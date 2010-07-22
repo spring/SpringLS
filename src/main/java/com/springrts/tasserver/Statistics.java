@@ -291,7 +291,7 @@ public class Statistics implements ContextReceiver {
 
 				found = false;
 				for (int j = 0; j < mods.size(); j++) {
-					if (mods.get(j).equals(context.getBattles().getBattleByIndex(i).modName)) {
+					if (mods.get(j).equals(context.getBattles().getBattleByIndex(i).getModName())) {
 						// mod already in the list. Just increase it's frequency:
 						freq[j]++;
 						found = true;
@@ -300,7 +300,7 @@ public class Statistics implements ContextReceiver {
 				}
 
 				if (!found) {
-					mods.add(context.getBattles().getBattleByIndex(i).modName);
+					mods.add(context.getBattles().getBattleByIndex(i).getModName());
 					freq = (int[]) Misc.resizeArray(freq, freq.length + 1);
 					freq[freq.length - 1] = 1;
 				}

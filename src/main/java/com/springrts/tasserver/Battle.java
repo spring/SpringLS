@@ -22,29 +22,33 @@ public class Battle implements ContextReceiver {
 	 */
 	public static final int NO_BATTLE_ID = -1;
 	/** unique id */
-	public int id;
+	private int id;
 	/** 0 = normal battle, 1 = battle replay */
-	public int type;
+	private int type;
 	/** NAT traversal technique used by the host. Use 0 for none. */
-	public int natType;
+	private int natType;
 	/** description set by the founder of the battle */
-	public String title;
+	private String title;
 	/** founder (host) of the battle */
-	public Client founder;
+	private Client founder;
 	/** clients without the founder (host) */
 	private List<Client> clients;
 	/** bots added by clients participating in this battle */
 	private List<Bot> bots;
+	/** see protocol description for details */
+	private String modName;
 	/** name of the map currently selected for this battle */
-	public String mapName;
+	private String mapName;
+	/** see protocol description for details */
+	private int mapHash;
 	/** maximum number of players (including bots) that can participate */
-	public int maxPlayers;
+	private int maxPlayers;
 	/** use restricted() method to find out if battle is password-protected */
-	public String password;
+	private String password;
 	/** IP port number this battle will be hosted on (default is 8452). */
-	public int port;
+	private int port;
 	/** see notes for description */
-	public int hashCode;
+	private int hashCode;
 	/**
 	 * If 0, no rank limit is set.
 	 * If 1 or higher, only players with this rank (or higher)
@@ -54,34 +58,30 @@ public class Battle implements ContextReceiver {
 	 * because that means the game is open to all players
 	 * and you do not have to limit it in that case)
 	 */
-	public int rank;
-	/** see protocol description for details */
-	public int mapHash;
-	/** see protocol description for details */
-	public String modName;
+	private int rank;
 	/** list of unit-definition names which are not allowed to be built */
-	public List<String> disabledUnits;
+	private List<String> disabledUnits;
 	/** list of start rectangles */
-	public List<StartRect> startRects;
+	private List<StartRect> startRects;
 	/**
 	 * if the battle is locked, no-one can join it
 	 * (until the lock is released by founder)
 	 */
-	public boolean locked;
+	private boolean locked;
 	/**  */
-	public Map<String, String> scriptTags;
+	private Map<String, String> scriptTags;
 	/**
 	 * contains lines of the script file.
 	 * This is only used if type == 1.
 	 */
-	public List<String> replayScript;
+	private List<String> replayScript;
 	/**
 	 * Stores script lines until we receive the SCRIPTEND command.
 	 * Then we copy it to the "replayScript" object,
 	 * and notify all clients about it.
 	 * This is only used if type == 1.
 	 */
-	public List<String> tempReplayScript;
+	private List<String> tempReplayScript;
 
 	private Context context = null;
 
@@ -122,7 +122,7 @@ public class Battle implements ContextReceiver {
 		int maxAllyTeams = context.getEngine().getMaxAllyTeams();
 		this.startRects = new ArrayList<StartRect>(maxAllyTeams);
 		for (int at = 0; at < maxAllyTeams; at++) {
-			this.startRects.add(new StartRect());
+			this.getStartRects().add(new StartRect());
 		}
 	}
 
@@ -143,25 +143,25 @@ public class Battle implements ContextReceiver {
 
 		String ip;
 		if (local) {
-			ip = founder.getLocalIP();
+			ip = getFounder().getLocalIP();
 		} else {
-			ip = founder.getIp();
+			ip = getFounder().getIp();
 		}
 
 		return new StringBuilder("BATTLEOPENED ")
-				.append(id).append(" ")
-				.append(type).append(" ")
-				.append(natType).append(" ")
-				.append(founder.getAccount().getName()).append(" ")
+				.append(getId()).append(" ")
+				.append(getType()).append(" ")
+				.append(getNatType()).append(" ")
+				.append(getFounder().getAccount().getName()).append(" ")
 				.append(ip).append(" ")
-				.append(port).append(" ")
-				.append(maxPlayers).append(" ")
+				.append(getPort()).append(" ")
+				.append(getMaxPlayers()).append(" ")
 				.append(Misc.boolToStr(restricted())).append(" ")
-				.append(rank).append(" ")
-				.append(mapHash).append(" ")
-				.append(mapName).append("\t")
-				.append(title).append("\t")
-				.append(modName).toString();
+				.append(getRank()).append(" ")
+				.append(getMapHash()).append(" ")
+				.append(getMapName()).append("\t")
+				.append(getTitle()).append("\t")
+				.append(getModName()).toString();
 	}
 
 	/**
@@ -180,11 +180,11 @@ public class Battle implements ContextReceiver {
 						.append(this.clients.get(i).getTeamColor()).toString());
 			}
 		}
-		if (founder != client) {
+		if (getFounder() != client) {
 			client.sendLine(new StringBuilder("CLIENTBATTLESTATUS ")
-					.append(founder.getAccount().getName()).append(" ")
-					.append(founder.getBattleStatus()).append(" ")
-					.append(founder.getTeamColor()).toString());
+					.append(getFounder().getAccount().getName()).append(" ")
+					.append(getFounder().getBattleStatus()).append(" ")
+					.append(getFounder().getTeamColor()).toString());
 		}
 	}
 
@@ -207,7 +207,7 @@ public class Battle implements ContextReceiver {
 		for (int i = 0; i < this.clients.size(); i++) {
 			clients.get(i).sendLine(s);
 		}
-		founder.sendLine(s);
+		getFounder().sendLine(s);
 	}
 
 	/**
@@ -261,7 +261,7 @@ public class Battle implements ContextReceiver {
 	}
 
 	public boolean inGame() {
-		return founder.getInGameFromStatus();
+		return getFounder().getInGameFromStatus();
 	}
 
 	/**
@@ -279,7 +279,7 @@ public class Battle implements ContextReceiver {
 				count++;
 			}
 		}
-		if (Misc.getModeFromBattleStatus(founder.getBattleStatus()) == 0) {
+		if (Misc.getModeFromBattleStatus(getFounder().getBattleStatus()) == 0) {
 			count++;
 		}
 
@@ -298,7 +298,7 @@ public class Battle implements ContextReceiver {
 				return true;
 			}
 		}
-		if (founder == client) {
+		if (getFounder() == client) {
 			return true;
 		}
 
@@ -313,7 +313,7 @@ public class Battle implements ContextReceiver {
 				return true;
 			}
 		}
-		if (founder.getAccount().getName().equals(username)) {
+		if (getFounder().getAccount().getName().equals(username)) {
 			return true;
 		}
 
@@ -328,8 +328,8 @@ public class Battle implements ContextReceiver {
 				return clients.get(i);
 			}
 		}
-		if (founder.getAccount().getName().equals(username)) {
-			return founder;
+		if (getFounder().getAccount().getName().equals(username)) {
+			return getFounder();
 		}
 
 		return null;
@@ -337,15 +337,15 @@ public class Battle implements ContextReceiver {
 
 	public void sendDisabledUnitsListToClient(Client client) {
 
-		if (disabledUnits.isEmpty()) {
+		if (getDisabledUnits().isEmpty()) {
 			// nothing to send
 			return ;
 		}
 
 		StringBuilder line = new StringBuilder("DISABLEUNITS ");
-		line.append(disabledUnits.get(0));
-		for (int i = 1; i < disabledUnits.size(); i++) {
-			line.append(" ").append(disabledUnits.get(i));
+		line.append(getDisabledUnits().get(0));
+		for (int i = 1; i < getDisabledUnits().size(); i++) {
+			line.append(" ").append(getDisabledUnits().get(i));
 		}
 
 		client.sendLine(line.toString());
@@ -398,7 +398,7 @@ public class Battle implements ContextReceiver {
 			Bot bot = bots.get(i);
 			if (bot.getOwnerName().equals(client.getAccount().getName())) {
 				sendToAllClients(new StringBuilder("REMOVEBOT ")
-						.append(id).append(" ")
+						.append(getId()).append(" ")
 						.append(bot.getName()).toString());
 				bots.remove(bot);
 				return true;
@@ -424,7 +424,7 @@ public class Battle implements ContextReceiver {
 		for (int i = 0; i < bots.size(); i++) {
 			Bot bot = bots.get(i);
 			client.sendLine(new StringBuilder("ADDBOT ")
-					.append(id).append(" ")
+					.append(getId()).append(" ")
 					.append(bot.getName()).append(" ")
 					.append(bot.getOwnerName()).append(" ")
 					.append(bot.getBattleStatus()).append(" ")
@@ -435,8 +435,8 @@ public class Battle implements ContextReceiver {
 
 	public void sendStartRectsListToClient(Client client) {
 
-		for (int i = 0; i < startRects.size(); i++) {
-			StartRect curStartRect = startRects.get(i);
+		for (int i = 0; i < getStartRects().size(); i++) {
+			StartRect curStartRect = getStartRects().get(i);
 			if (curStartRect.isEnabled()) {
 				client.sendLine(new StringBuilder("ADDSTARTRECT ")
 						.append(i).append(" ")
@@ -451,8 +451,8 @@ public class Battle implements ContextReceiver {
 	public void sendScriptToClient(Client client) {
 
 		client.sendLine("SCRIPTSTART");
-		for (int i = 0; i < replayScript.size(); i++) {
-			client.sendLine("SCRIPT " + replayScript.get(i));
+		for (int i = 0; i < getReplayScript().size(); i++) {
+			client.sendLine("SCRIPT " + getReplayScript().get(i));
 		}
 		client.sendLine("SCRIPTEND");
 	}
@@ -471,7 +471,7 @@ public class Battle implements ContextReceiver {
 	private String joinScriptTags() {
 
 		StringBuilder joined = new StringBuilder();
-		for (Map.Entry<String, String> e : scriptTags.entrySet()) {
+		for (Map.Entry<String, String> e : getScriptTags().entrySet()) {
 			if (joined.length() > 0) {
 				joined.append("\t");
 			}
@@ -482,7 +482,7 @@ public class Battle implements ContextReceiver {
 
 	public void sendScriptTagsToClient(Client client) {
 
-		if (scriptTags.isEmpty()) {
+		if (getScriptTags().isEmpty()) {
 			// nothing to send
 			return;
 		}
@@ -502,7 +502,196 @@ public class Battle implements ContextReceiver {
 	 */
 	public void ratifyTempScript() {
 
-		replayScript = new ArrayList<String>(tempReplayScript.size());
-		Collections.copy(replayScript, tempReplayScript);
+		replayScript = new ArrayList<String>(getTempReplayScript().size());
+		Collections.copy(getReplayScript(), getTempReplayScript());
+	}
+
+	/**
+	 * Returns the unique id of this battle.
+	 * @see #NO_BATTLE_ID
+	 * @return the unique id of this battle
+	 */
+	public int getId() {
+		return id;
+	}
+
+	/**
+	 * 0 = normal battle, 1 = battle replay
+	 * @return the type
+	 */
+	public int getType() {
+		return type;
+	}
+
+	/**
+	 * NAT traversal technique used by the host. Use 0 for none.
+	 * @return the natType
+	 */
+	public int getNatType() {
+		return natType;
+	}
+
+	/**
+	 * description set by the founder of the battle
+	 * @return the title
+	 */
+	public String getTitle() {
+		return title;
+	}
+
+	/**
+	 * founder (host) of the battle
+	 * @return the founder
+	 */
+	public Client getFounder() {
+		return founder;
+	}
+
+	/**
+	 * name of the map currently selected for this battle
+	 * @return the mapName
+	 */
+	public String getMapName() {
+		return mapName;
+	}
+
+	/**
+	 * name of the map currently selected for this battle
+	 * @param mapName the mapName to set
+	 */
+	public void setMapName(String mapName) {
+		this.mapName = mapName;
+	}
+
+	/**
+	 * maximum number of players (including bots) that can participate
+	 * @return the maxPlayers
+	 */
+	public int getMaxPlayers() {
+		return maxPlayers;
+	}
+
+	/**
+	 * use restricted() method to find out if battle is password-protected
+	 * @return the password
+	 */
+	public String getPassword() {
+		return password;
+	}
+
+	/**
+	 * IP port number this battle will be hosted on (default is 8452).
+	 * @return the port
+	 */
+	public int getPort() {
+		return port;
+	}
+
+	/**
+	 * see notes for description
+	 * @return the hashCode
+	 */
+	public int getHashCode() {
+		return hashCode;
+	}
+
+	/**
+	 * If 0, no rank limit is set.
+	 * If 1 or higher, only players with this rank (or higher)
+	 * can join the battle
+	 * (Note: rank index 1 means seconds rank, not the first one,
+	 * since you can not limit the game to players of the first rank,
+	 * because that means the game is open to all players
+	 * and you do not have to limit it in that case)
+	 * @return the rank
+	 */
+	public int getRank() {
+		return rank;
+	}
+
+	/**
+	 * see protocol description for details
+	 * @return the mapHash
+	 */
+	public int getMapHash() {
+		return mapHash;
+	}
+
+	/**
+	 * see protocol description for details
+	 * @param mapHash the mapHash to set
+	 */
+	public void setMapHash(int mapHash) {
+		this.mapHash = mapHash;
+	}
+
+	/**
+	 * see protocol description for details
+	 * @return the modName
+	 */
+	public String getModName() {
+		return modName;
+	}
+
+	/**
+	 * list of unit-definition names which are not allowed to be built
+	 * @return the disabledUnits
+	 */
+	public List<String> getDisabledUnits() {
+		return disabledUnits;
+	}
+
+	/**
+	 * list of start rectangles
+	 * @return the startRects
+	 */
+	public List<StartRect> getStartRects() {
+		return startRects;
+	}
+
+	/**
+	 * if the battle is locked, no-one can join it
+	 * (until the lock is released by founder)
+	 * @return the locked
+	 */
+	public boolean isLocked() {
+		return locked;
+	}
+
+	/**
+	 * if the battle is locked, no-one can join it
+	 * (until the lock is released by founder)
+	 * @param locked the locked to set
+	 */
+	public void setLocked(boolean locked) {
+		this.locked = locked;
+	}
+
+	/**
+	 *
+	 * @return the scriptTags
+	 */
+	public Map<String, String> getScriptTags() {
+		return scriptTags;
+	}
+
+	/**
+	 * contains lines of the script file.
+	 * This is only used if type == 1.
+	 * @return the replayScript
+	 */
+	public List<String> getReplayScript() {
+		return replayScript;
+	}
+
+	/**
+	 * Stores script lines until we receive the SCRIPTEND command.
+	 * Then we copy it to the "replayScript" object,
+	 * and notify all clients about it.
+	 * This is only used if type == 1.
+	 * @return the tempReplayScript
+	 */
+	public List<String> getTempReplayScript() {
+		return tempReplayScript;
 	}
 }

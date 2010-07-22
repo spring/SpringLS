@@ -41,7 +41,7 @@ public class Battles implements ContextReceiver {
 	 */
 	public Battle getBattleByID(int battleID) {
 		for (int i = 0; i < battles.size(); i++) {
-			if (battles.get(i).id == battleID) {
+			if (battles.get(i).getId() == battleID) {
 				return battles.get(i);
 			}
 		}
@@ -63,8 +63,8 @@ public class Battles implements ContextReceiver {
 		for (int i = 0; i < battle.getClientsSize(); i++) {
 			battle.getClient(i).setBattleID(Battle.NO_BATTLE_ID);
 		}
-		battle.founder.setBattleID(Battle.NO_BATTLE_ID);
-		context.getClients().sendToAllRegisteredUsers("BATTLECLOSED " + battle.id);
+		battle.getFounder().setBattleID(Battle.NO_BATTLE_ID);
+		context.getClients().sendToAllRegisteredUsers("BATTLECLOSED " + battle.getId());
 		battles.remove(battle);
 	}
 
@@ -75,16 +75,16 @@ public class Battles implements ContextReceiver {
 	 */
 	public boolean leaveBattle(Client client, Battle battle) {
 
-		if (battle.founder == client) {
+		if (battle.getFounder() == client) {
 			closeBattleAndNotifyAll(battle);
 		} else {
-			if (client.getBattleID() != battle.id || !battle.removeClient(client)) {
+			if (client.getBattleID() != battle.getId() || !battle.removeClient(client)) {
 				return false;
 			}
 			client.setBattleID(Battle.NO_BATTLE_ID);
 			battle.removeClientBots(client);
 			context.getClients().sendToAllRegisteredUsers(new StringBuilder("LEFTBATTLE ")
-					.append(battle.id).append(" ")
+					.append(battle.getId()).append(" ")
 					.append(client.getAccount().getName()).toString());
 		}
 
@@ -101,20 +101,20 @@ public class Battles implements ContextReceiver {
 		for (int i = 0; i < battles.size(); i++) {
 			Battle bat = battles.get(i);
 			// make sure that clients behind NAT get local IPs and not external ones
-			boolean local = bat.founder.getIp().equals(client.getIp());
+			boolean local = bat.getFounder().getIp().equals(client.getIp());
 			client.sendLine(bat.createBattleOpenedCommandEx(local));
 			// We have to send UPDATEBATTLEINFO command too,
 			// in order to tell the user how many spectators are in the battle,
 			// for example.
 			client.sendLine(new StringBuilder("UPDATEBATTLEINFO ")
-					.append(bat.id).append(" ")
+					.append(bat.getId()).append(" ")
 					.append(bat.spectatorCount()).append(" ")
-					.append(Misc.boolToStr(bat.locked)).append(" ")
-					.append(bat.mapHash).append(" ")
-					.append(bat.mapName).toString());
+					.append(Misc.boolToStr(bat.isLocked())).append(" ")
+					.append(bat.getMapHash()).append(" ")
+					.append(bat.getMapName()).toString());
 			for (int j = 0; j < bat.getClientsSize(); j++) {
 				client.sendLine(new StringBuilder("JOINEDBATTLE ")
-						.append(bat.id).append(" ")
+						.append(bat.getId()).append(" ")
 						.append(bat.getClient(j).getAccount().getName()).toString());
 			}
 		}

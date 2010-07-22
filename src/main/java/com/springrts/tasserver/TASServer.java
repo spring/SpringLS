@@ -299,7 +299,7 @@ public class TASServer implements LiveStateListener {
 	private Selector readSelector;
 	private boolean running;
 	private ByteBuffer readBuffer = ByteBuffer.allocateDirect(READ_BUFFER_SIZE); // see http://java.sun.com/j2se/1.5.0/docs/api/java/nio/ByteBuffer.html for difference between direct and non-direct buffers. In this case we should use direct buffers, this is also used by the author of java.nio chat example (see links) upon which this code is built on.
-	
+
 	private Context context = null;
 	private CommandProcessors commandProcessors = null;
 
@@ -670,21 +670,21 @@ public class TASServer implements LiveStateListener {
 	public void notifyClientJoinedBattle(Client client, Battle bat) {
 		// This non-object oriented function is ugly, but Client and Battle classes are made in such a way that
 		// they do not handle players notifications, which is made in TASServer class...
-		
+
 		// do the actually joining and notifying:
 		client.setBattleStatus(0); // reset client's battle status
-		client.setBattleID(bat.id);
+		client.setBattleID(bat.getId());
 		client.setRequestedBattleID(Battle.NO_BATTLE_ID);
 		bat.addClient(client);
 	 	// notify client that he has successfully joined the battle
-		client.sendLine("JOINBATTLE " + bat.id + " " + bat.hashCode);
+		client.sendLine("JOINBATTLE " + bat.getId() + " " + bat.getHashCode());
 		context.getClients().notifyClientsOfNewClientInBattle(bat, client);
 		bat.notifyOfBattleStatuses(client);
 		bat.sendBotListToClient(client);
 		// tell host about this client's ip and UDP source port (if battle is hosted using one of the NAT traversal techniques):
-		if ((bat.natType == 1) || (bat.natType == 2)) {
+		if ((bat.getNatType() == 1) || (bat.getNatType() == 2)) {
 			// make sure that clients behind NAT get local IPs and not external ones:
-			bat.founder.sendLine("CLIENTIPPORT " + client.getAccount().getName() + " " + (bat.founder.getIp().equals(client.getIp()) ? client.getLocalIP() : client.getIp()) + " " + client.getUdpSourcePort());
+			bat.getFounder().sendLine("CLIENTIPPORT " + client.getAccount().getName() + " " + (bat.getFounder().getIp().equals(client.getIp()) ? client.getLocalIP() : client.getIp()) + " " + client.getUdpSourcePort());
 		}
 
 		client.sendLine("REQUESTBATTLESTATUS");
@@ -692,7 +692,7 @@ public class TASServer implements LiveStateListener {
 		bat.sendStartRectsListToClient(client);
 		bat.sendScriptTagsToClient(client);
 
-		if (bat.type == 1) {
+		if (bat.getType() == 1) {
 			bat.sendScriptToClient(client);
 		}
 	}
@@ -2543,13 +2543,13 @@ public class TASServer implements LiveStateListener {
 						return false;
 					}
 
-					if (!bat.password.equals(commands[2])) {
+					if (!bat.getPassword().equals(commands[2])) {
 						client.sendLine("JOINBATTLEFAILED Invalid password");
 						return false;
 					}
 				}
 
-				if (bat.locked) {
+				if (bat.isLocked()) {
 					client.sendLine("JOINBATTLEFAILED You cannot join locked battles!");
 					return false;
 				}
@@ -2558,9 +2558,9 @@ public class TASServer implements LiveStateListener {
 					client.setScriptPassword(commands[3]);
 				}
 
-				if (bat.founder.isHandleBattleJoinAuthorization()) {
+				if (bat.getFounder().isHandleBattleJoinAuthorization()) {
 					client.setRequestedBattleID(battleID);
-					bat.founder.sendLine("JOINBATTLEREQUEST " + client.getAccount().getName() + " " + (bat.founder.getIp().equals(client.getIp()) ? client.getLocalIP() : client.getIp()));
+					bat.getFounder().sendLine("JOINBATTLEREQUEST " + client.getAccount().getName() + " " + (bat.getFounder().getIp().equals(client.getIp()) ? client.getLocalIP() : client.getIp()));
 				} else {
 					notifyClientJoinedBattle(client,bat);
 				}
@@ -2578,7 +2578,7 @@ public class TASServer implements LiveStateListener {
 				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 				if (bat == null) {
 					return false;
-				} else if (bat.founder != client) {
+				} else if (bat.getFounder() != client) {
 					// only founder can accept battle join
 					return false;
 				}
@@ -2606,7 +2606,7 @@ public class TASServer implements LiveStateListener {
 				if (bat == null) {
 					return false;
 				}
-				if (bat.founder != client) {
+				if (bat.getFounder() != client) {
 					return false;
 				} // only founder can deny battle join
 				Client joiningClient = context.getClients().getClient(commands[1]);
@@ -2671,15 +2671,15 @@ public class TASServer implements LiveStateListener {
 				client.setBattleStatus(Misc.setHandicapOfBattleStatus(newStatus, Misc.getHandicapFromBattleStatus(client.getBattleStatus())));
 
 				// if game is full or game type is "battle replay", force player's mode to spectator:
-				if ((bat.getClientsSize() + 1 - bat.spectatorCount() > bat.maxPlayers) || (bat.type == 1)) {
+				if ((bat.getClientsSize() + 1 - bat.spectatorCount() > bat.getMaxPlayers()) || (bat.getType() == 1)) {
 					client.setBattleStatus(Misc.setModeOfBattleStatus(client.getBattleStatus(), 0));
 				}
 				// if player has chosen team number which is already used by some other player/bot,
 				// force his ally number and team color to be the same as of that player/bot:
-				if (bat.founder != client) {
-					if ((Misc.getTeamNoFromBattleStatus(bat.founder.getBattleStatus()) == Misc.getTeamNoFromBattleStatus(client.getBattleStatus())) && (Misc.getModeFromBattleStatus(bat.founder.getBattleStatus()) != 0)) {
-						client.setBattleStatus(Misc.setAllyNoOfBattleStatus(client.getBattleStatus(), Misc.getAllyNoFromBattleStatus(bat.founder.getBattleStatus())));
-						client.setTeamColor(bat.founder.getTeamColor());
+				if (bat.getFounder() != client) {
+					if ((Misc.getTeamNoFromBattleStatus(bat.getFounder().getBattleStatus()) == Misc.getTeamNoFromBattleStatus(client.getBattleStatus())) && (Misc.getModeFromBattleStatus(bat.getFounder().getBattleStatus()) != 0)) {
+						client.setBattleStatus(Misc.setAllyNoOfBattleStatus(client.getBattleStatus(), Misc.getAllyNoFromBattleStatus(bat.getFounder().getBattleStatus())));
+						client.setTeamColor(bat.getFounder().getTeamColor());
 					}
 				}
 				for (int i = 0; i < bat.getClientsSize(); i++) {
@@ -2736,7 +2736,7 @@ public class TASServer implements LiveStateListener {
 						} else {
 							client.setInGameTime(0); // we won't update clients who play by themselves (or with bots), since some try to exploit the system by leaving computer alone in-battle for hours to increase their ranks
 						}						// check if client is a battle host using "hole punching" technique:
-						if ((bat != null) && (bat.founder == client) && (bat.natType == 1)) {
+						if ((bat != null) && (bat.getFounder() == client) && (bat.getNatType() == 1)) {
 							// tell clients to replace battle port with founder's public UDP source port:
 							bat.sendToAllExceptFounder(new StringBuilder("HOSTPORT ").append(client.getUdpSourcePort()).toString());
 						}
@@ -2843,7 +2843,7 @@ public class TASServer implements LiveStateListener {
 				if (bat == null) {
 					return false;
 				}
-				if (bat.founder != client) {
+				if (bat.getFounder() != client) {
 					return false; // only founder may change battle parameters!
 				}
 				int spectatorCount = 0;
@@ -2857,15 +2857,15 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
-				bat.mapName = Misc.makeSentence(commands, 4);
-				bat.locked = locked;
-				bat.mapHash = maphash;
+				bat.setMapName(Misc.makeSentence(commands, 4));
+				bat.setLocked(locked);
+				bat.setMapHash(maphash);
 				context.getClients().sendToAllRegisteredUsers(new StringBuilder("UPDATEBATTLEINFO ")
-						.append(bat.id).append(" ")
+						.append(bat.getId()).append(" ")
 						.append(spectatorCount).append(" ")
-						.append(Misc.boolToStr(bat.locked)).append(" ")
+						.append(Misc.boolToStr(bat.isLocked())).append(" ")
 						.append(maphash).append(" ")
-						.append(bat.mapName).toString());
+						.append(bat.getMapName()).toString());
 			} else if (commands[0].equals("HANDICAP")) {
 				if (commands.length != 3) {
 					return false;
@@ -2881,7 +2881,7 @@ public class TASServer implements LiveStateListener {
 				if (bat == null) {
 					return false;
 				}
-				if (bat.founder != client) {
+				if (bat.getFounder() != client) {
 					return false; // only founder can change handicap value of another user
 				}
 				int value;
@@ -2919,7 +2919,7 @@ public class TASServer implements LiveStateListener {
 				if (bat == null) {
 					return false;
 				}
-				if (bat.founder != client) {
+				if (bat.getFounder() != client) {
 					return false; // only founder can kick other clients
 				}
 				Client target = context.getClients().getClient(commands[1]);
@@ -2952,7 +2952,7 @@ public class TASServer implements LiveStateListener {
 				if (bat == null) {
 					return false;
 				}
-				if (bat.founder != client) {
+				if (bat.getFounder() != client) {
 					return false; // only founder can force team/ally numbers
 				}
 				int value;
@@ -2990,7 +2990,7 @@ public class TASServer implements LiveStateListener {
 				if (bat == null) {
 					return false;
 				}
-				if (bat.founder != client) {
+				if (bat.getFounder() != client) {
 					return false; // only founder can force team/ally numbers
 				}
 				int value;
@@ -3028,7 +3028,7 @@ public class TASServer implements LiveStateListener {
 				if (bat == null) {
 					return false;
 				}
-				if (bat.founder != client) {
+				if (bat.getFounder() != client) {
 					return false; // only founder can force team color change
 				}
 				int value;
@@ -3063,7 +3063,7 @@ public class TASServer implements LiveStateListener {
 				if (bat == null) {
 					return false;
 				}
-				if (bat.founder != client) {
+				if (bat.getFounder() != client) {
 					return false; // only founder can force spectator mode
 				}
 				Client target = context.getClients().getClient(commands[1]);
@@ -3122,7 +3122,7 @@ public class TASServer implements LiveStateListener {
 				bat.addBot(bot);
 
 				bat.sendToAllClients(new StringBuilder("ADDBOT ")
-						.append(bat.id).append(" ")
+						.append(bat.getId()).append(" ")
 						.append(bot.getName()).append(" ")
 						.append(bot.getOwnerName()).append(" ")
 						.append(bot.getBattleStatus()).append(" ")
@@ -3152,7 +3152,7 @@ public class TASServer implements LiveStateListener {
 				bat.removeBot(bot);
 
 				bat.sendToAllClients(new StringBuilder("REMOVEBOT ")
-						.append(bat.id).append(" ")
+						.append(bat.getId()).append(" ")
 						.append(bot.getName()).toString());
 			} else if (commands[0].equals("UPDATEBOT")) {
 				if (commands.length != 4) {
@@ -3189,7 +3189,7 @@ public class TASServer implements LiveStateListener {
 				}
 
 				// only bot owner and battle host are allowed to update bot:
-				if (!((client.getAccount().getName().equals(bot.getOwnerName())) || (client.getAccount().getName().equals(bat.founder.getAccount().getName())))) {
+				if (!((client.getAccount().getName().equals(bot.getOwnerName())) || (client.getAccount().getName().equals(bat.getFounder().getAccount().getName())))) {
 					return false;
 				}
 
@@ -3199,7 +3199,7 @@ public class TASServer implements LiveStateListener {
 				//*** add: force ally and color number if someone else is using his team number already
 
 				bat.sendToAllClients(new StringBuilder("UPDATEBOT ")
-						.append(bat.id).append(" ")
+						.append(bat.getId()).append(" ")
 						.append(bot.getName()).append(" ")
 						.append(bot.getBattleStatus()).append(" ")
 						.append(bot.getTeamColor()).toString());
@@ -3218,16 +3218,16 @@ public class TASServer implements LiveStateListener {
 				if (bat == null) {
 					return false;
 				}
-				if (bat.founder != client) {
+				if (bat.getFounder() != client) {
 					return false; // only founder can disable/enable units
 				}
 				// let's check if client didn't double the data (he shouldn't, but we can't
 				// trust him, so we will check ourselves):
 				for (int i = 1; i < commands.length; i++) {
-					if (bat.disabledUnits.indexOf(commands[i]) != -1) {
+					if (bat.getDisabledUnits().indexOf(commands[i]) != -1) {
 						continue;
 					}
-					bat.disabledUnits.add(commands[i]);
+					bat.getDisabledUnits().add(commands[i]);
 				}
 
 				bat.sendToAllExceptFounder(command);
@@ -3246,11 +3246,11 @@ public class TASServer implements LiveStateListener {
 				if (bat == null) {
 					return false;
 				}
-				if (bat.founder != client) {
+				if (bat.getFounder() != client) {
 					return false; // only founder can disable/enable units
 				}
 				for (int i = 1; i < commands.length; i++) {
-					bat.disabledUnits.remove(commands[i]); // will ignore it if string is not found in the list
+					bat.getDisabledUnits().remove(commands[i]); // will ignore it if string is not found in the list
 				}
 
 				bat.sendToAllExceptFounder(command);
@@ -3269,10 +3269,10 @@ public class TASServer implements LiveStateListener {
 				if (bat == null) {
 					return false;
 				}
-				if (bat.founder != client) {
+				if (bat.getFounder() != client) {
 					return false; // only founder can disable/enable units
 				}
-				bat.disabledUnits.clear();
+				bat.getDisabledUnits().clear();
 
 				bat.sendToAllExceptFounder(command);
 			} else if (commands[0].equals("RING")) {
@@ -3304,7 +3304,7 @@ public class TASServer implements LiveStateListener {
 					}
 
 					// only host can ring players participating in his own battle, unless target is host himself:
-					if ((client != bat.founder) && (target != bat.founder)) {
+					if ((client != bat.getFounder()) && (target != bat.getFounder())) {
 						client.sendLine("SERVERMSG RING command failed: You can ring only battle host, or if you are the battle host, only players participating in your own battle!");
 						return false;
 					}
@@ -3333,7 +3333,7 @@ public class TASServer implements LiveStateListener {
 				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 				verifyBattle(bat);
 
-				if (bat.founder != client) {
+				if (bat.getFounder() != client) {
 					return false;
 				}
 
@@ -3351,7 +3351,7 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
-				StartRect startRect = bat.startRects.get(allyno);
+				StartRect startRect = bat.getStartRects().get(allyno);
 				if (startRect.isEnabled()) {
 					client.sendLine(new StringBuilder("SERVERMSG Serious error: inconsistent data (")
 							.append(commands[0]).append(" command). You will now be disconnected ...").toString());
@@ -3386,7 +3386,7 @@ public class TASServer implements LiveStateListener {
 				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 				verifyBattle(bat);
 
-				if (bat.founder != client) {
+				if (bat.getFounder() != client) {
 					return false;
 				}
 
@@ -3400,7 +3400,7 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
-				StartRect startRect = bat.startRects.get(allyno);
+				StartRect startRect = bat.getStartRects().get(allyno);
 				if (!startRect.isEnabled()) {
 					client.sendLine(new StringBuilder("SERVERMSG Serious error: inconsistent data (")
 							.append(commands[0]).append(" command). You will now be disconnected ...").toString());
@@ -3426,7 +3426,7 @@ public class TASServer implements LiveStateListener {
 				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 				verifyBattle(bat);
 
-				bat.tempReplayScript.clear();
+				bat.getTempReplayScript().clear();
 			} else if (commands[0].equals("SCRIPT")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
@@ -3439,7 +3439,7 @@ public class TASServer implements LiveStateListener {
 				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 				verifyBattle(bat);
 
-				bat.tempReplayScript.add(Misc.makeSentence(commands, 1));
+				bat.getTempReplayScript().add(Misc.makeSentence(commands, 1));
 			} else if (commands[0].equals("SCRIPTEND")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
@@ -3468,7 +3468,7 @@ public class TASServer implements LiveStateListener {
 				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 				verifyBattle(bat);
 
-				if (bat.founder != client) {
+				if (bat.getFounder() != client) {
 					return false;
 				}
 
@@ -3551,7 +3551,7 @@ public class TASServer implements LiveStateListener {
 					}
 
 					// insert the tag data into the map
-					bat.scriptTags.put(key, value);
+					bat.getScriptTags().put(key, value);
 
 					// add to the validPairs string
 					if (validPairs.length() > 0) {
@@ -3576,7 +3576,7 @@ public class TASServer implements LiveStateListener {
 				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 				verifyBattle(bat);
 
-				if (bat.founder != client) {
+				if (bat.getFounder() != client) {
 					return false;
 				}
 
@@ -3592,7 +3592,7 @@ public class TASServer implements LiveStateListener {
 				for (int i = 1; i < commands.length; i++) {
 					String lowerKey = commands[i].toLowerCase();
 					loweyKeyCommand.append(" ").append(lowerKey);
-					bat.scriptTags.remove(lowerKey);
+					bat.getScriptTags().remove(lowerKey);
 				}
 
 				// relay the command
