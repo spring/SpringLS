@@ -66,7 +66,7 @@
  * * fixed bug with server allowing clients to have several battles open at the same time
  * *** 0.19 ***
  * * improved server code (meaning less "ambigious" commands)
- * * added RENAMEACCOUNT command, also username may now contain "[" and "]" characters
+ * * added RENAMEACCOUNT command, also userName may now contain "[" and "]" characters
  * * added CHANNELMESSAGE command
  * * added MUTE, UNMUTE and MUTELIST commands
  * * clients behind same NAT now get local IPs instead of external one (from the server).
@@ -102,7 +102,7 @@
  * * added command: CHANNELTOPIC
  * *** 0.14 ***
  * * added FORCETEAMCOLOR command
- * * fixed bug which allowed users to register accounts with username/password containing
+ * * fixed bug which allowed users to register accounts with userName/password containing
  *   chars from 43 to 57 (dec), which should be numbers (the correct number range is 48
  *   to 57). Invalid chars are "+", ",", "-", "." and "/".
  * * added ranking system
@@ -116,7 +116,7 @@
  *   already in the battle.
  * * added new commands: SERVERMSG, SERVERMSGBOX, REQUESTUPDATEFILE, GETFILE
  * * added some admin commands
- * * changed registration process so that now you can't register username which is same
+ * * changed registration process so that now you can't register userName which is same
  *   as someone elses, if we ignore case. Usernames are still case-sensitive though.
  *
  *
@@ -614,14 +614,13 @@ public class TASServer implements LiveStateListener {
 			attempt = new FailedLoginAttempt(username, 0, 0);
 			failedLoginAttempts.add(attempt);
 		}
-		attempt.timeOfLastFailedAttempt = System.currentTimeMillis();
-		attempt.numOfFailedAttempts++;
+		attempt.addFailedAttempt();
 	}
 
 	/** @return 'null' if no record found */
 	private FailedLoginAttempt findFailedLoginAttempt(String username) {
 		for (int i = 0; i < failedLoginAttempts.size(); i++) {
-			if (failedLoginAttempts.get(i).username.equals(username)) {
+			if (failedLoginAttempts.get(i).getUserName().equals(username)) {
 				return failedLoginAttempts.get(i);
 			}
 		}
@@ -809,12 +808,12 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
-				if (context.getServer().isLanMode()) { // no need to register account in LAN mode since it accepts any username
+				if (context.getServer().isLanMode()) { // no need to register account in LAN mode since it accepts any userName
 					client.sendLine("REGISTRATIONDENIED Can't register in LAN-mode. Login with any username and password to proceed");
 					return false;
 				}
 
-				// validate username:
+				// validate userName:
 				String valid = Account.isOldUsernameValid(commands[1]);
 				if (valid != null) {
 					client.sendLine(new StringBuilder("REGISTRATIONDENIED Invalid username (reason: ")
@@ -2063,11 +2062,11 @@ public class TASServer implements LiveStateListener {
 
 					// protection from brute-forcing the account:
 					FailedLoginAttempt attempt = findFailedLoginAttempt(username);
-					if ((attempt != null) && (attempt.numOfFailedAttempts >= 3)) {
+					if ((attempt != null) && (attempt.getFailedAttempts() >= 3)) {
 						client.sendLine("DENIED Too many failed login attempts. Wait for 30 seconds before trying again!");
 						recordFailedLoginAttempt(username);
-						if (!attempt.logged) {
-							attempt.logged = true;
+						if (!attempt.isLogged()) {
+							attempt.setLogged(true);
 							context.getClients().sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: Too many failed login attempts for <")
 									.append(username).append("> from ")
 									.append(client.getIp()).append(". Blocking for 30 seconds. Will not notify any longer.").toString());
@@ -2232,7 +2231,7 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
-				// validate new username:
+				// validate new userName:
 				String valid = Account.isOldUsernameValid(commands[1]);
 				if (valid != null) {
 					client.sendLine(new StringBuilder("SERVERMSG RENAMEACCOUNT failed: Invalid username (reason: ").append(valid).append(")").toString());
@@ -2245,7 +2244,7 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
-				// make sure all mutes are accordingly adjusted to new username:
+				// make sure all mutes are accordingly adjusted to new userName:
 				for (int i = 0; i < context.getChannels().getChannelsSize(); i++) {
 					context.getChannels().getChannel(i).getMuteList().rename(client.getAccount().getName(), commands[1]);
 				}
@@ -3655,7 +3654,7 @@ public class TASServer implements LiveStateListener {
 					context.getServer().setLanAdminUsername(lanAdmin_username);
 					context.getServer().setLanAdminPassword(lanAdmin_password);
 
-					i += 2; // we must skip username and password parameters in next iteration
+					i += 2; // we must skip userName and password parameters in next iteration
 				} else if (s.equals("LOADARGS")) {
 					try {
 						BufferedReader in = new BufferedReader(new FileReader(args[i + 1]));
@@ -3945,7 +3944,7 @@ public class TASServer implements LiveStateListener {
 				lastFailedLoginsPurgeTime = System.currentTimeMillis();
 				for (int i = 0; i < failedLoginAttempts.size(); i++) {
 					FailedLoginAttempt attempt = failedLoginAttempts.get(i);
-					if (System.currentTimeMillis() - attempt.timeOfLastFailedAttempt > 30000) {
+					if (System.currentTimeMillis() - attempt.getTimeOfLastFailedAttempt() > 30000) {
 						failedLoginAttempts.remove(i);
 						i--;
 					}
