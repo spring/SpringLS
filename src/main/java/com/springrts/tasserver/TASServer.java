@@ -3911,8 +3911,8 @@ public class TASServer implements LiveStateListener {
 			context.getStatistics().update();
 
 			// check UDP server for any new packets:
-			while (context.getNatHelpServer().msgList.size() > 0) {
-				DatagramPacket packet = context.getNatHelpServer().msgList.remove(0);
+			DatagramPacket packet;
+			while ((packet = context.getNatHelpServer().fetchNextPackage()) != null) {
 				InetAddress address = packet.getAddress();
 				int p = packet.getPort();
 				String data = new String(packet.getData(), packet.getOffset(), packet.getLength());

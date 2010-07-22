@@ -37,7 +37,7 @@ public class NatHelpServer implements Runnable, LiveStateListener {
 	 */
 	private int port;
 	/** Has to be thread-safe */
-	public List<DatagramPacket> msgList;
+	private List<DatagramPacket> msgList;
 	private DatagramSocket socket;
 	private Thread myThread;
 	
@@ -156,5 +156,21 @@ public class NatHelpServer implements Runnable, LiveStateListener {
 			s_log.error("NAT help server interrupted while shutting down", ex);
 		}
 		socket.close();
+	}
+
+	/**
+	 * Returns the oldest package, and removes it from the internal storage.
+	 * This method will be called by an other thread then the NAT-server one.
+	 * @returns the next oldest package, or <code>null</code>, if none is left.
+	 */
+	public DatagramPacket fetchNextPackage() {
+
+		DatagramPacket packet = null;
+
+		if (msgList.size() > 0) {
+			packet = msgList.remove(0);
+		}
+
+		return packet;
 	}
 }
