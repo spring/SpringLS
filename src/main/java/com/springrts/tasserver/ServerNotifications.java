@@ -9,6 +9,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.io.*;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * @author Betalord
@@ -21,6 +24,8 @@ public class ServerNotifications implements ContextReceiver {
 	 * of notification files changes in the future.
 	 */
 	public static final String NOTIFICATION_SYSTEM_VERSION = "1.0";
+
+	private static final DateFormat SHORT_DATE_FORMAT = new SimpleDateFormat("yyyyMMdd");
 
 	private static final String DEFAULT_DIR = "./notifs";
 	private File notificationsDir;
@@ -63,9 +68,9 @@ public class ServerNotifications implements ContextReceiver {
 			return false; // ignore notifications if server is running in lan mode!
 		}
 		ensureNotifsDirExists();
-		String fname = notificationsDir + "/" + Misc.easyDateFormat("yyyyMMdd");
+		String fname = notificationsDir + "/" + SHORT_DATE_FORMAT.format(new Date());
 		int counter = 1;
-		while ((new File(fname + "_" + counter)).exists()) {
+		while (new File(fname + "_" + counter).exists()) {
 			counter++;
 		}
 		fname += "_" + counter;

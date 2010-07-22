@@ -227,6 +227,8 @@ import java.net.*;
 import java.nio.*;
 import java.nio.channels.*;
 import java.nio.charset.*;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.regex.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -235,6 +237,9 @@ import org.apache.commons.logging.LogFactory;
  * @author Betalord
  */
 public class TASServer implements LiveStateListener {
+
+	private static final DateFormat LONG_DATE_FORMAT = new SimpleDateFormat("d MMM yyyy HH:mm:ss z");
+	private static final DateFormat HUMAN_DATE_FORMAT = new SimpleDateFormat("yyyy.MM.dd 'at' hh:mm:ss z");
 
 	private String MOTD = "Enjoy your stay :-)";
 	/**
@@ -362,7 +367,7 @@ public class TASServer implements LiveStateListener {
 
 		s_log.info(new StringBuilder("TASServer ")
 				.append(Misc.getAppVersion()).append(" started on ")
-				.append(Misc.easyDateFormat("yyyy.MM.dd 'at' hh:mm:ss z")).toString());
+				.append(HUMAN_DATE_FORMAT.format(new Date())).toString());
 
 		createAdminIfNoUsers();
 	}
@@ -375,7 +380,7 @@ public class TASServer implements LiveStateListener {
 	public void stopped() {
 
 		running = false;
-		s_log.info("stopped on " + Misc.easyDateFormat("yyyy.MM.dd 'at' hh:mm:ss z"));
+		s_log.info("stopped on " + HUMAN_DATE_FORMAT.format(new Date()));
 	}
 
 	/** Reads agreement from disk (if file is found) */
@@ -1659,7 +1664,7 @@ public class TASServer implements LiveStateListener {
 				}
 
 				client.sendLine(new StringBuilder("SERVERMSG LONGTIMETODATE result: ")
-						.append(Misc.easyDateFormat(time, "d MMM yyyy HH:mm:ss z")).toString());
+						.append(LONG_DATE_FORMAT.format(new Date(time))).toString());
 			} else if (commands[0].equals("GETLASTLOGINTIME")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
 					return false;
@@ -1678,7 +1683,7 @@ public class TASServer implements LiveStateListener {
 				if (context.getClients().getClient(acc.getName()) == null) {
 					client.sendLine(new StringBuilder("SERVERMSG <")
 							.append(acc.getName()).append(">'s last login was on ")
-							.append(Misc.easyDateFormat(acc.getLastLogin(), "d MMM yyyy HH:mm:ss z")).toString());
+							.append(LONG_DATE_FORMAT.format(new Date(acc.getLastLogin()))).toString());
 				} else {
 					client.sendLine(new StringBuilder("SERVERMSG <")
 							.append(acc.getName()).append("> is currently online").toString());
@@ -1831,7 +1836,10 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
-				if (verifyLogin(commands[1], commands[2]) == null) {
+				String userName = commands[1];
+				String password = commands[2];
+
+				if (verifyLogin(userName, password) == null) {
 					client.sendLine("TESTLOGINDENY");
 					return false;
 				}
@@ -1860,9 +1868,11 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
-				Account acc = context.getAccountsService().getAccount(commands[1]);
+				String userName = commands[1];
+
+				Account acc = context.getAccountsService().getAccount(userName);
 				if (acc == null) {
-					client.sendLine(new StringBuilder("SERVERMSG User <").append(commands[1]).append("> not found!").toString());
+					client.sendLine(new StringBuilder("SERVERMSG User <").append(userName).append("> not found!").toString());
 					return false;
 				}
 
@@ -1886,16 +1896,18 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
-				Account acc = context.getAccountsService().getAccount(commands[1]);
+				String userName = commands[1];
+
+				Account acc = context.getAccountsService().getAccount(userName);
 				if (acc == null) {
-					client.sendLine(new StringBuilder("SERVERMSG User <").append(commands[1]).append("> not found!").toString());
+					client.sendLine(new StringBuilder("SERVERMSG User <").append(userName).append("> not found!").toString());
 					return false;
 				}
 
 				client.sendLine(new StringBuilder("SERVERMSG Registration timestamp for <")
-						.append(commands[1]).append("> is ")
+						.append(userName).append("> is ")
 						.append(acc.getRegistrationDate()).append(" (")
-						.append(Misc.easyDateFormat(acc.getRegistrationDate(), "d MMM yyyy HH:mm:ss z"))
+						.append(LONG_DATE_FORMAT.format(new Date(acc.getRegistrationDate())))
 						.append(")").toString());
 			} else if (commands[0].equals("SETLATESTSPRINGVERSION")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
@@ -1906,7 +1918,9 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
-				context.setEngine(new Engine(commands[1]));
+				String engineVersion = commands[1];
+
+				context.setEngine(new Engine(engineVersion));
 
 				client.sendLine(new StringBuilder("SERVERMSG Latest spring version has been set to ").append(context.getEngine().getVersion()).toString());
 			} else if (commands[0].equals("RELOADUPDATEPROPERTIES")) {

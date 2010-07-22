@@ -27,25 +27,13 @@ public class Misc {
 
 	private static final Log s_log  = LogFactory.getLog(Misc.class);
 
-	static public final String EOL = "\n";
-	static private String hex = "0123456789ABCDEF";
+	public static final String EOL = "\n";
 
-	public static String easyDateFormat(String format) {
-		Date today = new Date();
-		SimpleDateFormat formatter = new SimpleDateFormat(format);
-		return formatter.format(today);
-	}
-
-	public static String easyDateFormat(long date, String format) {
-		Date d = new Date(date);
-		SimpleDateFormat formatter = new SimpleDateFormat(format);
-		return formatter.format(d);
-	}
-
-	/* puts together strings from 'a', starting at a[startIndex]
+	/**
+	 * Puts together strings from 'a', starting at a[startIndex]
 	 * see http://leepoint.net/notes-java/data/strings/96string_examples/example_arrayToString.html
 	 * on why StringBuilder is faster.
-	 * */
+	 */
 	public static String makeSentence(String[] a, int startIndex) {
 		if (startIndex > a.length - 1) {
 			return "";
@@ -78,6 +66,7 @@ public class Misc {
 	}
 
 	public static String boolToStr(boolean b) {
+
 		if (b) {
 			return "1";
 		} else {
@@ -86,26 +75,7 @@ public class Misc {
 	}
 
 	public static boolean strToBool(String s) {
-		if (s.equals("1")) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	public static char[] byteToHex(byte b) {
-		char[] res = new char[2];
-		res[0] = hex.charAt((b & 0xF0) >> 4);
-		res[1] = hex.charAt(b & 0x0F);
-		return res;
-	}
-
-	/**
-	 * Converts a decimal integer to hex, with leading zeroes and uppercase
-	 * @see http://www.rgagnon.com/javadetails/java-0004.html
-	 */
-	public static String intToHex(int i) {
-		return Integer.toHexString(0x10000 | i).substring(1).toUpperCase();
+		return s.equals("1");
 	}
 
 	/**
@@ -124,7 +94,7 @@ public class Misc {
 
 				while (addresses.hasMoreElements()) {
 					InetAddress ip = addresses.nextElement();
-					if (!ip.isLoopbackAddress() && ip.getHostAddress().indexOf(":") == -1) {
+					if (!ip.isLoopbackAddress() && ip.getHostAddress().indexOf(':') == -1) {
 						return ip.getHostAddress();
 					}
 				}
@@ -135,30 +105,35 @@ public class Misc {
 		return null;
 	}
 
-	public static long IP2Long(String IP) {
-		long f1, f2, f3, f4;
-		String tokens[] = IP.split("\\.");
+	public static long IP2Long(String ip) {
+
+		String tokens[] = ip.split("\\.");
 		if (tokens.length != 4) {
 			return -1;
 		}
+
 		try {
-			f1 = Long.parseLong(tokens[0]) << 24;
-			f2 = Long.parseLong(tokens[1]) << 16;
-			f3 = Long.parseLong(tokens[2]) << 8;
-			f4 = Long.parseLong(tokens[3]);
+			final long f1 = Long.parseLong(tokens[0]) << 24;
+			final long f2 = Long.parseLong(tokens[1]) << 16;
+			final long f3 = Long.parseLong(tokens[2]) << 8;
+			final long f4 = Long.parseLong(tokens[3]);
 			return f1 + f2 + f3 + f4;
 		} catch (Exception e) {
 			return -1;
 		}
 	}
 
-	public static String long2IP(long IP) {
-		String result = "";
-		result += (IP >> 24);
-		result += "." + ((IP & 0x00FFFFFF) >> 16);
-		result += "." + ((IP & 0x0000FFFF) >> 8);
-		result += "." + ((IP & 0x000000FF));
-		return result;
+	@Deprecated
+	public static String long2IP(long ip) {
+
+		StringBuilder result = new StringBuilder(15);
+
+		result.append( ip               >> 24).append(".");
+		result.append((ip & 0x00FFFFFF) >> 16).append(".");
+		result.append((ip & 0x0000FFFF) >> 8).append(".");
+		result.append((ip & 0x000000FF));
+
+		return result.toString();
 	}
 
 	/**
@@ -166,15 +141,24 @@ public class Misc {
 	 * "<x> days, <y> hours and <z> minutes"
 	 */
 	public static String timeToDHM(long duration) {
-		long temp = duration / (1000 * 60 * 60 * 24);
-		String res = temp + " days, ";
-		duration -= temp * (1000 * 60 * 60 * 24);
-		temp = duration / (1000 * 60 * 60);
-		res += temp + " hours and ";
-		duration -= temp * (1000 * 60 * 60);
-		temp = duration / (1000 * 60);
-		res += temp + " minutes";
-		return res;
+
+		StringBuilder result = new StringBuilder(64);
+
+		long remainingTime = duration;
+
+		final long days = remainingTime / (1000 * 60 * 60 * 24);
+		remainingTime -= days * (1000 * 60 * 60 * 24);
+
+		final long hours = remainingTime / (1000 * 60 * 60);
+		remainingTime -= hours * (1000 * 60 * 60);
+
+		final long minutes = remainingTime / (1000 * 60);
+
+		result.append(days).append(" days, ");
+		result.append(hours).append(" hours and ");
+		result.append(minutes).append(" minutes");
+
+		return result.toString();
 	}
 
 	/**
@@ -202,6 +186,7 @@ public class Misc {
 	 * Sorts an array of integers using simple bubble sort algorithm.
 	 * @see http://en.wikisource.org/wiki/Bubble_sort
 	 */
+	@Deprecated
 	public static void bubbleSort(int data[]) {
 		boolean isSorted;
 		int tempVariable;
@@ -255,6 +240,7 @@ public class Misc {
 		} while (!isSorted);
 	}
 
+	@Deprecated
 	public static String getHashText(String plainText, String algorithm) throws NoSuchAlgorithmException {
 		MessageDigest mdAlgorithm = MessageDigest.getInstance(algorithm);
 
@@ -405,9 +391,15 @@ public class Misc {
 						}
 					} else {
 						try {
+							// We need this because we do not check time
+							// between 0 and 1st millisecond in a time frame,
+							// but in the first millisecond, a lot of data
+							// may be read from the socket buffer,
+							// which we do not want, because we can not regulate
+							// download speed accurately in that case.
 							Thread.sleep(1);
 						} catch (InterruptedException ie) {
-						} // we need this because we don't check time between 0 and 1st millisecond in a time frame, but in the first millisecond a lot of data may be read from the socket buffer which we don't want because we can't regulate download speed accurately in that case
+						}
 					}
 				}
 
@@ -443,14 +435,17 @@ public class Misc {
 	 * It has to be thread-safe, since multiple threads may call it.
 	 */
 	public static String exceptionToFullString(Exception e) {
-		String res = e.toString();
+
+		StringBuilder res = new StringBuilder(512);
+		
+		res.append(e.toString());
 
 		StackTraceElement[] trace = e.getStackTrace();
 		for (int i = 0; i < trace.length; i++) {
-			res += "\r\n\tat " + trace[i];
+			res.append("\r\n\tat ").append(trace[i].toString());
 		}
 
-		return res;
+		return res.toString();
 	}
 
 	// BEGIN: various methods dealing with battleStatus
@@ -511,13 +506,6 @@ public class Misc {
 	}
 	// END: various methods dealing with battleStatus
 
-	public static  boolean isSameIP(final String ip1, final String ip2) {
-
-		String[] ip1_s = ip1.split("\\.");
-		String[] ip2_s = ip2.split("\\.");
-
-		return isSameIP(ip1_s, ip2_s);
-	}
 	public static  boolean isSameIP(final String[] ip1_s, final String ip2) {
 
 		String[] ip2_s = ip2.split("\\.");
@@ -582,5 +570,56 @@ public class Misc {
 		}
 
 		return appVersion;
+	}
+
+	/**
+	 * Utility method used to delete a file or a directory recursively.
+	 * @param file the file or directory to recursively delete.
+	 */
+	public static void deleteFileOrDir(File fileOrDir) {
+
+		if (fileOrDir.isDirectory()) {
+			File[] childs = fileOrDir.listFiles();
+			for (int i = 0; i < childs.length; i++) {
+				deleteFileOrDir(childs[i]);
+			}
+		}
+		fileOrDir.delete();
+	}
+
+	/**
+	 * Create a temporary cache directory file descriptor
+	 * and makes sure to clean it up on application exit.
+	 * @param dirName base name of the dir descriptor to create
+	 * @return a file descriptor to a non existing file/dir.
+	 */
+	public static File createTempDir(String dirName) throws IOException {
+
+		File cacheDir = null;
+
+		cacheDir = File.createTempFile(dirName, null);
+		// we just created a file, but we actualyl need a directory
+		cacheDir.delete();
+		// delete at application shutdown
+		Runtime.getRuntime().addShutdownHook(new Thread(new FileRemover(cacheDir)));
+
+		return cacheDir;
+	}
+
+	/**
+	 * Removes a file or a directory recursively when run.
+	 */
+	public static class FileRemover implements Runnable {
+
+		private final File fileOrDir;
+
+		public FileRemover(File fileOrDir) {
+			this.fileOrDir = fileOrDir;
+		}
+
+		@Override
+		public void run() {
+			Misc.deleteFileOrDir(fileOrDir);
+		}
 	}
 }

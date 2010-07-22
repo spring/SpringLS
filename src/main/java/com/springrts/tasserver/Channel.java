@@ -9,10 +9,13 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -23,6 +26,8 @@ public class Channel implements ContextReceiver, LiveStateListener {
 	private static final Log s_log  = LogFactory.getLog(Channel.class);
 
 	private static final String logFilesDir  = "./";
+
+	private static final DateFormat CLIENT_TIME_FORMAT = new SimpleDateFormat("<HH:mm:ss> ");
 
 	private String name;
 	private String topic; // "" represents no topic (topic is disabled for this channel)
@@ -161,9 +166,9 @@ public class Channel implements ContextReceiver, LiveStateListener {
 
 	/** Sends a text to all clients in this channel */
 	public void sendLineToClients(String s) {
-		
+
 		if (fileLog != null) {
-			fileLog.println(Misc.easyDateFormat("<HH:mm:ss> "));
+			fileLog.println(CLIENT_TIME_FORMAT.format(new Date()));
 			fileLog.println(s);
 		}
 		for (int i = 0; i < clients.size(); i++) {
@@ -216,7 +221,7 @@ public class Channel implements ContextReceiver, LiveStateListener {
 					fileLog = new PrintStream(new BufferedOutputStream(new FileOutputStream(logFile, true)), true);
 					fileLog.println();
 					fileLog.print("Log started on ");
-					fileLog.println(Misc.easyDateFormat("dd/MM/yy"));
+					fileLog.println(new SimpleDateFormat("dd/MM/yy").format(new Date()));
 					logging = true;
 				} catch (Exception e) {
 					logFile = null;

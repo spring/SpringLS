@@ -275,21 +275,22 @@ public class Statistics implements ContextReceiver {
 	}
 
 	/**
-	 * Will return list of mods being played right now (top 5 mods only) with frequencies.
-	 * format: listlen "modname1" freq1 "modname2" freq" ...
-	 * where delimiter is TAB (not SPACE). An empty list is denoted by 0 value for listlen.
+	 * Will return list of mods being played right now (top 5 mods only)
+	 * with frequencies.
+	 * format: [list-len] "modname1" [freq1] "modname2" [freq]" ...
+	 * Where delimiter is TAB (not SPACE).
+	 * An empty list is denoted by 0 value for list-len.
 	 */
 	private String currentlyPopularModsList() {
 
 		List<String> mods = new ArrayList<String>();
 		int[] freq = new int[0];
-		boolean found = false;
 
 		for (int i = 0; i < context.getBattles().getBattlesSize(); i++) {
 			if ((context.getBattles().getBattleByIndex(i).inGame()) && (context.getBattles().getBattleByIndex(i).getClientsSize() >= 1)) {
 				// add to list or update in list:
 
-				found = false;
+				boolean found = false;
 				for (int j = 0; j < mods.size(); j++) {
 					if (mods.get(j).equals(context.getBattles().getBattleByIndex(i).getModName())) {
 						// mod already in the list. Just increase it's frequency:
@@ -307,16 +308,7 @@ public class Statistics implements ContextReceiver {
 			}
 		}
 
-		// now generate a list of top 5 mods with frequencies:
-		if (mods.isEmpty()) {
-			return "0";
-		}
-		String result = "" + Math.min(5, mods.size()); // return 5 or less mods
-		Misc.bubbleSort(freq, mods);
-		for (int i = 0; i < Math.min(5, mods.size()); i++) {
-			result = result + "\t" + mods.get(i) + "\t" + freq[i];
-		}
-		return result;
+		return createModPopularityString(mods, freq);
 	}
 
 	/**
@@ -373,15 +365,19 @@ public class Statistics implements ContextReceiver {
 			return "0";
 		}
 
+		return createModPopularityString(mods, freq);
+	}
+	private static String createModPopularityString(List<String> modNames, int[] numBattles) {
+
 		// now generate a list of top 5 mods with frequencies:
-		if (mods.isEmpty()) {
-			return "0";
-		}
-		final int k = Math.min(5, mods.size()); // return 5 or less mods
-		StringBuilder result = new StringBuilder().append(k);
-		Misc.bubbleSort(freq, mods); // Note: don't cut the array by k, or sorting won't have any effect!
-		for (int i = 0; i < k; i++) {
-			result.append("\t").append(mods.get(i)).append("\t").append(freq[i]);
+		StringBuilder result = new StringBuilder(512);
+		int numMods = Math.min(5, modNames.size()); // return 5 or less mods
+		result.append(numMods);
+		// Note: do not cut the array by numMods,
+		//       or sorting will not have any effect!
+		Misc.bubbleSort(numBattles, modNames);
+		for (int m = 0; m < numMods; m++) {
+			result.append("\t").append(modNames.get(m)).append("\t").append(numBattles[m]);
 		}
 
 		return result.toString();
