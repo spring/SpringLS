@@ -13,14 +13,51 @@ import java.util.Map.Entry;
  */
 class SpamRecord {
 
-	public double penaltyPoints; // cumulative penalty points
-	public long timeOfLastMsg; // time of last line sent to the channel by this user
-	public String lastMsg; // last line sent to the channel by this user
+	/** cumulative penalty points */
+	private double penaltyPoints;
+	/** time of last line sent to the channel by this user */
+	@Deprecated
+	private long timeOfLastMsg;
+	/** last line sent to the channel by this user */
+	private String lastMsg;
 
 	public SpamRecord() {
+
 		penaltyPoints = 0;
 		timeOfLastMsg = 0;
 		lastMsg = "";
+	}
+
+	/**
+	 * cumulative penalty points
+	 * @return the penaltyPoints
+	 */
+	public double getPenaltyPoints() {
+		return penaltyPoints;
+	}
+
+	/**
+	 * cumulative penalty points
+	 * @param penaltyPoints the penaltyPoints to set
+	 */
+	public void setPenaltyPoints(double penaltyPoints) {
+		this.penaltyPoints = penaltyPoints;
+	}
+
+	/**
+	 * last line sent to the channel by this user
+	 * @return the lastMsg
+	 */
+	public String getLastMsg() {
+		return lastMsg;
+	}
+
+	/**
+	 * last line sent to the channel by this user
+	 * @param lastMsg the lastMsg to set
+	 */
+	public void setLastMsg(String lastMsg) {
+		this.lastMsg = lastMsg;
 	}
 }
 
@@ -42,13 +79,25 @@ class SpamSettings {
 
 	public static final SpamSettings DEFAULT_SETTINGS = new SpamSettings(5, 200, 1.0, 0.5, 0.5);
 
-	int penaltyLimit; // when penalty points reach this limit, user gets muted
-	int longMsgLength; // length (in characters) of a message that is considered "long". For long messages, extra penalty points will be added
-	double normalMsgPenalty; // this is penalty that is added each time user says something in the channel. Other penalties are added upon this one.
-	double longMsgPenalty; // penalty value added if the message is longer than 'longMsgLength'
-	double doubleMsgPenalty; // penalty value added if message is same as previous message
+	/** When penalty points reach this limit, user gets muted */
+	private int penaltyLimit;
+	/**
+	 * Length (in characters) of a message that is considered "long".
+	 * For long messages, extra penalty points will be added
+	 */
+	private int longMsgLength;
+	/**
+	 * A penalty that is added each time user says something in the channel.
+	 * Other penalties are added upon this one.
+	 */
+	private double normalMsgPenalty;
+	/** penalty value added if the message is longer than 'longMsgLength' */
+	private double longMsgPenalty;
+	/** penalty value added if message is same as previous message */
+	private double doubleMsgPenalty;
 
 	public SpamSettings(int penaltyLimit, int longMsgLength, double normalMsgPenalty, double longMsgPenalty, double doubleMsgPenalty) {
+
 		this.penaltyLimit = penaltyLimit;
 		this.longMsgLength = longMsgLength;
 		this.normalMsgPenalty = normalMsgPenalty;
@@ -63,7 +112,7 @@ class SpamSettings {
 
 	@Override
 	public String toString() {
-		return penaltyLimit + " " + longMsgLength + " " + normalMsgPenalty + " " + longMsgPenalty + " " + doubleMsgPenalty;
+		return getPenaltyLimit() + " " + getLongMsgLength() + " " + getNormalMsgPenalty() + " " + getLongMsgPenalty() + " " + getDoubleMsgPenalty();
 	}
 
 	// this method is redundant. Use settings.toString() instead!
@@ -95,6 +144,48 @@ class SpamSettings {
 		return settings.matches("^\\d+ \\d+ [0-9]*\\.?[0-9]+ [0-9]*\\.?[0-9]+ [0-9]*\\.?[0-9]+$");
 		// perhaps rather use "return stringToSpamSettings(settings) != null" ?
 	}
+
+	/**
+	 * When penalty points reach this limit, user gets muted
+	 * @return the penaltyLimit
+	 */
+	public int getPenaltyLimit() {
+		return penaltyLimit;
+	}
+
+	/**
+	 * Length (in characters) of a message that is considered "long".
+	 * For long messages, extra penalty points will be added
+	 * @return the longMsgLength
+	 */
+	public int getLongMsgLength() {
+		return longMsgLength;
+	}
+
+	/**
+	 * A penalty that is added each time user says something in the channel.
+	 * Other penalties are added upon this one.
+	 * @return the normalMsgPenalty
+	 */
+	public double getNormalMsgPenalty() {
+		return normalMsgPenalty;
+	}
+
+	/**
+	 * penalty value added if the message is longer than 'longMsgLength'
+	 * @return the longMsgPenalty
+	 */
+	public double getLongMsgPenalty() {
+		return longMsgPenalty;
+	}
+
+	/**
+	 * penalty value added if message is same as previous message
+	 * @return the doubleMsgPenalty
+	 */
+	public double getDoubleMsgPenalty() {
+		return doubleMsgPenalty;
+	}
 }
 
 class AntiSpamTask extends TimerTask {
@@ -109,8 +200,8 @@ class AntiSpamTask extends TimerTask {
 			for (Entry<String, SpamRecord> record : AntiSpamSystem.spamRecords.entrySet()) {
 				SpamRecord rec = record.getValue();
 				// reduce by 1.0 penalty point each second
-				rec.penaltyPoints = Math.max(0, rec.penaltyPoints - 1.0);
-				if (rec.penaltyPoints == 0) {
+				rec.setPenaltyPoints(Math.max(0, rec.getPenaltyPoints() - 1.0));
+				if (rec.getPenaltyPoints() == 0) {
 					AntiSpamSystem.spamRecords.remove(record.getKey());
 				}
 			}
@@ -189,20 +280,20 @@ class AntiSpamSystem {
 			}
 
 			// determine severity:
-			double severity = settings.normalMsgPenalty;
-			if (msg.length() > settings.longMsgLength) {
-				severity += settings.longMsgPenalty;
+			double severity = settings.getNormalMsgPenalty();
+			if (msg.length() > settings.getLongMsgLength()) {
+				severity += settings.getLongMsgPenalty();
 			}
-			if (rec.lastMsg.equals(msg)) {
-				severity += settings.doubleMsgPenalty;
+			if (rec.getLastMsg().equals(msg)) {
+				severity += settings.getDoubleMsgPenalty();
 			}
 
-			rec.penaltyPoints += severity;
-			rec.lastMsg = msg;
+			rec.setPenaltyPoints(rec.getPenaltyPoints() + severity);
+			rec.setLastMsg(msg);
 
 			// check if user has gathered too many penalty points:
-			if (rec.penaltyPoints >= settings.penaltyLimit) {
-				rec.penaltyPoints = 0; // reset counter
+			if (rec.getPenaltyPoints() >= settings.getPenaltyLimit()) {
+				rec.setPenaltyPoints(0); // reset counter
 				muteUser(chan, user);
 			}
 		}
