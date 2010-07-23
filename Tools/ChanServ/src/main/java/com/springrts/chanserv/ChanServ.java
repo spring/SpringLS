@@ -96,6 +96,7 @@ public class ChanServ {
 	static RemoteAccessServer remoteAccessServer;
 	static int remoteAccessPort;
 
+	/** Needs to be thread-save */
 	static List<Client> clients = new Vector<Client>();
 	static List<Channel> channels = new Vector<Channel>();
 

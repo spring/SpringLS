@@ -138,7 +138,7 @@ public class RemoteAccessServer extends Thread {
 			RemoteClientThread rct = threads.get(threadId);
 			if (rct != null) {
 				try {
-					rct.replyQueue.put(command);
+					rct.putCommand(command);
 					return true;
 				} catch (InterruptedException ex) {
 					logger.warn("Failed forwarding a command", ex);

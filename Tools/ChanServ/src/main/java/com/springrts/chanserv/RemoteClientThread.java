@@ -26,15 +26,17 @@ public class RemoteClientThread extends Thread {
 
 	/** in milliseconds */
 	private final static int TIMEOUT = 30000;
-	private final static boolean DEBUG = true;
 
 	static final byte[] EOL = {(byte)'\r', (byte)'\n' };
 
 	/** unique ID which we will use as a message ID when sending commands to TASServer */
 	public final int ID = (int)((Math.random() * 65535));
 
-	/** reply queue which gets filled by ChanServ automatically */
-	BlockingQueue<String> replyQueue = new LinkedBlockingQueue<String>();
+	/**
+	 * Reply queue which gets filled by ChanServ automatically
+	 * (needs to be thread-save)
+	 */
+	private final BlockingQueue<String> replyQueue;
 	//Queue replyQueue = new Queue();
 
 	/* socket for the client which we are handling */
@@ -51,6 +53,9 @@ public class RemoteClientThread extends Thread {
 
 
 	RemoteClientThread(RemoteAccessServer parent, Socket s) {
+
+		// LinkedBlockingQueue is thread-save
+		this.replyQueue = new LinkedBlockingQueue<String>();
 		this.socket = s;
 		this.parent = parent;
 		try {
@@ -76,9 +81,7 @@ public class RemoteClientThread extends Thread {
 
 	public void sendLine(String text) {
 
-		if (DEBUG) {
-			System.out.println("RAS: \"" + text + "\"");
-		}
+		logger.debug("RAS: \"{}\"", text);
 		out.println(text);
 	}
 
@@ -110,9 +113,7 @@ public class RemoteClientThread extends Thread {
 				if (input == null) {
 					throw new IOException();
 				}
-				if (DEBUG) {
-					System.out.println(IP + ": \"" + input + "\"");
-				}
+				logger.debug("{}: \"{}\"", IP, input);
 				processCommand(input);
 			}
 		}
@@ -142,18 +143,26 @@ public class RemoteClientThread extends Thread {
 		}
 	}
 
-	public void processCommand(String command) {
-		command = command.trim();
-		if (command.equals("")) {
+	/**
+	 * Lines-up a command in the queue for processing.
+	 */
+	public void putCommand(String command) throws InterruptedException {
+		replyQueue.put(command);
+	}
+
+	private void processCommand(String command) {
+
+		String cleanCommand = command.trim();
+		if (cleanCommand.equals("")) {
 			return;
 		}
 
-		String[] params = command.split(" ");
+		String[] params = cleanCommand.split(" ");
 		params[0] = params[0].toUpperCase();
 
 		if (params[0].equals("IDENTIFY")) {
 			if (params.length != 2) {
-				logger.trace("Malformed command: " + command);
+				logger.trace("Malformed command: {}", cleanCommand);
 				return;
 			}
 			if (!ChanServ.isConnected()) {
@@ -173,7 +182,7 @@ public class RemoteClientThread extends Thread {
 				return;
 			}
 			if (params.length != 3) {
-				logger.trace("Malformed command: " + command);
+				logger.trace("Malformed command: {}", cleanCommand);
 				return;
 			}
 			if (!ChanServ.isConnected()) {
@@ -192,7 +201,7 @@ public class RemoteClientThread extends Thread {
 				return;
 			}
 			if (params.length != 2) {
-				logger.trace("Malformed command: " + command);
+				logger.trace("Malformed command: {}", cleanCommand);
 				return;
 			}
 			if (!ChanServ.isConnected()) {
@@ -222,7 +231,7 @@ public class RemoteClientThread extends Thread {
 				return;
 			}
 			if (params.length != 2) {
-				logger.trace("Malformed command: " + command);
+				logger.trace("Malformed command: {}", cleanCommand);
 				return;
 			}
 			if (!ChanServ.isConnected()) {
@@ -236,7 +245,7 @@ public class RemoteClientThread extends Thread {
 				return;
 			}
 			if (params.length != 2) {
-				logger.trace("Malformed command: " + command);
+				logger.trace("Malformed command: {}", cleanCommand);
 				return;
 			}
 			if (!ChanServ.isConnected()) {
@@ -259,7 +268,7 @@ public class RemoteClientThread extends Thread {
 				return;
 			}
 			if (params.length != 2) {
-				logger.trace("Malformed command: " + command);
+				logger.trace("Malformed command: {}", cleanCommand);
 				return;
 			}
 			if (!ChanServ.isConnected()) {
