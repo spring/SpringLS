@@ -687,27 +687,27 @@ public class ChanServ {
 			int i = 0;
 			while (i < forwardMuteList.size()) {
 				MuteListRequest request = forwardMuteList.get(i);
-				if (!request.chanName.equals(lastMuteListChannel)) {
+				if (!request.getChannelName().equals(lastMuteListChannel)) {
 					i++;
 					continue;
 				}
-				Client target = getClient(request.sendTo);
+				Client target = getClient(request.getSendTo());
 				if (target == null) { // user who made the request has already gone offline!
 					forwardMuteList.remove(i);
 					continue;
 				}
-				if (System.currentTimeMillis() - request.requestTime > 10000) { // this request has already expired
+				if (System.currentTimeMillis() - request.getRequestTime() > 10000) { // this request has already expired
 					forwardMuteList.remove(i);
 					continue;
 				}
 				// forward the mute list to the one who requested it:
 				if (lastMuteList.isEmpty()) {
-					sendMessage(target, getChannel(request.replyToChan), "Mute list for #" + request.chanName + " is empty!");
+					sendMessage(target, getChannel(request.getReplyToChan()), "Mute list for #" + request.getChannelName() + " is empty!");
 				}
 				else {
-					sendMessage(target, getChannel(request.replyToChan), "Mute list for #" + request.chanName+ " (" + lastMuteList.size() + " entries):");
+					sendMessage(target, getChannel(request.getReplyToChan()), "Mute list for #" + request.getChannelName()+ " (" + lastMuteList.size() + " entries):");
 					for (String lastMute : lastMuteList) {
-						sendMessage(target, getChannel(request.replyToChan), lastMute);
+						sendMessage(target, getChannel(request.getReplyToChan()), lastMute);
 					}
 				}
 				forwardMuteList.remove(i);
