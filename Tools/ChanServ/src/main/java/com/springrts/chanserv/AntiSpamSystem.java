@@ -210,22 +210,22 @@ class AntiSpamSystem {
 
 	public static void processClientStatusChange(Client client) {
 
-		if (System.currentTimeMillis() - client.clientStatusChangeCheckpoint > CHECK_CLIENTSTATUSCHANGE_INTERVAL) {
+		if (System.currentTimeMillis() - client.getClientStatusChangeCheckpoint() > CHECK_CLIENTSTATUSCHANGE_INTERVAL) {
 			// reset the counter:
-			client.clientStatusChangeCheckpoint = System.currentTimeMillis();
-			client.numClientStatusChanges = 0;
+			client.setClientStatusChangeCheckpoint(System.currentTimeMillis());
+			client.resetStatusChanges();
 		}
 
-		client.numClientStatusChanges++;
+		client.addOneStatusChange();
 
-		if (((System.currentTimeMillis() - client.clientStatusChangeCheckpoint) * 1.0f / client.numClientStatusChanges) > MAX_CLIENTSTATUSCHANGE_FREQUENCY) {
-			if (client.numClientStatusChanges > MIN_CLIENTSTATUCCHANGE_COUNT_BEFORE_ALERT) {
+		if (((System.currentTimeMillis() - client.getClientStatusChangeCheckpoint()) * 1.0f / client.getStatusChanges()) > MAX_CLIENTSTATUSCHANGE_FREQUENCY) {
+			if (client.getStatusChanges() > MIN_CLIENTSTATUCCHANGE_COUNT_BEFORE_ALERT) {
 				// reset the counter:
-				client.clientStatusChangeCheckpoint = System.currentTimeMillis();
-				client.numClientStatusChanges = 0;
+				client.setClientStatusChangeCheckpoint(System.currentTimeMillis());
+				client.resetStatusChanges();
 
 				// take action:
-				ChanServ.sendLine("KICKUSER " + client.name + " CLIENTSTATUS command abuse - frequency too high");
+				ChanServ.sendLine("KICKUSER " + client.getName() + " CLIENTSTATUS command abuse - frequency too high");
 			}
 		}
 	}

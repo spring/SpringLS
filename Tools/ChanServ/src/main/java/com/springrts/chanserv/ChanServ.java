@@ -547,14 +547,14 @@ public class ChanServ {
 			clients.add(new Client(commands[1]));
 		} else if (commands[0].equals("REMOVEUSER")) {
 			for (Client client : clients) {
-				if (client.name.equals(commands[1])) {
+				if (client.getName().equals(commands[1])) {
 					clients.remove(client);
 					break;
 				}
 			}
 		} else if (commands[0].equals("CLIENTSTATUS")) {
 			for (Client client : clients) {
-				if (client.name.equals(commands[1])) {
+				if (client.getName().equals(commands[1])) {
 					client.setStatus(Integer.parseInt(commands[2]));
 					AntiSpamSystem.processClientStatusChange(client);
 					break;
@@ -738,7 +738,7 @@ public class ChanServ {
 		if (commandName.equals("HELP")) {
 			// force the message to be sent to private chat rather than
 			// to the channel (to avoid unneccessary bloating the channel):
-			sendMessage(client, null, "Hello, " + client.name + "!");
+			sendMessage(client, null, "Hello, " + client.getName() + "!");
 			sendMessage(client, null, "I am an automated channel service bot,");
 			sendMessage(client, null, "for the full list of commands, see http://spring.clan-sy.com/dl/ChanServCommands.html");
 			sendMessage(client, null, "If you want to go ahead and register a new channel, please contact one of the server moderators!");
@@ -855,7 +855,7 @@ public class ChanServ {
 				return ;
 			}
 
-			if (!(client.isModerator() || client.name.equals(chan.getFounder()))) {
+			if (!(client.isModerator() || client.getName().equals(chan.getFounder()))) {
 				sendMessage(client, channel, "Insufficient access to execute " + commandName + " command!");
 				return ;
 			}
@@ -889,14 +889,14 @@ public class ChanServ {
 				return ;
 			}
 
-			if (!(client.isModerator() || client.name.equals(chan.getFounder()))) {
+			if (!(client.isModerator() || client.getName().equals(chan.getFounder()))) {
 				sendMessage(client, channel, "Insufficient access to execute " + commandName + " command!");
 				return ;
 			}
 
 			// ok unregister the channel now:
 			channels.remove(chan);
-			sendLine("CHANNELMESSAGE " + chan.getName() + " " + "This channel has just been unregistered from <" + username + "> by <" + client.name + ">");
+			sendLine("CHANNELMESSAGE " + chan.getName() + " " + "This channel has just been unregistered from <" + username + "> by <" + client.getName() + ">");
 			sendMessage(client, channel, "Channel #" + chanName + " successfully unregistered!");
 			sendLine("LEAVE " + chan.getName());
 		} else if (commandName.equals("ADDSTATIC")) {
@@ -954,7 +954,7 @@ public class ChanServ {
 				return ;
 			}
 
-			if (!(client.isModerator() || client.name.equals(chan.getFounder()))) {
+			if (!(client.isModerator() || client.getName().equals(chan.getFounder()))) {
 				sendMessage(client, channel, "Insufficient access to execute " + commandName + " command!");
 				return ;
 			}
@@ -986,7 +986,7 @@ public class ChanServ {
 				return ;
 			}
 
-			if (!(client.isModerator() || client.name.equals(chan.getFounder()))) {
+			if (!(client.isModerator() || client.getName().equals(chan.getFounder()))) {
 				sendMessage(client, channel, "Insufficient access to execute " + commandName + " command!");
 				return ;
 			}
@@ -1009,7 +1009,7 @@ public class ChanServ {
 
 			// ok add user to channel's operator list:
 			chan.addOperator(params.get(1));
-			sendLine("CHANNELMESSAGE " + chan.getName() + " <" + params.get(1) + "> has just been added to this channel's operator list by <" + client.name + ">");
+			sendLine("CHANNELMESSAGE " + chan.getName() + " <" + params.get(1) + "> has just been added to this channel's operator list by <" + client.getName() + ">");
 		} else if (commandName.equals("DEOP")) {
 			// if the command was issued from a channel:
 			if (channel != null) { // insert <channame> parameter so we don't have to handle two different situations for each command
@@ -1033,7 +1033,7 @@ public class ChanServ {
 				return ;
 			}
 
-			if (!(client.isModerator() || client.name.equals(chan.getFounder()))) {
+			if (!(client.isModerator() || client.getName().equals(chan.getFounder()))) {
 				sendMessage(client, channel, "Insufficient access to execute " + commandName + " command!");
 				return ;
 			}
@@ -1045,7 +1045,7 @@ public class ChanServ {
 
 			// ok remove user from channel's operator list:
 			chan.removeOperator(params.get(1));
-			sendLine("CHANNELMESSAGE " + chan.getName() + " <" + params.get(1) + "> has just been removed from this channel's operator list by <" + client.name + ">");
+			sendLine("CHANNELMESSAGE " + chan.getName() + " <" + params.get(1) + "> has just been removed from this channel's operator list by <" + client.getName() + ">");
 		} else if (commandName.equals("SPAMPROTECTION")) {
 			// if the command was issued from a channel:
 			if (channel != null) { // insert <channame> parameter so we don't have to handle two different situations for each command
@@ -1074,7 +1074,7 @@ public class ChanServ {
 				return ;
 			}
 
-			if (!(client.isModerator() || client.name.equals(chan.getFounder()))) {
+			if (!(client.isModerator() || client.getName().equals(chan.getFounder()))) {
 				sendMessage(client, channel, "Insufficient access to execute " + commandName + " command!");
 				return ;
 			}
@@ -1116,7 +1116,7 @@ public class ChanServ {
 				return ;
 			}
 
-			if (!(client.isModerator() || client.name.equals(chan.getFounder()))) {
+			if (!(client.isModerator() || client.getName().equals(chan.getFounder()))) {
 				sendMessage(client, channel, "Insufficient access to execute " + commandName + " command!");
 				return ;
 			}
@@ -1164,7 +1164,7 @@ public class ChanServ {
 				return ;
 			}
 
-			if (!(client.isModerator() || client.name.equals(chan.getFounder()) || chan.isOperator(client.name))) {
+			if (!(client.isModerator() || client.getName().equals(chan.getFounder()) || chan.isOperator(client.getName()))) {
 				sendMessage(client, channel, "Insufficient access to execute " + commandName + " command!");
 				return ;
 			}
@@ -1200,13 +1200,13 @@ public class ChanServ {
 				return ;
 			}
 
-			if (!(client.isModerator() || client.name.equals(chan.getFounder()) || chan.isOperator(client.name))) {
+			if (!(client.isModerator() || client.getName().equals(chan.getFounder()) || chan.isOperator(client.getName()))) {
 				sendMessage(client, channel, "Insufficient access to execute " + commandName + " command!");
 				return ;
 			}
 
 			// ok send the channel message:
-			sendLine("CHANNELMESSAGE " + chan.getName() + " issued by <" + client.name + ">: " + msg);
+			sendLine("CHANNELMESSAGE " + chan.getName() + " issued by <" + client.getName() + ">: " + msg);
 		} else if (commandName.equals("LOCK")) {
 			// if the command was issued from a channel:
 			if (channel != null) { // insert <channame> parameter so we don't have to handle two different situations for each command
@@ -1230,7 +1230,7 @@ public class ChanServ {
 				return ;
 			}
 
-			if (!(client.isModerator() || client.name.equals(chan.getFounder()) || chan.isOperator(client.name))) {
+			if (!(client.isModerator() || client.getName().equals(chan.getFounder()) || chan.isOperator(client.getName()))) {
 				sendMessage(client, channel, "Insufficient access to execute " + commandName + " command!");
 				return ;
 			}
@@ -1270,7 +1270,7 @@ public class ChanServ {
 				return ;
 			}
 
-			if (!(client.isModerator() || client.name.equals(chan.getFounder()) || chan.isOperator(client.name))) {
+			if (!(client.isModerator() || client.getName().equals(chan.getFounder()) || chan.isOperator(client.getName()))) {
 				sendMessage(client, channel, "Insufficient access to execute " + commandName + " command!");
 				return ;
 			}
@@ -1301,7 +1301,7 @@ public class ChanServ {
 				return ;
 			}
 
-			if (!(client.isModerator() || client.name.equals(chan.getFounder()) || chan.isOperator(client.name))) {
+			if (!(client.isModerator() || client.getName().equals(chan.getFounder()) || chan.isOperator(client.getName()))) {
 				sendMessage(client, channel, "Insufficient access to execute " + commandName + " command!");
 				return ;
 			}
@@ -1348,7 +1348,7 @@ public class ChanServ {
 				return ;
 			}
 
-			if (!(client.isModerator() || client.name.equals(chan.getFounder()) || chan.isOperator(client.name))) {
+			if (!(client.isModerator() || client.getName().equals(chan.getFounder()) || chan.isOperator(client.getName()))) {
 				sendMessage(client, channel, "Insufficient access to execute " + commandName + " command!");
 				return ;
 			}
@@ -1400,7 +1400,7 @@ public class ChanServ {
 				return ;
 			}
 
-			if (!(client.isModerator() || client.name.equals(chan.getFounder()) || chan.isOperator(client.name))) {
+			if (!(client.isModerator() || client.getName().equals(chan.getFounder()) || chan.isOperator(client.getName()))) {
 				sendMessage(client, channel, "Insufficient access to execute " + commandName + " command!");
 				return ;
 			}
@@ -1432,12 +1432,12 @@ public class ChanServ {
 				return ;
 			}
 
-			if (!(client.isModerator() || client.name.equals(chan.getFounder()) || chan.isOperator(client.name))) {
+			if (!(client.isModerator() || client.getName().equals(chan.getFounder()) || chan.isOperator(client.getName()))) {
 				sendMessage(client, channel, "Insufficient access to execute " + commandName + " command!");
 				return ;
 			}
 
-			forwardMuteList.add(new MuteListRequest(chanName, client.name, System.currentTimeMillis(), (channel != null) ? channel.getName() : ""));
+			forwardMuteList.add(new MuteListRequest(chanName, client.getName(), System.currentTimeMillis(), (channel != null) ? channel.getName() : ""));
 			sendLine("MUTELIST " + chan.getName());
 		} else if (commandName.equals("SHUTDOWN")) {
 			if (!client.isModerator()) {
@@ -1467,8 +1467,8 @@ public class ChanServ {
 
 	public static void sendPrivateMsg(Client client, String msg) {
 
-		sendLine("SAYPRIVATE " + client.name + " " + msg);
-		Log.toFile(client.name + ".log", "<" + username + "> " + msg);
+		sendLine("SAYPRIVATE " + client.getName() + " " + msg);
+		Log.toFile(client.getName() + ".log", "<" + username + "> " + msg);
 	}
 
 	/**
@@ -1490,7 +1490,7 @@ public class ChanServ {
 		} else if ((client == null) && (chan != null)) {
 			chan.sendMessage(msg);
 		} else if ((client != null) && (chan != null)) {
-			chan.sendMessage(client.name + ": " + msg);
+			chan.sendMessage(client.getName() + ": " + msg);
 		} else if ((client != null) && (chan == null)) {
 			sendPrivateMsg(client, msg);
 		}
@@ -1499,7 +1499,7 @@ public class ChanServ {
 	public static Client getClient(String username) {
 
 		for (Client client : clients) {
-			if (client.name.equals(username)) {
+			if (client.getName().equals(username)) {
 				return client;
 			}
 		}

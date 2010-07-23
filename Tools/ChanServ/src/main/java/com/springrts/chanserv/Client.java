@@ -10,19 +10,19 @@ package com.springrts.chanserv;
  */
 public class Client {
 
-	public String name;
+	private final String name;
 	private int status = 0;
 
 	/**
 	 * Number of received CLIENTSTATUS commands since last checkpoint.
 	 * Used with anti-spam system.
 	 */
-	public int numClientStatusChanges;
+	private int statusChanges;
 	/**
 	 * Time of last "checkpoint" (that is time, when we last reset the counter).
 	 * Used with anti-spam system.
 	 */
-	public long clientStatusChangeCheckpoint;
+	private long clientStatusChangeCheckpoint;
 
 	public Client(String name) {
 		this.name = name;
@@ -34,5 +34,42 @@ public class Client {
 
 	public boolean isModerator() {
 		return (status & 0x20) >> 5 == 1;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	/**
+	 * Returns the number of received CLIENTSTATUS commands
+	 * since last checkpoint.
+	 * Used with anti-spam system.
+	 */
+	public int getStatusChanges() {
+		return statusChanges;
+	}
+	public void resetStatusChanges() {
+		statusChanges = 0;
+	}
+	public void addOneStatusChange() {
+		statusChanges++;
+	}
+
+	/**
+	 * Time of last "checkpoint" (that is time, when we last reset the counter).
+	 * Used with anti-spam system.
+	 * @return the clientStatusChangeCheckpoint
+	 */
+	public long getClientStatusChangeCheckpoint() {
+		return clientStatusChangeCheckpoint;
+	}
+
+	/**
+	 * Time of last "checkpoint" (that is time, when we last reset the counter).
+	 * Used with anti-spam system.
+	 * @param clientStatusChangeCheckpoint the clientStatusChangeCheckpoint to set
+	 */
+	public void setClientStatusChangeCheckpoint(long clientStatusChangeCheckpoint) {
+		this.clientStatusChangeCheckpoint = clientStatusChangeCheckpoint;
 	}
 }

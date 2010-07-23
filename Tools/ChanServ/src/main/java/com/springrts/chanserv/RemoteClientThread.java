@@ -243,7 +243,7 @@ public class RemoteClientThread extends Thread {
 			boolean success = false;
 			synchronized(ChanServ.clients) {
 				for (Client client : ChanServ.clients) {
-					if (client.name.equals(params[1])) {
+					if (client.getName().equals(params[1])) {
 						success = true;
 						break;
 					}
