@@ -24,6 +24,10 @@ public class RemoteClientThread extends Thread {
 
 	static final int BUF_SIZE = 2048;
 
+	/** in milliseconds */
+	private final static int TIMEOUT = 30000;
+	private final static boolean DEBUG = true;
+
 	static final byte[] EOL = {(byte)'\r', (byte)'\n' };
 
 	/** unique ID which we will use as a message ID when sending commands to TASServer */
@@ -50,7 +54,7 @@ public class RemoteClientThread extends Thread {
 		this.socket = s;
 		this.parent = parent;
 		try {
-			socket.setSoTimeout(RemoteAccessServer.TIMEOUT);
+			socket.setSoTimeout(TIMEOUT);
 			socket.setTcpNoDelay(true);
 		} catch (SocketException e) {
 			Log.error("Serious error in RemoteClient constructor (SocketException): " + e.getMessage());
@@ -72,7 +76,7 @@ public class RemoteClientThread extends Thread {
 
 	public void sendLine(String text) {
 
-		if (RemoteAccessServer.DEBUG) {
+		if (DEBUG) {
 			System.out.println("RAS: \"" + text + "\"");
 		}
 		out.println(text);
@@ -92,7 +96,7 @@ public class RemoteClientThread extends Thread {
 
 	private void kill() {
 		disconnect();
-		parent.threads.remove(this);
+		parent.removeRemoteClientThread(this);
 	}
 
 	@Override
@@ -106,7 +110,7 @@ public class RemoteClientThread extends Thread {
 				if (input == null) {
 					throw new IOException();
 				}
-				if (RemoteAccessServer.DEBUG) {
+				if (DEBUG) {
 					System.out.println(IP + ": \"" + input + "\"");
 				}
 				processCommand(input);
@@ -156,8 +160,8 @@ public class RemoteClientThread extends Thread {
 				sendLine("FAILED");
 				return ;
 			}
-			for (int i = 0; i < RemoteAccessServer.remoteAccounts.size(); i++) {
-				if (RemoteAccessServer.remoteAccounts.get(i).equals(params[1])) {
+			for (int i = 0; i < parent.getRemoteAccounts().size(); i++) {
+				if (parent.getRemoteAccounts().get(i).equals(params[1])) {
 					sendLine("PROCEED");
 					identified = true; // client has successfully identified
 					return ;

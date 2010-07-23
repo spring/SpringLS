@@ -176,7 +176,7 @@ public class ChanServ {
 			node = node.getFirstChild();
 			while (node != null) {
 				if (node.getNodeType() == Node.ELEMENT_NODE) {
-					RemoteAccessServer.remoteAccounts.add(((Element)node).getAttribute("key"));
+					remoteAccessServer.getRemoteAccounts().add(((Element)node).getAttribute("key"));
 				}
 				node = node.getNextSibling();
 			}
@@ -489,43 +489,34 @@ public class ChanServ {
 	}
 
 	public static boolean execRemoteCommand(String command) {
-		if (command.trim().equals("")) {
+
+		String cleanCommand = command.trim();
+		if (cleanCommand.equals("")) {
 			return false;
 		}
 
 		// try to extract message ID if present:
-		if (command.charAt(0) == '#') {
+		if (cleanCommand.charAt(0) == '#') {
 			try {
-				if (!command.matches("^#\\d+\\s[\\s\\S]*")) {
+				if (!cleanCommand.matches("^#\\d+\\s[\\s\\S]*")) {
 					// malformed command
 					return false;
 				}
-				int ID = Integer.parseInt(command.substring(1).split("\\s")[0]);
+				int threadId = Integer.parseInt(cleanCommand.substring(1).split("\\s")[0]);
 				// remove ID field from the rest of command:
-				command = command.replaceFirst("#\\d+\\s", "");
+				cleanCommand = cleanCommand.replaceFirst("#\\d+\\s", "");
 				// forward the command to the waiting thread:
-				synchronized (remoteAccessServer.threads) {
-					for (RemoteClientThread rct : remoteAccessServer.threads) {
-						if (rct.ID == ID) {
-							try {
-								rct.replyQueue.put(command);
-							} catch (InterruptedException ex) {
-								ex.printStackTrace();
-								return false;
-							}
-							return true;
-						}
-					}
-				}
-				return false; // no suitable thread found! Perhaps thread already finished before it could read the response (not a problem)
-			} catch (NumberFormatException e) {
-				return false; // this means that the command is malformed
-			} catch (PatternSyntaxException e) {
-				return false; // this means that the command is malformed
+				return remoteAccessServer.forwardCommand(threadId, cleanCommand);
+			} catch (NumberFormatException ex) {
+				logger.trace("Malformed command: " + command, ex);
+				return false;
+			} catch (PatternSyntaxException ex) {
+				logger.trace("Malformed command: " + command, ex);
+				return false;
 			}
 		}
 
-		String[] commands = command.split(" ");
+		String[] commands = cleanCommand.split(" ");
 		commands[0] = commands[0].toUpperCase();
 
 		if (commands[0].equals("TASSERVER")) {

@@ -9,6 +9,9 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Protocol description:
  *
@@ -72,12 +75,7 @@ import java.util.*;
  */
 public class RemoteAccessServer extends Thread {
 
-	/** in milliseconds */
-	final static int TIMEOUT = 30000;
-	final static boolean DEBUG = true;
-
-	/** Keys for remote server access */
-	public static List<String> remoteAccounts = new Vector<String>();
+	private static final Logger logger = LoggerFactory.getLogger(ChanServ.class);
 
 	/** used with QUERYSERVER command */
 	public static final String allowedQueryCommands[] = {
@@ -92,12 +90,18 @@ public class RemoteAccessServer extends Thread {
 		"GETUSERID"
 		};
 
-	/** A list of all currently running client threads */
-	public List<RemoteClientThread> threads = new Vector<RemoteClientThread>();
-	private int port;
+	/** Keys for remote server access (needs to be thread-save) */
+	private final List<String> remoteAccounts;
+
+	/** A list of all currently running client threads (needs to be thread-save) */
+	private final Map<Integer, RemoteClientThread> threads;
+	private final int port;
 
 	public RemoteAccessServer(int port) {
+
 		this.port = port;
+		this.remoteAccounts = Collections.synchronizedList(new LinkedList<String>());
+		this.threads = Collections.synchronizedMap(new HashMap<Integer, RemoteClientThread>());
 	}
 
 	@Override
@@ -108,7 +112,7 @@ public class RemoteAccessServer extends Thread {
 			while (true) {
 				Socket cs = ss.accept();
 				RemoteClientThread thread = new RemoteClientThread(this, cs);
-				threads.add(thread);
+				threads.put(thread.ID, thread);
 				thread.start();
 			}
 		} catch (IOException e) {
@@ -116,4 +120,39 @@ public class RemoteAccessServer extends Thread {
 		}
 	}
 
+	/**
+	 * Keys for remote server access (needs to be thread-save)
+	 * @return the remoteAccounts
+	 */
+	public List<String> getRemoteAccounts() {
+		return remoteAccounts;
+	}
+
+	/**
+	 * Forward a command to the waiting thread.
+	 * @return true if forwarded successfully
+	 */
+	public boolean forwardCommand(int threadId, String command) {
+
+		synchronized (threads) {
+			RemoteClientThread rct = threads.get(threadId);
+			if (rct != null) {
+				try {
+					rct.replyQueue.put(command);
+					return true;
+				} catch (InterruptedException ex) {
+					logger.warn("Failed forwarding a command", ex);
+					return false;
+				}
+			}
+		}
+		// No suitable thread could be found!
+		// Perhaps the thread has already finished
+		// before it could read the response (not a problem).
+		return false;
+	}
+
+	public RemoteClientThread removeRemoteClientThread(RemoteClientThread thread) {
+		return threads.remove(thread.ID);
+	}
 }
