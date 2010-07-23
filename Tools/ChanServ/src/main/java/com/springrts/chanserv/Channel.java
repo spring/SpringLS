@@ -8,6 +8,9 @@ package com.springrts.chanserv;
 import java.util.List;
 import java.util.ArrayList;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Static channels are those for which we don't want ChanServ to moderate them,
  * only idle there so it logs all chats (for example, #main).
@@ -15,6 +18,8 @@ import java.util.ArrayList;
  * @author Betalord
  */
 public class Channel {
+
+	private static final Logger logger = LoggerFactory.getLogger(ChanServ.class);
 
 	public String name;
 	public String topic = ""; // "" means topic is disabled
@@ -42,13 +47,19 @@ public class Channel {
 	}
 
 	public boolean addOperator(String name) {
-		if (isOperator(name)) return false;
+
+		if (isOperator(name)) {
+			return false;
+		}
 		operators.add(name);
 		return true;
 	}
 
 	public boolean removeOperator(String name) {
-		if (!isOperator(name)) return false;
+
+		if (!isOperator(name)) {
+			return false;
+		}
 		operators.remove(name);
 		return true;
 	}
@@ -58,8 +69,12 @@ public class Channel {
 	}
 
 	public boolean renameOperator(String oldOp, String newOp) {
+
 		int index = operators.indexOf(oldOp);
-		if (index == -1) return false; // operator does not exist!
+		if (index == -1) {
+			// operator does not exist!
+			return false;
+		}
 		operators.set(index, newOp);
 		return true;
 	}
@@ -91,12 +106,16 @@ public class Channel {
 
 	public void addClient(String client) {
 		clients.add(client);
-		int tmp = 0;
 	}
 
 	public void removeClient(String client) {
+
 		int i = clients.indexOf(client);
-		if (i == -1) return ; // should not happen!
+		if (i == -1) {
+			// should not happen!
+			logger.warn("Tried to remove a client that does not exist");
+			return;
+		}
 		clients.remove(i);
 	}
 
@@ -104,12 +123,18 @@ public class Channel {
 		return clients.indexOf(client) != -1;
 	}
 
-	// returns 'null' if channel name is valid, or error description otherwise
+	/** Returns 'null' if channel name is valid, or error description otherwise */
 	public static String isChanNameValid(String channame) {
-		if (channame.length() > 20) return "Channel name too long";
-		if (channame.length() < 1) return "Channel name too short";
-		if (!channame.matches("^[A-Za-z0-9_\\[\\]]+$")) return "Channel name contains invalid characters";
-		// everything is OK:
-		return null;
+
+		if (channame.length() > 20) {
+			return "Channel name too long";
+		} else if (channame.length() < 1) {
+			return "Channel name too short";
+		} else if (!channame.matches("^[A-Za-z0-9_\\[\\]]+$")) {
+			return "Channel name contains invalid characters";
+		} else {
+			// everything is OK:
+			return null;
+		}
 	}
 }

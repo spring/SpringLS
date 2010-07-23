@@ -75,7 +75,9 @@ class SpamSettings {
 	public static SpamSettings stringToSpamSettings(String settings) {
 		SpamSettings ss = new SpamSettings();
 		String[] parsed = settings.split(" ");
-		if (parsed.length != 5) return null;
+		if (parsed.length != 5) {
+			return null;
+		}
 		try {
 			ss.penaltyLimit = Integer.parseInt(parsed[0]);
 			ss.longMsgLength = Integer.parseInt(parsed[1]);
@@ -100,7 +102,9 @@ class AntiSpamTask extends TimerTask {
 	/** Here we will reduce penalty points for all users */
 	@Override
 	public void run() {
-		if (!ChanServ.isConnected()) return;
+		if (!ChanServ.isConnected()) {
+			return;
+		}
 		synchronized (AntiSpamSystem.spamRecords) {
 			for (Entry<String, SpamRecord> record : AntiSpamSystem.spamRecords.entrySet()) {
 				SpamRecord rec = record.getValue();
@@ -174,7 +178,9 @@ class AntiSpamSystem {
 		synchronized (spamRecords) {
 			String key = chan + ":" + user;
 			SpamSettings settings = spamSettings.get(chan);
-			if (settings == null) settings = SpamSettings.DEFAULT_SETTINGS;
+			if (settings == null) {
+				settings = SpamSettings.DEFAULT_SETTINGS;
+			}
 
 			SpamRecord rec = spamRecords.get(key);
 			if (rec == null) {
@@ -184,8 +190,12 @@ class AntiSpamSystem {
 
 			// determine severity:
 			double severity = settings.normalMsgPenalty;
-			if (msg.length() > settings.longMsgLength) severity += settings.longMsgPenalty;
-			if (rec.lastMsg.equals(msg)) severity += settings.doubleMsgPenalty;
+			if (msg.length() > settings.longMsgLength) {
+				severity += settings.longMsgPenalty;
+			}
+			if (rec.lastMsg.equals(msg)) {
+				severity += settings.doubleMsgPenalty;
+			}
 
 			rec.penaltyPoints += severity;
 			rec.lastMsg = msg;

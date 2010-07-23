@@ -27,6 +27,9 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 /**
  * @author Betalord
@@ -70,10 +73,12 @@ class KeepAliveTask extends TimerTask {
  */
 public class ChanServ {
 
+	private static final Logger logger = LoggerFactory.getLogger(ChanServ.class);
+
 	static final String VERSION = "0.1";
 	static final String CONFIG_FILENAME = "settings.xml";
 	static final boolean DEBUG = false;
-	static private boolean connected = false; // are we connected to the TASServer?
+	private static boolean connected = false; // are we connected to the TASServer?
 	static Document config;
 	static String serverAddress = "";
 	static int serverPort;
@@ -103,6 +108,8 @@ public class ChanServ {
 	private static String DB_URL = "jdbc:mysql://127.0.0.1/ChanServLogs";
 	private static String DB_username = "";
 	private static String DB_password = "";
+
+	private ChanServ() {}
 
 	public static void closeAndExit() {
 		closeAndExit(0);
@@ -305,7 +312,9 @@ public class ChanServ {
 				// add new static channels:
 				for (int i = 0; i < channels.size(); i++) {
 					chan = channels.get(i);
-					if (!chan.isStatic) continue;
+					if (!chan.isStatic) {
+						continue;
+					}
 					root.appendChild(config.createTextNode(Misc.EOL + Misc.enumSpaces(6)));
 					elem = config.createElement("channel");
 					elem.setAttribute("name", chan.name);
@@ -336,7 +345,9 @@ public class ChanServ {
 				// add new channels:
 				for (int i = 0; i < channels.size(); i++) {
 					chan = channels.get(i);
-					if (chan.isStatic) continue;
+					if (chan.isStatic) {
+						continue;
+					}
 					root.appendChild(config.createTextNode(Misc.EOL + Misc.enumSpaces(6)));
 					elem = config.createElement("channel");
 					elem.setAttribute("name", chan.name);
@@ -353,8 +364,9 @@ public class ChanServ {
 							elem2 = config.createElement("operator");
 							elem2.setAttribute("name", chan.getOperatorList().get(j));
 							elem.appendChild(elem2);
-							if (j != chan.getOperatorList().size()-1)
+							if (j != chan.getOperatorList().size()-1) {
 								elem.appendChild(config.createTextNode(Misc.EOL + Misc.enumSpaces(8)));
+							}
 						}
 						elem.appendChild(config.createTextNode(Misc.EOL + Misc.enumSpaces(6)));
 					}
@@ -378,15 +390,20 @@ public class ChanServ {
 
 			transformer.transform(source, result);
 
-			if (DEBUG) Log.log("Config file saved to " + fname);
+			if (DEBUG) {
+				Log.log("Config file saved to " + fname);
+			}
 		} catch (Exception e) {
 			Log.error("Unable to save config file to " + fname + "! Ignoring ...");
 		}
 	}
 
-	// multiple threads may call this method
+	/** multiple threads may call this method */
 	public static synchronized void sendLine(String s) {
-		if (DEBUG) Log.log("Client: \"" + s + "\"");
+
+		if (DEBUG) {
+			Log.log("Client: \"" + s + "\"");
+		}
 		sockout.println(s);
 	}
 
@@ -417,8 +434,12 @@ public class ChanServ {
 				Log.error("Connection with server closed with exception.");
 				break;
 			}
-			if (line == null) break;
-			if (DEBUG) Log.log("Server: \"" + line + "\"");
+			if (line == null) {
+				break;
+			}
+			if (DEBUG) {
+				Log.log("Server: \"" + line + "\"");
+			}
 
 			// parse command and respond to it:
 			try {
@@ -468,33 +489,40 @@ public class ChanServ {
 	}
 
 	public static boolean execRemoteCommand(String command) {
-		if (command.trim().equals("")) return false;
+		if (command.trim().equals("")) {
+			return false;
+		}
 
 		// try to extract message ID if present:
-		if (command.charAt(0) == '#') try {
-			if (!command.matches("^#\\d+\\s[\\s\\S]*")) return false; // malformed command
-			int ID = Integer.parseInt(command.substring(1).split("\\s")[0]);
-			// remove ID field from the rest of command:
-			command = command.replaceFirst("#\\d+\\s", "");
-			// forward the command to the waiting thread:
-			synchronized (remoteAccessServer.threads) {
-				for (RemoteClientThread rct : remoteAccessServer.threads) {
-					if (rct.ID == ID) {
-						try {
-							rct.replyQueue.put(command);
-						} catch (InterruptedException ex) {
-							ex.printStackTrace();
-							return false;
+		if (command.charAt(0) == '#') {
+			try {
+				if (!command.matches("^#\\d+\\s[\\s\\S]*")) {
+					// malformed command
+					return false;
+				}
+				int ID = Integer.parseInt(command.substring(1).split("\\s")[0]);
+				// remove ID field from the rest of command:
+				command = command.replaceFirst("#\\d+\\s", "");
+				// forward the command to the waiting thread:
+				synchronized (remoteAccessServer.threads) {
+					for (RemoteClientThread rct : remoteAccessServer.threads) {
+						if (rct.ID == ID) {
+							try {
+								rct.replyQueue.put(command);
+							} catch (InterruptedException ex) {
+								ex.printStackTrace();
+								return false;
+							}
+							return true;
 						}
-						return true;
 					}
 				}
+				return false; // no suitable thread found! Perhaps thread already finished before it could read the response (not a problem)
+			} catch (NumberFormatException e) {
+				return false; // this means that the command is malformed
+			} catch (PatternSyntaxException e) {
+				return false; // this means that the command is malformed
 			}
-			return false; // no suitable thread found! Perhaps thread already finished before it could read the response (not a problem)
-		} catch (NumberFormatException e) {
-			return false; // this means that the command is malformed
-		} catch (PatternSyntaxException e) {
-			return false; // this means that the command is malformed
 		}
 
 		String[] commands = command.split(" ");
@@ -535,59 +563,96 @@ public class ChanServ {
 		} else if (commands[0].equals("JOIN")) {
 			Log.log("Joined #" + commands[1]);
 			Channel chan = getChannel(commands[1]);
-			if (chan == null) return false; // this could happen just after we unregistered the channel (since there is always some lag between us and the server)
+			if (chan == null) {
+				// this could happen just after we unregistered the channel,
+				// since there is always some lag between us and the server
+				return false;
+			}
 			chan.joined = true;
 			chan.clearClients();
 			// set topic, lock channel, ... :
 			if (!chan.isStatic) {
-				if (!chan.key.equals(""))
+				if (!chan.key.equals("")) {
 					sendLine("SETCHANNELKEY " + chan.name + " " + chan.key);
-				if (chan.topic.equals(""))
+				}
+				if (chan.topic.equals("")) {
 					sendLine("CHANNELTOPIC " + chan.name + " *");
-				else
+				} else {
 					sendLine("CHANNELTOPIC " + chan.name + " " + chan.topic);
+				}
 			}
 		} else if (commands[0].equals("CLIENTS")) {
 			Channel chan = getChannel(commands[1]);
-			if (chan == null) return false; // this could happen just after we unregistered the channel (since there is always some lag between us and the server)
+			if (chan == null) {
+				// this could happen just after we unregistered the channel,
+				// since there is always some lag between us and the server
+				return false;
+			}
 			for (int i = 2; i < commands.length; i++) {
 				chan.addClient(commands[i]);
 			}
 		} else if (commands[0].equals("JOINED")) {
 			Channel chan = getChannel(commands[1]);
-			if (chan == null) return false; // this could happen just after we unregistered the channel (since there is always some lag between us and the server)
+			if (chan == null) {
+				// this could happen just after we unregistered the channel,
+				// since there is always some lag between us and the server
+				return false;
+			}
 			chan.addClient(commands[2]);
 			Log.toFile(chan.logFileName, "* " + commands[2] + " has joined " + "#" + chan.name);
 		} else if (commands[0].equals("LEFT")) {
 			Channel chan = getChannel(commands[1]);
-			if (chan == null) return false; // this could happen just after we unregistered the channel (since there is always some lag between us and the server)
+			if (chan == null) {
+				// this could happen just after we unregistered the channel,
+				// since there is always some lag between us and the server
+				return false;
+			}
 			chan.removeClient(commands[2]);
 			String out = "* " + commands[2] + " has left " + "#" + chan.name;
-			if (commands.length > 3)
+			if (commands.length > 3) {
 				out = out + " (" + Misc.makeSentence(commands, 3) + ")";
+			}
 			Log.toFile(chan.logFileName, out);
 		} else if (commands[0].equals("JOINFAILED")) {
 			channels.add(new Channel(commands[1]));
 			Log.log("Failed to join #" + commands[1] + ". Reason: " + Misc.makeSentence(commands, 2));
 		} else if (commands[0].equals("CHANNELTOPIC")) {
 			Channel chan = getChannel(commands[1]);
-			if (chan == null) return false; // this could happen just after we unregistered the channel (since there is always some lag between us and the server)
+			if (chan == null) {
+				// this could happen just after we unregistered the channel,
+				// since there is always some lag between us and the server
+				return false;
+			}
 			chan.topic = Misc.makeSentence(commands, 4);
 			Log.toFile(chan.logFileName, "* Channel topic is '" + chan.topic + "' set by " + commands[2]);
 		} else if (commands[0].equals("SAID")) {
 			Channel chan = getChannel(commands[1]);
-			if (chan == null) return false; // this could happen just after we unregistered the channel (since there is always some lag between us and the server)
+			if (chan == null) {
+				// this could happen just after we unregistered the channel,
+				// since there is always some lag between us and the server
+				return false;
+			}
 			String user = commands[2];
 			String msg = Misc.makeSentence(commands, 3);
-			if (chan.antispam) AntiSpamSystem.processUserMsg(chan.name, user, msg);
+			if (chan.antispam) {
+				AntiSpamSystem.processUserMsg(chan.name, user, msg);
+			}
 			Log.toFile(chan.logFileName, "<" + user + "> " + msg);
-			if ((msg.length() > 0) && (msg.charAt(0) == '!')) processUserCommand(msg.substring(1, msg.length()), getClient(user), chan);
+			if ((msg.length() > 0) && (msg.charAt(0) == '!')) {
+				processUserCommand(msg.substring(1, msg.length()), getClient(user), chan);
+			}
 		} else if (commands[0].equals("SAIDEX")) {
 			Channel chan = getChannel(commands[1]);
-			if (chan == null) return false; // this could happen just after we unregistered the channel (since there is always some lag between us and the server)
+			if (chan == null) {
+				// this could happen just after we unregistered the channel,
+				// since there is always some lag between us and the server
+				return false;
+			}
 			String user = commands[2];
 			String msg = Misc.makeSentence(commands, 3);
-			if (chan.antispam) AntiSpamSystem.processUserMsg(chan.name, user, msg);
+			if (chan.antispam) {
+				AntiSpamSystem.processUserMsg(chan.name, user, msg);
+			}
 			Log.toFile(chan.logFileName, "* " + user + " " + msg);
 		} else if (commands[0].equals("SAIDPRIVATE")) {
 
@@ -595,10 +660,14 @@ public class ChanServ {
 			String msg = Misc.makeSentence(commands, 2);
 
 			Log.toFile(user + ".log", "<" + user + "> " + msg);
-			if ((msg.length() > 0) && (msg.charAt(0)) == '!') processUserCommand(msg.substring(1, msg.length()), getClient(user), null);
+			if ((msg.length() > 0) && (msg.charAt(0)) == '!') {
+				processUserCommand(msg.substring(1, msg.length()), getClient(user), null);
+			}
 		} else if (commands[0].equals("SERVERMSG")) {
 			Log.log("Message from server: " + Misc.makeSentence(commands, 1));
-			if (Misc.makeSentence(commands, 1).startsWith("[broadcast to all admins]")) processAdminBroadcast(Misc.makeSentence(commands, 1).substring("[broadcast to all admins]: ".length(), Misc.makeSentence(commands, 1).length()));
+			if (Misc.makeSentence(commands, 1).startsWith("[broadcast to all admins]")) {
+				processAdminBroadcast(Misc.makeSentence(commands, 1).substring("[broadcast to all admins]: ".length(), Misc.makeSentence(commands, 1).length()));
+			}
 		} else if (commands[0].equals("SERVERMSGBOX")) {
 			Log.log("MsgBox from server: " + Misc.makeSentence(commands, 1));
 		} else if (commands[0].equals("CHANNELMESSAGE")) {
@@ -1079,9 +1148,14 @@ public class ChanServ {
 			}
 
 			String topic;
-			if (params.size() == 1) topic = "*";
-			else topic = Misc.makeSentence(params, 1);
-			if (topic.trim().equals("")) topic = "*";
+			if (params.size() == 1) {
+				topic = "*";
+			} else {
+				topic = Misc.makeSentence(params, 1);
+			}
+			if (topic.trim().equals("")) {
+				topic = "*";
+			}
 
 			String chanName = params.get(0).substring(1);
 			Channel chan = getChannel(chanName);
@@ -1168,8 +1242,11 @@ public class ChanServ {
 
 			// ok lock the channel:
 			sendLine("SETCHANNELKEY " + chan.name + " " + params.get(1));
-			if (params.get(1).equals("*")) chan.key = "";
-			else chan.key = params.get(1);
+			if (params.get(1).equals("*")) {
+				chan.key = "";
+			} else {
+				chan.key = params.get(1);
+			}
 		} else if (commandName.equals("UNLOCK")) {
 			// if the command was issued from a channel:
 			if (channel != null) { // insert <channame> parameter so we don't have to handle two different situations for each command
@@ -1289,13 +1366,14 @@ public class ChanServ {
 			}
 
 			int duration = 0;
-			if (params.size() == 3)
+			if (params.size() == 3) {
 				try {
 					duration = Integer.parseInt(params.get(2));
 				} catch (Exception e) {
 					sendMessage(client, channel, "Error: <duration> argument should be an integer!");
-					return ;
+					return;
 				}
+			}
 
 			// ok mute the user:
 			sendLine("MUTE " + chan.name + " " + target + " " + duration);
@@ -1393,22 +1471,29 @@ public class ChanServ {
 		Log.toFile(client.name + ".log", "<" + username + "> " + msg);
 	}
 
-	/* this method will send a message either to a client or a channel. This method decides what to do
-	 * by examining "client" and "chan" parameters' existence (null / not null):
+	/**
+	 * This method will send a message either to a client or a channel.
+	 * This method decides what to do, by examining the 'client' and 'chan'
+	 * parameters (null / not null):
 	 *
-	 *  1) client != null, chan != null - will send a msg to a channel with client's username in front of it
-	 *  2) client != null, chan == null - will send a private msg to the client
-	 *  3) client == null, chan != null - will send a msg to a channel (general message withouth any prefix)
-	 *  4) client == null, chan == null - invalid parameters
+	 *  1) client  && chan  - will send a msg to a channel with client's username in front of it
+	 *  2) client  && !chan - will send a private msg to the client
+	 *  3) !client && chan  - will send a msg to a channel (general message withouth any prefix)
+	 *  4) !client && !chan - invalid parameters
 	 */
 	public static void sendMessage(Client client, Channel chan, String msg) {
-		if ((client == null) && (chan == null)) return ; // this should not happen!
-		else if ((client == null) && (chan != null)) // general channel message
+
+		if ((client == null) && (chan == null)) {
+			// this should not happen!
+			logger.warn("sendMessage() called, with neither a client nor a channel specified");
+			return;
+		} else if ((client == null) && (chan != null)) {
 			chan.sendMessage(msg);
-		else if ((client != null) && (chan != null)) // channel message with username prefix
+		} else if ((client != null) && (chan != null)) {
 			chan.sendMessage(client.name + ": " + msg);
-		else if ((client != null) && (chan == null)) // private message
+		} else if ((client != null) && (chan == null)) {
 			sendPrivateMsg(client, msg);
+		}
 	}
 
 	public static Client getClient(String username) {
@@ -1422,7 +1507,7 @@ public class ChanServ {
 		return null;
 	}
 
-	/** Returns <code>null</code> if channel is not found */
+	/** Returns <code>null</code> if the channel is not found */
 	public static Channel getChannel(String name) {
 
 		for (Channel channel : channels) {
@@ -1497,9 +1582,9 @@ public class ChanServ {
 			closeAndExit(1);
 		}
 
-		if (!tryToConnect())
+		if (!tryToConnect()) {
 			closeAndExit(1);
-		else {
+		} else {
 			startTimers();
 			connected = true;
 			messageLoop();
@@ -1515,7 +1600,9 @@ public class ChanServ {
 			}
 
 			Log.log("Trying to reconnect to the server ...");
-			if (!tryToConnect()) continue;
+			if (!tryToConnect()) {
+				continue;
+			}
 			startTimers();
 			connected = true;
 			messageLoop();

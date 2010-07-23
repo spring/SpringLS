@@ -9,6 +9,9 @@ import java.util.*;
 import java.io.*;
 import java.sql.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * This class is involved in moving logs from files on disk to a database,
  * where they can be more easily accessed by TASServer web interface.
@@ -25,6 +28,8 @@ import java.sql.*;
  * @author Betalord
  */
 public class LogCleaner extends TimerTask {
+
+	private static final Logger logger = LoggerFactory.getLogger(ChanServ.class);
 
 	final static String TEMP_LOGS_FOLDER = "./temp_logs";
 
@@ -52,24 +57,32 @@ public class LogCleaner extends TimerTask {
 				File sourceFolder = new File(Log.LOG_FOLDER);
 				File files[] = sourceFolder.listFiles();
 				if (files.length == 0) {
-					// great, we have no new logs since last time we checked, so we can exit immediately
-					return ;
+					// great, we have no new logs since last time we checked,
+					// so we can exit immediately
+					return;
 				}
 
 				// move each file to temp folder:
 				for(int i = 0; i < files.length; i++) {
 					File source = files[i];
-					if (!source.isFile()) continue;
-					if (!source.getName().startsWith("#")) continue; // only move channel logs to database
+					if (!source.isFile()) {
+						continue;
+					}
+					if (!source.getName().startsWith("#")) {
+						// only move channel logs to database
+						continue;
+					}
 
 					// move file to new folder:
 					if (!source.renameTo(new File(tempFolder, source.getName()))) {
 						Log.error("Unable to move file " + source.toString() + " to " + tempFolder.toString());
-						return ;
+						return;
 					}
 				}
 			} catch (InterruptedException e) {
-				return ; // this should not happen!
+				// this should not happen!
+				logger.warn("Log cleaner got interrupted");
+				return;
 			} finally {
 				Log.logToDiskLock.release();
 			}
@@ -105,7 +118,10 @@ public class LogCleaner extends TimerTask {
 
 				int lineCount = 0;
 				while ((line = in.readLine()) != null) {
-					if (line.trim().equals("")) continue; // empty line
+					if (line.trim().equals("")) {
+						// ignore empty lines
+						continue;
+					}
 
 					long stamp;
 					try {

@@ -11,31 +11,39 @@ import java.net.SocketException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * @see RemoteAccessServer
  * @author hoijui
  */
 public class RemoteClientThread extends Thread {
+
+	private static final Logger logger = LoggerFactory.getLogger(ChanServ.class);
+
 	static final int BUF_SIZE = 2048;
 
 	static final byte[] EOL = {(byte)'\r', (byte)'\n' };
 
-	/* unique ID which we will use as a message ID when sending commands to TASServer */
-	public int ID = (int)((Math.random() * 65535));
+	/** unique ID which we will use as a message ID when sending commands to TASServer */
+	public final int ID = (int)((Math.random() * 65535));
 
-	/* reply queue which gets filled by ChanServ automatically */
-	//Queue replyQueue = new Queue();
+	/** reply queue which gets filled by ChanServ automatically */
 	BlockingQueue<String> replyQueue = new LinkedBlockingQueue<String>();
+	//Queue replyQueue = new Queue();
 
 	/* socket for the client which we are handling */
 	private Socket socket;
 	private String IP;
-	private boolean identified = false; // if remote client has already identified
+	/** whether the remote client has already identified */
+	private boolean identified = false;
 
 	private PrintWriter out;
 	private BufferedReader in;
 
-	private RemoteAccessServer parent; // so we will know which object spawned this thread
+	/** the object that spawned this thread */
+	private RemoteAccessServer parent;
 
 
 	RemoteClientThread(RemoteAccessServer parent, Socket s) {
@@ -63,7 +71,10 @@ public class RemoteClientThread extends Thread {
 	}
 
 	public void sendLine(String text) {
-		if (RemoteAccessServer.DEBUG) System.out.println("RAS: \"" + text + "\"");
+
+		if (RemoteAccessServer.DEBUG) {
+			System.out.println("RAS: \"" + text + "\"");
+		}
 		out.println(text);
 	}
 
@@ -92,8 +103,12 @@ public class RemoteClientThread extends Thread {
 		{
 			while (true) {
 				input = readLine();
-				if (input == null) throw new IOException();
-				if (RemoteAccessServer.DEBUG) System.out.println(IP + ": \"" + input + "\"");
+				if (input == null) {
+					throw new IOException();
+				}
+				if (RemoteAccessServer.DEBUG) {
+					System.out.println(IP + ": \"" + input + "\"");
+				}
 				processCommand(input);
 			}
 		}
@@ -125,13 +140,18 @@ public class RemoteClientThread extends Thread {
 
 	public void processCommand(String command) {
 		command = command.trim();
-		if (command.equals("")) return ;
+		if (command.equals("")) {
+			return;
+		}
 
 		String[] params = command.split(" ");
 		params[0] = params[0].toUpperCase();
 
 		if (params[0].equals("IDENTIFY")) {
-			if (params.length != 2) return ; // malformed command
+			if (params.length != 2) {
+				logger.trace("Malformed command: " + command);
+				return;
+			}
 			if (!ChanServ.isConnected()) {
 				sendLine("FAILED");
 				return ;
@@ -145,8 +165,13 @@ public class RemoteClientThread extends Thread {
 			}
 			sendLine("FAILED");
 		} else if (params[0].equals("TESTLOGIN")) {
-			if (!identified) return ;
-			if (params.length != 3) return ; // malformed command
+			if (!identified) {
+				return;
+			}
+			if (params.length != 3) {
+				logger.trace("Malformed command: " + command);
+				return;
+			}
 			if (!ChanServ.isConnected()) {
 				sendLine("LOGINBAD");
 				return ;
@@ -155,12 +180,17 @@ public class RemoteClientThread extends Thread {
 			String reply = waitForReply().toUpperCase();
 			if (reply.equals("TESTLOGINACCEPT")) {
 				sendLine("LOGINOK");
-			}
-			else
+			} else {
 				sendLine("LOGINBAD");
+			}
 		} else if (params[0].equals("GETACCESS")) {
-			if (!identified) return ;
-			if (params.length != 2) return ; // malformed command
+			if (!identified) {
+				return;
+			}
+			if (params.length != 2) {
+				logger.trace("Malformed command: " + command);
+				return;
+			}
 			if (!ChanServ.isConnected()) {
 				kill();
 				return ;
@@ -184,8 +214,13 @@ public class RemoteClientThread extends Thread {
 			}
 			sendLine("" + (access & 0x7));
 		} else if (params[0].equals("GENERATEUSERID")) {
-			if (!identified) return ;
-			if (params.length != 2) return ; // malformed command
+			if (!identified) {
+				return;
+			}
+			if (params.length != 2) {
+				logger.trace("Malformed command: " + command);
+				return;
+			}
 			if (!ChanServ.isConnected()) {
 				kill();
 				return ;
@@ -193,8 +228,13 @@ public class RemoteClientThread extends Thread {
 			queryTASServer("FORGEMSG " + params[1] + " ACQUIREUSERID");
 			sendLine("OK");
 		} else if (params[0].equals("ISONLINE")) {
-			if (!identified) return ;
-			if (params.length != 2) return ; // malformed command
+			if (!identified) {
+				return;
+			}
+			if (params.length != 2) {
+				logger.trace("Malformed command: " + command);
+				return;
+			}
 			if (!ChanServ.isConnected()) {
 				kill();
 				return ;
@@ -211,8 +251,13 @@ public class RemoteClientThread extends Thread {
 			} // end of synchronized
 			sendLine(success ? "OK" : "NOTOK");
 		} else if (params[0].equals("QUERYSERVER")) {
-			if (!identified) return ;
-			if (params.length < 2) return ; // malformed command
+			if (!identified) {
+				return;
+			}
+			if (params.length != 2) {
+				logger.trace("Malformed command: " + command);
+				return;
+			}
 			if (!ChanServ.isConnected()) {
 				kill();
 				return ;
@@ -225,7 +270,10 @@ public class RemoteClientThread extends Thread {
 				}
 			}
 
-			if (!allow) kill(); // client is trying to execute a command that is not allowed!
+			if (!allow) {
+				// client is trying to execute a command that is not allowed!
+				kill();
+			}
 
 			queryTASServer(Misc.makeSentence(params, 1));
 			String reply = waitForReply();
