@@ -94,7 +94,7 @@ public class MuteList {
 	 * @param IP set to 'null' if you don't want to mute this user by the IP.
 	 * @return false if already muted
 	 */
-	public boolean mute(String username, int seconds, String IP) {
+	public boolean mute(String username, long seconds, String IP) {
 
 		for (int i = 0; i < usernames.size(); i++) {
 			if (usernames.get(i).equals(username)) {
@@ -103,9 +103,9 @@ public class MuteList {
 		}
 
 		usernames.add(username);
-		Long until = new Long(0);
+		Long until = 0L;
 		if (seconds != 0) {
-			until = new Long(System.currentTimeMillis() + seconds * 1000);
+			until = System.currentTimeMillis() + (seconds * 1000);
 		}
 		mutedUntil.add(until);
 		ips.add(IP);

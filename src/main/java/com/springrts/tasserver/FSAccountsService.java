@@ -20,15 +20,24 @@ import java.util.*;
 public class FSAccountsService extends AbstractAccountsService implements AccountsService {
 
 	private static final Log s_log  = LogFactory.getLog(FSAccountsService.class);
+	
+	/** in milliseconds */
+	private static final long SAVE_ACCOUNT_INFO_INTERVAL = 1000 * 60 * 60;
 
 	public static final String ACCOUNTS_INFO_FILEPATH = "accounts.txt";
 
 	// note: ArrayList is not synchronized!
 	// Use Collections.synchronizedList(...) instead,
 	// if multiple threads are going to access it
-	private static List<Account> accounts = new ArrayList<Account>();
-	private static FSSaveAccountsThread saveAccountsThread = null;
-	private static int biggestAccountId = 1000;
+	private List<Account> accounts = new ArrayList<Account>();
+	private FSSaveAccountsThread saveAccountsThread = null;
+	private int biggestAccountId = 1000;
+
+	/**
+	 * Time we last saved accounts info to disk.
+	 * @see System.currentTimeMillis()
+	 */
+	private long lastSaveAccountsTime = System.currentTimeMillis();
 
 	/**
 	 * Used to speed up searching for accounts by username.
@@ -54,13 +63,6 @@ public class FSAccountsService extends AbstractAccountsService implements Accoun
 					return s1.compareToIgnoreCase(s2);
 				}
 			});
-	/** in milliseconds */
-	private static long saveAccountInfoInterval = 1000 * 60 * 60;
-	/**
-	 * Time we last saved accounts info to disk.
-	 * @see System.currentTimeMillis()
-	 */
-	private static long lastSaveAccountsTime = System.currentTimeMillis();
 
 
 	@Override
@@ -214,7 +216,7 @@ public class FSAccountsService extends AbstractAccountsService implements Accoun
 
 		// note: lastSaveAccountsTime will get updated in saveAccounts() method!
 		long timeSinceLastSave = System.currentTimeMillis() - lastSaveAccountsTime;
-		if (!getContext().getServer().isLanMode() && (timeSinceLastSave > saveAccountInfoInterval)) {
+		if (!getContext().getServer().isLanMode() && (timeSinceLastSave > SAVE_ACCOUNT_INFO_INTERVAL)) {
 			saveAccounts(false);
 		}
 	}

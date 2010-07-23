@@ -13,10 +13,10 @@ import net.iharder.Base64;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-import java.text.*;
 import java.io.*;
 import java.net.*;
 import java.security.*;
+import java.util.concurrent.Semaphore;
 
 /**
  * @author Betalord
@@ -325,17 +325,22 @@ public class Misc {
 	 * Will unzip next entry from given ZipInputStream
 	 */
 	public static void unzipSingleEntry(ZipInputStream zin, String toFile) throws IOException {
-		FileOutputStream out = new FileOutputStream(toFile);
-		byte[] b = new byte[512];
-		int len = 0;
-		while ((len = zin.read(b)) != -1) {
-			out.write(b, 0, len);
+
+		FileOutputStream out = null;
+		try {
+			out = new FileOutputStream(toFile);
+			byte[] b = new byte[512];
+			int len = 0;
+			while ((len = zin.read(b)) != -1) {
+				out.write(b, 0, len);
+			}
+		} finally {
+			out.close();
 		}
-		out.close();
 	}
 
 	/**
-	 * Downloads a file from the given url and saves it to disk to specified file.
+	 * Downloads a file from the given URL and saves it to disk to specified file.
 	 * 'downloadLimit' is specified in bytes per second (use 0 for unlimited) - this is
 	 * the maximum rate at which this method will attempt to download the file.
 	 * Returns number of bytes written if it succeeds.
@@ -361,8 +366,7 @@ public class Misc {
 
 		try {
 			URL url = new URL(address);
-			out = new BufferedOutputStream(
-					new FileOutputStream(localFileName));
+			out = new BufferedOutputStream(new FileOutputStream(localFileName));
 			conn = url.openConnection();
 			in = conn.getInputStream();
 			byte[] buffer = new byte[1024];
@@ -415,6 +419,7 @@ public class Misc {
 				out.close();
 			}
 		}
+
 		return numWritten;
 	}
 
@@ -527,7 +532,28 @@ public class Misc {
 		return true;
 	}
 
+	private static Properties initMavenProperties() {
+
+		Properties mavenProps = null;
+
+		try {
+			final String pomPropsLoc = "/META-INF/maven/com.springrts/tasserver/pom.properties";
+			InputStream propFileIn = Misc.class.getResourceAsStream(pomPropsLoc);
+			if (propFileIn == null) {
+				throw new IOException("Failed locating resource in the classpath: " + pomPropsLoc);
+			}
+			Properties tmpProps = new Properties();
+			tmpProps.load(propFileIn);
+			mavenProps = tmpProps;
+		} catch (Exception ex) {
+			s_log.warn("Failed reading the Maven properties file", ex);
+		}
+
+		return mavenProps;
+	}
+
 	private static Properties mavenProperties = null;
+	private static Semaphore mavenPropertiesInit = new Semaphore(1);
 	/**
 	 * Reads this applications Maven properties file in the
 	 * META-INF directory of the class-path.
@@ -536,16 +562,14 @@ public class Misc {
 
 		if (mavenProperties == null) {
 			try {
-				final String pomPropsLoc = "/META-INF/maven/com.springrts/tasserver/pom.properties";
-				InputStream propFileIn = Misc.class.getResourceAsStream(pomPropsLoc);
-				if (propFileIn == null) {
-					throw new IOException("Failed locating resource in the classpath: " + pomPropsLoc);
+				mavenPropertiesInit.acquire();
+				if (mavenProperties == null) {
+					mavenProperties = initMavenProperties();
 				}
-				mavenProperties = new Properties();
-				mavenProperties.load(propFileIn);
-			} catch (Exception ex) {
-				s_log.warn("Failed reading the Maven properties file", ex);
-				mavenProperties = null;
+			} catch (InterruptedException ex) {
+				// do nothing
+			} finally {
+				mavenPropertiesInit.release();
 			}
 		}
 
@@ -576,7 +600,7 @@ public class Misc {
 	 * Utility method used to delete a file or a directory recursively.
 	 * @param file the file or directory to recursively delete.
 	 */
-	public static void deleteFileOrDir(File fileOrDir) {
+	public static void deleteFileOrDir(File fileOrDir) throws IOException {
 
 		if (fileOrDir.isDirectory()) {
 			File[] childs = fileOrDir.listFiles();
@@ -584,7 +608,9 @@ public class Misc {
 				deleteFileOrDir(childs[i]);
 			}
 		}
-		fileOrDir.delete();
+		if (!fileOrDir.delete()) {
+			throw new IOException("Failed deleting a file/directory: " + fileOrDir.getCanonicalPath());
+		}
 	}
 
 	/**
@@ -598,8 +624,10 @@ public class Misc {
 		File cacheDir = null;
 
 		cacheDir = File.createTempFile(dirName, null);
-		// we just created a file, but we actualyl need a directory
-		cacheDir.delete();
+		// we just created a file, but we actually need a directory
+		if (!cacheDir.delete()) {
+			throw new IOException("Failed deleting a temporary file: " + cacheDir.getCanonicalPath());
+		}
 		// delete at application shutdown
 		Runtime.getRuntime().addShutdownHook(new Thread(new FileRemover(cacheDir)));
 
@@ -619,7 +647,12 @@ public class Misc {
 
 		@Override
 		public void run() {
-			Misc.deleteFileOrDir(fileOrDir);
+
+			try {
+				Misc.deleteFileOrDir(fileOrDir);
+			} catch (IOException ex) {
+				ex.printStackTrace();
+			}
 		}
 	}
 }

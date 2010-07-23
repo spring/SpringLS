@@ -25,10 +25,8 @@ public class ServerNotifications implements ContextReceiver {
 	 */
 	public static final String NOTIFICATION_SYSTEM_VERSION = "1.0";
 
-	private static final DateFormat SHORT_DATE_FORMAT = new SimpleDateFormat("yyyyMMdd");
-
 	private static final String DEFAULT_DIR = "./notifs";
-	private File notificationsDir;
+	private final File notificationsDir;
 
 	private Context context = null;
 
@@ -43,10 +41,10 @@ public class ServerNotifications implements ContextReceiver {
 		this.context = context;
 	}
 
+	/** create notifications dir if it does not yet exist */
 	private void ensureNotifsDirExists() {
 
-		// create notifications dir if it does not yet exist
-		if (!context.getServer().isLanMode()) {
+		synchronized (notificationsDir) {
 			if (!notificationsDir.exists()) {
 				boolean success = notificationsDir.mkdir();
 				if (!success) {
@@ -58,31 +56,71 @@ public class ServerNotifications implements ContextReceiver {
 		}
 	}
 
+	private synchronized File findWriteableNotifFile(final String baseFileName) {
+
+		File notifFile = null;
+
+		int counter = 1;
+		File tmpFile = null;
+		do {
+			tmpFile = new File(baseFileName + "_" + counter);
+			counter++;
+		} while (tmpFile.exists());
+
+		try {
+			if (tmpFile.createNewFile()) {
+				notifFile = tmpFile;
+			} else {
+				throw new IOException();
+			}
+		} catch (IOException ex) {
+			s_log.error("Failed creating notification-file: " + tmpFile, ex);
+		}
+
+		return notifFile;
+	}
+
 	/**
-	 * NOTE: This method may be called from multiple threads simultaneously,
-	 *       so do not remove the 'synchronized' identifier!
+	 * NOTE: This method may be called from multiple threads simultaneously!
 	 */
-	public synchronized boolean addNotification(ServerNotification sn) {
+	public boolean addNotification(ServerNotification sn) {
 
 		if (context.getServer().isLanMode()) {
-			return false; // ignore notifications if server is running in lan mode!
+			// ignore notifications if server is running in lan mode!
+			return false;
 		}
+
 		ensureNotifsDirExists();
-		String fname = notificationsDir + "/" + SHORT_DATE_FORMAT.format(new Date());
-		int counter = 1;
-		while (new File(fname + "_" + counter).exists()) {
-			counter++;
+
+		DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
+		final String baseFileName = notificationsDir + "/" + dateFormat.format(new Date());
+
+		File notifFile = findWriteableNotifFile(baseFileName);
+
+		if (notifFile == null) {
+			s_log.error("Unable to find/create a notification file. Server notification will not be saved!");
+			context.getClients().sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Serious problem: Unable to find/create a notification file (notification dropped).");
+			return false;
 		}
-		fname += "_" + counter;
+
+		BufferedWriter out = null;
 		try {
-			BufferedWriter out = new BufferedWriter(new FileWriter(fname, true));
+			out = new BufferedWriter(new FileWriter(notifFile, true));
 			out.write(NOTIFICATION_SYSTEM_VERSION + "\r\n");
 			out.write(sn.toString());
 			out.close();
-		} catch (IOException e) {
-			s_log.error("Unable to write file <" + fname + ">. Server notification will not be saved!");
+		} catch (IOException ex) {
+			s_log.error("Unable to write file <" + notifFile + ">. Server notification will not be saved!");
 			context.getClients().sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Serious problem: Unable to save server notification (notification dropped).");
 			return false;
+		} finally {
+			if (out != null) {
+				try {
+					out.close();
+				} catch (IOException ex) {
+					// ignore
+				}
+			}
 		}
 
 		return true;

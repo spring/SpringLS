@@ -238,9 +238,6 @@ import org.apache.commons.logging.LogFactory;
  */
 public class TASServer implements LiveStateListener {
 
-	private static final DateFormat LONG_DATE_FORMAT = new SimpleDateFormat("d MMM yyyy HH:mm:ss z");
-	private static final DateFormat HUMAN_DATE_FORMAT = new SimpleDateFormat("yyyy.MM.dd 'at' hh:mm:ss z");
-
 	private String MOTD = "Enjoy your stay :-)";
 	/**
 	 * Agreement which is sent to user upon first login.
@@ -365,9 +362,13 @@ public class TASServer implements LiveStateListener {
 	@Override
 	public void started() {
 
+		// As DateFormats are generally not-thread save,
+		// we always create a new one.
+		DateFormat dateTimeFormat = new SimpleDateFormat("yyyy.MM.dd 'at' hh:mm:ss z");
+
 		s_log.info(new StringBuilder("TASServer ")
 				.append(Misc.getAppVersion()).append(" started on ")
-				.append(HUMAN_DATE_FORMAT.format(new Date())).toString());
+				.append(dateTimeFormat.format(new Date())).toString());
 
 		createAdminIfNoUsers();
 	}
@@ -379,8 +380,12 @@ public class TASServer implements LiveStateListener {
 	@Override
 	public void stopped() {
 
+		// As DateFormats are generally not-thread save,
+		// we always create a new one.
+		DateFormat dateTimeFormat = new SimpleDateFormat("yyyy.MM.dd 'at' hh:mm:ss z");
+
 		running = false;
-		s_log.info("stopped on " + HUMAN_DATE_FORMAT.format(new Date()));
+		s_log.info("stopped on " + dateTimeFormat.format(new Date()));
 	}
 
 	/** Reads agreement from disk (if file is found) */
@@ -1445,9 +1450,9 @@ public class TASServer implements LiveStateListener {
 					}
 				}
 
-				int minutes;
+				long minutes;
 				try {
-					minutes = Integer.parseInt(commands[3]);
+					minutes = Long.parseLong(commands[3]);
 				} catch (NumberFormatException e) {
 					client.sendLine("SERVERMSG MUTE failed: Invalid argument - should be an integer");
 					return false;
@@ -1663,8 +1668,12 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
+				// As DateFormats are generally not-thread save,
+				// we always create a new one.
+				DateFormat dateTimeFormat = new SimpleDateFormat("d MMM yyyy HH:mm:ss z");
+
 				client.sendLine(new StringBuilder("SERVERMSG LONGTIMETODATE result: ")
-						.append(LONG_DATE_FORMAT.format(new Date(time))).toString());
+						.append(dateTimeFormat.format(new Date(time))).toString());
 			} else if (commands[0].equals("GETLASTLOGINTIME")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
 					return false;
@@ -1681,9 +1690,12 @@ public class TASServer implements LiveStateListener {
 				}
 
 				if (context.getClients().getClient(acc.getName()) == null) {
+					// As DateFormats are generally not-thread save,
+					// we always create a new one.
+					DateFormat dateTimeFormat = new SimpleDateFormat("d MMM yyyy HH:mm:ss z");
 					client.sendLine(new StringBuilder("SERVERMSG <")
 							.append(acc.getName()).append(">'s last login was on ")
-							.append(LONG_DATE_FORMAT.format(new Date(acc.getLastLogin()))).toString());
+							.append(dateTimeFormat.format(new Date(acc.getLastLogin()))).toString());
 				} else {
 					client.sendLine(new StringBuilder("SERVERMSG <")
 							.append(acc.getName()).append("> is currently online").toString());
@@ -1904,10 +1916,13 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
+				// As DateFormats are generally not-thread save,
+				// we always create a new one.
+				DateFormat dateTimeFormat = new SimpleDateFormat("d MMM yyyy HH:mm:ss z");
 				client.sendLine(new StringBuilder("SERVERMSG Registration timestamp for <")
 						.append(userName).append("> is ")
 						.append(acc.getRegistrationDate()).append(" (")
-						.append(LONG_DATE_FORMAT.format(new Date(acc.getRegistrationDate())))
+						.append(dateTimeFormat.format(new Date(acc.getRegistrationDate())))
 						.append(")").toString());
 			} else if (commands[0].equals("SETLATESTSPRINGVERSION")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
@@ -2755,9 +2770,14 @@ public class TASServer implements LiveStateListener {
 							bat.sendToAllExceptFounder(new StringBuilder("HOSTPORT ").append(client.getUdpSourcePort()).toString());
 						}
 					} else { // back from game
-						if (client.getInGameTime() != 0) { // we won't update clients who play by themselves (or with bots only), since some try to exploit the system by leaving computer alone in-battle for hours to increase their ranks
-							int diff = new Long((System.currentTimeMillis() - client.getInGameTime()) / 60000).intValue(); // in minutes
-							boolean rankChanged = client.getAccount().addMinsToInGameTime(diff);
+						if (client.getInGameTime() != 0) {
+							// We will not update clients that play
+							// by themselves (or with bots only),
+							// since some try to exploit the system
+							// by leaving their computer alone in-battle
+							// for hours, to increase their ranks.
+							long diffMins = (System.currentTimeMillis() - client.getInGameTime()) / 60000;
+							boolean rankChanged = client.getAccount().addMinsToInGameTime(diffMins);
 							if (rankChanged) {
 								client.setRankToStatus(client.getAccount().getRank().ordinal());
 							}

@@ -30,7 +30,7 @@ import javax.persistence.*;
 	@NamedQuery(name="acc_fetchByLowerName", query="SELECT a FROM Account a WHERE (LOWER(a.name) = :lowerName)"),
 	@NamedQuery(name="acc_fetchByLastIP", query="SELECT a FROM Account a WHERE a.lastIP = :ip")
 })
-public class Account implements Serializable {
+public class Account implements Serializable, Cloneable {
 
 	private static final Log s_log  = LogFactory.getLog(Account.class);
 
@@ -553,7 +553,7 @@ public class Account implements Serializable {
 	 * @param mins number of minutes to add to the client's in-game time
 	 * @return true if player's rank was changed, false otherwise.
 	 */
-	public boolean addMinsToInGameTime(int mins) {
+	public boolean addMinsToInGameTime(long mins) {
 
 		final Rank tmp = getRank();
 		setInGameTime(getInGameTime() + (mins * 60));

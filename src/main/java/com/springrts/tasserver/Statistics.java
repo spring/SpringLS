@@ -101,22 +101,23 @@ public class Statistics implements ContextReceiver {
 	public int saveStatisticsToDisk() {
 
 		long taken;
+		
 		try {
 			ensureStatsDirExists();
 
 			lastStatisticsUpdate = System.currentTimeMillis();
 			taken = autoUpdateStatisticsFile();
-			if (taken == -1) {
-				return -1;
+			if (taken != -1) {
+				createAggregateFile(); // to simplify parsing
+				generatePloticusImages();
+				s_log.info("*** Statistics saved to disk. Time taken: " + taken + " ms.");
 			}
-			createAggregateFile(); // to simplify parsing
-			generatePloticusImages();
-			s_log.info("*** Statistics saved to disk. Time taken: " + taken + " ms.");
-		} catch (Exception e) {
-			s_log.error("*** Failed saving statistics... Stack trace:", e);
-			return -1;
+		} catch (Exception ex) {
+			s_log.error("*** Failed saving statistics... Stack trace:", ex);
+			taken = -1;
 		}
-		return new Long(taken).intValue();
+		
+		return (int) taken;
 	}
 
 	/**
@@ -139,18 +140,26 @@ public class Statistics implements ContextReceiver {
 
 		String topMods = currentlyPopularModsList();
 
+		BufferedWriter out = null;
 		try {
-			BufferedWriter out = new BufferedWriter(new FileWriter(fname, true));
+			out = new BufferedWriter(new FileWriter(fname, true));
 			out.write(new StringBuilder(now("HHmmss")).append(" ")
 					.append(context.getClients().getClientsSize()).append(" ")
 					.append(activeBattlesCount).append(" ")
 					.append(context.getAccountsService().getAccountsSize()).append(" ")
 					.append(context.getAccountsService().getActiveAccountsSize()).append(" ")
 					.append(topMods).append("\r\n").toString());
-			out.close();
 		} catch (IOException e) {
 			s_log.error("Unable to access file <" + fname + ">. Skipping ...", e);
 			return -1;
+		} finally {
+			if (out != null) {
+				try {
+					out.close();
+				} catch (IOException ex) {
+					s_log.trace("Failed closing file-writer for file: " + fname, ex);
+				}
+			}
 		}
 
 		s_log.info("Statistics has been updated to disk ...");
@@ -170,13 +179,14 @@ public class Statistics implements ContextReceiver {
 			String line;
 
 			SimpleDateFormat formatter = new SimpleDateFormat("ddMMyy");
-			Date today = formatter.parse(now("ddMMyy"));
+			Date today = today();
 			// get file names for last 7 days (that is today + last 6 days):
 			for (int i = 7; i > 0; i--) {
 				Date temp = new Date();
-				temp.setTime(today.getTime() - (i - 1) * 1000 * 60 * 60 * 24);
+				temp.setTime(today.getTime() - (((long) i - 1) * 1000 * 60 * 60 * 24));
+				BufferedReader in = null;
 				try {
-					BufferedReader in = new BufferedReader(new FileReader(STATISTICS_FOLDER + formatter.format(temp) + ".dat"));
+					in = new BufferedReader(new FileReader(STATISTICS_FOLDER + formatter.format(temp) + ".dat"));
 					//***s_log.info("--- Found: <" + TASServer.STATISTICS_FOLDER + formatter.format(temp) + ".dat>");
 					while ((line = in.readLine()) != null) {
 						out.write(new StringBuilder(formatter.format(temp)).append(" ").append(line).append("\r\n").toString());
@@ -184,6 +194,10 @@ public class Statistics implements ContextReceiver {
 				} catch (IOException e) {
 					// just skip the file ...
 					//***s_log.error("--- Skipped: <" + TASServer.STATISTICS_FOLDER + formatter.format(temp) + ".dat>", e);
+				} finally {
+					if (in != null) {
+						in.close();
+					}
 				}
 			}
 
@@ -197,14 +211,21 @@ public class Statistics implements ContextReceiver {
 	}
 
 	private boolean generatePloticusImages() {
+
+		boolean ret = false;
+
 		try {
 			String cmd;
 			String cmds[];
-			SimpleDateFormat formatter = new SimpleDateFormat("ddMMyy");
+			
+			SimpleDateFormat dayFormatter = new SimpleDateFormat("ddMMyy");
+			Date endDate = today(); // today_00:00
+			Date startDate = new Date(endDate.getTime() - ((long) 6 * (1000 * 60 * 60 * 24))); // today_00:00 - 6 days
+			String startDateString = dayFormatter.format(startDate);
+			String endDateString = dayFormatter.format(endDate);
+
 			SimpleDateFormat lastUpdateFormatter = new SimpleDateFormat("dd/MM/yyyy, HH:mm:ss (z)");
-			Date endDate = formatter.parse(now("ddMMyy"));
-			Date startDate = new Date();
-			startDate.setTime(endDate.getTime() - 6 * 1000 * 60 * 60 * 24);
+			
 			long upTime = System.currentTimeMillis() - context.getServer().getStartTime();
 
 			// generate "server stats diagram":
@@ -224,8 +245,8 @@ public class Statistics implements ContextReceiver {
 					.append(" -png ")
 					.append(STATISTICS_FOLDER)
 					.append("clients.pl -o ").append(STATISTICS_FOLDER)
-					.append("clients.png startdate=").append(formatter.format(startDate))
-					.append(" enddate=").append(formatter.format(endDate))
+					.append("clients.png startdate=").append(startDateString)
+					.append(" enddate=").append(endDateString)
 					.append(" datafile=").append(STATISTICS_FOLDER)
 					.append("statistics.dat").toString();
 			Runtime.getRuntime().exec(cmd).waitFor();
@@ -234,8 +255,8 @@ public class Statistics implements ContextReceiver {
 			cmd = new StringBuilder(PLOTICUS_FULLPATH)
 					.append(" -png ").append(STATISTICS_FOLDER)
 					.append("battles.pl -o ").append(STATISTICS_FOLDER)
-					.append("battles.png startdate=").append(formatter.format(startDate))
-					.append(" enddate=").append(formatter.format(endDate))
+					.append("battles.png startdate=").append(startDateString)
+					.append(" enddate=").append(endDateString)
 					.append(" datafile=").append(STATISTICS_FOLDER).append("statistics.dat").toString();
 			Runtime.getRuntime().exec(cmd).waitFor();
 
@@ -243,8 +264,8 @@ public class Statistics implements ContextReceiver {
 			cmd = new StringBuilder(PLOTICUS_FULLPATH)
 					.append(" -png ").append(STATISTICS_FOLDER)
 					.append("accounts.pl -o ").append(STATISTICS_FOLDER)
-					.append("accounts.png startdate=").append(formatter.format(startDate))
-					.append(" enddate=").append(formatter.format(endDate))
+					.append("accounts.png startdate=").append(startDateString)
+					.append(" enddate=").append(endDateString)
 					.append(" datafile=").append(STATISTICS_FOLDER).append("statistics.dat").toString();
 			Runtime.getRuntime().exec(cmd).waitFor();
 
@@ -258,20 +279,26 @@ public class Statistics implements ContextReceiver {
 			cmds[4] = STATISTICS_FOLDER + "mods.png";
 			cmds[5] = "count=" + Integer.parseInt(params[0]);
 			for (int i = 1; i < params.length; i++) {
-				if (i % 2 == 1) {
+				if ((i % 2) != 0) {
+					// odd index
 					cmds[i + 5] = "mod" + ((i + 1) / 2) + "=" + params[i];
 				} else {
+					// even index
 					cmds[i + 5] = "modfreq" + (i / 2) + "=" + params[i];
 				}
 			}
 			Runtime.getRuntime().exec(cmds).waitFor();
 
-		} catch (Exception e) {
-			s_log.error("*** Failed generating ploticus charts!", e);
-			return false;
+			ret = true;
+		} catch (InterruptedException ex) {
+			s_log.error("*** Failed generating ploticus charts!", ex);
+			ret = false;
+		} catch (IOException ex) {
+			s_log.error("*** Failed generating ploticus charts!", ex);
+			ret = false;
 		}
 
-		return true;
+		return ret;
 	}
 
 	/**
@@ -323,11 +350,12 @@ public class Statistics implements ContextReceiver {
 		int[] freq = new int[0];
 		boolean found = false;
 
+		BufferedReader in = null;
 		try {
 			int lastHour = -1;
 			String line;
 			String sHour;
-			BufferedReader in = new BufferedReader(new FileReader(STATISTICS_FOLDER + date + ".dat"));
+			in = new BufferedReader(new FileReader(STATISTICS_FOLDER + date + ".dat"));
 			while ((line = in.readLine()) != null) {
 				sHour = line.substring(0, 2); // 00 .. 23
 				if (lastHour == Integer.parseInt(sHour)) {
@@ -363,6 +391,14 @@ public class Statistics implements ContextReceiver {
 		} catch (Exception e) {
 			s_log.error("*** Error in getPopularModsList(). Skipping ...", e);
 			return "0";
+		} finally {
+			if (in != null) {
+				try {
+					in.close();
+				} catch (IOException ex) {
+					// ignore
+				}
+			}
 		}
 
 		return createModPopularityString(mods, freq);
@@ -404,11 +440,25 @@ public class Statistics implements ContextReceiver {
 	 */
 	private static String now(String format) {
 
-		Date today = new Date();
+		Date now = new Date();
 		SimpleDateFormat formatter = new SimpleDateFormat(format);
-		String current = formatter.format(today);
+		String current = formatter.format(now);
 
 		return current;
+	}
+	
+	private static final String TODAY_FILTER_FORMAT = "ddMMyy";
+	private static Date today() {
+
+		Date today = null;
+		
+		try {
+			today = new SimpleDateFormat(TODAY_FILTER_FORMAT).parse(now(TODAY_FILTER_FORMAT));
+		} catch (ParseException ex) {
+			// should not ever happend!
+		}
+
+		return today;
 	}
 
 	/**

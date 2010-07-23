@@ -27,8 +27,6 @@ public class Channel implements ContextReceiver, LiveStateListener {
 
 	private static final String logFilesDir  = "./";
 
-	private static final DateFormat CLIENT_TIME_FORMAT = new SimpleDateFormat("<HH:mm:ss> ");
-
 	private String name;
 	private String topic; // "" represents no topic (topic is disabled for this channel)
 	private String topicAuthor;
@@ -81,10 +79,6 @@ public class Channel implements ContextReceiver, LiveStateListener {
 
 	private void actualiseToConfiguration() {
 		setLogging(name.matches(context.getChannels().getChannelsToLogRegex()));
-	}
-
-	public boolean equals(Channel chan) {
-		return this.name.equals(chan.getName());
 	}
 
 	public String getTopic() {
@@ -168,7 +162,10 @@ public class Channel implements ContextReceiver, LiveStateListener {
 	public void sendLineToClients(String s) {
 
 		if (fileLog != null) {
-			fileLog.println(CLIENT_TIME_FORMAT.format(new Date()));
+			// As DateFormats are generally not-thread save,
+			// we always create a new one.
+			DateFormat timeFormat = new SimpleDateFormat("<HH:mm:ss> ");
+			fileLog.println(timeFormat.format(new Date()));
 			fileLog.println(s);
 		}
 		for (int i = 0; i < clients.size(); i++) {
@@ -224,10 +221,13 @@ public class Channel implements ContextReceiver, LiveStateListener {
 					fileLog.println(new SimpleDateFormat("dd/MM/yy").format(new Date()));
 					logging = true;
 				} catch (Exception e) {
-					logFile = null;
+					if (fileLog != null) {
+						fileLog.close();
+					}
 					fileLog = null;
 					s_log.error("Unable to open channel log file for channel " +
 							name + ": " + logFile.getAbsolutePath(), e);
+					logFile = null;
 				}
 			} else {
 				try {
