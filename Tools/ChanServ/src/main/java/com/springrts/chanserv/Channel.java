@@ -5,6 +5,7 @@
 package com.springrts.chanserv;
 
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -17,7 +18,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Betalord
  */
-public class Channel {
+public class Channel implements Serializable {
 
 	private static final Logger logger = LoggerFactory.getLogger(ChanServ.class);
 
@@ -64,30 +65,16 @@ public class Channel {
 		this.antiSpamSettings = null;
 	}
 
-	public boolean isFounder(String name) {
-		return name.equals(getFounder());
-	}
-
 	public boolean isOperator(String name) {
-		return (operators.indexOf(name) != -1);
+		return operators.contains(name);
 	}
 
 	public boolean addOperator(String name) {
-
-		if (isOperator(name)) {
-			return false;
-		}
-		operators.add(name);
-		return true;
+		return operators.add(name);
 	}
 
 	public boolean removeOperator(String name) {
-
-		if (!isOperator(name)) {
-			return false;
-		}
-		operators.remove(name);
-		return true;
+		return operators.remove(name);
 	}
 
 	public void renameFounder(String newFounder) {
@@ -110,7 +97,7 @@ public class Channel {
 	}
 
 	public void sendMessage(String msg) {
-		ChanServ.sendLine("SAY " + getName() + " " + msg);
+		ChanServ.sendLine(String.format("SAY %s %s", getName(), msg));
 	}
 
 	public int clientCount() {
@@ -123,9 +110,9 @@ public class Channel {
 
 	public String getClient(int index) {
 
-		try{
+		try {
 			return clients.get(index);
-		} catch (ArrayIndexOutOfBoundsException e) {
+		} catch (IndexOutOfBoundsException ex) {
 			return null;
 		}
 	}
@@ -136,17 +123,15 @@ public class Channel {
 
 	public void removeClient(String client) {
 
-		int i = clients.indexOf(client);
-		if (i == -1) {
+		if (!clients.remove(client)) {
 			// should not happen!
 			logger.warn("Tried to remove a client that does not exist");
 			return;
 		}
-		clients.remove(i);
 	}
 
-	public boolean clientExists(String client) {
-		return clients.indexOf(client) != -1;
+	public boolean isClient(String client) {
+		return clients.contains(client);
 	}
 
 	/** Returns 'null' if channel name is valid, an error description otherwise */

@@ -1036,7 +1036,7 @@ public class ChanServ {
 			}
 
 			String target = params.get(1);
-			if (!chan.clientExists(target)) {
+			if (!chan.isClient(target)) {
 				sendMessage(client, channel, "Error: <" + target + "> not found in #" + chanName + "!");
 				return ;
 			}
