@@ -71,9 +71,9 @@ public class ChanServ {
 
 	private static final Logger logger = LoggerFactory.getLogger(ChanServ.class);
 
-	static final String VERSION = "0.1";
+	private static final String VERSION = "0.1";
 	static final String CONFIG_FILENAME = "settings.xml";
-	static final boolean DEBUG = false;
+
 	/** are we connected to the lobby server? */
 	private static boolean connected = false;
 	static String serverAddress = "";
@@ -150,9 +150,7 @@ public class ChanServ {
 	/** multiple threads may call this method */
 	public static synchronized void sendLine(String s) {
 
-		if (DEBUG) {
-			Log.log("Client: \"" + s + "\"");
-		}
+		logger.debug("Client: \"{}\"", s);
 		sockout.println(s);
 	}
 
@@ -186,9 +184,7 @@ public class ChanServ {
 			if (line == null) {
 				break;
 			}
-			if (DEBUG) {
-				Log.log("Server: \"" + line + "\"");
-			}
+			logger.debug("Server: \"{}\"", line);
 
 			// parse command and respond to it:
 			try {
