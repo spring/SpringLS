@@ -5,6 +5,9 @@
 package com.springrts.chanserv;
 
 
+import com.springrts.chanserv.antispam.SpamSettings;
+import com.springrts.chanserv.antispam.AntiSpamSystem;
+
 import java.io.*;
 import java.net.*;
 
@@ -44,7 +47,7 @@ class KeepAliveTask extends TimerTask {
 			ChanServ.saveConfig(ChanServ.CONFIG_FILENAME);
 		} catch (InterruptedException e) {
 			ChanServ.forceDisconnect();
-			return ;
+			return;
 		} finally {
 			ChanServ.configLock.release();
 		}
