@@ -74,12 +74,10 @@ public class ChanServ {
 	private static final String VERSION = "0.1";
 	static final String CONFIG_FILENAME = "settings.xml";
 
+	static final Configuration configuration = new Configuration();
+
 	/** are we connected to the lobby server? */
 	private static boolean connected = false;
-	static String serverAddress = "";
-	static int serverPort;
-	static String username = "";
-	static String password = "";
 	static Socket socket = null;
 	static PrintWriter sockout = null;
 	static BufferedReader sockin = null;
@@ -94,7 +92,6 @@ public class ChanServ {
 	static Semaphore configLock = new Semaphore(1, true);
 
 	static RemoteAccessServer remoteAccessServer;
-	static int remoteAccessPort;
 
 	/** Needs to be thread-save */
 	static List<Client> clients = new Vector<Client>();
@@ -110,11 +107,7 @@ public class ChanServ {
 	/** list of current requests for mute lists. */
 	private static List<MuteListRequest> forwardMuteList = new Vector<MuteListRequest>();
 
-	// database related:
-	public static DBInterface database;
-	static String DB_URL = "jdbc:mysql://127.0.0.1/ChanServLogs";
-	static String DB_username = "";
-	static String DB_password = "";
+	static DBInterface database;
 
 	private ChanServ() {}
 
@@ -156,19 +149,19 @@ public class ChanServ {
 
 	private static boolean tryToConnect() {
 		try {
-			Log.log("Connecting to " + serverAddress + ":" + serverPort + " ...");
-			socket = new Socket(serverAddress, serverPort);
+			Log.log("Connecting to " + configuration.serverAddress + ":" + configuration.serverPort + " ...");
+			socket = new Socket(configuration.serverAddress, configuration.serverPort);
 			sockout = new PrintWriter(socket.getOutputStream(), true);
 			sockin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		} catch (UnknownHostException e) {
-			Log.error("Unknown host error: " + serverAddress);
+			Log.error("Unknown host error: " + configuration.serverAddress);
 			return false;
 		} catch (IOException e) {
-			Log.error("Couldn't get I/O for the connection to: " + serverAddress);
+			Log.error("Couldn't get I/O for the connection to: " + configuration.serverAddress);
 			return false;
 		}
 
-		Log.log("Now connected to " + serverAddress);
+		Log.log("Now connected to " + configuration.serverAddress);
 		return true;
 	}
 
@@ -221,7 +214,7 @@ public class ChanServ {
 			// lets rename all founder/operator entries for this user:
 			for (int i = 0; i < channels.size(); i++) {
 				Channel chan = channels.get(i);
-				if (chan.isFounder(oldNick)) {
+				if (chan.getFounder().equals(oldNick)) {
 					chan.renameFounder(newNick);
 					Log.log("Founder <" + oldNick + "> of #" + chan.getName() + " renamed to <" + newNick + ">");
 				}
@@ -265,7 +258,7 @@ public class ChanServ {
 		commands[0] = commands[0].toUpperCase();
 
 		if (commands[0].equals("TASSERVER")) {
-			sendLine("LOGIN " + username + " " + password + " 0 * ChanServ " + VERSION);
+			sendLine("LOGIN " + configuration.username + " " + configuration.password + " 0 * ChanServ " + VERSION);
 		} else if (commands[0].equals("ACCEPTED")) {
 			Log.log("Login accepted.");
 			// join registered and static channels:
@@ -632,7 +625,7 @@ public class ChanServ {
 
 			// ok unregister the channel now:
 			channels.remove(chan);
-			sendLine("CHANNELMESSAGE " + chan.getName() + " " + "This channel has just been unregistered from <" + username + "> by <" + client.getName() + ">");
+			sendLine("CHANNELMESSAGE " + chan.getName() + " " + "This channel has just been unregistered from <" + configuration.username + "> by <" + client.getName() + ">");
 			sendMessage(client, channel, "Channel #" + chanName + " successfully unregistered!");
 			sendLine("LEAVE " + chan.getName());
 		} else if (commandName.equals("ADDSTATIC")) {
@@ -1048,7 +1041,7 @@ public class ChanServ {
 				return ;
 			}
 
-			if (target.equals(username)) {
+			if (target.equals(configuration.username)) {
 				// not funny!
 				sendMessage(client, channel, "You are not allowed to issue this command!");
 				return ;
@@ -1095,7 +1088,7 @@ public class ChanServ {
 				return ;
 			}
 
-			if (target.equals(username)) {
+			if (target.equals(configuration.username)) {
 				// not funny!
 				sendMessage(client, channel, "You are not allowed to issue this command!");
 				return ;
@@ -1204,7 +1197,7 @@ public class ChanServ {
 	public static void sendPrivateMsg(Client client, String msg) {
 
 		sendLine("SAYPRIVATE " + client.getName() + " " + msg);
-		Log.toFile(client.getName() + ".log", "<" + username + "> " + msg);
+		Log.toFile(client.getName() + ".log", "<" + configuration.username + "> " + msg);
 	}
 
 	/**
@@ -1307,8 +1300,8 @@ public class ChanServ {
 		ConfigStorage.saveConfig(CONFIG_FILENAME); //*** TODO FIXME debug
 
 		// run remote access server:
-		Log.log("Trying to run remote access server on port " + remoteAccessPort + " ...");
-		remoteAccessServer = new RemoteAccessServer(remoteAccessPort);
+		Log.log("Trying to run remote access server on port " + configuration.remoteAccessPort + " ...");
+		remoteAccessServer = new RemoteAccessServer(configuration.remoteAccessPort);
 		remoteAccessServer.start();
 
 		// establish connection with database:
@@ -1316,7 +1309,7 @@ public class ChanServ {
 		if (!database.loadJDBCDriver()) {
 			closeAndExit(1);
 		}
-		if (!database.connectToDatabase(DB_URL, DB_username, DB_password)) {
+		if (!database.connectToDatabase(configuration.DB_URL, configuration.DB_username, configuration.DB_password)) {
 			closeAndExit(1);
 		}
 

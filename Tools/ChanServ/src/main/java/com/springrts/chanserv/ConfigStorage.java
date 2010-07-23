@@ -43,19 +43,19 @@ public class ConfigStorage {
 			Node node, node2;
 
 			//node = (Node)xpath.evaluate("config/account/username", config, XPathConstants.NODE);
-			ChanServ.serverAddress = (String)xpath.evaluate("config/account/serveraddress/text()", config, XPathConstants.STRING);
-			ChanServ.serverPort = Integer.parseInt((String)xpath.evaluate("config/account/serverport/text()", config, XPathConstants.STRING));
-			ChanServ.remoteAccessPort = Integer.parseInt((String)xpath.evaluate("config/account/remoteaccessport/text()", config, XPathConstants.STRING));
-			ChanServ.username = (String)xpath.evaluate("config/account/username/text()", config, XPathConstants.STRING);
-			ChanServ.password = (String)xpath.evaluate("config/account/password/text()", config, XPathConstants.STRING);
+			ChanServ.configuration.serverAddress = (String)xpath.evaluate("config/account/serveraddress/text()", config, XPathConstants.STRING);
+			ChanServ.configuration.serverPort = Integer.parseInt((String)xpath.evaluate("config/account/serverport/text()", config, XPathConstants.STRING));
+			ChanServ.configuration.remoteAccessPort = Integer.parseInt((String)xpath.evaluate("config/account/remoteaccessport/text()", config, XPathConstants.STRING));
+			ChanServ.configuration.username = (String)xpath.evaluate("config/account/username/text()", config, XPathConstants.STRING);
+			ChanServ.configuration.password = (String)xpath.evaluate("config/account/password/text()", config, XPathConstants.STRING);
 
 			//node = (Node)xpath.evaluate("config/account/username", config, XPathConstants.NODE);
 			//node.setTextContent("this is a test!");
 
 			// read database info:
-			ChanServ.DB_URL = (String)xpath.evaluate("config/database/url/text()", config, XPathConstants.STRING);
-			ChanServ.DB_username = (String)xpath.evaluate("config/database/username/text()", config, XPathConstants.STRING);
-			ChanServ.DB_password = (String)xpath.evaluate("config/database/password/text()", config, XPathConstants.STRING);
+			ChanServ.configuration.DB_URL = (String)xpath.evaluate("config/database/url/text()", config, XPathConstants.STRING);
+			ChanServ.configuration.DB_username = (String)xpath.evaluate("config/database/username/text()", config, XPathConstants.STRING);
+			ChanServ.configuration.DB_password = (String)xpath.evaluate("config/database/password/text()", config, XPathConstants.STRING);
 
 			// load remote access accounts:
 			node = (Node)xpath.evaluate("config/remoteaccessaccounts", config, XPathConstants.NODE);
