@@ -8,27 +8,32 @@ package com.springrts.chanserv;
 import com.springrts.chanserv.antispam.SpamSettings;
 import com.springrts.chanserv.antispam.AntiSpamSystem;
 
-import java.io.*;
-import java.net.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.Vector;
+import java.util.concurrent.Semaphore;
+import java.util.regex.PatternSyntaxException;
 
+import org.w3c.dom.*;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-
-import javax.xml.xpath.*;
-
-import org.xml.sax.SAXException;
-
-import org.w3c.dom.*;
-
-import java.util.*;
-import java.util.regex.*;
-import java.util.concurrent.*;
-
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.*;
+import org.xml.sax.SAXException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,7 +86,8 @@ public class ChanServ {
 	static final String VERSION = "0.1";
 	static final String CONFIG_FILENAME = "settings.xml";
 	static final boolean DEBUG = false;
-	private static boolean connected = false; // are we connected to the TASServer?
+	/** are we connected to the lobby server? */
+	private static boolean connected = false;
 	static Document config;
 	static String serverAddress = "";
 	static int serverPort;
@@ -94,7 +100,11 @@ public class ChanServ {
 	static Timer logCleanerTimer;
 	static boolean timersStarted = false;
 
-	static Semaphore configLock = new Semaphore(1, true); // we use it when there is a danger of config object being used by main and TaskTimer threads simultaneously
+	/**
+	 * We use it when there is a danger of config object being used
+	 * by main and TaskTimer threads simultaneously
+	 */
+	static Semaphore configLock = new Semaphore(1, true);
 
 	static RemoteAccessServer remoteAccessServer;
 	static int remoteAccessPort;
@@ -103,9 +113,15 @@ public class ChanServ {
 	static List<Client> clients = new Vector<Client>();
 	static List<Channel> channels = new Vector<Channel>();
 
-	private static List<String> lastMuteList = new Vector<String>(); // list of mute entries for a specified channel (see lastMuteListChannel)
-	private static String lastMuteListChannel; // name of channel for which we are currently receiving (or we already did receive) mute list from the server
-	private static List<MuteListRequest> forwardMuteList = new Vector<MuteListRequest>(); // list of current requests for mute lists.
+	/** list of mute entries for a specified channel (see lastMuteListChannel) */
+	private static List<String> lastMuteList = new Vector<String>();
+	/**
+	 * name of channel for which we are currently receiving
+	 * (or we already did receive) mute list from the server
+	 */
+	private static String lastMuteListChannel;
+	/** list of current requests for mute lists. */
+	private static List<MuteListRequest> forwardMuteList = new Vector<MuteListRequest>();
 
 	// database related:
 	public static DBInterface database;
@@ -725,7 +741,7 @@ public class ChanServ {
 		}
 		String[] splitParams = command.split("[\\s]+");
 		List<String> params = new LinkedList<String>();
-		params.addAll(Arrays.asList(splitParams));
+		params.addAll(java.util.Arrays.asList(splitParams));
 		// convert the base command
 		String commandName = params.get(0).toUpperCase();
 		params.remove(0);

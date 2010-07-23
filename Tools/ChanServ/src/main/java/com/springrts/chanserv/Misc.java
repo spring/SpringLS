@@ -5,11 +5,13 @@
 package com.springrts.chanserv;
 
 
-import java.util.*;
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
-import java.text.*;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
 
 
 /**
@@ -28,7 +30,7 @@ public class Misc {
 	public static String easyDateFormat(String format) {
 
 		Date today = new Date();
-		SimpleDateFormat formatter = new SimpleDateFormat(format);
+		DateFormat formatter = new SimpleDateFormat(format);
 		String datenewformat = formatter.format(today);
 		return datenewformat;
 	}

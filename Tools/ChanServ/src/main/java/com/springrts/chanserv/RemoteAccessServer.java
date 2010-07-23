@@ -5,9 +5,13 @@
 package com.springrts.chanserv;
 
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -100,8 +104,8 @@ public class RemoteAccessServer extends Thread {
 	public RemoteAccessServer(int port) {
 
 		this.port = port;
-		this.remoteAccounts = Collections.synchronizedList(new LinkedList<String>());
-		this.threads = Collections.synchronizedMap(new HashMap<Integer, RemoteClientThread>());
+		this.remoteAccounts = java.util.Collections.synchronizedList(new LinkedList<String>());
+		this.threads = java.util.Collections.synchronizedMap(new HashMap<Integer, RemoteClientThread>());
 	}
 
 	@Override
