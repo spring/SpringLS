@@ -21,25 +21,51 @@ public class Channel {
 
 	private static final Logger logger = LoggerFactory.getLogger(ChanServ.class);
 
-	public String name;
-	public String topic = ""; // "" means topic is disabled
-	public String logFileName;
-	public boolean joined = false; // are we in this channel right now?
-	public boolean isStatic = true; // if true, then this channel is a static one and not registered one (we can't register this channel at all)
-	public String key = ""; // if "" then no key is set (channel is unlocked)
-	public String founder; // username of the founder of this channel. Founder is the "owner" of the channel, he can assign operators etc.
-	private List<String> operators = new ArrayList<String>();
-	private List<String> clients = new ArrayList<String>();
-	public boolean antispam; // if true, users will be automatically muted if spamming is detected from them
-	public String antispamSettings; // anti-spam settings for this channel, used with AntiSpamSystem
+	private final String name;
+	/** "" means topic is disabled */
+	private String topic;
+	private final String logFileName;
+	/** are we in this channel right now? */
+	private boolean joined = false;
+	/**
+	 * Whether this channel is a static one and not registered.
+	 * We can not register this channel at all.
+	 */
+	private boolean isStatic = true;
+	/** if "" then no key is set (channel is unlocked) */
+	private String key = "";
+	/**
+	 * The user-name of the founder of this channel.
+	 * The founder is the "owner" of the channel, he can assign operators etc.
+	 */
+	private String founder;
+	private final List<String> operators;
+	private final List<String> clients;
+	/**
+	 * Whether users will be automatically muted if spamming is detected
+	 * from them
+	 */
+	private boolean antiSpam;
+	/** anti-spam settings for this channel, used with AntiSpamSystem */
+	private String antiSpamSettings;
 
 	public Channel(String name) {
+		
 		this.name = name;
-		logFileName = "#" + name + ".log";
+		this.topic = "";
+		this.logFileName = "#" + name + ".log";
+		this.joined = false;
+		this.isStatic = true;
+		this.key = "";
+		this.founder = null;
+		this.operators = new ArrayList<String>();
+		this.clients = new ArrayList<String>();
+		this.antiSpam = false;
+		this.antiSpamSettings = null;
 	}
 
 	public boolean isFounder(String name) {
-		return name.equals(founder);
+		return name.equals(getFounder());
 	}
 
 	public boolean isOperator(String name) {
@@ -65,7 +91,7 @@ public class Channel {
 	}
 
 	public void renameFounder(String newFounder) {
-		founder = newFounder;
+		setFounder(newFounder);
 	}
 
 	public boolean renameOperator(String oldOp, String newOp) {
@@ -84,7 +110,7 @@ public class Channel {
 	}
 
 	public void sendMessage(String msg) {
-		ChanServ.sendLine("SAY " + name + " " + msg);
+		ChanServ.sendLine("SAY " + getName() + " " + msg);
 	}
 
 	public int clientCount() {
@@ -123,7 +149,7 @@ public class Channel {
 		return clients.indexOf(client) != -1;
 	}
 
-	/** Returns 'null' if channel name is valid, or error description otherwise */
+	/** Returns 'null' if channel name is valid, an error description otherwise */
 	public static String isChanNameValid(String channame) {
 
 		if (channame.length() > 20) {
@@ -136,5 +162,131 @@ public class Channel {
 			// everything is OK:
 			return null;
 		}
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	/**
+	 * "" means topic is disabled
+	 * @return the topic
+	 */
+	public String getTopic() {
+		return topic;
+	}
+
+	/**
+	 * "" means topic is disabled
+	 * @param topic the topic to set
+	 */
+	public void setTopic(String topic) {
+		this.topic = topic;
+	}
+
+	public String getLogFileName() {
+		return logFileName;
+	}
+
+	/**
+	 * are we in this channel right now?
+	 * @return the joined
+	 */
+	public boolean isJoined() {
+		return joined;
+	}
+
+	/**
+	 * are we in this channel right now?
+	 * @param joined the joined to set
+	 */
+	public void setJoined(boolean joined) {
+		this.joined = joined;
+	}
+
+	/**
+	 * Whether this channel is a static one and not registered.
+	 * We can not register this channel at all.
+	 * @return the isStatic
+	 */
+	public boolean isIsStatic() {
+		return isStatic;
+	}
+
+	/**
+	 * Whether this channel is a static one and not registered.
+	 * We can not register this channel at all.
+	 * @param isStatic the isStatic to set
+	 */
+	public void setIsStatic(boolean isStatic) {
+		this.isStatic = isStatic;
+	}
+
+	/**
+	 * if "" then no key is set (channel is unlocked)
+	 * @return the key
+	 */
+	public String getKey() {
+		return key;
+	}
+
+	/**
+	 * if "" then no key is set (channel is unlocked)
+	 * @param key the key to set
+	 */
+	public void setKey(String key) {
+		this.key = key;
+	}
+
+	/**
+	 * The user-name of the founder of this channel.
+	 * The founder is the "owner" of the channel, he can assign operators etc.
+	 * @return the founder
+	 */
+	public String getFounder() {
+		return founder;
+	}
+
+	/**
+	 * The user-name of the founder of this channel.
+	 * The founder is the "owner" of the channel, he can assign operators etc.
+	 * @param founder the founder to set
+	 */
+	public void setFounder(String founder) {
+		this.founder = founder;
+	}
+
+	/**
+	 * Whether users will be automatically muted if spamming is detected
+	 * from them
+	 * @return the antiSpam
+	 */
+	public boolean isAntiSpam() {
+		return antiSpam;
+	}
+
+	/**
+	 * Whether users will be automatically muted if spamming is detected
+	 * from them
+	 * @param antiSpam the antiSpam to set
+	 */
+	public void setAntiSpam(boolean antiSpam) {
+		this.antiSpam = antiSpam;
+	}
+
+	/**
+	 * anti-spam settings for this channel, used with AntiSpamSystem
+	 * @return the antiSpamSettings
+	 */
+	public String getAntiSpamSettings() {
+		return antiSpamSettings;
+	}
+
+	/**
+	 * anti-spam settings for this channel, used with AntiSpamSystem
+	 * @param antiSpamSettings the antiSpamSettings to set
+	 */
+	public void setAntiSpamSettings(String antiSpamSettings) {
+		this.antiSpamSettings = antiSpamSettings;
 	}
 }
