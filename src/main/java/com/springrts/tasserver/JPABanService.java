@@ -31,11 +31,13 @@ public class JPABanService implements BanService {
 		emf = Persistence.createEntityManagerFactory("tasserver");
 	}
 
-	private EntityManager begin() {
+	private EntityManager open() {
 
 		EntityManager em = emf.createEntityManager();
-		em.getTransaction().begin();
 		return em;
+	}
+	private void begin(EntityManager em) {
+		em.getTransaction().begin();
 	}
 	private void commit(EntityManager em) {
 		em.getTransaction().commit();
@@ -74,9 +76,8 @@ public class JPABanService implements BanService {
 
 		EntityManager em = null;
 		try {
-			em = begin();
+			em = open();
 			long numBans = (Long) (em.createNamedQuery("ban_size").getSingleResult());
-			commit(em);
 			return (int)numBans;
 		} catch (Exception ex) {
 			s_log.error("Failed fetching number of bans", ex);
@@ -95,9 +96,8 @@ public class JPABanService implements BanService {
 
 		EntityManager em = null;
 		try {
-			em = begin();
+			em = open();
 			long numBans = (Long) (em.createNamedQuery("ban_size_active").getSingleResult());
-			commit(em);
 			activeBans = (int) numBans;
 		} catch (Exception ex) {
 			s_log.error("Failed fetching number of bans", ex);
@@ -114,7 +114,8 @@ public class JPABanService implements BanService {
 
 		EntityManager em = null;
 		try {
-			em = begin();
+			em = open();
+			begin(em);
 			em.persist(ban);
 			commit(em);
 		} catch (Exception ex) {
@@ -133,7 +134,8 @@ public class JPABanService implements BanService {
 
 		EntityManager em = null;
 		try {
-			em = begin();
+			em = open();
+			begin(em);
 			em.remove(ban);
 			commit(em);
 			removed = true;
@@ -155,13 +157,12 @@ public class JPABanService implements BanService {
 
 		EntityManager em = null;
 		try {
-			em = begin();
+			em = open();
 			Query q_fetch = em.createNamedQuery("ban_fetch");
 			q_fetch.setParameter("username", username);
 			q_fetch.setParameter("ip", IP);
 			q_fetch.setParameter("userId", userID);
 			ban = (BanEntry) q_fetch.getSingleResult();
-			commit(em);
 		} catch (Exception ex) {
 			s_log.trace("Failed fetching a ban", ex);
 			ban = null;
@@ -180,7 +181,8 @@ public class JPABanService implements BanService {
 
 		EntityManager em = null;
 		try {
-			em = begin();
+			em = open();
+			begin(em);
 			em.merge(ban);
 			commit(em);
 			replaced = true;
@@ -202,9 +204,8 @@ public class JPABanService implements BanService {
 
 		EntityManager em = null;
 		try {
-			em = begin();
+			em = open();
 			bans = (List<BanEntry>) (em.createNamedQuery("ban_list").getResultList());
-			commit(em);
 		} catch (Exception ex) {
 			s_log.error("Failed fetching all bans", ex);
 			bans = null;
@@ -223,9 +224,8 @@ public class JPABanService implements BanService {
 
 		EntityManager em = null;
 		try {
-			em = begin();
+			em = open();
 			bans = (List<BanEntry>) (em.createNamedQuery("ban_list_active").getResultList());
-			commit(em);
 		} catch (Exception ex) {
 			s_log.error("Failed fetching all bans", ex);
 			bans = null;
