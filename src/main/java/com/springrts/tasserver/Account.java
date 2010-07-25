@@ -452,17 +452,17 @@ public class Account implements Serializable, Cloneable {
 	/**
 	 * Returns 'null' if password is valid; an error description otherwise.
 	 */
-	public static String isPasswordValid(String password) {
+	public static String isPasswordValid(String toCheckPassword) {
 
-		if (password.length() < 2) {
+		if (toCheckPassword.length() < 2) {
 			return "Password too short";
-		} else if (password.length() > 30) {
+		} else if (toCheckPassword.length() > 30) {
 			// md5-base64 encoded passwords require 24 chars
 			return "Password too long";
 		}
 		// we have to allow a bit wider range of possible chars,
 		// as base64 can produce chars such as '+', '=' and '/'
-		else if (!password.matches("^[\\x2B-\\x7A]+$")) {
+		else if (!toCheckPassword.matches("^[\\x2B-\\x7A]+$")) {
 			return "Password contains invalid characters";
 		} else {
 			// everything is OK:

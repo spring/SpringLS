@@ -130,16 +130,16 @@ public class IP2Country {
 			// check if this entry overlaps with any existing entry:
 			try {
 				// try to find a duplicate:
-				IPRange prev = resolveTable.headMap(new IPRange(ip.IP_FROM + 1, ip.IP_TO + 1, "XX")).lastKey(); // +1 because headMap() returns keys that are strictly less than given key, but we want equals as well
-				IPRange next = resolveTable.tailMap(new IPRange(ip.IP_FROM + 1, ip.IP_TO + 1, "XX")).firstKey(); // +1 because tailMap() returns keys that are bigger or equal to given key, but we want strictly bigger ones
+				IPRange prev = resolveTable.headMap(new IPRange(ip.getFromIP() + 1, ip.getToIP() + 1, "XX")).lastKey(); // +1 because headMap() returns keys that are strictly less than given key, but we want equals as well
+				IPRange next = resolveTable.tailMap(new IPRange(ip.getFromIP() + 1, ip.getToIP() + 1, "XX")).firstKey(); // +1 because tailMap() returns keys that are bigger or equal to given key, but we want strictly bigger ones
 
-				if ((prev.IP_FROM == ip.IP_FROM) && (prev.IP_TO == ip.IP_TO)) {
+				if ((prev.getFromIP() == ip.getFromIP()) && (prev.getToIP() == ip.getToIP())) {
 					// duplicate!
-					if (!prev.COUNTRY_CODE2.equals(ip.COUNTRY_CODE2)) {
+					if (!prev.getCountryCode2().equals(ip.getCountryCode2())) {
 						// this poses a problem - we have two identical ranges each pointing to a different country. Which one is correct?
 						// Current way: keep 1st entry and discharge 2nd, but only if the 1st country is not EU or US (reason for this is that 1st database generally uses US/EU for various countries within these regions):
-						if (prev.COUNTRY_CODE2.equals("EU") || prev.COUNTRY_CODE2.equals("US")) {
-							prev.COUNTRY_CODE2 = ip.COUNTRY_CODE2;
+						if (prev.getCountryCode2().equals("EU") || prev.getCountryCode2().equals("US")) {
+							prev.setCountryCode2(ip.getCountryCode2());
 						}
 						continue;
 					} else {
@@ -147,8 +147,8 @@ public class IP2Country {
 						continue;
 					}
 				}
-				else if ((prev.IP_FROM == ip.IP_FROM) && (prev.IP_TO > ip.IP_TO)) {
-					if (!prev.COUNTRY_CODE2.equals(ip.COUNTRY_CODE2)) {
+				else if ((prev.getFromIP() == ip.getFromIP()) && (prev.getToIP() > ip.getToIP())) {
+					if (!prev.getCountryCode2().equals(ip.getCountryCode2())) {
 						// this poses a problem - what to do about it?
 						// Currently we simply discharge the 2nd entry, hoping that the 1st one is correct (and 2nd wasn't)
 						continue;
@@ -157,18 +157,18 @@ public class IP2Country {
 						continue;
 					}
 				}
-				else if ((prev.IP_FROM == ip.IP_FROM) && (prev.IP_TO < ip.IP_TO)) {
-					if (!prev.COUNTRY_CODE2.equals(ip.COUNTRY_CODE2)) {
+				else if ((prev.getFromIP() == ip.getFromIP()) && (prev.getToIP() < ip.getToIP())) {
+					if (!prev.getCountryCode2().equals(ip.getCountryCode2())) {
 						// this poses a problem - what to do about it?
 						// Currently we also add the second entry, and since the 1st is narrower it will stay on top of 2nd one (if some IP doesn't fit the narrower range, it may still fit the wider one).
 					} else {
 						// we widen the original range (hopefully the 2nd database is right about this specific range):
-						prev.IP_TO = ip.IP_TO;
+						prev.setToIP(ip.getToIP());
 						continue;
 					}
 				}
-				else if ((prev.IP_FROM < ip.IP_FROM) && (prev.IP_TO >= ip.IP_TO)) {
-					if (!prev.COUNTRY_CODE2.equals(ip.COUNTRY_CODE2)) {
+				else if ((prev.getFromIP() < ip.getFromIP()) && (prev.getToIP() >= ip.getToIP())) {
+					if (!prev.getCountryCode2().equals(ip.getCountryCode2())) {
 						// this poses a problem - what should we do about it?
 						// Currently we simply discharge the 2nd entry, hoping that the 1st one is correct (and 2nd wasn't)
 						continue;
@@ -177,23 +177,23 @@ public class IP2Country {
 						continue;
 					}
 				}
-				else if ((prev.IP_FROM < ip.IP_FROM) && (prev.IP_TO > ip.IP_FROM) && (prev.IP_TO < ip.IP_TO)) {
+				else if ((prev.getFromIP() < ip.getFromIP()) && (prev.getToIP() > ip.getFromIP()) && (prev.getToIP() < ip.getToIP())) {
 					// this poses a problem - what should we do about it?
 					// Currently we simply discharge the 2nd entry, hoping that the 1st one is correct (and 2nd wasn't)
 					continue;
 				}
-				else if ((next.IP_FROM < ip.IP_TO) && (next.IP_TO <= ip.IP_TO)) {
-					if (!next.COUNTRY_CODE2.equals(ip.COUNTRY_CODE2)) {
+				else if ((next.getFromIP() < ip.getToIP()) && (next.getToIP() <= ip.getToIP())) {
+					if (!next.getCountryCode2().equals(ip.getCountryCode2())) {
 						// this poses a problem - what should we do about it?
 						// Currently we also add the second entry, and since the 1st is narrower it will stay on top of 2nd one (if some IP doesn't fit the narrower range, it may still fit the wider one).
 					}
 					else {
 						// we widen the original range (hopefully the 2nd database is right about this specific range):
-						next.IP_TO = ip.IP_TO;
+						next.setToIP(ip.getToIP());
 						continue;
 					}
 				}
-				else if ((next.IP_FROM < ip.IP_TO) && (next.IP_TO > ip.IP_TO)) {
+				else if ((next.getFromIP() < ip.getToIP()) && (next.getToIP() > ip.getToIP())) {
 					// this poses a problem - what should we do about it?
 					// Currently we simply discharge the 2nd entry, hoping that the 1st one is correct (and 2nd wasn't)
 					continue;
@@ -237,8 +237,8 @@ public class IP2Country {
 		String result = "XX";
 		try {
 			IPRange x = resolveTable.headMap(new IPRange(IP+1, IP+1, "XX")).lastKey(); // +1 because headMap() returns keys that are strictly less than given key
-			if ((x.IP_FROM <= IP) && (x.IP_TO >= IP)) {
-				result = x.COUNTRY_CODE2;
+			if ((x.getFromIP() <= IP) && (x.getToIP() >= IP)) {
+				result = x.getCountryCode2();
 			}
 		} catch (NoSuchElementException e) {
 			// do nothing

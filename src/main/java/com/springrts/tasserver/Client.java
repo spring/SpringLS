@@ -98,7 +98,7 @@ public class Client implements ContextReceiver {
 	 * Use setSendMsgID() and resetSendMsgID() methods to manipulate it.
 	 * NO_MSG_ID means no ID is used.
 	 */
-	private int msgID = NO_MSG_ID;
+	private int m_msgID = NO_MSG_ID;
 	/**
 	 * Queue of "delayed data".
 	 * We failed sending this the first time, so we will have to try sending it
@@ -238,12 +238,12 @@ public class Client implements ContextReceiver {
 	 * See "lobby protocol description" document for more info
 	 * on message/command IDs.
 	 */
-	public void setSendMsgID(int ID) {
-		this.msgID = ID;
+	public void setSendMsgID(int msgID) {
+		this.m_msgID = msgID;
 	}
 
-	public void resetSendMsgID(int ID) {
-		this.msgID = ID;
+	public void resetSendMsgID(int msgID) {
+		this.m_msgID = msgID;
 	}
 
 	/**
@@ -251,12 +251,11 @@ public class Client implements ContextReceiver {
 	 * set via setSendMsgID() method.
 	 */
 	public boolean sendLine(String text) {
-		return sendLine(text, msgID);
+		return sendLine(text, m_msgID);
 	}
 
 	/**
-	 * The 'msgID' param overrides any previously set ID
-	 * (via setSendMsgID method).
+	 * @param msgID overrides any previously set message ID {@see #setSendMsgID()}.
 	 * Use NO_MSG_ID (which should equal to -1) for none.
 	 */
 	public boolean sendLine(String text, int msgID) {

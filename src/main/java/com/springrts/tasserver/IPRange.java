@@ -10,15 +10,16 @@ package com.springrts.tasserver;
  */
 public class IPRange implements Comparable<IPRange> {
 
-	public long IP_FROM;
-	public long IP_TO;
-	public String COUNTRY_CODE2; // 2 character country code
+	private long fromIP;
+	private long toIP;
+	/** 2 character ISO country code, "XX" means unspecified */
+	private String countryCode2;
 
-	public IPRange(long IP_FROM, long IP_TO, String COUNTRY_CODE2) {
+	public IPRange(long fromIP, long toIP, String countryCode2) {
 
-		this.IP_FROM = IP_FROM;
-		this.IP_TO = IP_TO;
-		this.COUNTRY_CODE2 = COUNTRY_CODE2;
+		this.fromIP = fromIP;
+		this.toIP = toIP;
+		this.countryCode2 = countryCode2;
 	}
 
 	/**
@@ -30,23 +31,23 @@ public class IPRange implements Comparable<IPRange> {
 	@Override
 	public int compareTo(IPRange other) {
 
-		if (this.IP_FROM < other.IP_FROM) {
+		if (this.getFromIP() < other.getFromIP()) {
 			return -1;
-		} else if (this.IP_FROM > other.IP_FROM) {
+		} else if (this.getFromIP() > other.getFromIP()) {
 			return 1;
 		} else {
-			if (this.IP_TO < other.IP_TO) {
+			if (this.getToIP() < other.getToIP()) {
 				return -1; // keep narrower ranges at the top
-			} else if (this.IP_TO > other.IP_TO) {
+			} else if (this.getToIP() > other.getToIP()) {
 				return 1;
 			} else {
-				return this.COUNTRY_CODE2.compareTo(other.COUNTRY_CODE2);
+				return this.getCountryCode2().compareTo(other.getCountryCode2());
 			}
 		}
 	}
 
 	/**
-	 * Neededs to fulfill "consistent with equals" criterion,
+	 * Needs to fulfill "consistent with equals" criterion,
 	 * i.e. compareTo(x) == 0 is true if and only if equals(x) == true.
 	 */
 	@Override
@@ -58,25 +59,51 @@ public class IPRange implements Comparable<IPRange> {
 		if (!(obj instanceof IPRange)) {
 			return false;
 		}
-		return (this.IP_FROM == ((IPRange)obj).IP_FROM) &&
-				(this.IP_TO == ((IPRange)obj).IP_TO) &&
-				(this.COUNTRY_CODE2.equals(((IPRange)obj).COUNTRY_CODE2));
+		return (this.getFromIP() == ((IPRange) obj).getFromIP()) &&
+				(this.getToIP() == ((IPRange) obj).getToIP()) &&
+				(this.getCountryCode2().equals(((IPRange) obj).getCountryCode2()));
 	}
 
 	@Override
 	public int hashCode() {
 		int hash = 7;
-		hash = 17 * hash + (int) (this.IP_FROM ^ (this.IP_FROM >>> 32));
-		hash = 17 * hash + (int) (this.IP_TO ^ (this.IP_TO >>> 32));
-		hash = 17 * hash + (this.COUNTRY_CODE2 != null ? this.COUNTRY_CODE2.hashCode() : 0);
+		hash = 17 * hash + (int) (this.getFromIP() ^ (this.getFromIP() >>> 32));
+		hash = 17 * hash + (int) (this.getToIP() ^ (this.getToIP() >>> 32));
+		hash = 17 * hash + (this.getCountryCode2() != null ? this.getCountryCode2().hashCode() : 0);
 		return hash;
 	}
 
 	@Override
 	public String toString() {
 		return new StringBuilder()
-				.append(IP_FROM).append(",")
-				.append(IP_TO).append(",")
-				.append(COUNTRY_CODE2).toString();
+				.append(getFromIP()).append(",")
+				.append(getToIP()).append(",")
+				.append(getCountryCode2()).toString();
+	}
+
+	public long getFromIP() {
+		return fromIP;
+	}
+
+	public long getToIP() {
+		return toIP;
+	}
+
+	public void setToIP(long toIP) {
+		this.toIP = toIP;
+	}
+
+	/**
+	 * 2 character ISO country code, "XX" means unspecified
+	 * @return the countryCode2
+	 */ public String getCountryCode2() {
+		return countryCode2;
+	}
+
+	/**
+	 * 2 character ISO country code, "XX" means unspecified
+	 * @param countryCode2 the countryCode2 to set
+	 */ public void setCountryCode2(String countryCode2) {
+		this.countryCode2 = countryCode2;
 	}
 }
