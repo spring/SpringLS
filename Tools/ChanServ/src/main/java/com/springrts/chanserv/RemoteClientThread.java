@@ -23,12 +23,8 @@ public class RemoteClientThread extends Thread {
 
 	private static final Logger logger = LoggerFactory.getLogger(RemoteClientThread.class);
 
-	static final int BUF_SIZE = 2048;
-
 	/** in milliseconds */
-	private final static int TIMEOUT = 30000;
-
-	static final byte[] EOL = {(byte)'\r', (byte)'\n' };
+	private static final int TIMEOUT = 30000;
 
 	/** unique ID which we will use as a message ID when sending commands to TASServer */
 	public final int ID = (int)((Math.random() * 65535));
