@@ -106,7 +106,7 @@ public class ConfigStorage {
 				if (node.getNodeType() == Node.ELEMENT_NODE) {
 					// this is "channel" element
 					chan = new Channel(((Element)node).getAttribute("name"));
-					chan.setIsStatic(false);
+					chan.setStatic(false);
 					chan.setTopic(((Element) node).getAttribute("topic"));
 					chan.setKey(((Element) node).getAttribute("key"));
 					chan.setFounder(((Element) node).getAttribute("founder"));
@@ -202,7 +202,7 @@ public class ConfigStorage {
 				// add new static channels:
 				for (int i = 0; i < ChanServ.channels.size(); i++) {
 					chan = ChanServ.channels.get(i);
-					if (!chan.isIsStatic()) {
+					if (!chan.isStatic()) {
 						continue;
 					}
 					root.appendChild(config.createTextNode(Misc.EOL + Misc.enumSpaces(6)));
@@ -235,7 +235,7 @@ public class ConfigStorage {
 				// add new channels:
 				for (int i = 0; i < ChanServ.channels.size(); i++) {
 					chan = ChanServ.channels.get(i);
-					if (chan.isIsStatic()) {
+					if (chan.isStatic()) {
 						continue;
 					}
 					root.appendChild(config.createTextNode(Misc.EOL + Misc.enumSpaces(6)));

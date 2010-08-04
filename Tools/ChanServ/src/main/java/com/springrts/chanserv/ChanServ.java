@@ -300,7 +300,7 @@ public class ChanServ {
 			chan.setJoined(true);
 			chan.clearClients();
 			// set topic, lock channel, ... :
-			if (!chan.isIsStatic()) {
+			if (!chan.isStatic()) {
 				if (!chan.getKey().equals("")) {
 					sendLine("SETCHANNELKEY " + chan.getName() + " " + chan.getKey());
 				}
@@ -496,7 +496,7 @@ public class ChanServ {
 				return ;
 			}
 
-			if (chan.isIsStatic()) {
+			if (chan.isStatic()) {
 				sendMessage(client, channel, "Channel #" + chanName + " is registered as a static channel, no further info available!");
 				return ;
 			}
@@ -543,7 +543,7 @@ public class ChanServ {
 
 			for (Channel chan : channels) {
 				if (chan.getName().equals(chanName)) {
-					if (chan.isIsStatic()) {
+					if (chan.isStatic()) {
 						sendMessage(client, channel, "Error: channel #" + chanName + " is a static channel (cannot register it)!");
 					} else {
 						sendMessage(client, channel, "Error: channel #" + chanName + " is already registered!");
@@ -556,7 +556,7 @@ public class ChanServ {
 			Channel chan = new Channel(chanName);
 			channels.add(chan);
 			chan.setFounder(params.get(1));
-			chan.setIsStatic(false);
+			chan.setStatic(false);
 			chan.setAntiSpam(false);
 			chan.setAntiSpamSettings(SpamSettings.spamSettingsToString(SpamSettings.DEFAULT_SETTINGS));
 			sendLine("JOIN " + chan.getName());
@@ -579,7 +579,7 @@ public class ChanServ {
 
 			String chanName = params.get(0).substring(1);
 			Channel chan = getChannel(chanName);
-			if ((chan == null) || (chan.isIsStatic())) {
+			if ((chan == null) || (chan.isStatic())) {
 				sendMessage(client, channel, "Channel #" + chanName + " is not registered!");
 				return ;
 			}
@@ -613,7 +613,7 @@ public class ChanServ {
 
 			String chanName = params.get(0).substring(1);
 			Channel chan = getChannel(chanName);
-			if ((chan == null) || (chan.isIsStatic())) {
+			if ((chan == null) || (chan.isStatic())) {
 				sendMessage(client, channel, "Channel #" + chanName + " is not registered!");
 				return ;
 			}
@@ -648,7 +648,7 @@ public class ChanServ {
 
 			for (Channel chan : channels) {
 				if (chan.getName().equals(chanName)) {
-					if (chan.isIsStatic()) {
+					if (chan.isStatic()) {
 						sendMessage(client, channel, "Error: channel #" + chanName + " is already static!");
 					} else {
 						sendMessage(client, channel, "Error: channel #" + chanName + " is already registered! (unregister it first and then add it to static list)");
@@ -660,7 +660,7 @@ public class ChanServ {
 			// ok add the channel to static list:
 			Channel chan = new Channel(chanName);
 			channels.add(chan);
-			chan.setIsStatic(true);
+			chan.setStatic(true);
 			chan.setAntiSpam(false);
 			chan.setAntiSpamSettings(SpamSettings.spamSettingsToString(SpamSettings.DEFAULT_SETTINGS));
 			sendLine("JOIN " + chan.getName());
@@ -678,7 +678,7 @@ public class ChanServ {
 
 			String chanName = params.get(0).substring(1);
 			Channel chan = getChannel(chanName);
-			if ((chan == null) || (!chan.isIsStatic())) {
+			if ((chan == null) || (!chan.isStatic())) {
 				sendMessage(client, channel, "Channel #" + chanName + " is not in the static channel list!");
 				return ;
 			}
@@ -710,7 +710,7 @@ public class ChanServ {
 
 			String chanName = params.get(0).substring(1);
 			Channel chan = getChannel(chanName);
-			if ((chan == null) || (chan.isIsStatic())) {
+			if ((chan == null) || (chan.isStatic())) {
 				sendMessage(client, channel, "Channel #" + chanName + " is not registered!");
 				return ;
 			}
@@ -757,7 +757,7 @@ public class ChanServ {
 
 			String chanName = params.get(0).substring(1);
 			Channel chan = getChannel(chanName);
-			if ((chan == null) || (chan.isIsStatic())) {
+			if ((chan == null) || (chan.isStatic())) {
 				sendMessage(client, channel, "Channel #" + chanName + " is not registered!");
 				return ;
 			}
@@ -888,7 +888,7 @@ public class ChanServ {
 
 			String chanName = params.get(0).substring(1);
 			Channel chan = getChannel(chanName);
-			if ((chan == null) || (chan.isIsStatic())) {
+			if ((chan == null) || (chan.isStatic())) {
 				sendMessage(client, channel, "Channel #" + chanName + " is not registered!");
 				return ;
 			}
@@ -924,7 +924,7 @@ public class ChanServ {
 
 			String chanName = params.get(0).substring(1);
 			Channel chan = getChannel(chanName);
-			if ((chan == null) || (chan.isIsStatic())) {
+			if ((chan == null) || (chan.isStatic())) {
 				sendMessage(client, channel, "Channel #" + chanName + " is not registered!");
 				return ;
 			}
@@ -954,7 +954,7 @@ public class ChanServ {
 
 			String chanName = params.get(0).substring(1);
 			Channel chan = getChannel(chanName);
-			if ((chan == null) || (chan.isIsStatic())) {
+			if ((chan == null) || (chan.isStatic())) {
 				sendMessage(client, channel, "Channel #" + chanName + " is not registered!");
 				return ;
 			}
@@ -994,7 +994,7 @@ public class ChanServ {
 
 			String chanName = params.get(0).substring(1);
 			Channel chan = getChannel(chanName);
-			if ((chan == null) || (chan.isIsStatic())) {
+			if ((chan == null) || (chan.isStatic())) {
 				sendMessage(client, channel, "Channel #" + chanName + " is not registered!");
 				return ;
 			}
@@ -1025,7 +1025,7 @@ public class ChanServ {
 
 			String chanName = params.get(0).substring(1);
 			Channel chan = getChannel(chanName);
-			if ((chan == null) || (chan.isIsStatic())) {
+			if ((chan == null) || (chan.isStatic())) {
 				sendMessage(client, channel, "Channel #" + chanName + " is not registered!");
 				return ;
 			}
@@ -1072,7 +1072,7 @@ public class ChanServ {
 
 			String chanName = params.get(0).substring(1);
 			Channel chan = getChannel(chanName);
-			if ((chan == null) || (chan.isIsStatic())) {
+			if ((chan == null) || (chan.isStatic())) {
 				sendMessage(client, channel, "Channel #" + chanName + " is not registered!");
 				return ;
 			}
@@ -1124,7 +1124,7 @@ public class ChanServ {
 
 			String chanName = params.get(0).substring(1);
 			Channel chan = getChannel(chanName);
-			if ((chan == null) || (chan.isIsStatic())) {
+			if ((chan == null) || (chan.isStatic())) {
 				sendMessage(client, channel, "Channel #" + chanName + " is not registered!");
 				return ;
 			}
@@ -1156,7 +1156,7 @@ public class ChanServ {
 
 			String chanName = params.get(0).substring(1);
 			Channel chan = getChannel(chanName);
-			if ((chan == null) || (chan.isIsStatic())) {
+			if ((chan == null) || (chan.isStatic())) {
 				sendMessage(client, channel, "Channel #" + chanName + " is not registered!");
 				return ;
 			}
@@ -1182,7 +1182,7 @@ public class ChanServ {
 
 			for (Channel chan : channels) {
 				// skip static channels
-				if (!chan.isIsStatic()) {
+				if (!chan.isStatic()) {
 					sendLine("SAYEX " + chan.getName() + " is quitting. Reason: " + reason);
 				}
 			}

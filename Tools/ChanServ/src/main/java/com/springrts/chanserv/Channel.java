@@ -194,7 +194,7 @@ public class Channel implements Serializable {
 	 * We can not register this channel at all.
 	 * @return the isStatic
 	 */
-	public boolean isIsStatic() {
+	public boolean isStatic() {
 		return isStatic;
 	}
 
@@ -203,7 +203,7 @@ public class Channel implements Serializable {
 	 * We can not register this channel at all.
 	 * @param isStatic the isStatic to set
 	 */
-	public void setIsStatic(boolean isStatic) {
+	public void setStatic(boolean isStatic) {
 		this.isStatic = isStatic;
 	}
 
