@@ -39,6 +39,12 @@ public class LogCleaner extends TimerTask {
 
 	final static String TEMP_LOGS_FOLDER = "./temp_logs";
 
+	private Context context;
+
+	public LogCleaner(Context context) {
+		this.context = context;
+	}
+
 	public void run() {
 		// create temp log folder if it doesn't already exist:
 		File tempFolder = new File(TEMP_LOGS_FOLDER);
@@ -102,8 +108,8 @@ public class LogCleaner extends TimerTask {
 			String name = file.getName().substring(0, file.getName().length() - 4); // remove ".log" from the end of the file name
 
 			try {
-				if (!ChanServ.database.doesTableExist(name)) {
-					boolean result= ChanServ.database.execUpdate("CREATE TABLE `" + name + "` (" + Misc.EOL +
+				if (!context.getChanServ().database.doesTableExist(name)) {
+					boolean result = context.getChanServ().database.execUpdate("CREATE TABLE `" + name + "` (" + Misc.EOL +
 																 "id INT NOT NULL AUTO_INCREMENT, " + Misc.EOL +
 																 "stamp BIGINT NOT NULL, " + Misc.EOL +
 																 "line TEXT NOT NULL, " + Misc.EOL +
@@ -164,7 +170,7 @@ public class LogCleaner extends TimerTask {
 				}
 
 				// insert into database:
-				PreparedStatement pstmt = ChanServ.database.getConnection().prepareStatement(update.toString());
+				PreparedStatement pstmt = context.getChanServ().database.getConnection().prepareStatement(update.toString());
 				for (int j = 0; j < stamps.size(); j++) {
 					pstmt.setLong(j*2+1, stamps.get(j));
 					pstmt.setString(j*2+2, lines.get(j));

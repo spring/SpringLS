@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
  */
 public class RemoteClientThread extends Thread {
 
-	private static final Logger logger = LoggerFactory.getLogger(ChanServ.class);
+	private static final Logger logger = LoggerFactory.getLogger(RemoteClientThread.class);
 
 	static final int BUF_SIZE = 2048;
 
@@ -34,7 +34,7 @@ public class RemoteClientThread extends Thread {
 	public final int ID = (int)((Math.random() * 65535));
 
 	/**
-	 * Reply queue which gets filled by ChanServ automatically
+	 * Reply queue which gets filled by context.getChanServ() automatically
 	 * (needs to be thread-save)
 	 */
 	private final BlockingQueue<String> replyQueue;
@@ -52,10 +52,12 @@ public class RemoteClientThread extends Thread {
 	/** the object that spawned this thread */
 	private RemoteAccessServer parent;
 
+	private Context context;
 
-	RemoteClientThread(RemoteAccessServer parent, Socket s) {
+	RemoteClientThread(Context context, RemoteAccessServer parent, Socket s) {
 
 		// LinkedBlockingQueue is thread-save
+		this.context = context;
 		this.replyQueue = new LinkedBlockingQueue<String>();
 		this.socket = s;
 		this.parent = parent;
@@ -131,9 +133,9 @@ public class RemoteClientThread extends Thread {
 	}
 
 	private void queryTASServer(String command) {
-		ChanServ.sendLine("#" + ID + " " + command);
-
+		context.getChanServ().sendLine("#" + ID + " " + command);
 	}
+
 	/** Will wait until queue doesn't contain a response */
 	private String waitForReply() {
 
@@ -166,7 +168,7 @@ public class RemoteClientThread extends Thread {
 				logger.trace("Malformed command: {}", cleanCommand);
 				return;
 			}
-			if (!ChanServ.isConnected()) {
+			if (!context.getChanServ().isConnected()) {
 				sendLine("FAILED");
 				return ;
 			}
@@ -186,7 +188,7 @@ public class RemoteClientThread extends Thread {
 				logger.trace("Malformed command: {}", cleanCommand);
 				return;
 			}
-			if (!ChanServ.isConnected()) {
+			if (!context.getChanServ().isConnected()) {
 				sendLine("LOGINBAD");
 				return ;
 			}
@@ -205,7 +207,7 @@ public class RemoteClientThread extends Thread {
 				logger.trace("Malformed command: {}", cleanCommand);
 				return;
 			}
-			if (!ChanServ.isConnected()) {
+			if (!context.getChanServ().isConnected()) {
 				kill();
 				return ;
 			}
@@ -235,7 +237,7 @@ public class RemoteClientThread extends Thread {
 				logger.trace("Malformed command: {}", cleanCommand);
 				return;
 			}
-			if (!ChanServ.isConnected()) {
+			if (!context.getChanServ().isConnected()) {
 				kill();
 				return ;
 			}
@@ -249,14 +251,14 @@ public class RemoteClientThread extends Thread {
 				logger.trace("Malformed command: {}", cleanCommand);
 				return;
 			}
-			if (!ChanServ.isConnected()) {
+			if (!context.getChanServ().isConnected()) {
 				kill();
 				return ;
 			}
 
 			boolean success = false;
-			synchronized(ChanServ.clients) {
-				for (Client client : ChanServ.clients) {
+			synchronized(context.getChanServ().clients) {
+				for (Client client : context.getChanServ().clients) {
 					if (client.getName().equals(params[1])) {
 						success = true;
 						break;
@@ -272,7 +274,7 @@ public class RemoteClientThread extends Thread {
 				logger.trace("Malformed command: {}", cleanCommand);
 				return;
 			}
-			if (!ChanServ.isConnected()) {
+			if (!context.getChanServ().isConnected()) {
 				kill();
 				return ;
 			}
@@ -293,7 +295,7 @@ public class RemoteClientThread extends Thread {
 			String reply = waitForReply();
 			sendLine(reply);
 
-			// quick fix for ChanServ crash on adding ban entry in the web interface:
+			// quick fix for context.getChanServ() crash on adding ban entry in the web interface:
 			if (Misc.makeSentence(params, 1).equalsIgnoreCase("RETRIEVELATESTBANLIST")) {
 				reply = waitForReply(); // wait for the second line of reply
 			}

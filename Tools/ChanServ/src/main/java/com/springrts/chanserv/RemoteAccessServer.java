@@ -101,8 +101,11 @@ public class RemoteAccessServer extends Thread {
 	private final Map<Integer, RemoteClientThread> threads;
 	private final int port;
 
-	public RemoteAccessServer(int port) {
+	private Context context;
 
+	public RemoteAccessServer(Context context, int port) {
+
+		this.context = context;
 		this.port = port;
 		this.remoteAccounts = java.util.Collections.synchronizedList(new LinkedList<String>());
 		this.threads = java.util.Collections.synchronizedMap(new HashMap<Integer, RemoteClientThread>());
@@ -115,7 +118,7 @@ public class RemoteAccessServer extends Thread {
 
 			while (true) {
 				Socket cs = ss.accept();
-				RemoteClientThread thread = new RemoteClientThread(this, cs);
+				RemoteClientThread thread = new RemoteClientThread(context, this, cs);
 				threads.put(thread.ID, thread);
 				thread.start();
 			}

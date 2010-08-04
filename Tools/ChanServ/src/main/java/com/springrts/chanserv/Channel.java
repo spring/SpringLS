@@ -50,8 +50,11 @@ public class Channel implements Serializable {
 	/** anti-spam settings for this channel, used with AntiSpamSystem */
 	private String antiSpamSettings;
 
-	public Channel(String name) {
+	private final Context context;
+
+	public Channel(Context context, String name) {
 		
+		this.context = context;
 		this.name = name;
 		this.topic = "";
 		this.logFileName = "#" + name + ".log";
@@ -97,7 +100,7 @@ public class Channel implements Serializable {
 	}
 
 	public void sendMessage(String msg) {
-		ChanServ.sendLine(String.format("SAY %s %s", getName(), msg));
+		context.getChanServ().sendLine(String.format("SAY %s %s", getName(), msg));
 	}
 
 	public int clientCount() {

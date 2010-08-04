@@ -7,6 +7,7 @@ package com.springrts.chanserv;
 
 import com.springrts.chanserv.antispam.SpamSettings;
 import com.springrts.chanserv.antispam.AntiSpamSystem;
+import com.springrts.chanserv.antispam.DefaultAntiSpamSystem;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -25,27 +26,6 @@ import java.util.regex.PatternSyntaxException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-
-/**
- * @author Betalord
- */
-class KeepAliveTask extends TimerTask {
-	public void run() {
-		try {
-			ChanServ.configLock.acquire();
-
-			ChanServ.sendLine("PING");
-			// also save config on regular intervals:
-			ConfigStorage.saveConfig(ChanServ.CONFIG_FILENAME);
-		} catch (InterruptedException e) {
-			ChanServ.forceDisconnect();
-			return;
-		} finally {
-			ChanServ.configLock.release();
-		}
-	}
-}
 
 /**
  * For the list of commands, see commands.html!
@@ -74,10 +54,8 @@ public class ChanServ {
 	private static final String VERSION = "0.1";
 	static final String CONFIG_FILENAME = "settings.xml";
 
-	static final Configuration configuration = new Configuration();
-
 	/** are we connected to the lobby server? */
-	private static boolean connected = false;
+	private boolean connected = false;
 	static Socket socket = null;
 	static PrintWriter sockout = null;
 	static BufferedReader sockin = null;
@@ -89,34 +67,44 @@ public class ChanServ {
 	 * We use it when there is a danger of config object being used
 	 * by main and TaskTimer threads simultaneously
 	 */
-	static Semaphore configLock = new Semaphore(1, true);
+	Semaphore configLock = new Semaphore(1, true);
 
-	static RemoteAccessServer remoteAccessServer;
+	RemoteAccessServer remoteAccessServer;
 
 	/** Needs to be thread-save */
-	static List<Client> clients = new Vector<Client>();
-	static List<Channel> channels = new Vector<Channel>();
+	List<Client> clients = new Vector<Client>();
+	List<Channel> channels = new Vector<Channel>();
 
 	/** list of mute entries for a specified channel (see lastMuteListChannel) */
-	private static List<String> lastMuteList = new Vector<String>();
+	private List<String> lastMuteList = new Vector<String>();
 	/**
 	 * name of channel for which we are currently receiving
 	 * (or we already did receive) mute list from the server
 	 */
-	private static String lastMuteListChannel;
+	private String lastMuteListChannel;
 	/** list of current requests for mute lists. */
-	private static List<MuteListRequest> forwardMuteList = new Vector<MuteListRequest>();
+	private List<MuteListRequest> forwardMuteList = new Vector<MuteListRequest>();
 
-	static DBInterface database;
+	DBInterface database;
 
-	private ChanServ() {}
+	private Context context;
 
-	public static void closeAndExit() {
+	private ChanServ() {
+
+		context = new Context();
+		context.setChanServ(this);
+		context.setConfiguration(new Configuration());
+		context.setConfigStorage(new LegacyConfigStorage(context));
+		context.setAntiSpamSystem(new DefaultAntiSpamSystem(context));
+	}
+
+	public void closeAndExit() {
 		closeAndExit(0);
 	}
 
-	public static void closeAndExit(int returncode) {
-		AntiSpamSystem.uninitialize();
+	public void closeAndExit(int returncode) {
+
+		context.getAntiSpamSystem().uninitialize();
 		if (timersStarted) {
 			try {
 				stopTimers();
@@ -128,7 +116,7 @@ public class ChanServ {
 		System.exit(returncode);
 	}
 
-	public static void forceDisconnect() {
+	public void forceDisconnect() {
 		try {
 			socket.close();
 		} catch (IOException e) {
@@ -136,36 +124,39 @@ public class ChanServ {
 		}
 	}
 
-	public static boolean isConnected() {
+	public boolean isConnected() {
 		return connected;
 	}
 
 	/** multiple threads may call this method */
-	public static synchronized void sendLine(String s) {
+	public synchronized void sendLine(String s) {
 
 		logger.debug("Client: \"{}\"", s);
 		sockout.println(s);
 	}
 
-	private static boolean tryToConnect() {
+	private boolean tryToConnect() {
+
+		Configuration config = context.getConfiguration();
+
 		try {
-			Log.log("Connecting to " + configuration.serverAddress + ":" + configuration.serverPort + " ...");
-			socket = new Socket(configuration.serverAddress, configuration.serverPort);
+			Log.log("Connecting to " + config.serverAddress + ":" + config.serverPort + " ...");
+			socket = new Socket(config.serverAddress, config.serverPort);
 			sockout = new PrintWriter(socket.getOutputStream(), true);
 			sockin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		} catch (UnknownHostException e) {
-			Log.error("Unknown host error: " + configuration.serverAddress);
+			Log.error("Unknown host error: " + config.serverAddress);
 			return false;
 		} catch (IOException e) {
-			Log.error("Couldn't get I/O for the connection to: " + configuration.serverAddress);
+			Log.error("Couldn't get I/O for the connection to: " + config.serverAddress);
 			return false;
 		}
 
-		Log.log("Now connected to " + configuration.serverAddress);
+		Log.log("Now connected to " + config.serverAddress);
 		return true;
 	}
 
-	public static void messageLoop() {
+	public void messageLoop() {
 		String line;
 		while (true) {
 			try {
@@ -203,7 +194,7 @@ public class ChanServ {
 
 	// processes messages that were only sent to server admins. "message" parameter must be a
 	// message string withouth the "[broadcast to all admins]: " part.
-	public static void processAdminBroadcast(String message) {
+	public void processAdminBroadcast(String message) {
 		Log.debug("admin broadcast: '" + message + "'");
 
 		// let's check if some channel founder/operator has just renamed his account:
@@ -226,7 +217,7 @@ public class ChanServ {
 		}
 	}
 
-	public static boolean execRemoteCommand(String command) {
+	public boolean execRemoteCommand(String command) {
 
 		String cleanCommand = command.trim();
 		if (cleanCommand.equals("")) {
@@ -258,7 +249,7 @@ public class ChanServ {
 		commands[0] = commands[0].toUpperCase();
 
 		if (commands[0].equals("TASSERVER")) {
-			sendLine("LOGIN " + configuration.username + " " + configuration.password + " 0 * ChanServ " + VERSION);
+			sendLine("LOGIN " + context.getConfiguration().username + " " + context.getConfiguration().password + " 0 * ChanServ " + VERSION);
 		} else if (commands[0].equals("ACCEPTED")) {
 			Log.log("Login accepted.");
 			// join registered and static channels:
@@ -285,7 +276,7 @@ public class ChanServ {
 			for (Client client : clients) {
 				if (client.getName().equals(commands[1])) {
 					client.setStatus(Integer.parseInt(commands[2]));
-					AntiSpamSystem.processClientStatusChange(client);
+					context.getAntiSpamSystem().processClientStatusChange(client);
 					break;
 				}
 			}
@@ -343,7 +334,7 @@ public class ChanServ {
 			}
 			Log.toFile(chan.getLogFileName(), out);
 		} else if (commands[0].equals("JOINFAILED")) {
-			channels.add(new Channel(commands[1]));
+			channels.add(new Channel(context, commands[1]));
 			Log.log("Failed to join #" + commands[1] + ". Reason: " + Misc.makeSentence(commands, 2));
 		} else if (commands[0].equals("CHANNELTOPIC")) {
 			Channel chan = getChannel(commands[1]);
@@ -364,7 +355,7 @@ public class ChanServ {
 			String user = commands[2];
 			String msg = Misc.makeSentence(commands, 3);
 			if (chan.isAntiSpam()) {
-				AntiSpamSystem.processUserMsg(chan.getName(), user, msg);
+				context.getAntiSpamSystem().processUserMsg(chan.getName(), user, msg);
 			}
 			Log.toFile(chan.getLogFileName(), "<" + user + "> " + msg);
 			if ((msg.length() > 0) && (msg.charAt(0) == '!')) {
@@ -380,7 +371,7 @@ public class ChanServ {
 			String user = commands[2];
 			String msg = Misc.makeSentence(commands, 3);
 			if (chan.isAntiSpam()) {
-				AntiSpamSystem.processUserMsg(chan.getName(), user, msg);
+				context.getAntiSpamSystem().processUserMsg(chan.getName(), user, msg);
 			}
 			Log.toFile(chan.getLogFileName(), "* " + user + " " + msg);
 		} else if (commands[0].equals("SAIDPRIVATE")) {
@@ -451,7 +442,7 @@ public class ChanServ {
 	 * If the command was issued from a private chat,
 	 * then the "channel" parameter should be <code>null</code>.
 	 */
-	public static void processUserCommand(String command, Client client, Channel channel) {
+	public void processUserCommand(String command, Client client, Channel channel) {
 
 		command = command.trim();
 		if (command.equals("")) {
@@ -553,7 +544,7 @@ public class ChanServ {
 			}
 
 			// ok register the channel now:
-			Channel chan = new Channel(chanName);
+			Channel chan = new Channel(context, chanName);
 			channels.add(chan);
 			chan.setFounder(params.get(1));
 			chan.setStatic(false);
@@ -625,7 +616,7 @@ public class ChanServ {
 
 			// ok unregister the channel now:
 			channels.remove(chan);
-			sendLine("CHANNELMESSAGE " + chan.getName() + " " + "This channel has just been unregistered from <" + configuration.username + "> by <" + client.getName() + ">");
+			sendLine("CHANNELMESSAGE " + chan.getName() + " " + "This channel has just been unregistered from <" + context.getConfiguration().username + "> by <" + client.getName() + ">");
 			sendMessage(client, channel, "Channel #" + chanName + " successfully unregistered!");
 			sendLine("LEAVE " + chan.getName());
 		} else if (commandName.equals("ADDSTATIC")) {
@@ -658,7 +649,7 @@ public class ChanServ {
 			}
 
 			// ok add the channel to static list:
-			Channel chan = new Channel(chanName);
+			Channel chan = new Channel(context, chanName);
 			channels.add(chan);
 			chan.setStatic(true);
 			chan.setAntiSpam(false);
@@ -858,7 +849,7 @@ public class ChanServ {
 			}
 
 			chan.setAntiSpamSettings(settings);
-			AntiSpamSystem.setSpamSettingsForChannel(chan.getName(), chan.getAntiSpamSettings());
+			context.getAntiSpamSystem().setSpamSettingsForChannel(chan.getName(), chan.getAntiSpamSettings());
 			sendMessage(client, channel, "Anti-spam settings successfully updated (" + chan.getAntiSpamSettings() + ")");
 		} else if (commandName.equals("TOPIC")) {
 			// if the command was issued from a channel:
@@ -1041,7 +1032,7 @@ public class ChanServ {
 				return ;
 			}
 
-			if (target.equals(configuration.username)) {
+			if (target.equals(context.getConfiguration().username)) {
 				// not funny!
 				sendMessage(client, channel, "You are not allowed to issue this command!");
 				return ;
@@ -1088,7 +1079,7 @@ public class ChanServ {
 				return ;
 			}
 
-			if (target.equals(configuration.username)) {
+			if (target.equals(context.getConfiguration().username)) {
 				// not funny!
 				sendMessage(client, channel, "You are not allowed to issue this command!");
 				return ;
@@ -1189,15 +1180,15 @@ public class ChanServ {
 
 			// stop the program:
 			stopTimers();
-			ConfigStorage.saveConfig(CONFIG_FILENAME);
+			context.getConfigStorage().saveConfig(CONFIG_FILENAME);
 			closeAndExit();
 		}
 	}
 
-	public static void sendPrivateMsg(Client client, String msg) {
+	public void sendPrivateMsg(Client client, String msg) {
 
 		sendLine("SAYPRIVATE " + client.getName() + " " + msg);
-		Log.toFile(client.getName() + ".log", "<" + configuration.username + "> " + msg);
+		Log.toFile(client.getName() + ".log", "<" + context.getConfiguration().username + "> " + msg);
 	}
 
 	/**
@@ -1210,7 +1201,7 @@ public class ChanServ {
 	 *  3) !client && chan  - will send a msg to a channel (general message withouth any prefix)
 	 *  4) !client && !chan - invalid parameters
 	 */
-	public static void sendMessage(Client client, Channel chan, String msg) {
+	public void sendMessage(Client client, Channel chan, String msg) {
 
 		if ((client == null) && (chan == null)) {
 			// this should not happen!
@@ -1225,7 +1216,7 @@ public class ChanServ {
 		}
 	}
 
-	public static Client getClient(String username) {
+	public Client getClient(String username) {
 
 		for (Client client : clients) {
 			if (client.getName().equals(username)) {
@@ -1237,7 +1228,7 @@ public class ChanServ {
 	}
 
 	/** Returns <code>null</code> if the channel is not found */
-	public static Channel getChannel(String name) {
+	public Channel getChannel(String name) {
 
 		for (Channel channel : channels) {
 			if (channel.getName().equals(name)) {
@@ -1248,7 +1239,27 @@ public class ChanServ {
 		return null;
 	}
 
-	public static void startTimers() {
+	/**
+	 * @author Betalord
+	 */
+	private class KeepAliveTask extends TimerTask {
+		public void run() {
+			try {
+				configLock.acquire();
+
+				sendLine("PING");
+				// also save config on regular intervals:
+				context.getConfigStorage().saveConfig(ChanServ.CONFIG_FILENAME);
+			} catch (InterruptedException e) {
+				forceDisconnect();
+				return;
+			} finally {
+				configLock.release();
+			}
+		}
+	}
+
+	public void startTimers() {
 
 		keepAliveTimer = new Timer();
 		keepAliveTimer.schedule(new KeepAliveTask(),
@@ -1256,14 +1267,14 @@ public class ChanServ {
 				15*1000);  //subsequent rate
 
 		logCleanerTimer = new Timer();
-		logCleanerTimer.schedule(new LogCleaner(),
+		logCleanerTimer.schedule(new LogCleaner(context),
 				5000,		//initial delay
 				20*1000);  //subsequent rate
 
 		timersStarted = true;
 	}
 
-	public static void stopTimers() {
+	public void stopTimers() {
 		try {
 			keepAliveTimer.cancel();
 			logCleanerTimer.cancel();
@@ -1272,7 +1283,7 @@ public class ChanServ {
 		}
 	}
 
-	public static void main(String[] args) {
+	public void start() {
 
 		Log.externalLogFileName = "$main.log";
 		Log.useExternalLogging = true;
@@ -1294,14 +1305,16 @@ public class ChanServ {
 		// it is vital that we initialize AntiSpamSystem
 		// before loading the configuration file,
 		// since we will configure AntiSpamSystem too
-		AntiSpamSystem.initialize();
+		context.getAntiSpamSystem().initialize();
 
-		ConfigStorage.loadConfig(CONFIG_FILENAME);
-		ConfigStorage.saveConfig(CONFIG_FILENAME); //*** TODO FIXME debug
+		context.getConfigStorage().loadConfig(CONFIG_FILENAME);
+		context.getConfigStorage().saveConfig(CONFIG_FILENAME); //*** TODO FIXME debug
+		
+		Configuration config = context.getConfiguration();
 
 		// run remote access server:
-		Log.log("Trying to run remote access server on port " + configuration.remoteAccessPort + " ...");
-		remoteAccessServer = new RemoteAccessServer(configuration.remoteAccessPort);
+		Log.log("Trying to run remote access server on port " + config.remoteAccessPort + " ...");
+		remoteAccessServer = new RemoteAccessServer(context, config.remoteAccessPort);
 		remoteAccessServer.start();
 
 		// establish connection with database:
@@ -1309,7 +1322,7 @@ public class ChanServ {
 		if (!database.loadJDBCDriver()) {
 			closeAndExit(1);
 		}
-		if (!database.connectToDatabase(configuration.DB_URL, configuration.DB_username, configuration.DB_password)) {
+		if (!database.connectToDatabase(config.DB_URL, config.DB_username, config.DB_password)) {
 			closeAndExit(1);
 		}
 
@@ -1343,5 +1356,11 @@ public class ChanServ {
 
 		// AntiSpamSystem.uninitialize(); -> this code is unreachable. We call it in closeAndExit() method!
 
+	}
+
+	public static void main(String[] args) {
+
+		ChanServ chanServ = new ChanServ();
+		chanServ.start();
 	}
 }
