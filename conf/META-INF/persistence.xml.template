@@ -17,6 +17,7 @@
 			<property name="hibernate.connection.username"     value="root"/>
 			<property name="hibernate.connection.password"     value="admin"/>
 			<property name="hibernate.connection.driver_class" value="com.mysql.jdbc.Driver"/>
+			<property name="hibernate.connection.autoReconnect" value="true"/>
 			<property name="hibernate.dialect"                 value="org.hibernate.dialect.MySQLDialect"/>
 			<property name="hibernate.cache.provider_class"    value="org.hibernate.cache.NoCacheProvider"/>
 			<property name="hibernate.hbm2ddl.auto"            value="update"/>
@@ -28,6 +29,7 @@
 			<property name="hibernate.connection.username"     value="postgres"/>
 			<property name="hibernate.connection.password"     value=""/>
 			<property name="hibernate.connection.driver_class" value="org.postgresql.Driver"/>
+			<property name="hibernate.connection.autoReconnect" value="true"/>
 			<property name="hibernate.dialect"                 value="org.hibernate.dialect.PostgreSQLDialect"/>
 			<property name="hibernate.cache.provider_class"    value="org.hibernate.cache.NoCacheProvider"/>
 			<property name="hibernate.hbm2ddl.auto"            value="update"/>
