@@ -51,8 +51,10 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 			s_log.error("Failed to create an entity manager");
 		} else {
 			try {
-				if (em.getTransaction().isActive()) {
+				if (em.isOpen() && em.getTransaction().isActive()) {
 					em.getTransaction().rollback();
+				} else {
+					s_log.error("Failed to rollback a transaction: no active connection or transaction");
 				}
 			} catch (PersistenceException ex) {
 				s_log.error("Failed to rollback a transaction", ex);
