@@ -35,23 +35,23 @@ public class DefaultAntiSpamSystem implements AntiSpamSystem{
 	static final Map<String, SpamRecord> spamRecords = new HashMap<String, SpamRecord>();
 
 	/** spam settings for each individual channel */
-	protected static Map<String, SpamSettings> spamSettings;
+	protected Map<String, SpamSettings> spamSettings;
 
-	private static Timer antiSpamTimer;
+	private Timer antiSpamTimer;
 
 	private Context context;
 
 
 	public DefaultAntiSpamSystem(Context context) {
+
 		this.context = context;
+		this.spamSettings = new HashMap<String, SpamSettings>();
 	}
 
 
 	/** Initializes the anti-spam system */
 	@Override
 	public void initialize() {
-
-		spamSettings = new HashMap<String, SpamSettings>();
 
 		antiSpamTimer = new Timer();
 		antiSpamTimer.schedule(new AntiSpamTask(context),

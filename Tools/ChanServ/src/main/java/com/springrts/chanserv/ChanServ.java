@@ -89,7 +89,7 @@ public class ChanServ {
 
 	private Context context;
 
-	private ChanServ() {
+	ChanServ() {
 
 		context = new Context();
 		context.setChanServ(this);
