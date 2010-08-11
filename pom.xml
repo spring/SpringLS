@@ -226,6 +226,14 @@
 					<scope>runtime</scope>
 					<optional>true</optional>
 				</dependency>
+				<dependency>
+					<!-- used to prevent DB connection timeout -->
+					<groupId>org.hibernate</groupId>
+					<artifactId>hibernate-c3p0</artifactId>
+					<version>3.3.2.GA</version>
+					<scope>runtime</scope>
+					<optional>true</optional>
+				</dependency>
 			</dependencies>
 		</profile>
 

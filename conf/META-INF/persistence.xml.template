@@ -17,10 +17,17 @@
 			<property name="hibernate.connection.username"     value="root"/>
 			<property name="hibernate.connection.password"     value="admin"/>
 			<property name="hibernate.connection.driver_class" value="com.mysql.jdbc.Driver"/>
-			<property name="hibernate.connection.autoReconnect" value="true"/>
 			<property name="hibernate.dialect"                 value="org.hibernate.dialect.MySQLDialect"/>
 			<property name="hibernate.cache.provider_class"    value="org.hibernate.cache.NoCacheProvider"/>
 			<property name="hibernate.hbm2ddl.auto"            value="update"/>
+			<!-- to prevent DB connection timeout (default MySQL timeout: 8h) -->
+			<property name="hibernate.c3p0.acquire_increment" value="3" />
+			<property name="hibernate.c3p0.idle_test_period" value="14400" />
+			<property name="hibernate.c3p0.timeout" value="25200" />
+			<property name="hibernate.c3p0.max_size" value="15" />
+			<property name="hibernate.c3p0.min_size" value="3" />
+			<property name="hibernate.c3p0.max_statements" value="0" />
+			<property name="hibernate.c3p0.preferredTestQuery" value="select 1;" />
 		</properties>
 
 		<!-- Postgres -->
@@ -29,10 +36,17 @@
 			<property name="hibernate.connection.username"     value="postgres"/>
 			<property name="hibernate.connection.password"     value=""/>
 			<property name="hibernate.connection.driver_class" value="org.postgresql.Driver"/>
-			<property name="hibernate.connection.autoReconnect" value="true"/>
 			<property name="hibernate.dialect"                 value="org.hibernate.dialect.PostgreSQLDialect"/>
 			<property name="hibernate.cache.provider_class"    value="org.hibernate.cache.NoCacheProvider"/>
 			<property name="hibernate.hbm2ddl.auto"            value="update"/>
+			<!-- to prevent DB connection timeout -->
+			<property name="hibernate.c3p0.acquire_increment" value="3" />
+			<property name="hibernate.c3p0.idle_test_period" value="14400" />
+			<property name="hibernate.c3p0.timeout" value="25200" />
+			<property name="hibernate.c3p0.max_size" value="15" />
+			<property name="hibernate.c3p0.min_size" value="3" />
+			<property name="hibernate.c3p0.max_statements" value="0" />
+			<property name="hibernate.c3p0.preferredTestQuery" value="select 1;" />
 		</properties>-->
 
 	</persistence-unit>
