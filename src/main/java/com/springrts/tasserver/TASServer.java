@@ -492,7 +492,8 @@ public class TASServer implements LiveStateListener {
 			Set<SelectionKey> readyKeys = readSelector.selectedKeys();
 
 			// run through the keys and process each one
-			for (SelectionKey key : readyKeys) {
+			while (!readyKeys.isEmpty()) {
+				SelectionKey key = readyKeys.iterator().next();
 				readyKeys.remove(key);
 				SocketChannel channel = (SocketChannel) key.channel();
 				client = (Client) key.attachment();
