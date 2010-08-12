@@ -7,7 +7,6 @@ package com.springrts.chanserv.antispam;
 
 import com.springrts.chanserv.Client;
 import com.springrts.chanserv.Context;
-import com.springrts.chanserv.Log;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;

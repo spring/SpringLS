@@ -113,6 +113,7 @@ public class RemoteAccessServer extends Thread {
 
 	@Override
 	public void run() {
+
 		try {
 			ServerSocket ss = new ServerSocket(port);
 
@@ -122,8 +123,8 @@ public class RemoteAccessServer extends Thread {
 				threads.put(thread.ID, thread);
 				thread.start();
 			}
-		} catch (IOException e) {
-			Log.error("Error occured in RemoteAccessServer: " + e.getMessage());
+		} catch (IOException ex) {
+			logger.error("Error occured in RemoteAccessServer", ex);
 		}
 	}
 

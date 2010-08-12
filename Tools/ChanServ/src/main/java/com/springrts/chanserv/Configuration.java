@@ -30,11 +30,6 @@ public class Configuration implements Serializable {
 	@XmlElement(name="name")
 	public final List<String> remoteAccessAccounts;
 
-	// database related:
-	public String DB_URL = "jdbc:mysql://127.0.0.1/ChanServLogs";
-	public String DB_username = "";
-	public String DB_password = "";
-
 	Configuration() {
 
 		channels = Collections.synchronizedList(new LinkedList<Channel>());

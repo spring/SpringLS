@@ -12,12 +12,17 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Betalord
  */
 public class Misc {
+
+	private static final Logger logger = LoggerFactory.getLogger(ChanServ.class);
 
  	public static final String EOL = "\n";
  	private static String hex = "0123456789ABCDEF";
@@ -109,21 +114,44 @@ public class Misc {
 		return res;
 	}
 
-	public static boolean appendTextToFile(String fname, String text, boolean newLine) {
+	public static boolean appendTextToFile(String logFile, String text, boolean newLine) {
 
 		try {
-			PrintStream out = new PrintStream(new BufferedOutputStream(new FileOutputStream(fname, true)));
+			PrintStream out = new PrintStream(new BufferedOutputStream(new FileOutputStream(logFile, true)));
 			if (newLine) {
 				out.println(text);
 			} else {
 				out.print(text);
 			}
 			out.close();
-		} catch (Exception e) {
-			// TODO: log
+		} catch (Exception ex) {
+			logger.warn("Failed logging to file: " + logFile, ex);
 			return false;
 		}
 		return true;
+	}
+
+	private static Semaphore logToDiskLock = new Semaphore(1, true);
+	/** folder where log files are put */
+	private static final String LOG_FOLDER = "./log";
+	/**
+	 * Timestamp is automatically added in front of the line.
+	 * @param fname file name without path ("./logs" path is automatically added).
+	 */
+	private static boolean logToFile(String fname, String text, boolean newLine) {
+
+		try {
+			logToDiskLock.acquire();
+			return Misc.appendTextToFile(LOG_FOLDER + "/" + fname, Misc.getUnixTimestamp() + " " + text, newLine);
+		} catch (InterruptedException e) {
+			return false;
+		} finally {
+			logToDiskLock.release();
+		}
+	}
+
+	public static boolean logToFile(String fname, String text) {
+		return logToFile(fname, text, true);
 	}
 
 	/** Creates a string consisting of the specified amount of spaces */
@@ -137,35 +165,10 @@ public class Misc {
 	}
 
 	/**
-	 * Returns <code>false</code> if char is not an allowed character
-	 * in the name of a channel, username, ...
-	 */
-	@Deprecated
-	private static boolean isValidChar(char c) {
-
-		return (
-				((c >= '0') && (c <= '9'))  ||
-				((c >= 'A') && (c <= 'Z'))  ||
-				((c >= 'a') && (c <= 'z')) ||
-				(c == '_') ||
-				(c == '[') ||
-				(c == ']')
-				);
-	}
-
-	/**
 	 * Returns <code>false</code> if name (of a channel, username, ...)
 	 * is invalid
 	 */
 	public static boolean isValidName(String name) {
-
 		return (name.length() > 0) && name.matches("^[0-9a-zA-Z_\\[\\]]*$");
-		/*for (int i = 0; i < name.length(); i++) {
-			if (!isValidChar(name.charAt(i))) {
-				return false;
-			}
-		}
-
-		return true;*/
 	}
 }

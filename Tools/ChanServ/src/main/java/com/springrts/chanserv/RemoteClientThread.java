@@ -60,16 +60,16 @@ public class RemoteClientThread extends Thread {
 		try {
 			socket.setSoTimeout(TIMEOUT);
 			socket.setTcpNoDelay(true);
-		} catch (SocketException e) {
-			Log.error("Serious error in RemoteClient constructor (SocketException): " + e.getMessage());
+		} catch (SocketException ex) {
+			logger.error("Serious error in RemoteClient constructor (SocketException)", ex);
 		}
 		IP = socket.getInetAddress().getHostAddress();
 
 		try {
 			out = new PrintWriter(socket.getOutputStream(), true);
 			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-		} catch (IOException e) {
-			Log.error("Serious error: cannot associate input/output with client socket! Program will now exit ...");
+		} catch (IOException ex) {
+			logger.error("Serious error: cannot associate input/output with client socket! Program will now exit ...", ex);
 			System.exit(1);
 		}
 	}

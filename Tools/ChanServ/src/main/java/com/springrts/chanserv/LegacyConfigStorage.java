@@ -61,15 +61,15 @@ public class LegacyConfigStorage implements ConfigStorage {
 			//node = (Node)xpath.evaluate("config/account/username", config, XPathConstants.NODE);
 			//node.setTextContent("this is a test!");
 
-			// read database info:
-			config.DB_URL = (String)xpath.evaluate("config/database/url/text()", xmlConfig, XPathConstants.STRING);
-			config.DB_username = (String)xpath.evaluate("config/database/username/text()", xmlConfig, XPathConstants.STRING);
-			config.DB_password = (String)xpath.evaluate("config/database/password/text()", xmlConfig, XPathConstants.STRING);
+			// DEPRECATED - read database info:
+			//config.DB_URL = (String)xpath.evaluate("config/database/url/text()", xmlConfig, XPathConstants.STRING);
+			//config.DB_username = (String)xpath.evaluate("config/database/username/text()", xmlConfig, XPathConstants.STRING);
+			//config.DB_password = (String)xpath.evaluate("config/database/password/text()", xmlConfig, XPathConstants.STRING);
 
 			// load remote access accounts:
 			node = (Node)xpath.evaluate("config/remoteaccessaccounts", xmlConfig, XPathConstants.NODE);
 			if (node == null) {
-				Log.error("Bad XML document. Path config/remoteaccessaccounts does not exist. Exiting ...");
+				logger.error("Bad XML document. Path config/remoteaccessaccounts does not exist. Exiting ...");
 				chanServ.closeAndExit(1);
 			}
 			node = node.getFirstChild();
@@ -84,7 +84,7 @@ public class LegacyConfigStorage implements ConfigStorage {
 			Channel chan;
 			node = (Node)xpath.evaluate("config/channels/static", xmlConfig, XPathConstants.NODE);
 			if (node == null) {
-					Log.error("Bad XML document. Path config/channels/static does not exist. Exiting ...");
+				logger.error("Bad XML document. Path config/channels/static does not exist. Exiting ...");
 				chanServ.closeAndExit(1);
 			}
 			node = node.getFirstChild();
@@ -95,7 +95,7 @@ public class LegacyConfigStorage implements ConfigStorage {
 					String spamSettingsString = ((Element) node).getAttribute("antispamsettings");
 					SpamSettings spamSettings = null;
 					try {
-						spamSettings = SpamSettings.stringToSpamSettings(spamSettingsString);
+						spamSettings = SpamSettings.fromProtocolString(spamSettingsString);
 					} catch (Exception ex) {
 						logger.warn("Fixing invalid spam settings for #" + chan.getName() + " ...", ex);
 						spamSettings = SpamSettings.DEFAULT_SETTINGS;
@@ -111,7 +111,7 @@ public class LegacyConfigStorage implements ConfigStorage {
 			// load registered channel list:
 			node = (Node)xpath.evaluate("config/channels/registered", xmlConfig, XPathConstants.NODE);
 			if (node == null) {
-				Log.error("Bad XML document. Path config/channels/registered does not exist. Exiting ...");
+				logger.error("Bad XML document. Path config/channels/registered does not exist. Exiting ...");
 				chanServ.closeAndExit(1);
 			}
 			node = node.getFirstChild();
@@ -127,7 +127,7 @@ public class LegacyConfigStorage implements ConfigStorage {
 					String spamSettingsString = ((Element) node).getAttribute("antispamsettings");
 					SpamSettings spamSettings = null;
 					try {
-						spamSettings = SpamSettings.stringToSpamSettings(spamSettingsString);
+						spamSettings = SpamSettings.fromProtocolString(spamSettingsString);
 					} catch (Exception ex) {
 						logger.warn("Fixing invalid spam settings for #" + chan.getName() + " ...", ex);
 						spamSettings = SpamSettings.DEFAULT_SETTINGS;
@@ -151,37 +151,25 @@ public class LegacyConfigStorage implements ConfigStorage {
 			}
 
 
-			Log.log("Config file read.");
-		} catch (SAXException sxe) {
+			logger.info("Config file read.");
+		} catch (SAXException sxex) {
 			// Error generated during parsing
-			Log.error("Error during parsing xml document: " + fileName);
+			logger.error("Error during parsing xml document: " + fileName, sxex);
 			chanServ.closeAndExit(1);
-			/*
-			Exception  x = sxe;
-			if (sxe.getException() != null)
-				x = sxe.getException();
-			x.printStackTrace();
-			*/
-		} catch (ParserConfigurationException pce) {
-			// Parser with specified options can't be built
-			Log.error("Unable to build specified xml parser");
+		} catch (ParserConfigurationException pcex) {
+			// Parser with specified options ca not be built
+			logger.error("Unable to build specified xml parser", pcex);
 			chanServ.closeAndExit(1);
-			//pce.printStackTrace();
-
-		} catch (IOException ioe) {
+		} catch (IOException ioex) {
 			// I/O error
-			Log.error("I/O error while accessing " + fileName);
+			logger.error("I/O error while accessing " + fileName, ioex);
 			chanServ.closeAndExit(1);
-			//ioe.printStackTrace();
-		} catch (XPathExpressionException e) {
-			Log.error("Error: XPath expression exception - XML document is malformed.");
-			e.printStackTrace();
+		} catch (XPathExpressionException ex) {
+			logger.error("Error: XPath expression exception - XML document is malformed.", ex);
 			chanServ.closeAndExit(1);
-		} catch (Exception e) {
-			Log.error("Unknown exception while reading config file: " + fileName);
-			e.printStackTrace();
+		} catch (Exception ex) {
+			logger.error("Unknown exception while reading config file: " + fileName, ex);
 			chanServ.closeAndExit(1);
-			//e.printStackTrace();
 		}
 
 	}
@@ -206,7 +194,7 @@ public class LegacyConfigStorage implements ConfigStorage {
 
 				root = (Node)xpath.evaluate("config/channels/static", xmlConfig, XPathConstants.NODE);
 				if (root == null) {
-					Log.error("Bad XML document. Path config/channels/static does not exist. Exiting ...");
+					logger.error("Bad XML document. Path config/channels/static does not exist. Exiting ...");
 					chanServ.closeAndExit(1);
 				}
 
@@ -231,7 +219,7 @@ public class LegacyConfigStorage implements ConfigStorage {
 					elem = xmlConfig.createElement("channel");
 					elem.setAttribute("name", chan.getName());
 					elem.setAttribute("antispam", chan.isAntiSpam() ? "yes" : "no");
-					elem.setAttribute("antispamsettings", SpamSettings.spamSettingsToString(chan.getAntiSpamSettings()));
+					elem.setAttribute("antispamsettings", chan.getAntiSpamSettings().toProtocolString());
 					//elem.setTextContent(chan.name);
 					root.appendChild(elem);
 				}
@@ -241,7 +229,7 @@ public class LegacyConfigStorage implements ConfigStorage {
 
 				root = (Node)xpath.evaluate("config/channels/registered", xmlConfig, XPathConstants.NODE);
 				if (root == null) {
-					Log.error("Bad XML document. Path config/channels/registered does not exist. Exiting ...");
+					logger.error("Bad XML document. Path config/channels/registered does not exist. Exiting ...");
 					chanServ.closeAndExit(1);
 				}
 
@@ -267,7 +255,7 @@ public class LegacyConfigStorage implements ConfigStorage {
 					elem.setAttribute("key", chan.getKey());
 					elem.setAttribute("founder", chan.getFounder());
 					elem.setAttribute("antispam", chan.isAntiSpam() ? "yes" : "no");
-					elem.setAttribute("antispamsettings", SpamSettings.spamSettingsToString(chan.getAntiSpamSettings()));
+					elem.setAttribute("antispamsettings", chan.getAntiSpamSettings().toProtocolString());
 
 					// write operator list:
 					if (chan.getOperatorList().size() > 0) {
@@ -287,8 +275,8 @@ public class LegacyConfigStorage implements ConfigStorage {
 				}
 				root.appendChild(xmlConfig.createTextNode(Misc.EOL + Misc.enumSpaces(4)));
 
-			} catch (XPathExpressionException e) {
-				e.printStackTrace();
+			} catch (XPathExpressionException ex) {
+				logger.error("Failed parsing legacy config file", ex);
 				chanServ.closeAndExit(1);
 			}
 
@@ -303,8 +291,8 @@ public class LegacyConfigStorage implements ConfigStorage {
 			transformer.transform(source, result);
 
 			logger.debug("Config file saved to {}", fileName);
-		} catch (Exception e) {
-			Log.error("Unable to save config file to " + fileName + "! Ignoring ...");
+		} catch (Exception ex) {
+			logger.error("Unable to save config file to " + fileName + "! Ignoring ...", ex);
 		}
 	}
 }

@@ -59,29 +59,44 @@ public class SpamSettings {
 
 	@Override
 	public String toString() {
-		return getPenaltyLimit() + " " + getLongMsgLength() + " " + getNormalMsgPenalty() + " " + getLongMsgPenalty() + " " + getDoubleMsgPenalty();
+		return toProtocolString();
 	}
 
-	// this method is redundant. Use settings.toString() instead!
-	public static String spamSettingsToString(SpamSettings settings) {
-		return settings.toString();
+	/**
+	 * @see fromProtocolString()
+	 */
+	public String toProtocolString() {
+
+		StringBuilder res = new StringBuilder();
+
+		res.append(getPenaltyLimit());
+		res.append(" ").append(getLongMsgLength());
+		res.append(" ").append(getNormalMsgPenalty());
+		res.append(" ").append(getLongMsgPenalty());
+		res.append(" ").append(getDoubleMsgPenalty());
+
+		return res.toString();
 	}
 
-	// returns null if settings string is malformed
-	public static SpamSettings stringToSpamSettings(String settings) {
+	/**
+	 * Returns null if settings string is malformed.
+	 * @see toProtocolString()
+	 */
+	public static SpamSettings fromProtocolString(String settings) {
 
-		SpamSettings ss = new SpamSettings();
+		SpamSettings ss = null;
 
 		String[] parsed = settings.split(" ");
 		if (parsed.length != 5) {
 			throw new IllegalArgumentException("Malformed spam settings; Needs exactly 5 arguments.");
 		}
 		try {
-			ss.penaltyLimit = Integer.parseInt(parsed[0]);
-			ss.longMsgLength = Integer.parseInt(parsed[1]);
-			ss.normalMsgPenalty = Double.parseDouble(parsed[2]);
-			ss.longMsgPenalty = Double.parseDouble(parsed[3]);
-			ss.doubleMsgPenalty = Double.parseDouble(parsed[4]);
+			int penaltyLimit = Integer.parseInt(parsed[0]);
+			int longMsgLength = Integer.parseInt(parsed[1]);
+			double normalMsgPenalty = Double.parseDouble(parsed[2]);
+			double longMsgPenalty = Double.parseDouble(parsed[3]);
+			double doubleMsgPenalty = Double.parseDouble(parsed[4]);
+			ss = new SpamSettings(penaltyLimit, longMsgLength, normalMsgPenalty, longMsgPenalty, doubleMsgPenalty);
 		} catch (NumberFormatException ex) {
 			throw new IllegalArgumentException("Malformed spam settings; Has to consist of 2*int, 3*double.", ex);
 		}
