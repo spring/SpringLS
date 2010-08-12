@@ -52,6 +52,11 @@ public class Channel implements Serializable {
 
 	private final Context context;
 
+	/** Required fro JAXB serialization/marshaling */
+	private Channel() {
+		this(null, null);
+	}
+
 	public Channel(Context context, String name) {
 		
 		this.context = context;

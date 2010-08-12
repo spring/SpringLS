@@ -6,11 +6,14 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
- *
+ * Everything in here, and only this, is being persisted.
+ * For example to a config file.
  * @author hoijui
  */
+@XmlRootElement
 public class Configuration implements Serializable {
 
 	public String serverAddress = "";
