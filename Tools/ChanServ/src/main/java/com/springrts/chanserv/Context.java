@@ -12,6 +12,7 @@ public class Context {
 	private Configuration configuration;
 	private ConfigStorage configStorage;
 	private AntiSpamSystem antiSpamSystem;
+	private RemoteAccessServer remoteAccessServer;
 
 	public ChanServ getChanServ() {
 		return chanServ;
@@ -43,5 +44,13 @@ public class Context {
 
 	public void setAntiSpamSystem(AntiSpamSystem antiSpamSystem) {
 		this.antiSpamSystem = antiSpamSystem;
+	}
+
+	public RemoteAccessServer getRemoteAccessServer() {
+		return remoteAccessServer;
+	}
+
+	public void setRemoteAccessServer(RemoteAccessServer remoteAccessServer) {
+		this.remoteAccessServer = remoteAccessServer;
 	}
 }

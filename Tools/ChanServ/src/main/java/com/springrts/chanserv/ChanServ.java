@@ -6,7 +6,6 @@ package com.springrts.chanserv;
 
 
 import com.springrts.chanserv.antispam.SpamSettings;
-import com.springrts.chanserv.antispam.AntiSpamSystem;
 import com.springrts.chanserv.antispam.DefaultAntiSpamSystem;
 
 import java.io.BufferedReader;
@@ -16,11 +15,11 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.Vector;
 import java.util.concurrent.Semaphore;
 import java.util.regex.PatternSyntaxException;
 
@@ -56,40 +55,41 @@ public class ChanServ {
 
 	/** are we connected to the lobby server? */
 	private boolean connected = false;
-	static Socket socket = null;
-	static PrintWriter sockout = null;
-	static BufferedReader sockin = null;
-	static Timer keepAliveTimer;
-	static Timer logCleanerTimer;
-	static boolean timersStarted = false;
+	private Socket socket = null;
+	private PrintWriter sockout = null;
+	private BufferedReader sockin = null;
+	private Timer keepAliveTimer;
+	private Timer logCleanerTimer;
+	private boolean timersStarted = false;
 
 	/**
 	 * We use it when there is a danger of config object being used
 	 * by main and TaskTimer threads simultaneously
 	 */
-	Semaphore configLock = new Semaphore(1, true);
-
-	RemoteAccessServer remoteAccessServer;
+	private Semaphore configLock = new Semaphore(1, true);
 
 	/** Needs to be thread-save */
-	List<Client> clients = new Vector<Client>();
-	List<Channel> channels = new Vector<Channel>();
+	final List<Client> clients;
+//	final List<Channel> channels;
 
 	/** list of mute entries for a specified channel (see lastMuteListChannel) */
-	private List<String> lastMuteList = new Vector<String>();
+	private final List<String> lastMuteList;
 	/**
 	 * name of channel for which we are currently receiving
 	 * (or we already did receive) mute list from the server
 	 */
 	private String lastMuteListChannel;
 	/** list of current requests for mute lists. */
-	private List<MuteListRequest> forwardMuteList = new Vector<MuteListRequest>();
-
-	DBInterface database;
+	private final List<MuteListRequest> forwardMuteList;
 
 	private Context context;
 
 	ChanServ() {
+
+		clients = Collections.synchronizedList(new LinkedList<Client>());
+//		channels = Collections.synchronizedList(new LinkedList<Channel>());
+		lastMuteList = Collections.synchronizedList(new LinkedList<String>());
+		forwardMuteList = Collections.synchronizedList(new LinkedList<MuteListRequest>());
 
 		context = new Context();
 		context.setChanServ(this);
@@ -157,7 +157,8 @@ public class ChanServ {
 	}
 
 	public void messageLoop() {
-		String line;
+
+		String line = null;
 		while (true) {
 			try {
 				line = sockin.readLine();
@@ -203,8 +204,8 @@ public class ChanServ {
 			String newNick = message.substring(message.indexOf('<', message.indexOf('>'))+1, message.indexOf('>', message.indexOf('>')+1));
 
 			// lets rename all founder/operator entries for this user:
-			for (int i = 0; i < channels.size(); i++) {
-				Channel chan = channels.get(i);
+			for (int i = 0; i < context.getConfiguration().channels.size(); i++) {
+				Channel chan = context.getConfiguration().channels.get(i);
 				if (chan.getFounder().equals(oldNick)) {
 					chan.renameFounder(newNick);
 					Log.log("Founder <" + oldNick + "> of #" + chan.getName() + " renamed to <" + newNick + ">");
@@ -235,7 +236,7 @@ public class ChanServ {
 				// remove ID field from the rest of command:
 				cleanCommand = cleanCommand.replaceFirst("#\\d+\\s", "");
 				// forward the command to the waiting thread:
-				return remoteAccessServer.forwardCommand(threadId, cleanCommand);
+				return context.getRemoteAccessServer().forwardCommand(threadId, cleanCommand);
 			} catch (NumberFormatException ex) {
 				logger.trace("Malformed command: " + command, ex);
 				return false;
@@ -253,7 +254,7 @@ public class ChanServ {
 		} else if (commands[0].equals("ACCEPTED")) {
 			Log.log("Login accepted.");
 			// join registered and static channels:
-			for (Channel channel : channels) {
+			for (Channel channel : context.getConfiguration().channels) {
 				sendLine("JOIN " + channel.getName());
 			}
 		} else if (commands[0].equals("DENIED")) {
@@ -334,7 +335,7 @@ public class ChanServ {
 			}
 			Log.toFile(chan.getLogFileName(), out);
 		} else if (commands[0].equals("JOINFAILED")) {
-			channels.add(new Channel(context, commands[1]));
+			context.getConfiguration().channels.add(new Channel(context, commands[1]));
 			Log.log("Failed to join #" + commands[1] + ". Reason: " + Misc.makeSentence(commands, 2));
 		} else if (commands[0].equals("CHANNELTOPIC")) {
 			Channel chan = getChannel(commands[1]);
@@ -444,11 +445,11 @@ public class ChanServ {
 	 */
 	public void processUserCommand(String command, Client client, Channel channel) {
 
-		command = command.trim();
-		if (command.equals("")) {
+		String commandTrimmed = command.trim();
+		if (commandTrimmed.isEmpty()) {
 			return;
 		}
-		String[] splitParams = command.split("[\\s]+");
+		String[] splitParams = commandTrimmed.split("[\\s]+");
 		List<String> params = new LinkedList<String>();
 		params.addAll(java.util.Arrays.asList(splitParams));
 		// convert the base command
@@ -532,7 +533,7 @@ public class ChanServ {
 				return ;
 			}
 
-			for (Channel chan : channels) {
+			for (Channel chan : context.getConfiguration().channels) {
 				if (chan.getName().equals(chanName)) {
 					if (chan.isStatic()) {
 						sendMessage(client, channel, "Error: channel #" + chanName + " is a static channel (cannot register it)!");
@@ -545,7 +546,7 @@ public class ChanServ {
 
 			// ok register the channel now:
 			Channel chan = new Channel(context, chanName);
-			channels.add(chan);
+			context.getConfiguration().channels.add(chan);
 			chan.setFounder(params.get(1));
 			chan.setStatic(false);
 			chan.setAntiSpam(false);
@@ -615,7 +616,7 @@ public class ChanServ {
 			}
 
 			// ok unregister the channel now:
-			channels.remove(chan);
+			context.getConfiguration().channels.remove(chan);
 			sendLine("CHANNELMESSAGE " + chan.getName() + " " + "This channel has just been unregistered from <" + context.getConfiguration().username + "> by <" + client.getName() + ">");
 			sendMessage(client, channel, "Channel #" + chanName + " successfully unregistered!");
 			sendLine("LEAVE " + chan.getName());
@@ -637,7 +638,7 @@ public class ChanServ {
 
 			String chanName = params.get(0).substring(1);
 
-			for (Channel chan : channels) {
+			for (Channel chan : context.getConfiguration().channels) {
 				if (chan.getName().equals(chanName)) {
 					if (chan.isStatic()) {
 						sendMessage(client, channel, "Error: channel #" + chanName + " is already static!");
@@ -650,7 +651,7 @@ public class ChanServ {
 
 			// ok add the channel to static list:
 			Channel chan = new Channel(context, chanName);
-			channels.add(chan);
+			context.getConfiguration().channels.add(chan);
 			chan.setStatic(true);
 			chan.setAntiSpam(false);
 			chan.setAntiSpamSettings(SpamSettings.spamSettingsToString(SpamSettings.DEFAULT_SETTINGS));
@@ -680,7 +681,7 @@ public class ChanServ {
 			}
 
 			// ok remove the channel from static channel list now:
-			channels.remove(chan);
+			context.getConfiguration().channels.remove(chan);
 			sendMessage(client, channel, "Channel #" + chanName + " successfully removed from static channel list!");
 			sendLine("LEAVE " + chan.getName());
 		} else if (commandName.equals("OP")) {
@@ -1171,7 +1172,7 @@ public class ChanServ {
 				reason = Misc.makeSentence(params, 0);
 			}
 
-			for (Channel chan : channels) {
+			for (Channel chan : context.getConfiguration().channels) {
 				// skip static channels
 				if (!chan.isStatic()) {
 					sendLine("SAYEX " + chan.getName() + " is quitting. Reason: " + reason);
@@ -1230,7 +1231,7 @@ public class ChanServ {
 	/** Returns <code>null</code> if the channel is not found */
 	public Channel getChannel(String name) {
 
-		for (Channel channel : channels) {
+		for (Channel channel : context.getConfiguration().channels) {
 			if (channel.getName().equals(name)) {
 				return channel;
 			}
@@ -1267,9 +1268,11 @@ public class ChanServ {
 				15*1000);  //subsequent rate
 
 		logCleanerTimer = new Timer();
-		logCleanerTimer.schedule(new LogCleaner(context),
-				5000,		//initial delay
-				20*1000);  //subsequent rate
+		LogCleaner logCleaner = new LogCleaner(context);
+		logCleaner.init();
+		logCleanerTimer.schedule(logCleaner,
+				5000,     // initial delay
+				20*1000); // subsequent rate
 
 		timersStarted = true;
 	}
@@ -1314,17 +1317,9 @@ public class ChanServ {
 
 		// run remote access server:
 		Log.log("Trying to run remote access server on port " + config.remoteAccessPort + " ...");
-		remoteAccessServer = new RemoteAccessServer(context, config.remoteAccessPort);
+		RemoteAccessServer remoteAccessServer = new RemoteAccessServer(context, config.remoteAccessPort);
+		context.setRemoteAccessServer(remoteAccessServer);
 		remoteAccessServer.start();
-
-		// establish connection with database:
-		database = new DBInterface();
-		if (!database.loadJDBCDriver()) {
-			closeAndExit(1);
-		}
-		if (!database.connectToDatabase(config.DB_URL, config.DB_username, config.DB_password)) {
-			closeAndExit(1);
-		}
 
 		if (!tryToConnect()) {
 			closeAndExit(1);

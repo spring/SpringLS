@@ -2,7 +2,6 @@
 package com.springrts.chanserv;
 
 
-import com.springrts.chanserv.antispam.AntiSpamSystem;
 import com.springrts.chanserv.antispam.SpamSettings;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -76,7 +75,7 @@ public class LegacyConfigStorage implements ConfigStorage {
 			node = node.getFirstChild();
 			while (node != null) {
 				if (node.getNodeType() == Node.ELEMENT_NODE) {
-					chanServ.remoteAccessServer.getRemoteAccounts().add(((Element)node).getAttribute("key"));
+					context.getRemoteAccessServer().getRemoteAccounts().add(((Element)node).getAttribute("key"));
 				}
 				node = node.getNextSibling();
 			}
@@ -98,7 +97,7 @@ public class LegacyConfigStorage implements ConfigStorage {
 						Log.log("Fixing invalid spam settings for #" + chan.getName() + " ...");
 						chan.setAntiSpamSettings(SpamSettings.spamSettingsToString(SpamSettings.DEFAULT_SETTINGS));
 					}
-					chanServ.channels.add(chan);
+					config.channels.add(chan);
 					// apply anti-spam settings:
 					context.getAntiSpamSystem().setSpamSettingsForChannel(chan.getName(), chan.getAntiSpamSettings());
 				}
@@ -126,7 +125,7 @@ public class LegacyConfigStorage implements ConfigStorage {
 						Log.log("Fixing invalid spam settings for #" + chan.getName() + " ...");
 						chan.setAntiSpamSettings(SpamSettings.spamSettingsToString(SpamSettings.DEFAULT_SETTINGS));
 					}
-					chanServ.channels.add(chan);
+					config.channels.add(chan);
 					// load this channel's operator list:
 					node2 = node.getFirstChild();
 					while (node2 != null) {
@@ -183,6 +182,7 @@ public class LegacyConfigStorage implements ConfigStorage {
 	public void saveConfig(String fileName) {
 
 		ChanServ chanServ = context.getChanServ();
+		Configuration config = context.getConfiguration();
 
 		try {
 			XPath xpath = XPathFactory.newInstance().newXPath();
@@ -214,8 +214,8 @@ public class LegacyConfigStorage implements ConfigStorage {
 				}
 
 				// add new static channels:
-				for (int i = 0; i < chanServ.channels.size(); i++) {
-					chan = chanServ.channels.get(i);
+				for (int i = 0; i < config.channels.size(); i++) {
+					chan = config.channels.get(i);
 					if (!chan.isStatic()) {
 						continue;
 					}
@@ -247,8 +247,8 @@ public class LegacyConfigStorage implements ConfigStorage {
 				}
 
 				// add new channels:
-				for (int i = 0; i < chanServ.channels.size(); i++) {
-					chan = chanServ.channels.get(i);
+				for (int i = 0; i < config.channels.size(); i++) {
+					chan = config.channels.get(i);
 					if (chan.isStatic()) {
 						continue;
 					}
