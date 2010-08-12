@@ -50,13 +50,8 @@ public class LogCleaner extends TimerTask {
 		
 		// establish connection with database:
 		database = new DBInterface();
-		if (!database.loadJDBCDriver()) {
-			context.getChanServ().closeAndExit(1);
-		}
 		Configuration config = context.getConfiguration();
-		if (!database.connectToDatabase(config.DB_URL, config.DB_username, config.DB_password)) {
-			context.getChanServ().closeAndExit(1);
-		}
+		database.init(config.DB_URL, config.DB_username, config.DB_password);
 	}
 
 	public void run() {
@@ -115,96 +110,98 @@ public class LogCleaner extends TimerTask {
 		}
 
 		// now comes the part when we transfer all logs from temp folder to the database:
-		File[] files = tempFolder.listFiles();
+		if (database.isConnected()) {
+			File[] files = tempFolder.listFiles();
 
-		for(int i = 0; i < files.length; i++) {
-			File file = files[i];
-			String name = file.getName().substring(0, file.getName().length() - 4); // remove ".log" from the end of the file name
+			for(int i = 0; i < files.length; i++) {
+				File file = files[i];
+				String name = file.getName().substring(0, file.getName().length() - 4); // remove ".log" from the end of the file name
 
-			try {
-				if (!database.doesTableExist(name)) {
-					boolean result = database.execUpdate("CREATE TABLE `" + name + "` (" + Misc.EOL +
-																 "id INT NOT NULL AUTO_INCREMENT, " + Misc.EOL +
-																 "stamp BIGINT NOT NULL, " + Misc.EOL +
-																 "line TEXT NOT NULL, " + Misc.EOL +
-																 "primary key(id)) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
-					if (!result) {
-						Log.error("Unable to create table '" + name + "' in the database!");
-						return ;
-					}
-				}
-
-				List<Long> stamps = new ArrayList<Long>();
-				List<String> lines = new ArrayList<String>();
-
-				StringBuilder update = new StringBuilder();
-
-				BufferedReader in = new BufferedReader(new FileReader(file));
-				String line;
-
-				int lineCount = 0;
-				while ((line = in.readLine()) != null) {
-					if (line.trim().equals("")) {
-						// ignore empty lines
-						continue;
+				try {
+					if (!database.doesTableExist(name)) {
+						boolean result = database.execUpdate("CREATE TABLE `" + name + "` (" + Misc.EOL +
+																	 "id INT NOT NULL AUTO_INCREMENT, " + Misc.EOL +
+																	 "stamp BIGINT NOT NULL, " + Misc.EOL +
+																	 "line TEXT NOT NULL, " + Misc.EOL +
+																	 "primary key(id)) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
+						if (!result) {
+							Log.error("Unable to create table '" + name + "' in the database!");
+							return ;
+						}
 					}
 
-					long stamp;
-					try {
-						stamp = Long.parseLong(line.substring(0, line.indexOf(' ')));
-					} catch (NumberFormatException e) {
-						Log.error("Line from log file " + file.getName() + " does not contain time stamp. Line is: \"" + line + "\"");
-						return ;
+					List<Long> stamps = new ArrayList<Long>();
+					List<String> lines = new ArrayList<String>();
+
+					StringBuilder update = new StringBuilder();
+
+					BufferedReader in = new BufferedReader(new FileReader(file));
+					String line;
+
+					int lineCount = 0;
+					while ((line = in.readLine()) != null) {
+						if (line.trim().equals("")) {
+							// ignore empty lines
+							continue;
+						}
+
+						long stamp;
+						try {
+							stamp = Long.parseLong(line.substring(0, line.indexOf(' ')));
+						} catch (NumberFormatException e) {
+							Log.error("Line from log file " + file.getName() + " does not contain time stamp. Line is: \"" + line + "\"");
+							return ;
+						}
+
+						if (lineCount == 0) {
+							update.append("INSERT INTO `").append(name).append("` (stamp, line) values (?, ?)");
+						} else {
+							update.append( ","+ Misc.EOL + "(?, ?)" );
+						}
+
+						stamps.add(stamp);
+						lines.add(line.substring(line.indexOf(' ')+1, line.length()));
+
+						lineCount++;
 					}
+					in.close();
+
+					update.append( ";" );
 
 					if (lineCount == 0) {
-						update.append("INSERT INTO `").append(name).append("` (stamp, line) values (?, ?)");
-					} else {
-						update.append( ","+ Misc.EOL + "(?, ?)" );
+						Log.error("Log file is empty: " + file.getName());
+						// delete the file if possible:
+						if (file.delete()) {
+							Log.log("Empty log file was successfully deleted.");
+						} else {
+							Log.error("Unable to delete empty log file: " + file.getName());
+						}
+						return ;
 					}
 
-					stamps.add(stamp);
-					lines.add(line.substring(line.indexOf(' ')+1, line.length()));
-
-					lineCount++;
-				}
-				in.close();
-
-				update.append( ";" );
-
-				if (lineCount == 0) {
-					Log.error("Log file is empty: " + file.getName());
-					// delete the file if possible:
-					if (file.delete()) {
-						Log.log("Empty log file was successfully deleted.");
-					} else {
-						Log.error("Unable to delete empty log file: " + file.getName());
+					// insert into database:
+					PreparedStatement pstmt = database.getConnection().prepareStatement(update.toString());
+					for (int j = 0; j < stamps.size(); j++) {
+						pstmt.setLong(j*2+1, stamps.get(j));
+						pstmt.setString(j*2+2, lines.get(j));
 					}
+					pstmt.executeUpdate();
+					pstmt.close();
+
+					// finally, delete the file:
+					if (!file.delete()) {
+						Log.error("Unable to delete log file, which was just transfered to the database: " + file.getName());
+						return ;
+					}
+				} catch (IOException e) {
+					Log.error("Unable to read contents of file " + file.toString());
+					e.printStackTrace();
+					return ;
+				} catch (SQLException e) {
+					Log.error("Unable to access database. Error description: " + e.toString());
+					e.printStackTrace();
 					return ;
 				}
-
-				// insert into database:
-				PreparedStatement pstmt = database.getConnection().prepareStatement(update.toString());
-				for (int j = 0; j < stamps.size(); j++) {
-					pstmt.setLong(j*2+1, stamps.get(j));
-					pstmt.setString(j*2+2, lines.get(j));
-				}
-				pstmt.executeUpdate();
-				pstmt.close();
-
-				// finally, delete the file:
-				if (!file.delete()) {
-					Log.error("Unable to delete log file, which was just transfered to the database: " + file.getName());
-					return ;
-				}
-			} catch (IOException e) {
-				Log.error("Unable to read contents of file " + file.toString());
-				e.printStackTrace();
-				return ;
-			} catch (SQLException e) {
-				Log.error("Unable to access database. Error description: " + e.toString());
-				e.printStackTrace();
-				return ;
 			}
 		}
 	}

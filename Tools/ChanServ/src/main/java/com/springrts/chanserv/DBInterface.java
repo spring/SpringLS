@@ -16,35 +16,62 @@ public class DBInterface {
 	private Statement stmt;
 
 	public DBInterface() {
-		// TODO
+
+		conn = null;
+		stmt = null;
+	}
+
+	public boolean isConnected() {
+		return (conn != null);
 	}
 
 	public Connection getConnection() {
 		return conn;
 	}
 
-	public boolean loadJDBCDriver() {
+	public boolean init(String url, String username, String password) {
+
+		if (!loadJDBCDriver()) {
+			return false;
+		}
+		if (!connectToDatabase(url, username, password)) {
+			return false;
+		}
+
+		return true;
+	}
+
+	private boolean loadJDBCDriver() {
 
 		try {
 			// The newInstance() call is a work around for some
 			// broken Java implementations
-
 			Class.forName("com.mysql.jdbc.Driver").newInstance();
 			Log.log("JDBC driver loaded.");
 		} catch (Exception e) {
 			Log.error("JDBC driver not found!");
 			return false;
 		}
+
 		return true;
 	}
 
-	public boolean connectToDatabase(String url, String username, String password) {
+	private boolean connectToDatabase(String url, String username, String password) {
 
 		Log.log("Trying to connect to database ...");
 		try {
 			conn = DriverManager.getConnection(url, username, password);
 			stmt = conn.createStatement();
 		} catch (SQLException e) {
+			if (conn != null) {
+				try {
+					conn.close();
+				} catch (SQLException ex) {
+					Log.error("Failed to disconnect from DB.");
+				}
+			}
+			conn = null;
+			stmt = null;
 			printSQLException(e);
 			Log.error("Unable to connect to database!");
 			return false;
@@ -52,18 +79,6 @@ public class DBInterface {
 
 		Log.log("Connection to database established.");
 		return true;
-	}
-
-	/** returns null if error occurs */
-	public ResultSet execQuery(String query) {
-
-		try {
-			ResultSet rs = stmt.executeQuery(query);
-			return rs;
-		} catch (SQLException e) {
-			printSQLException(e);
-			return null;
-		}
 	}
 
 	/**
@@ -81,7 +96,7 @@ public class DBInterface {
 		}
 	}
 
-	public void printSQLException(SQLException e) {
+	private void printSQLException(SQLException e) {
 
 		Log.log("SQLException: " + e.getMessage());
 		Log.log("SQLState: " + e.getSQLState());
