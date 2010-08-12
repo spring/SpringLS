@@ -3,7 +3,6 @@ package com.springrts.chanserv;
 
 
 import com.springrts.chanserv.antispam.DefaultAntiSpamSystem;
-import com.springrts.chanserv.antispam.SpamSettings;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -49,7 +48,7 @@ public class JAXBConfigStorage implements ConfigStorage {
 			context.setConfiguration((Configuration) unmarshaller.unmarshal(in));
 
 			// post-process channels
-			for (Channel channel : context.getConfiguration().channels) {
+			for (Channel channel : context.getConfiguration().getChannels()) {
 				// apply anti-spam settings:
 				context.getAntiSpamSystem().setSpamSettingsForChannel(channel.getName(), channel.getAntiSpamSettings());
 			}
@@ -97,10 +96,10 @@ public class JAXBConfigStorage implements ConfigStorage {
 		// prepare environment
 		Context context = new Context();
 		Configuration configuration = new Configuration();
-		configuration.remoteAccessPort = 12345;
+		configuration.setRemoteAccessPort(12345);
 		context.setConfiguration(configuration);
 		ChanServ chanServ = new ChanServ();
-		context.setRemoteAccessServer(new RemoteAccessServer(context, context.getConfiguration().remoteAccessPort));
+		context.setRemoteAccessServer(new RemoteAccessServer(context, context.getConfiguration().getRemoteAccessPort()));
 		context.setChanServ(chanServ);
 		context.setAntiSpamSystem(new DefaultAntiSpamSystem(context));
 

@@ -52,11 +52,11 @@ public class LegacyConfigStorage implements ConfigStorage {
 			Node node, node2;
 
 			//node = (Node)xpath.evaluate("config/account/username", config, XPathConstants.NODE);
-			config.serverAddress = (String)xpath.evaluate("config/account/serveraddress/text()", xmlConfig, XPathConstants.STRING);
-			config.serverPort = Integer.parseInt((String)xpath.evaluate("config/account/serverport/text()", xmlConfig, XPathConstants.STRING));
-			config.remoteAccessPort = Integer.parseInt((String)xpath.evaluate("config/account/remoteaccessport/text()", xmlConfig, XPathConstants.STRING));
-			config.username = (String)xpath.evaluate("config/account/username/text()", xmlConfig, XPathConstants.STRING);
-			config.password = (String)xpath.evaluate("config/account/password/text()", xmlConfig, XPathConstants.STRING);
+			config.setServerAddress((String) xpath.evaluate("config/account/serveraddress/text()", xmlConfig, XPathConstants.STRING));
+			config.setServerPort(Integer.parseInt((String) xpath.evaluate("config/account/serverport/text()", xmlConfig, XPathConstants.STRING)));
+			config.setRemoteAccessPort(Integer.parseInt((String) xpath.evaluate("config/account/remoteaccessport/text()", xmlConfig, XPathConstants.STRING)));
+			config.setUsername((String) xpath.evaluate("config/account/username/text()", xmlConfig, XPathConstants.STRING));
+			config.setPassword((String) xpath.evaluate("config/account/password/text()", xmlConfig, XPathConstants.STRING));
 
 			//node = (Node)xpath.evaluate("config/account/username", config, XPathConstants.NODE);
 			//node.setTextContent("this is a test!");
@@ -101,7 +101,7 @@ public class LegacyConfigStorage implements ConfigStorage {
 						spamSettings = SpamSettings.DEFAULT_SETTINGS;
 					}
 					chan.setAntiSpamSettings(spamSettings);
-					config.channels.add(chan);
+					config.getChannels().add(chan);
 					// apply anti-spam settings:
 					context.getAntiSpamSystem().setSpamSettingsForChannel(chan.getName(), chan.getAntiSpamSettings());
 				}
@@ -133,7 +133,7 @@ public class LegacyConfigStorage implements ConfigStorage {
 						spamSettings = SpamSettings.DEFAULT_SETTINGS;
 					}
 					chan.setAntiSpamSettings(spamSettings);
-					config.channels.add(chan);
+					config.getChannels().add(chan);
 					// load this channel's operator list:
 					node2 = node.getFirstChild();
 					while (node2 != null) {
@@ -210,8 +210,8 @@ public class LegacyConfigStorage implements ConfigStorage {
 				}
 
 				// add new static channels:
-				for (int i = 0; i < config.channels.size(); i++) {
-					chan = config.channels.get(i);
+				for (int i = 0; i < config.getChannels().size(); i++) {
+					chan = config.getChannels().get(i);
 					if (!chan.isStatic()) {
 						continue;
 					}
@@ -243,8 +243,8 @@ public class LegacyConfigStorage implements ConfigStorage {
 				}
 
 				// add new channels:
-				for (int i = 0; i < config.channels.size(); i++) {
-					chan = config.channels.get(i);
+				for (int i = 0; i < config.getChannels().size(); i++) {
+					chan = config.getChannels().get(i);
 					if (chan.isStatic()) {
 						continue;
 					}

@@ -138,19 +138,19 @@ public class ChanServ {
 		Configuration config = context.getConfiguration();
 
 		try {
-			logger.info("Connecting to " + config.serverAddress + ":" + config.serverPort + " ...");
-			socket = new Socket(config.serverAddress, config.serverPort);
+			logger.info("Connecting to " + config.getServerAddress() + ":" + config.getServerPort() + " ...");
+			socket = new Socket(config.getServerAddress(), config.getServerPort());
 			sockout = new PrintWriter(socket.getOutputStream(), true);
 			sockin = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		} catch (UnknownHostException ex) {
-			logger.error("Unknown host error: " + config.serverAddress, ex);
+			logger.error("Unknown host error: " + config.getServerAddress(), ex);
 			return false;
 		} catch (IOException ex) {
-			logger.error("Could not get I/O for the connection to: " + config.serverAddress, ex);
+			logger.error("Could not get I/O for the connection to: " + config.getServerAddress(), ex);
 			return false;
 		}
 
-		logger.info("Now connected to " + config.serverAddress);
+		logger.info("Now connected to " + config.getServerAddress());
 		return true;
 	}
 
@@ -202,8 +202,8 @@ public class ChanServ {
 			String newNick = message.substring(message.indexOf('<', message.indexOf('>'))+1, message.indexOf('>', message.indexOf('>')+1));
 
 			// lets rename all founder/operator entries for this user:
-			for (int i = 0; i < context.getConfiguration().channels.size(); i++) {
-				Channel chan = context.getConfiguration().channels.get(i);
+			for (int i = 0; i < context.getConfiguration().getChannels().size(); i++) {
+				Channel chan = context.getConfiguration().getChannels().get(i);
 				if (chan.getFounder().equals(oldNick)) {
 					chan.renameFounder(newNick);
 					logger.info("Founder <" + oldNick + "> of #" + chan.getName() + " renamed to <" + newNick + ">");
@@ -248,11 +248,11 @@ public class ChanServ {
 		commands[0] = commands[0].toUpperCase();
 
 		if (commands[0].equals("TASSERVER")) {
-			sendLine("LOGIN " + context.getConfiguration().username + " " + context.getConfiguration().password + " 0 * ChanServ " + VERSION);
+			sendLine("LOGIN " + context.getConfiguration().getUsername() + " " + context.getConfiguration().getPassword() + " 0 * ChanServ " + VERSION);
 		} else if (commands[0].equals("ACCEPTED")) {
 			logger.info("Login accepted.");
 			// join registered and static channels:
-			for (Channel channel : context.getConfiguration().channels) {
+			for (Channel channel : context.getConfiguration().getChannels()) {
 				sendLine("JOIN " + channel.getName());
 			}
 		} else if (commands[0].equals("DENIED")) {
@@ -333,7 +333,7 @@ public class ChanServ {
 			}
 			Misc.logToFile(chan.getLogFileName(), out);
 		} else if (commands[0].equals("JOINFAILED")) {
-			context.getConfiguration().channels.add(new Channel(context, commands[1]));
+			context.getConfiguration().getChannels().add(new Channel(context, commands[1]));
 			logger.info("Failed to join #" + commands[1] + ". Reason: " + Misc.makeSentence(commands, 2));
 		} else if (commands[0].equals("CHANNELTOPIC")) {
 			Channel chan = getChannel(commands[1]);
@@ -531,7 +531,7 @@ public class ChanServ {
 				return ;
 			}
 
-			for (Channel chan : context.getConfiguration().channels) {
+			for (Channel chan : context.getConfiguration().getChannels()) {
 				if (chan.getName().equals(chanName)) {
 					if (chan.isStatic()) {
 						sendMessage(client, channel, "Error: channel #" + chanName + " is a static channel (cannot register it)!");
@@ -544,7 +544,7 @@ public class ChanServ {
 
 			// ok register the channel now:
 			Channel chan = new Channel(context, chanName);
-			context.getConfiguration().channels.add(chan);
+			context.getConfiguration().getChannels().add(chan);
 			chan.setFounder(params.get(1));
 			chan.setStatic(false);
 			chan.setAntiSpam(false);
@@ -614,8 +614,8 @@ public class ChanServ {
 			}
 
 			// ok unregister the channel now:
-			context.getConfiguration().channels.remove(chan);
-			sendLine("CHANNELMESSAGE " + chan.getName() + " " + "This channel has just been unregistered from <" + context.getConfiguration().username + "> by <" + client.getName() + ">");
+			context.getConfiguration().getChannels().remove(chan);
+			sendLine("CHANNELMESSAGE " + chan.getName() + " " + "This channel has just been unregistered from <" + context.getConfiguration().getUsername() + "> by <" + client.getName() + ">");
 			sendMessage(client, channel, "Channel #" + chanName + " successfully unregistered!");
 			sendLine("LEAVE " + chan.getName());
 		} else if (commandName.equals("ADDSTATIC")) {
@@ -636,7 +636,7 @@ public class ChanServ {
 
 			String chanName = params.get(0).substring(1);
 
-			for (Channel chan : context.getConfiguration().channels) {
+			for (Channel chan : context.getConfiguration().getChannels()) {
 				if (chan.getName().equals(chanName)) {
 					if (chan.isStatic()) {
 						sendMessage(client, channel, "Error: channel #" + chanName + " is already static!");
@@ -649,7 +649,7 @@ public class ChanServ {
 
 			// ok add the channel to static list:
 			Channel chan = new Channel(context, chanName);
-			context.getConfiguration().channels.add(chan);
+			context.getConfiguration().getChannels().add(chan);
 			chan.setStatic(true);
 			chan.setAntiSpam(false);
 			chan.setAntiSpamSettings(SpamSettings.DEFAULT_SETTINGS);
@@ -679,7 +679,7 @@ public class ChanServ {
 			}
 
 			// ok remove the channel from static channel list now:
-			context.getConfiguration().channels.remove(chan);
+			context.getConfiguration().getChannels().remove(chan);
 			sendMessage(client, channel, "Channel #" + chanName + " successfully removed from static channel list!");
 			sendLine("LEAVE " + chan.getName());
 		} else if (commandName.equals("OP")) {
@@ -1034,7 +1034,7 @@ public class ChanServ {
 				return ;
 			}
 
-			if (target.equals(context.getConfiguration().username)) {
+			if (target.equals(context.getConfiguration().getUsername())) {
 				// not funny!
 				sendMessage(client, channel, "You are not allowed to issue this command!");
 				return ;
@@ -1081,7 +1081,7 @@ public class ChanServ {
 				return ;
 			}
 
-			if (target.equals(context.getConfiguration().username)) {
+			if (target.equals(context.getConfiguration().getUsername())) {
 				// not funny!
 				sendMessage(client, channel, "You are not allowed to issue this command!");
 				return ;
@@ -1173,7 +1173,7 @@ public class ChanServ {
 				reason = Misc.makeSentence(params, 0);
 			}
 
-			for (Channel chan : context.getConfiguration().channels) {
+			for (Channel chan : context.getConfiguration().getChannels()) {
 				// skip static channels
 				if (!chan.isStatic()) {
 					sendLine("SAYEX " + chan.getName() + " is quitting. Reason: " + reason);
@@ -1190,7 +1190,7 @@ public class ChanServ {
 	public void sendPrivateMsg(Client client, String msg) {
 
 		sendLine("SAYPRIVATE " + client.getName() + " " + msg);
-		Misc.logToFile(client.getName() + ".log", "<" + context.getConfiguration().username + "> " + msg);
+		Misc.logToFile(client.getName() + ".log", "<" + context.getConfiguration().getUsername() + "> " + msg);
 	}
 
 	/**
@@ -1232,7 +1232,7 @@ public class ChanServ {
 	/** Returns <code>null</code> if the channel is not found */
 	public Channel getChannel(String name) {
 
-		for (Channel channel : context.getConfiguration().channels) {
+		for (Channel channel : context.getConfiguration().getChannels()) {
 			if (channel.getName().equals(name)) {
 				return channel;
 			}
@@ -1296,8 +1296,8 @@ public class ChanServ {
 		Configuration config = context.getConfiguration();
 
 		// run remote access server:
-		logger.info("Trying to run remote access server on port " + config.remoteAccessPort + " ...");
-		RemoteAccessServer remoteAccessServer = new RemoteAccessServer(context, config.remoteAccessPort);
+		logger.info("Trying to run remote access server on port " + config.getRemoteAccessPort() + " ...");
+		RemoteAccessServer remoteAccessServer = new RemoteAccessServer(context, config.getRemoteAccessPort());
 		context.setRemoteAccessServer(remoteAccessServer);
 		remoteAccessServer.start();
 
