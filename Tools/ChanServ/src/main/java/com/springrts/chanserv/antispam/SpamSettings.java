@@ -1,6 +1,8 @@
 
 package com.springrts.chanserv.antispam;
 
+import javax.xml.bind.annotation.XmlElement;
+
 /**
  * Here are included all the routines needed with the anti-spam protection.
  * This system is separated from the rest of the bot code, however it does call
@@ -17,23 +19,28 @@ package com.springrts.chanserv.antispam;
  */
 public class SpamSettings {
 
-	public static final SpamSettings DEFAULT_SETTINGS = new SpamSettings(5, 200, 1.0, 0.5, 0.5);
+	public static final SpamSettings DEFAULT_SETTINGS = new SpamSettings();
 
 	/** When penalty points reach this limit, user gets muted */
+	@XmlElement()
 	private int penaltyLimit;
 	/**
 	 * Length (in characters) of a message that is considered "long".
 	 * For long messages, extra penalty points will be added
 	 */
+	@XmlElement()
 	private int longMsgLength;
 	/**
 	 * A penalty that is added each time user says something in the channel.
 	 * Other penalties are added upon this one.
 	 */
+	@XmlElement()
 	private double normalMsgPenalty;
 	/** penalty value added if the message is longer than 'longMsgLength' */
+	@XmlElement()
 	private double longMsgPenalty;
 	/** penalty value added if message is same as previous message */
+	@XmlElement()
 	private double doubleMsgPenalty;
 
 	public SpamSettings(int penaltyLimit, int longMsgLength, double normalMsgPenalty, double longMsgPenalty, double doubleMsgPenalty) {
@@ -47,7 +54,7 @@ public class SpamSettings {
 
 	public SpamSettings() {
 		// use the default settings:
-		this(DEFAULT_SETTINGS.penaltyLimit, DEFAULT_SETTINGS.longMsgLength, DEFAULT_SETTINGS.normalMsgPenalty, DEFAULT_SETTINGS.longMsgPenalty, DEFAULT_SETTINGS.doubleMsgPenalty);
+		this(5, 200, 1.0, 0.5, 0.5);
 	}
 
 	@Override
@@ -62,10 +69,12 @@ public class SpamSettings {
 
 	// returns null if settings string is malformed
 	public static SpamSettings stringToSpamSettings(String settings) {
+
 		SpamSettings ss = new SpamSettings();
+
 		String[] parsed = settings.split(" ");
 		if (parsed.length != 5) {
-			return null;
+			throw new IllegalArgumentException("Malformed spam settings; Needs exactly 5 arguments.");
 		}
 		try {
 			ss.penaltyLimit = Integer.parseInt(parsed[0]);
@@ -73,16 +82,11 @@ public class SpamSettings {
 			ss.normalMsgPenalty = Double.parseDouble(parsed[2]);
 			ss.longMsgPenalty = Double.parseDouble(parsed[3]);
 			ss.doubleMsgPenalty = Double.parseDouble(parsed[4]);
-		} catch (NumberFormatException e) {
-			return null;
+		} catch (NumberFormatException ex) {
+			throw new IllegalArgumentException("Malformed spam settings; Has to consist of 2*int, 3*double.", ex);
 		}
-		return ss;
-	}
 
-	/* returns true if settings string is valid */
-	public static boolean validateSpamSettingsString(String settings) {
-		return settings.matches("^\\d+ \\d+ [0-9]*\\.?[0-9]+ [0-9]*\\.?[0-9]+ [0-9]*\\.?[0-9]+$");
-		// perhaps rather use "return stringToSpamSettings(settings) != null" ?
+		return ss;
 	}
 
 	/**

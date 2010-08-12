@@ -5,9 +5,13 @@
 package com.springrts.chanserv;
 
 
+import com.springrts.chanserv.antispam.SpamSettings;
 import java.io.Serializable;
 import java.util.List;
 import java.util.ArrayList;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlTransient;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,24 +26,27 @@ public class Channel implements Serializable {
 
 	private static final Logger logger = LoggerFactory.getLogger(ChanServ.class);
 
+	@XmlElement
 	private final String name;
 	/** "" means topic is disabled */
 	private String topic;
 	private final String logFileName;
 	/** are we in this channel right now? */
-	private boolean joined = false;
+	private boolean joined;
 	/**
 	 * Whether this channel is a static one and not registered.
 	 * We can not register this channel at all.
 	 */
-	private boolean isStatic = true;
+	private boolean isStatic;
 	/** if "" then no key is set (channel is unlocked) */
-	private String key = "";
+	private String key;
 	/**
 	 * The user-name of the founder of this channel.
 	 * The founder is the "owner" of the channel, he can assign operators etc.
 	 */
 	private String founder;
+	@XmlElementWrapper()
+	@XmlElement(name="name")
 	private final List<String> operators;
 	private final List<String> clients;
 	/**
@@ -48,7 +55,7 @@ public class Channel implements Serializable {
 	 */
 	private boolean antiSpam;
 	/** anti-spam settings for this channel, used with AntiSpamSystem */
-	private String antiSpamSettings;
+	private SpamSettings antiSpamSettings;
 
 	private final Context context;
 
@@ -193,6 +200,7 @@ public class Channel implements Serializable {
 	 * are we in this channel right now?
 	 * @param joined the joined to set
 	 */
+	@XmlTransient
 	public void setJoined(boolean joined) {
 		this.joined = joined;
 	}
@@ -271,7 +279,7 @@ public class Channel implements Serializable {
 	 * anti-spam settings for this channel, used with AntiSpamSystem
 	 * @return the antiSpamSettings
 	 */
-	public String getAntiSpamSettings() {
+	public SpamSettings getAntiSpamSettings() {
 		return antiSpamSettings;
 	}
 
@@ -279,7 +287,7 @@ public class Channel implements Serializable {
 	 * anti-spam settings for this channel, used with AntiSpamSystem
 	 * @param antiSpamSettings the antiSpamSettings to set
 	 */
-	public void setAntiSpamSettings(String antiSpamSettings) {
+	public void setAntiSpamSettings(SpamSettings antiSpamSettings) {
 		this.antiSpamSettings = antiSpamSettings;
 	}
 }

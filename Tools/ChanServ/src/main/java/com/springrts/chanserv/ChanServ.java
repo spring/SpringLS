@@ -550,7 +550,7 @@ public class ChanServ {
 			chan.setFounder(params.get(1));
 			chan.setStatic(false);
 			chan.setAntiSpam(false);
-			chan.setAntiSpamSettings(SpamSettings.spamSettingsToString(SpamSettings.DEFAULT_SETTINGS));
+			chan.setAntiSpamSettings(SpamSettings.DEFAULT_SETTINGS);
 			sendLine("JOIN " + chan.getName());
 			sendMessage(client, channel, "Channel #" + chanName + " successfully registered to " + chan.getFounder());
 		} else if (commandName.equals("CHANGEFOUNDER")) {
@@ -654,7 +654,7 @@ public class ChanServ {
 			context.getConfiguration().channels.add(chan);
 			chan.setStatic(true);
 			chan.setAntiSpam(false);
-			chan.setAntiSpamSettings(SpamSettings.spamSettingsToString(SpamSettings.DEFAULT_SETTINGS));
+			chan.setAntiSpamSettings(SpamSettings.DEFAULT_SETTINGS);
 			sendLine("JOIN " + chan.getName());
 			sendMessage(client, channel, "Channel #" + chanName + " successfully added to static list.");
 		} else if (commandName.equals("REMOVESTATIC")) {
@@ -842,14 +842,17 @@ public class ChanServ {
 				return ;
 			}
 
-			String settings = Misc.makeSentence(params, 1);
+			String spamSettingsString = Misc.makeSentence(params, 1);
 
-			if (!SpamSettings.validateSpamSettingsString(settings)) {
+			SpamSettings spamSettings = null;
+			try {
+				spamSettings = SpamSettings.stringToSpamSettings(spamSettingsString);
+			} catch (Exception ex) {
 				sendMessage(client, channel, "Invalid 'settings' parameter!");
-				return ;
+				return;
 			}
 
-			chan.setAntiSpamSettings(settings);
+			chan.setAntiSpamSettings(spamSettings);
 			context.getAntiSpamSystem().setSpamSettingsForChannel(chan.getName(), chan.getAntiSpamSettings());
 			sendMessage(client, channel, "Anti-spam settings successfully updated (" + chan.getAntiSpamSettings() + ")");
 		} else if (commandName.equals("TOPIC")) {

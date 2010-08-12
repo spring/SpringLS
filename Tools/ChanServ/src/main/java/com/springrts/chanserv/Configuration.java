@@ -6,6 +6,8 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -21,7 +23,11 @@ public class Configuration implements Serializable {
 	public String username = "";
 	public String password = "";
 	public int remoteAccessPort;
+	@XmlElementWrapper()
+	@XmlElement(name="channel")
 	public final List<Channel> channels;
+	@XmlElementWrapper()
+	@XmlElement(name="name")
 	public final List<String> remoteAccessAccounts;
 
 	// database related:

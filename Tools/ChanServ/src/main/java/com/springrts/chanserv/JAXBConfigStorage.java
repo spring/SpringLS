@@ -48,12 +48,10 @@ public class JAXBConfigStorage implements ConfigStorage {
 			// load
 			context.setConfiguration((Configuration) unmarshaller.unmarshal(in));
 
-			// fix invalid spam settings
+			// post-process channels
 			for (Channel channel : context.getConfiguration().channels) {
-				if (!SpamSettings.validateSpamSettingsString(channel.getAntiSpamSettings())) {
-					logger.warn("Fixing invalid spam settings for #{} ...", channel.getName());
-					channel.setAntiSpamSettings(SpamSettings.spamSettingsToString(SpamSettings.DEFAULT_SETTINGS));
-				}
+				// apply anti-spam settings:
+				context.getAntiSpamSystem().setSpamSettingsForChannel(channel.getName(), channel.getAntiSpamSettings());
 			}
 
 			logger.info("Configuration loaded from file: {}", fileName);

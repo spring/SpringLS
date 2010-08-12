@@ -20,5 +20,5 @@ public interface AntiSpamSystem {
 
 	public void processClientStatusChange(Client client);
 
-	public void setSpamSettingsForChannel(String chan, String settings);
+	public void setSpamSettingsForChannel(String chan, SpamSettings settings);
 }

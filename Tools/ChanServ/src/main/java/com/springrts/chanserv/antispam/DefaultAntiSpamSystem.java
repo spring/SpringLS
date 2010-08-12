@@ -133,15 +133,8 @@ public class DefaultAntiSpamSystem implements AntiSpamSystem{
 	}
 
 	@Override
-	public void setSpamSettingsForChannel(String chan, String settings) {
-
-		SpamSettings ss = SpamSettings.stringToSpamSettings(settings);
-		if (ss == null) {
-			Log.error("AntiSpamSystem: malformed settings string in setSpamSettingsForChannel(): " + settings);
-			spamSettings.put(chan, SpamSettings.DEFAULT_SETTINGS);
-		} else {
-			spamSettings.put(chan, ss);
-		}
+	public void setSpamSettingsForChannel(String chan, SpamSettings settings) {
+		spamSettings.put(chan, settings);
 	}
 
 	private void muteUser(String chan, String user) {

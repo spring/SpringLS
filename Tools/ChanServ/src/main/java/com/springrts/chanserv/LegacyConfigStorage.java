@@ -92,11 +92,15 @@ public class LegacyConfigStorage implements ConfigStorage {
 				if (node.getNodeType() == Node.ELEMENT_NODE) {
 					chan = new Channel(context, ((Element)node).getAttribute("name"));
 					chan.setAntiSpam(((Element) node).getAttribute("antispam").equals("yes") ? true : false);
-					chan.setAntiSpamSettings(((Element) node).getAttribute("antispamsettings"));
-					if (!SpamSettings.validateSpamSettingsString(chan.getAntiSpamSettings())) {
-						Log.log("Fixing invalid spam settings for #" + chan.getName() + " ...");
-						chan.setAntiSpamSettings(SpamSettings.spamSettingsToString(SpamSettings.DEFAULT_SETTINGS));
+					String spamSettingsString = ((Element) node).getAttribute("antispamsettings");
+					SpamSettings spamSettings = null;
+					try {
+						spamSettings = SpamSettings.stringToSpamSettings(spamSettingsString);
+					} catch (Exception ex) {
+						logger.warn("Fixing invalid spam settings for #" + chan.getName() + " ...", ex);
+						spamSettings = SpamSettings.DEFAULT_SETTINGS;
 					}
+					chan.setAntiSpamSettings(spamSettings);
 					config.channels.add(chan);
 					// apply anti-spam settings:
 					context.getAntiSpamSystem().setSpamSettingsForChannel(chan.getName(), chan.getAntiSpamSettings());
@@ -120,11 +124,15 @@ public class LegacyConfigStorage implements ConfigStorage {
 					chan.setKey(((Element) node).getAttribute("key"));
 					chan.setFounder(((Element) node).getAttribute("founder"));
 					chan.setAntiSpam(((Element) node).getAttribute("antispam").equals("yes") ? true : false);
-					chan.setAntiSpamSettings(((Element) node).getAttribute("antispamsettings"));
-					if (!SpamSettings.validateSpamSettingsString(chan.getAntiSpamSettings())) {
-						Log.log("Fixing invalid spam settings for #" + chan.getName() + " ...");
-						chan.setAntiSpamSettings(SpamSettings.spamSettingsToString(SpamSettings.DEFAULT_SETTINGS));
+					String spamSettingsString = ((Element) node).getAttribute("antispamsettings");
+					SpamSettings spamSettings = null;
+					try {
+						spamSettings = SpamSettings.stringToSpamSettings(spamSettingsString);
+					} catch (Exception ex) {
+						logger.warn("Fixing invalid spam settings for #" + chan.getName() + " ...", ex);
+						spamSettings = SpamSettings.DEFAULT_SETTINGS;
 					}
+					chan.setAntiSpamSettings(spamSettings);
 					config.channels.add(chan);
 					// load this channel's operator list:
 					node2 = node.getFirstChild();
@@ -223,7 +231,7 @@ public class LegacyConfigStorage implements ConfigStorage {
 					elem = xmlConfig.createElement("channel");
 					elem.setAttribute("name", chan.getName());
 					elem.setAttribute("antispam", chan.isAntiSpam() ? "yes" : "no");
-					elem.setAttribute("antispamsettings", chan.getAntiSpamSettings());
+					elem.setAttribute("antispamsettings", SpamSettings.spamSettingsToString(chan.getAntiSpamSettings()));
 					//elem.setTextContent(chan.name);
 					root.appendChild(elem);
 				}
@@ -259,7 +267,7 @@ public class LegacyConfigStorage implements ConfigStorage {
 					elem.setAttribute("key", chan.getKey());
 					elem.setAttribute("founder", chan.getFounder());
 					elem.setAttribute("antispam", chan.isAntiSpam() ? "yes" : "no");
-					elem.setAttribute("antispamsettings", chan.getAntiSpamSettings());
+					elem.setAttribute("antispamsettings", SpamSettings.spamSettingsToString(chan.getAntiSpamSettings()));
 
 					// write operator list:
 					if (chan.getOperatorList().size() > 0) {
