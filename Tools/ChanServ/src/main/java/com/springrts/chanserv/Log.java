@@ -17,7 +17,7 @@ import java.util.concurrent.Semaphore;
 public class Log {
 
 	/** folder where log files are put */
-	static final String LOG_FOLDER = "./logs";
+	static final String LOG_FOLDER = "./log";
 
 	static Semaphore logToDiskLock = new Semaphore(1, true);
 

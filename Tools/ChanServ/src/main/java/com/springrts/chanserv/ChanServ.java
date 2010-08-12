@@ -50,8 +50,8 @@ public class ChanServ {
 
 	private static final Logger logger = LoggerFactory.getLogger(ChanServ.class);
 
-	private static final String VERSION = "0.1";
-	static final String CONFIG_FILENAME = "settings.xml";
+	private static final String VERSION = "0.1+";
+	static final String CONFIG_FILENAME = "conf/settings.xml";
 
 	/** are we connected to the lobby server? */
 	private boolean connected = false;
