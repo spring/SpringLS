@@ -318,41 +318,67 @@ public class TASServer implements LiveStateListener {
 
 	/** Reads MOTD from disk (if file is found) */
 	private boolean readMOTD(String fileName) {
-		StringBuilder newMOTD = new StringBuilder();
+
+		boolean success = false;
+
 		try {
-			BufferedReader in = new BufferedReader(new FileReader(fileName));
-			String line;
-			while ((line = in.readLine()) != null) {
-				newMOTD.append(line).append('\n');
-			}
-			in.close();
+			MOTD = Misc.readTextFile(new File(fileName));
+			success = true;
 			s_log.info("Using MOTD from file '" + fileName + "'.");
-		} catch (IOException e) {
-			s_log.warn(new StringBuilder("Could not find or read from file '")
-					.append(fileName).append("'. Using default MOTD.").toString());
-			s_log.debug("... reason:", e);
-			return false;
+		} catch (IOException ex) {
+			s_log.warn("Could not find or read from file '" + fileName + "'. Using default MOTD.");
+			s_log.debug("... reason:", ex);
+			success = false;
 		}
-		MOTD = newMOTD.toString();
-		return true;
+
+		return success;
+	}
+
+	/** Reads agreement from disk (if file is found) */
+	private boolean readAgreement() {
+
+		boolean success = false;
+
+		String newAgreement = null;
+		try {
+			newAgreement = Misc.readTextFile(new File(AGREEMENT_FILENAME));
+			if (newAgreement.length() > 2) {
+				agreement = newAgreement;
+				success = true;
+				s_log.info("Using agreement from file '" + AGREEMENT_FILENAME + "'.");
+			} else {
+				s_log.warn("Agreement in file '" + AGREEMENT_FILENAME + "' is too short.");
+			}
+		} catch (IOException e) {
+			s_log.warn("Could not find or read from file '" + AGREEMENT_FILENAME + "'. Using no agreement.");
+			s_log.debug("... reason:", e);
+		}
+
+		return success;
 	}
 
 	private boolean readUpdateProperties(String fileName) {
+
+		boolean success = false;
+
 		FileInputStream fStream = null;
 		try {
 			fStream = new FileInputStream(fileName);
 			updateProperties.loadFromXML(fStream);
-		} catch (IOException e) {
-			return false;
+			success = true;
+		} catch (IOException ex) {
+			s_log.warn("Could not find or read from file '" + fileName + "'.", ex);
 		} finally {
 			if (fStream != null) {
 				try {
 					fStream.close();
-				} catch (IOException e) {
+				} catch (IOException ex) {
+					s_log.debug("unimportant", ex);
 				}
 			}
 		}
-		return true;
+
+		return success;
 	}
 
 	@Override
@@ -386,29 +412,6 @@ public class TASServer implements LiveStateListener {
 
 		running = false;
 		s_log.info("stopped on " + dateTimeFormat.format(new Date()));
-	}
-
-	/** Reads agreement from disk (if file is found) */
-	private void readAgreement() {
-		StringBuilder newAgreement = new StringBuilder();
-		try {
-			BufferedReader in = new BufferedReader(new FileReader(AGREEMENT_FILENAME));
-			String line;
-			while ((line = in.readLine()) != null) {
-				newAgreement.append(line).append('\n');
-			}
-			in.close();
-			s_log.info("Using agreement from file '" + AGREEMENT_FILENAME + "'.");
-		} catch (IOException e) {
-			s_log.warn(new StringBuilder("Could not find or read from file '")
-					.append(AGREEMENT_FILENAME)
-					.append("'. Using no agreement.").toString());
-			s_log.debug("... reason:", e);
-			return;
-		}
-		if (newAgreement.length() > 2) {
-			agreement = newAgreement.toString();
-		}
 	}
 
 	private boolean startServer() {

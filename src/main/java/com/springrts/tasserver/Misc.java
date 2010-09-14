@@ -597,6 +597,39 @@ public class Misc {
 	}
 
 	/**
+	 * Reads a plain-text file from disc, line by line.
+	 * Replaces all line endings with '\n'.
+	 * @param file the file to read
+	 * @return the content of the file with '\n' line-endings
+	 */
+	public static String readTextFile(File file) throws IOException {
+
+		StringBuilder content = null;
+
+		content = new StringBuilder();
+		BufferedReader in = null;
+		try {
+			in = new BufferedReader(new FileReader(file));
+			String line;
+			while ((line = in.readLine()) != null) {
+				content.append(line).append('\n');
+			}
+		} catch (IOException ex) {
+			throw ex;
+		} finally {
+			if (in != null) {
+				try {
+					in.close();
+				} catch (IOException ex) {
+					// ignore
+				}
+			}
+		}
+
+		return content.toString();
+	}
+
+	/**
 	 * Utility method used to delete a file or a directory recursively.
 	 * @param file the file or directory to recursively delete.
 	 */
