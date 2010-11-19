@@ -1,21 +1,171 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-
 	<modelVersion>4.0.0</modelVersion>
+
 	<groupId>com.springrts</groupId>
 	<artifactId>tasserver</artifactId>
-	<packaging>jar</packaging>
 	<version>0.36-SNAPSHOT</version>
+
+	<packaging>jar</packaging>
+
+	<organization>
+		<name>Spring RTS Community</name>
+		<url>http://springrts.com</url>
+	</organization>
 	<name>TASServer</name>
 	<description>A Spring RTS Lobby Server</description>
-	<url>http://springrts.com</url>
+	<!--<url>http://github.com/spring/TASServer</url>-->
 	<inceptionYear>2005</inceptionYear>
+
+	<licenses>
+		<license>
+			<name>GPL</name>
+			<url>http://www.gnu.org/licenses/gpl.html</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
 
 	<issueManagement>
 		<system>Mantis</system>
 		<url>http://springrts.com/mantis/</url>
 	</issueManagement>
+
+	<developers>
+		<developer>
+			<name>BetaLord</name>
+			<roles>
+				<role>developer (retired)</role>
+			</roles>
+		</developer>
+		<developer>
+			<name>hoijui</name>
+			<email>hoijui.quaero@gmail.com</email>
+			<roles>
+				<role>maintainer</role>
+			</roles>
+		</developer>
+	</developers>
+
+	<contributors>
+		<contributor>
+			<name>Tobi</name>
+			<roles>
+				<role>patch writer</role>
+			</roles>
+		</contributor>
+		<contributor>
+			<name>trepan</name>
+			<roles>
+				<role>patch writer</role>
+			</roles>
+		</contributor>
+		<contributor>
+			<name>Satirik</name>
+			<roles>
+				<role>patch writer</role>
+			</roles>
+		</contributor>
+		<contributor>
+			<name>tnowell</name>
+			<roles>
+				<role>patch writer</role>
+			</roles>
+		</contributor>
+		<contributor>
+			<name>Auswaschbar</name>
+			<email>k-r.ernst@my-mail.ch</email>
+			<roles>
+				<role>patch writer</role>
+			</roles>
+		</contributor>
+		<contributor>
+			<name>Radtoo</name>
+			<roles>
+				<role>patch writer</role>
+			</roles>
+		</contributor>
+		<contributor>
+			<name>Konstantin Olkhovskij</name>
+			<email>lupus@oxnull.net</email>
+			<roles>
+				<role>patch writer</role>
+			</roles>
+		</contributor>
+		<contributor>
+			<name>bibim</name>
+			<roles>
+				<role>patch writer</role>
+			</roles>
+		</contributor>
+		<contributor>
+			<name>Andrea Piras</name>
+			<email>braindamage@springlobby.info</email>
+			<roles>
+				<role>patch writer</role>
+			</roles>
+		</contributor>
+		<contributor>
+			<name>Marcel Hauf</name>
+			<email>marcel.hauf@googlemail.com</email>
+			<roles>
+				<role>patch writer</role>
+			</roles>
+		</contributor>
+	</contributors>
+
+	<scm>
+		<connection>scm:git:git://github.com/spring/TASServer.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com:spring/TASServer.git</developerConnection>
+		<url>http://github.com/spring/TASServer</url>
+	</scm>
+
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jxr-plugin</artifactId>
+				<version>2.2</version>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>2.5</version>
+				<configuration>
+					<linkXref>true</linkXref>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+				<version>2.5</version>
+				<configuration>
+					<linkXref>true</linkXref>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>findbugs-maven-plugin</artifactId>
+				<version>2.0.1</version>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.7</version>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-changelog-plugin</artifactId>
+				<version>2.2</version>
+			</plugin>
+
+		</plugins>
+	</reporting>
 
 	<build>
 		<defaultGoal>package</defaultGoal>
@@ -30,6 +180,14 @@
 				<configuration>
 					<source>1.5</source>
 					<target>1.5</target>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<configuration>
+					<encoding>UTF-8</encoding>
 				</configuration>
 			</plugin>
 
@@ -109,12 +267,6 @@
 			</plugin>
 		</plugins>
 	</build>
-
-	<scm>
-		<connection>scm:git:git://github.com/spring/TASServer.git</connection>
-		<url>http://github.com/spring/TASServer</url>
-		<developerConnection>scm:git:ssh://git@github.com:spring/TASServer.git</developerConnection>
-	</scm>
 
 	<dependencies>
 		<!--
