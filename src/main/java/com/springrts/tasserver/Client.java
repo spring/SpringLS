@@ -9,6 +9,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.nio.*;
 import java.nio.channels.*;
 import java.nio.charset.CharacterCodingException;
@@ -176,15 +177,17 @@ public class Client implements ContextReceiver {
 		// no info on user/pass, zero access
 		this.account = new Account();
 		this.sockChan = sockChan;
-		this.ip = sockChan.socket().getInetAddress().getHostAddress();
-		// this fixes the issue with local user connecting to server as "127.0.0.1" (he can't host battles with that ip):
-		if (ip.equals("127.0.0.1") || ip.equals("localhost")) {
+		InetAddress address = sockChan.socket().getInetAddress();
+		this.ip = address.getHostAddress();
+		// this fixes the issue with local user connecting to the server at
+		// "127.0.0.1", as he can not host battles with that ip
+		if (address.isLoopbackAddress()) {
 			String newIP = Misc.getLocalIPAddress();
 			if (newIP != null) {
 				ip = newIP;
 			} else {
 				s_log.warn("Could not resolve local IP address. User may have problems \n" +
-								   "with hosting battles.");
+						"with hosting battles.");
 			}
 		}
 		localIP = ip; // will be changed later once client logs in

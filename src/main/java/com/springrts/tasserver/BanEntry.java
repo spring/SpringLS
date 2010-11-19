@@ -51,7 +51,7 @@ public class BanEntry implements Serializable {
 		updatable  = true,
 		length     = 40
 		)
-	private String username;
+	private String userName;
 	/** Start of IP range which was banned (may be 0) */
 	@Column(
 		name       = "IP_start",
@@ -110,11 +110,11 @@ public class BanEntry implements Serializable {
 
 	/** Used by JPA */
 	public BanEntry() {}
-	public BanEntry(long expireDate, String username, long ipStart, long ipEnd,
+	public BanEntry(long expireDate, String userName, long ipStart, long ipEnd,
 			int userId, String publicReason) {
 
 		this.expireDate   = expireDate;
-		this.username     = username;
+		this.userName     = userName;
 		this.ipStart      = ipStart;
 		this.ipEnd        = ipEnd;
 		this.userId       = userId;
@@ -134,8 +134,8 @@ public class BanEntry implements Serializable {
 	 * Username of the banned account (may be 'null' as well)
 	 * @return the username
 	 */
-	public String getUsername() {
-		return username;
+	public String getUserName() {
+		return userName;
 	}
 
 	/**

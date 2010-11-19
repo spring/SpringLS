@@ -423,7 +423,7 @@ public class Account implements Serializable, Cloneable {
 		}
 	}
 	public static long extractInGameTime(int accessBitField) {
-		return ((accessBitField & 0x7FFFF8) >> 3) * 60;
+		return ((accessBitField & 0x7FFFF8) >> 3) * 60L;
 	}
 	public static boolean extractAgreementAccepted(int accessBitField) {
 		return ((accessBitField & 0x800000) >> 23) == 1;

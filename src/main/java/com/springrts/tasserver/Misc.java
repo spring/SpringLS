@@ -99,7 +99,7 @@ public class Misc {
 					}
 				}
 			}
-		} catch (Exception e) {
+		} catch (SocketException sex) {
 			return null;
 		}
 		return null;
@@ -107,9 +107,11 @@ public class Misc {
 
 	public static long IP2Long(String ip) {
 
+		long res = 0;
+
 		String tokens[] = ip.split("\\.");
 		if (tokens.length != 4) {
-			return -1;
+			res = -1;
 		}
 
 		try {
@@ -117,10 +119,12 @@ public class Misc {
 			final long f2 = Long.parseLong(tokens[1]) << 16;
 			final long f3 = Long.parseLong(tokens[2]) << 8;
 			final long f4 = Long.parseLong(tokens[3]);
-			return f1 + f2 + f3 + f4;
-		} catch (Exception e) {
-			return -1;
+			res = f1 + f2 + f3 + f4;
+		} catch (NumberFormatException nfex) {
+			res = -2;
 		}
+
+		return res;
 	}
 
 	@Deprecated
@@ -314,11 +318,22 @@ public class Misc {
 	 * If no file is found inside the archive, it will simply ignore it.
 	 */
 	public static void unzipSingleArchive(String fileName, String localFileName) throws IOException {
-		ZipInputStream zin = new ZipInputStream(new BufferedInputStream(new FileInputStream(fileName)));
-		if (zin.getNextEntry() != null) {
-			unzipSingleEntry(zin, localFileName);
+
+		FileInputStream fin = null;
+		ZipInputStream zin = null;
+		try {
+			fin = new FileInputStream(fileName);
+			zin = new ZipInputStream(new BufferedInputStream(fin));
+			if (zin.getNextEntry() != null) {
+				unzipSingleEntry(zin, localFileName);
+			}
+		} finally {
+			if (zin != null) {
+				zin.close();
+			} else if (fin != null) {
+				fin.close();
+			}
 		}
-		zin.close();
 	}
 
 	/**
@@ -430,6 +445,7 @@ public class Misc {
 		return download(address, localFileName, 0);
 	}
 
+	@Deprecated
 	public static boolean deleteFile(String fileName) {
 		return (new File(fileName)).delete();
 	}
@@ -535,10 +551,11 @@ public class Misc {
 	private static Properties initMavenProperties() {
 
 		Properties mavenProps = null;
+		InputStream propFileIn = null;
 
 		try {
 			final String pomPropsLoc = "/META-INF/maven/com.springrts/tasserver/pom.properties";
-			InputStream propFileIn = Misc.class.getResourceAsStream(pomPropsLoc);
+			propFileIn = Misc.class.getResourceAsStream(pomPropsLoc);
 			if (propFileIn == null) {
 				throw new IOException("Failed locating resource in the classpath: " + pomPropsLoc);
 			}
@@ -547,6 +564,14 @@ public class Misc {
 			mavenProps = tmpProps;
 		} catch (Exception ex) {
 			s_log.warn("Failed reading the Maven properties file", ex);
+		} finally {
+			if (propFileIn != null) {
+				try {
+					propFileIn.close();
+				} catch (IOException ioex) {
+					s_log.warn("Failed closing stream to Maven properties file", ioex);
+				}
+			}
 		}
 
 		return mavenProps;

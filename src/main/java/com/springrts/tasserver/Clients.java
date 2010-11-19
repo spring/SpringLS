@@ -176,15 +176,14 @@ public class Clients implements ContextReceiver {
 		client.beginFastWrite();
 		for (int i = 0; i < clients.size(); i++) {
 			Client toBeNotified = clients.get(i);
-			if (toBeNotified.getAccount().getAccess().compareTo(Account.Access.NORMAL) >= 0) {
-				if (toBeNotified.getStatus() != 0) {
-					// only send it if not 0.
-					// The user assumes that every new user's status is 0,
-					// so we don't need to tell him that explicitly.
-					client.sendLine(new StringBuilder("CLIENTSTATUS ")
-							.append(toBeNotified.getAccount().getName()).append(" ")
-							.append(toBeNotified.getStatus()).toString());
-				}
+			if ((toBeNotified.getAccount().getAccess().compareTo(Account.Access.NORMAL) >= 0) &&
+				toBeNotified.getStatus() != 0) {
+				// only send it if not 0.
+				// The user assumes that every new user's status is 0,
+				// so we don't need to tell him that explicitly.
+				client.sendLine(new StringBuilder("CLIENTSTATUS ")
+						.append(toBeNotified.getAccount().getName()).append(" ")
+						.append(toBeNotified.getStatus()).toString());
 			}
 		}
 		client.endFastWrite();
@@ -352,7 +351,7 @@ public class Clients implements ContextReceiver {
 	 * Any redundant entries are ignored (cleared).
 	 */
 	public void processKillList() {
-		for (; killList.size() > 0;) {
+		while (!killList.isEmpty()) {
 			killClient(killList.get(0), reasonList.get(0));
 			killList.remove(0);
 			reasonList.remove(0);
