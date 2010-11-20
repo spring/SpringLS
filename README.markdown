@@ -140,4 +140,274 @@ Instead of `localhost.localdomain`, you may face the same problem
 with `127.0.0.1`.
 
 
+## Notes
+
+* Client may participate in only one battle at the same time. If he is hosting
+  a battle, he may not participate in other battles at the same time. The server
+  checks for that automatically.
+
+* Lines sent and received may be of any length. It has been tested with 600 KB
+  long strings and it worked in both directions. Nevertheless, commands like
+  "CLIENTS" still try to divide data into several lines, just to make sure the
+  client will receive them. Since the delphi lobby client(TASClient) now
+  supports lines of any length, dividing data into several lines is not needed
+  anymore. Though, we keep it just in case, to be compatible with other clients
+  which may emerge in the future. I do not divide data when sending info on
+  battles and clients in battles. This lines may get long, but not longer than a
+  couple of hundred bytes (they should always be under 1 KB in length).
+
+* Sentences must be separated by TAB characters. This also means there should be
+  no TABs present in your sentences, since TABs are delimiters. That is why you
+  should always replace any TABs with spaces (2 or 8 usually).
+
+* Syncing works by clients comparing host's hash code with their own. If the two
+  codes match, client should update his battle status and this way telling other
+  clients in the battle that he is synced (or unsynced otherwise). The hash code
+  comes from hashing the mod's file and probably all the dependences too. See
+  unitsync documentation for details.
+
+* Try not to edit the account file manually! If you do, do not forget that
+  access numbers must be in binary form!
+
+* Team colors are currently set by players, perhaps it would be better if only
+  the host would be able to change them?
+
+* Whenever you use `killClient()` within a for loop, do not forget to decrease
+  loop counter as you will skip next client in the list otherwise. This was the
+  cause for some of the "ambigious data" errors. Or better, use the
+  `killClientDelayed()` method.
+
+* Note that access to long's is not guaranteed to be atomic, but you should use
+  synchronization anyway, if you use multiple threads.
+
+
+## Dev-Links
+
+Great article on how to handle network timeouts in Java:
+http://www.javacoffeebreak.com/articles/network_timeouts/
+
+Another one on network timeouts and alike:
+http://www.mindprod.com/jgloss/socket.html
+
+Great article on thread synchronization:
+http://today.java.net/pub/a/today/2004/08/02/sync1.html
+
+Throwing exceptions:
+http://java.sun.com/docs/books/tutorial/essential/exceptions/throwing.html
+
+Sun's tutorial on sockets:
+http://java.sun.com/docs/books/tutorial/networking/sockets/
+
+How to redirect program's output by duplicating handles in windows' command
+prompt:
+http://www.microsoft.com/resources/documentation/windows/xp/all/proddocs/en-us/redirection.mspx
+
+How to get local ip address (like "192.168.1.1" and not "127.0.0.1"):
+http://forum.java.sun.com/thread.jspa?threadID=619056&messageID=3477258
+
+ip-to-country databases:
+http://ip-to-country.webhosting.info
+http://software77.net/cgi-bin/ip-country/geo-ip.pl
+
+Another set of 232 country flags:
+http://www.ip2location.com/free.asp
+
+Some source code on how to build client-server with java.nio classes;
+Betalord used ChatterServer.java code from the first link, found through the
+second:
+http://brackeen.com/javagamebook/ch06src.zip
+http://www.gamedev.net/community/forums/topic.asp?topic_id=318099
+
+Source for some simple threaded UDP server:
+http://java.sun.com/docs/books/tutorial/networking/datagrams/example-1dot1/QuoteServerThread.java
+
+How to properly document thread-safety when writing classes:
+http://www-128.ibm.com/developerworks/java/library/j-jtp09263.html
+
+Good article on immutables (like String etc.):
+http://macchiato.com/columns/Durable2.html
+
+General info on thread-safety in java:
+http://mindprod.com/jgloss/threadsafe.html
+
+How to use ZIP with java:
+http://java.sun.com/developer/technicalArticles/Programming/compression/
+
+How to download file from URL:
+http://schmidt.devlib.org/java/file-download.html
+
+Very good article on exceptions:
+http://www.freshsources.com/Apr01.html
+
+Short introduction to generics in JDK 1.5.0:
+http://java.sun.com/j2se/1.5.0/docs/guide/language/generics.html
+
+
+## NAT-Traveersal
+
+The primary NAT traversal technique that this lobby server implements is
+_hole punching_. See these links for more info:
+
+http://www.brynosaurus.com/pub/net/p2pnat/
+http://www.potaroo.net/ietf/idref/draft-ford-natp2p/
+http://www.newport-networks.com/whitepapers/nat-traversal1.html
+
+See the source code for implementation details.
+
+
+## Protocol
+
+The most recent lobby protocol specification can be found here:
+https://github.com/spring/LobbyProtocol
+
+
+## Change-Log
+
+### 0.35+
+For detailed changes after 0.35, please see the SCM commit messages.
+
+### 0.35
+* added 'servermode' argument to TASSERVER command
+
+### 0.34
+* message IDs are now actually working
+* added TESTLOGIN, TESTLOGINACCEPT and TESTLOGINDENY commands
+
+### 0.33
+* added "update properties" (updateProperties object)
+* added SETLATESTSPRINGVERSION and RELOADUPDATEPROPERTIES commands
+
+### 0.32
+* added option to mute by ip
+* replaced CLIENTPORT command with CLIENTOIPPORT command and also
+  removed ip field from the ADDUSER command (this way IPs are no longer
+  public unless you join a battle that uses nat traversal, where host
+  needs to know your ip in order for the nat traversal trick to work)
+
+### 0.31
+* added new bot mode for accounts (increases traffic limit when using bot mode)
+
+### 0.30
+* added MAPGRADES command
+* added FORCESPECTATORMODE command
+
+### 0.26
+* fixed some charset bug
+* added UPDATEMOTD command
+* fixed small bug with JOINBATTLE command not checking if battle is already
+  in-game
+* fixed minor bug with mute entries not expiring on the fly
+* added MUTELISTSTART, MUTELIST, MUTELISTEND commands
+
+### 0.25
+* added -LANADMIN switch
+* modified protocol to support arbitrary colors (RGB format)
+
+### 0.23
+* channel mute list now gets updated when user renames his account
+
+### 0.22
+* added SETCHANNELKEY command, also modified JOIN command to accept extra
+  argument for locked channels
+* added FORCELEAVECHANNEL command
+* LEFT command now contains (optional) "reason" parameter
+* replaced CHANNELS command with CHANNEL and ENDOFCHANNELS commands (see
+  protocol description)
+* limited maximum length of chat messages
+
+### 0.20
+* added CHANGEPASSWORD command
+* GETINGAMETIME now also accepts no argument (to return your own in-game time)
+* CHANNELTOPIC command now includes author name and time
+* added -LOGMAIN switch
+* added GETLASTIP command, FINDIP is available to privileged users as well now
+* fixed bug with /me being available even after being muted
+* CHANNELMESSAGE command now available to moderators as well
+
+### 0.195
+* fixed RING command not working for battle hosts
+
+### 0.194
+* integrated ploticus graphics generator and a simple web server to give access
+  to server's statistics.
+* fixed RING command (only host can ring players participating in his own
+  battle, unless the target is host himself)
+* fixed KICK command so that now player who's been kicked is notified about it
+  (also kick command accepts "reason" string now)
+* added "GETLASTLOGINTIME" command (for moderators)
+* fixed bug with clients behind same NAT not getting local IPs in certain cases
+* added simple UDP server to help with NAT traversing (see NATHelpServer.java)
+* added UDPSOURCEPORT, CLIENTPORT and HOSTPORT commands (used with NAT
+  traversing)
+
+### 0.191
+* fixed bug with server allowing clients to have several battles open at the
+  same time
+
+### 0.19
+* improved server code (meaning less "ambigious" commands)
+* added RENAMEACCOUNT command, also userName may now contain "[" and "]"
+  characters
+* added CHANNELMESSAGE command
+* added MUTE, UNMUTE and MUTELIST commands
+* clients behind same NAT now get local IPs instead of external one (from the
+  server). This should resolve some issues with people playing games behind same
+  NAT.
+* added "agreement"
+
+### 0.18
+* multiple mod side support (battle status bits have changed)
+* user who flood are now automatically banned by server
+
+### 0.17
+* server now keeps in-game time even after player has reached maximum level
+  (max. in-game time server can record is 2^20 minutes)
+* rewrote the network code to use java.nio classes. This fixes several known
+  problems with server and also fixes multiplayer replay option.
+* implemented simple anti-flood protection
+* removed old file transfer commands
+
+### 0.16
+* added new host option - diminishing metal maker returns
+* switched to Webnet77's ip-to-country database, which seems to be more
+  frequently updated: http://software77.net/cgi-bin/ip-country/geo-ip.pl
+* added "locked" parameter to UPDATEBATTLEINFO command
+* added "multiplayer replays" support
+
+### 0.152
+* fixed small bug with server not updating rank when maximum level has been
+  reached
+* added ban list
+
+### 0.151
+* added OFFERUPDATEEX command
+* added country code support
+* added simple protection against rank exploiters
+* added cpu info (LOGIN command now requires additional parameter)
+* limited usernames/passwords to 20 chars
+
+### 0.141
+* fixed issue with server not notifying users about user's rank on login
+* added command: CHANNELTOPIC
+
+### 0.14
+* added FORCETEAMCOLOR command
+* fixed bug which allowed users to register accounts with userName/password
+  containing chars from 43 to 57 (dec), which should be numbers (the correct
+  number range is 48 to 57). Invalid chars are "+", ",", "-", "." and "/".
+* added ranking system
+
+### 0.13
+* added AI support
+* added KICKUSER command (admins only)
+* fixed bug when server did not allow client to change its ally number if
+  someone else used it, even if that was only a spectator.
+* added away status bit
+* fixed bug when server denied  request to battle, if there were maxplayers+1
+  players already in the battle.
+* added new commands: SERVERMSG, SERVERMSGBOX, REQUESTUPDATEFILE, GETFILE
+* added some admin commands
+* changed registration process so that now you can't register userName which is
+  same as someone elses, if we ignore case. Usernames are still case-sensitive
+  though.
 
