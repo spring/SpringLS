@@ -8,6 +8,8 @@ package com.springrts.chanserv;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -82,17 +84,23 @@ public class RemoteAccessServer extends Thread {
 	private static final Logger logger = LoggerFactory.getLogger(ChanServ.class);
 
 	/** used with QUERYSERVER command */
-	public static final String allowedQueryCommands[] = {
-		"GETREGISTRATIONDATE",
-		"GETINGAMETIME",
-		"GETLASTIP",
-		"GETLASTLOGINTIME",
-		"RELOADUPDATEPROPERTIES",
-		"GETLOBBYVERSION",
-		"UPDATEMOTD",
-		"RETRIEVELATESTBANLIST",
-		"GETUSERID"
-		};
+	private static final List<String> ALLOWED_QUERY_COMMANDS;
+	static {
+		List<String> allowedQueryCommands = new ArrayList<String>();
+		allowedQueryCommands.add("GETREGISTRATIONDATE");
+		allowedQueryCommands.add("GETINGAMETIME");
+		allowedQueryCommands.add("GETLASTIP");
+		allowedQueryCommands.add("GETLASTLOGINTIME");
+		allowedQueryCommands.add("RELOADUPDATEPROPERTIES");
+		allowedQueryCommands.add("GETLOBBYVERSION");
+		allowedQueryCommands.add("UPDATEMOTD");
+		allowedQueryCommands.add("RETRIEVELATESTBANLIST");
+		allowedQueryCommands.add("GETUSERID");
+		ALLOWED_QUERY_COMMANDS = Collections.unmodifiableList(allowedQueryCommands);
+	}
+	public static List<String> getAllowedQueryCommands() {
+		return ALLOWED_QUERY_COMMANDS;
+	}
 
 	/** Keys for remote server access (needs to be thread-save) */
 	private final List<String> remoteAccounts;
@@ -124,7 +132,7 @@ public class RemoteAccessServer extends Thread {
 				thread.start();
 			}
 		} catch (IOException ex) {
-			logger.error("Error occured in RemoteAccessServer", ex);
+			logger.error("Error occured while trying to handle a remote client connect operation", ex);
 		}
 	}
 

@@ -61,11 +61,7 @@ public class DefaultAntiSpamSystem implements AntiSpamSystem{
 	/** Stops the anti-spam system */
 	@Override
 	public void uninitialize() {
-		try {
-			antiSpamTimer.cancel();
-		} catch (Exception e) {
-			// do nothing
-		}
+		antiSpamTimer.cancel();
 	}
 
 	/**
@@ -119,15 +115,16 @@ public class DefaultAntiSpamSystem implements AntiSpamSystem{
 
 		client.addOneStatusChange();
 
-		if (((System.currentTimeMillis() - client.getClientStatusChangeCheckpoint()) * 1.0f / client.getStatusChanges()) > MAX_CLIENTSTATUSCHANGE_FREQUENCY) {
-			if (client.getStatusChanges() > MIN_CLIENTSTATUCCHANGE_COUNT_BEFORE_ALERT) {
-				// reset the counter:
-				client.setClientStatusChangeCheckpoint(System.currentTimeMillis());
-				client.resetStatusChanges();
+		long timeSinceLastCheckpoint = System.currentTimeMillis() - client.getClientStatusChangeCheckpoint();
+		double statusChangeFreq = (double) timeSinceLastCheckpoint / client.getStatusChanges();
+		if (statusChangeFreq > MAX_CLIENTSTATUSCHANGE_FREQUENCY &&
+				client.getStatusChanges() > MIN_CLIENTSTATUCCHANGE_COUNT_BEFORE_ALERT) {
+			// reset the counter:
+			client.setClientStatusChangeCheckpoint(System.currentTimeMillis());
+			client.resetStatusChanges();
 
-				// take action:
-				context.getChanServ().sendLine("KICKUSER " + client.getName() + " CLIENTSTATUS command abuse - frequency too high");
-			}
+			// take action:
+			context.getChanServ().sendLine("KICKUSER " + client.getName() + " CLIENTSTATUS command abuse - frequency too high");
 		}
 	}
 

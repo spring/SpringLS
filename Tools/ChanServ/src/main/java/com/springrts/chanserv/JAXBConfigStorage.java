@@ -5,6 +5,7 @@ package com.springrts.chanserv;
 import com.springrts.chanserv.antispam.DefaultAntiSpamSystem;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import javax.xml.bind.JAXBContext;
@@ -40,9 +41,10 @@ public class JAXBConfigStorage implements ConfigStorage {
 	@Override
 	public void loadConfig(String fileName) {
 
+		InputStream in = null;
 		try {
 			Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-			InputStream in = new FileInputStream(fileName);
+			in = new FileInputStream(fileName);
 
 			// load
 			context.setConfiguration((Configuration) unmarshaller.unmarshal(in));
@@ -57,18 +59,26 @@ public class JAXBConfigStorage implements ConfigStorage {
 		} catch (Exception ex) {
 			logger.error("Failed loading configuration from file: " + fileName, ex);
 			context.getChanServ().closeAndExit(1);
+		} finally {
+			if (in != null) {
+				try {
+					in.close();
+				} catch (IOException ex) {
+					logger.warn("Failed to close input-stream from config file.", ex);
+				}
+			}
 		}
-
 	}
 
 	@Override
 	public void saveConfig(String fileName) {
 
+		OutputStream out = null;
 		try {
 			Marshaller marshaller = jaxbContext.createMarshaller();
 			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 			marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
-			OutputStream out = new FileOutputStream(fileName);
+			out = new FileOutputStream(fileName);
 
 			// persist
 			marshaller.marshal(context.getConfiguration(), out);
@@ -76,6 +86,14 @@ public class JAXBConfigStorage implements ConfigStorage {
 			logger.debug("Configuration saved to file : {}", fileName);
 		} catch (Exception ex) {
 			logger.error("Failed to save configuration to file: " + fileName, ex);
+		} finally {
+			if (out != null) {
+				try {
+					out.close();
+				} catch (IOException ex) {
+					logger.warn("Failed to close output-stream to config file.", ex);
+				}
+			}
 		}
 	}
 

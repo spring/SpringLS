@@ -4,11 +4,14 @@ package com.springrts.chanserv;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.InterruptedIOException;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -26,7 +29,10 @@ public class RemoteClientThread extends Thread {
 	/** in milliseconds */
 	private static final int TIMEOUT = 30000;
 
-	/** unique ID which we will use as a message ID when sending commands to TASServer */
+	/**
+	 * A unique ID which we will use as a message ID when sending commands to
+	 * the lobby server.
+	 */
 	public final int ID = (int)((Math.random() * 65535));
 
 	/**
@@ -50,10 +56,10 @@ public class RemoteClientThread extends Thread {
 
 	private Context context;
 
-	RemoteClientThread(Context context, RemoteAccessServer parent, Socket s) {
+	RemoteClientThread(Context context, RemoteAccessServer parent, Socket s) throws IOException {
 
-		// LinkedBlockingQueue is thread-save
 		this.context = context;
+		// LinkedBlockingQueue is thread-save
 		this.replyQueue = new LinkedBlockingQueue<String>();
 		this.socket = s;
 		this.parent = parent;
@@ -65,12 +71,28 @@ public class RemoteClientThread extends Thread {
 		}
 		IP = socket.getInetAddress().getHostAddress();
 
+		OutputStream rawOut = null;
+		out = null;
+		InputStream rawIn = null;
+		in = null;
 		try {
-			out = new PrintWriter(socket.getOutputStream(), true);
-			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			rawOut = socket.getOutputStream();
+			out = new PrintWriter(rawOut, true);
+
+			rawIn = socket.getInputStream();
+			in = new BufferedReader(new InputStreamReader(rawIn));
 		} catch (IOException ex) {
-			logger.error("Serious error: cannot associate input/output with client socket! Program will now exit ...", ex);
-			System.exit(1);
+			if (out != null) {
+				out.close();
+			} else if (rawOut != null) {
+				rawOut.close();
+			}
+			if (in != null) {
+				in.close();
+			} else if (rawIn != null) {
+				rawIn.close();
+			}
+			throw new IOException("Failed to associate input/output with the client socket; connection terminated.", ex);
 		}
 	}
 
@@ -91,8 +113,8 @@ public class RemoteClientThread extends Thread {
 				in.close();
 				socket.close();
 			}
-		} catch (IOException e) {
-			// ignore it
+		} catch (IOException ex) {
+			logger.warn("Failed to propperly close remote client connection with " + IP, ex);
 		}
 	}
 
@@ -105,8 +127,7 @@ public class RemoteClientThread extends Thread {
 	public void run() {
 		String input;
 
-		try
-		{
+		try {
 			while (true) {
 				input = readLine();
 				if (input == null) {
@@ -115,14 +136,10 @@ public class RemoteClientThread extends Thread {
 				logger.debug("{}: \"{}\"", IP, input);
 				processCommand(input);
 			}
-		}
-		catch (InterruptedIOException e)
-		{
+		} catch (InterruptedIOException ex) {
 			kill();
 			return;
-		}
-		catch (IOException e)
-		{
+		} catch (IOException ex) {
 			kill();
 			return;
 		}
@@ -274,13 +291,7 @@ public class RemoteClientThread extends Thread {
 				kill();
 				return ;
 			}
-			boolean allow = false;
-			for (int i = 0; i < RemoteAccessServer.allowedQueryCommands.length; i++) {
-				if (RemoteAccessServer.allowedQueryCommands[i].equals(params[1])) {
-					allow = true;
-					break;
-				}
-			}
+			boolean allow = RemoteAccessServer.getAllowedQueryCommands().contains(params[1]);
 
 			if (!allow) {
 				// client is trying to execute a command that is not allowed!
@@ -291,7 +302,8 @@ public class RemoteClientThread extends Thread {
 			String reply = waitForReply();
 			sendLine(reply);
 
-			// quick fix for context.getChanServ() crash on adding ban entry in the web interface:
+			// quick fix for context.getChanServ() crash on adding ban entry in
+			// the web interface
 			if (Misc.makeSentence(params, 1).equalsIgnoreCase("RETRIEVELATESTBANLIST")) {
 				reply = waitForReply(); // wait for the second line of reply
 			}

@@ -71,6 +71,7 @@ public class LegacyConfigStorage implements ConfigStorage {
 			if (node == null) {
 				logger.error("Bad XML document. Path config/remoteaccessaccounts does not exist. Exiting ...");
 				chanServ.closeAndExit(1);
+				return;
 			}
 			node = node.getFirstChild();
 			while (node != null) {
@@ -86,6 +87,7 @@ public class LegacyConfigStorage implements ConfigStorage {
 			if (node == null) {
 				logger.error("Bad XML document. Path config/channels/static does not exist. Exiting ...");
 				chanServ.closeAndExit(1);
+				return;
 			}
 			node = node.getFirstChild();
 			while (node != null) {
@@ -113,6 +115,7 @@ public class LegacyConfigStorage implements ConfigStorage {
 			if (node == null) {
 				logger.error("Bad XML document. Path config/channels/registered does not exist. Exiting ...");
 				chanServ.closeAndExit(1);
+				return;
 			}
 			node = node.getFirstChild();
 			while (node != null) {
@@ -156,20 +159,25 @@ public class LegacyConfigStorage implements ConfigStorage {
 			// Error generated during parsing
 			logger.error("Error during parsing xml document: " + fileName, sxex);
 			chanServ.closeAndExit(1);
+			return;
 		} catch (ParserConfigurationException pcex) {
 			// Parser with specified options ca not be built
 			logger.error("Unable to build specified xml parser", pcex);
 			chanServ.closeAndExit(1);
+			return;
 		} catch (IOException ioex) {
 			// I/O error
 			logger.error("I/O error while accessing " + fileName, ioex);
 			chanServ.closeAndExit(1);
+			return;
 		} catch (XPathExpressionException ex) {
 			logger.error("Error: XPath expression exception - XML document is malformed.", ex);
 			chanServ.closeAndExit(1);
+			return;
 		} catch (Exception ex) {
 			logger.error("Unknown exception while reading config file: " + fileName, ex);
 			chanServ.closeAndExit(1);
+			return;
 		}
 
 	}
