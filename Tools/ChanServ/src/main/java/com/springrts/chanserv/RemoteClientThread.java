@@ -33,7 +33,7 @@ public class RemoteClientThread extends Thread {
 	 * A unique ID which we will use as a message ID when sending commands to
 	 * the lobby server.
 	 */
-	public final int ID = (int)((Math.random() * 65535));
+	public final int ID = new Random().nextInt(Short.MAX_VALUE);
 
 	/**
 	 * Reply queue which gets filled by context.getChanServ() automatically
