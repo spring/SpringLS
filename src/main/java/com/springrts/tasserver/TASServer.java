@@ -77,17 +77,25 @@ public class TASServer implements LiveStateListener {
 	private final int SEND_BUFFER_SIZE = 8192 * 2; // socket's send buffer size
 	private final long MAIN_LOOP_SLEEP = 10L;
 	private int recvRecordPeriod = 10; // in seconds. Length of time period for which we keep record of bytes received from client. Used with anti-flood protection.
-	private int maxBytesAlert = 20000; // maximum number of bytes received in the last recvRecordPeriod seconds from a single client before we raise "flood alert". Used with anti-flood protection.
-	private int maxBytesAlertForBot = 50000; // same as 'maxBytesAlert' but is used for clients in "bot mode" only (see client.status bits)
+	private int maxBytesAlert = 20000; // maximum number of bytes received in the last {@link #recvRecordPeriod} seconds from a single client before we raise "flood alert". Used with anti-flood protection.
+	private int maxBytesAlertForBot = 50000; // same as {@link #maxBytesAlert} but is used for clients in "bot mode" only (see client.status bits)
 	private long lastFloodCheckedTime = System.currentTimeMillis(); // time (in same format as System.currentTimeMillis) when we last updated it. Used with anti-flood protection.
 	private long maxChatMessageLength = 1024; // used with basic anti-flood protection. Any chat messages (channel or private chat messages) longer than this are considered flooding. Used with following commands: SAY, SAYEX, SAYPRIVATE, SAYBATTLE, SAYBATTLEEX
 	private boolean regEnabled = true;
 	private boolean loginEnabled = true;
-	private long lastTimeoutCheck = System.currentTimeMillis(); // time (System.currentTimeMillis()) when we last checked for timeouts from clients
+	private long lastTimeoutCheck = System.currentTimeMillis(); // time ({@link java.lang.System#currentTimeMillis()}) when we last checked for timeouts from clients
 	private ServerSocketChannel sSockChan;
 	private Selector readSelector;
 	private boolean running;
-	private ByteBuffer readBuffer = ByteBuffer.allocateDirect(READ_BUFFER_SIZE); // see http://java.sun.com/j2se/1.5.0/docs/api/java/nio/ByteBuffer.html for difference between direct and non-direct buffers. In this case we should use direct buffers, this is also used by the author of java.nio chat example (see links) upon which this code is built on.
+	/**
+	 * See
+	 * <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/nio/ByteBuffer.html">
+	 * ByteBuffer JavaDoc</a> for the difference between direct and non-direct
+	 * buffers. In this case, we should use direct buffers. They are also used
+	 * by the author of the <code>java.nio</code> chat example (see links) upon
+	 * which this code is built on.
+	 */
+	private ByteBuffer readBuffer = ByteBuffer.allocateDirect(READ_BUFFER_SIZE);
 
 	private Context context = null;
 	private CommandProcessors commandProcessors = null;

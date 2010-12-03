@@ -76,7 +76,7 @@ public class NatHelpServer implements Runnable, LiveStateListener {
 
 	/**
 	 * Nat traversal port the server runs on.
-	 * @param natTraversalPort the natTraversalPort to set
+	 * @param port the NAT traversal port to set
 	 */
 	public void setPort(int port) {
 		this.port = port;
@@ -161,7 +161,7 @@ public class NatHelpServer implements Runnable, LiveStateListener {
 	/**
 	 * Returns the oldest package, and removes it from the internal storage.
 	 * This method will be called by an other thread then the NAT-server one.
-	 * @returns the next oldest package, or <code>null</code>, if none is left.
+	 * @return the next oldest package, or <code>null</code>, if none is left.
 	 */
 	public DatagramPacket fetchNextPackage() {
 

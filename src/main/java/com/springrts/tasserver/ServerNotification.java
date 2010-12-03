@@ -61,7 +61,7 @@ public class ServerNotification {
 
 	/**
 	 * Miliseconds passed since 1st Jan 1970
-	 * @see System.currentTimeMillis()
+	 * @see java.lang.System#currentTimeMillis()
 	 * @return the time
 	 */
 	public long getTime() {

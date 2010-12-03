@@ -17,8 +17,8 @@ import org.apache.commons.logging.LogFactory;
 
 /**
  * JPA implementation of an accounts service.
- * Uses abstracted DB access to store data.
- * @see persistence.xml
+ * Uses abstracted DB access to store data,
+ * see persistence.xml for DB settings.
  *
  * @author hoijui
  */

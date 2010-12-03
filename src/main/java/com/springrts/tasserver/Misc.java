@@ -35,8 +35,8 @@ public class Misc {
 	/**
 	 * Puts together strings from <code>a</code>, starting at
 	 * <code>a[startIndex]</code>, see
-	 * http://leepoint.net/notes-java/data/strings/96string_examples/example_arrayToString.html
-	 * on why <code>StringBuilder</code> is faster.
+	 * <a href="http://leepoint.net/notes-java/data/strings/96string_examples/example_arrayToString.html">
+	 * this document</a> on why <code>StringBuilder</code> is faster.
 	 */
 	public static String makeSentence(String[] a, int startIndex) {
 		if (startIndex > a.length - 1) {
@@ -85,7 +85,9 @@ public class Misc {
 	/**
 	 * This method will return the local IP address, such as "192.168.1.100"
 	 * instead of "127.0.0.1".
-	 * http://forum.java.sun.com/thread.jspa?threadID=619056&messageID=3477258
+	 * See also
+	 * <a href="http://forum.java.sun.com/thread.jspa?threadID=619056&messageID=3477258">
+	 * this related post</a>.
 	 */
 	public static String getLocalIPAddress() {
 
@@ -172,10 +174,11 @@ public class Misc {
 	/**
 	 * Reallocates an array with a new size, and copies the contents
 	 * of the old array to the new array.
+	 * See also <a href="http://www.source-code.biz/snippets/java/3.htm">
+	 * this related code snipped</a>.
 	 * @param oldArray  the old array, to be reallocated.
 	 * @param newSize   the new array size.
 	 * @return          A new array with the same contents.
-	 * http://www.source-code.biz/snippets/java/3.htm
 	 */
 	public static Object resizeArray(Object oldArray, int newSize) {
 
@@ -192,7 +195,8 @@ public class Misc {
 
 	/**
 	 * Sorts an array of integers using simple bubble sort algorithm.
-	 * http://en.wikisource.org/wiki/Bubble_sort
+	 * You may want to see the
+	 * <a href="http://en.wikisource.org/wiki/Bubble_sort">Bubble-Sort Wiki</a>.
 	 */
 	@Deprecated
 	public static void bubbleSort(int[] data) {
@@ -220,7 +224,9 @@ public class Misc {
 	/**
 	 * Sorts an array of integers plus a parallel List of objects
 	 * using simple bubble sort. This is a generic method.
-	 * http://java.sun.com/docs/books/tutorial/extra/generics/methods.html
+	 * Documentation about
+	 * <a href="http://java.sun.com/docs/books/tutorial/extra/generics/methods.html">
+	 * Generic Methods</a>.
 	 */
 	public static <T> void bubbleSort(int[] data, List<T> list) {
 		boolean isSorted;
@@ -302,7 +308,8 @@ public class Misc {
 
 	/**
 	 * Will decompress ZIP archive to current folder.
-	 * Code copied from here: http://www.rgagnon.com/javadetails/java-0067.html
+	 * Code copied from 
+	 * <a href="http://www.rgagnon.com/javadetails/java-0067.html">here</a>,
 	 * and slightly modified.
 	 */
 	public static void unzipArchive(String fileName) throws IOException {
@@ -359,11 +366,15 @@ public class Misc {
 	}
 
 	/**
-	 * Downloads a file from the given URL and saves it to disk to specified file.
-	 * 'downloadLimit' is specified in bytes per second (use 0 for unlimited) - this is
-	 * the maximum rate at which this method will attempt to download the file.
+	 * Downloads a file from the given URL and saves it to disk to specified
+	 * file.
+	 * @param downloadLimit is specified in bytes per second
+	 *        (use 0 for unlimited). This is the maximum rate at which this
+	 *        method will attempt to download the file.
 	 * Returns number of bytes written if it succeeds.
-	 * Original code copied from: http://schmidt.devlib.org/java/file-download.html#source
+	 * Original code copied from
+	 * <a href="http://schmidt.devlib.org/java/file-download.html#source">here
+	 * </a>
 	 */
 	public static long download(String address, String localFileName, int downloadLimit) throws MalformedURLException, IOException {
 		long numWritten = 0;
@@ -443,7 +454,7 @@ public class Misc {
 	}
 
 	/**
-	 * @see download(String, String, int)
+	 * @see #download(String, String, int)
 	 */
 	public static long download(String address, String localFileName) throws MalformedURLException, IOException {
 		return download(address, localFileName, 0);
@@ -660,7 +671,7 @@ public class Misc {
 
 	/**
 	 * Utility method used to delete a file or a directory recursively.
-	 * @param file the file or directory to recursively delete.
+	 * @param fileOrDir the file or directory to recursively delete.
 	 */
 	public static void deleteFileOrDir(File fileOrDir) throws IOException {
 

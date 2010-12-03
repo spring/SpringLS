@@ -280,7 +280,7 @@ public class Clients implements ContextReceiver {
 		}
 	}
 
-	/** @see killClient() */
+	/** @see #killClient(Client client, String reason) */
 	public boolean killClient(Client client) {
 		return killClient(client, "");
 	}

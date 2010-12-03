@@ -150,7 +150,7 @@ public class Server implements ContextReceiver {
 
 	/**
 	 * When the server instance was started.
-	 * @see System.currentTimeMillis()
+	 * @see java.lang.System#currentTimeMillis()
 	 * @return the startTime
 	 */
 	public long getStartTime() {
@@ -159,7 +159,7 @@ public class Server implements ContextReceiver {
 
 	/**
 	 * When the server instance was started.
-	 * @see System.currentTimeMillis()
+	 * @see java.lang.System#currentTimeMillis()
 	 * @param startTime the startTime to set
 	 */
 	public void setStartTime(long startTime) {
@@ -168,7 +168,7 @@ public class Server implements ContextReceiver {
 
 	/**
 	 * LAN mode administrator user-name.
-	 * Only relevant if {@link getLanMode()} is <code>true</code>.
+	 * Only relevant if {@link #isLanMode()} is <code>true</code>.
 	 * @return the lanAdminUsername
 	 */
 	public String getLanAdminUsername() {
@@ -177,7 +177,7 @@ public class Server implements ContextReceiver {
 
 	/**
 	 * LAN mode administrator user-name.
-	 * Only relevant if {@link getLanMode()} is <code>true</code>.
+	 * Only relevant if {@link #isLanMode()} is <code>true</code>.
 	 * @param lanAdminUsername the lanAdminUsername to set
 	 */
 	public void setLanAdminUsername(String lanAdminUsername) {
@@ -186,7 +186,7 @@ public class Server implements ContextReceiver {
 
 	/**
 	 * LAN mode administrator password.
-	 * Only relevant if {@link getLanMode()} is <code>true</code>.
+	 * Only relevant if {@link #isLanMode()} is <code>true</code>.
 	 * @return the lanAdminPassword
 	 */
 	public String getLanAdminPassword() {
@@ -195,7 +195,7 @@ public class Server implements ContextReceiver {
 
 	/**
 	 * LAN mode administrator password.
-	 * Only relevant if {@link getLanMode()} is <code>true</code>.
+	 * Only relevant if {@link #isLanMode()} is <code>true</code>.
 	 * @param lanAdminPassword the lanAdminPassword to set
 	 */
 	public void setLanAdminPassword(String lanAdminPassword) {

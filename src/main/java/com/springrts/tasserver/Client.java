@@ -64,15 +64,15 @@ public class Client implements ContextReceiver {
 	 */
 	private int udpSourcePort;
 	/**
-	 * See the 'MYSTATUS' command for valid values
+	 * See the 'MYSTATUS' command for valid values.
 	 */
 	private int status;
 	/**
-	 * See the 'MYBATTLESTATUS' command for valid values
+	 * See the 'MYBATTLESTATUS' command for valid values.
 	 */
 	private int battleStatus;
 	/**
-	 * @see MYBATTLESTATUS
+	 * See the 'MYBATTLESTATUS' command for valid values.
 	 */
 	private int teamColor;
 	/**
@@ -258,8 +258,9 @@ public class Client implements ContextReceiver {
 	}
 
 	/**
-	 * @param msgId overrides any previously set message ID {@see #setSendMsgId()}.
-	 * Use NO_MSG_ID (which should equal to -1) for none.
+	 * @param msgId overrides any previously set message ID,
+	 *        use NO_MSG_ID for none.
+	 * @see #setSendMsgId(int msgId)
 	 */
 	public boolean sendLine(String text, int msgId) {
 		if (!alive || halfDead) {
@@ -693,7 +694,7 @@ public class Client implements ContextReceiver {
 	}
 
 	/**
-	 * @see MYBATTLESTATUS
+	 * See the 'MYBATTLESTATUS' command for valid values.
 	 * @return the teamColor
 	 */
 	public int getTeamColor() {
@@ -701,7 +702,7 @@ public class Client implements ContextReceiver {
 	}
 
 	/**
-	 * @see MYBATTLESTATUS
+	 * See the 'MYBATTLESTATUS' command for valid values.
 	 * @param teamColor the teamColor to set
 	 */
 	public void setTeamColor(int teamColor) {
@@ -772,7 +773,7 @@ public class Client implements ContextReceiver {
 	/**
 	 * In milliseconds.
 	 * Used internally to remember time when the user entered the game.
-	 * @see System.currentTimeMillis()
+	 * @see java.lang.System#currentTimeMillis()
 	 * @return the inGameTime
 	 */
 	public long getInGameTime() {
@@ -782,7 +783,7 @@ public class Client implements ContextReceiver {
 	/**
 	 * In milliseconds.
 	 * Used internally to remember time when the user entered the game.
-	 * @see System.currentTimeMillis()
+	 * @see java.lang.System#currentTimeMillis()
 	 * @param inGameTime the inGameTime to set
 	 */
 	public void setInGameTime(long inGameTime) {
@@ -844,7 +845,7 @@ public class Client implements ContextReceiver {
 	/**
 	 * Time (in milli-seconds) when we last heard from client
 	 * (last data received).
-	 * @see System.currentTimeMillis()
+	 * @see java.lang.System#currentTimeMillis()
 	 * @return the timeOfLastReceive
 	 */
 	public long getTimeOfLastReceive() {
@@ -854,7 +855,7 @@ public class Client implements ContextReceiver {
 	/**
 	 * Time (in milli-seconds) when we last heard from client
 	 * (last data received).
-	 * @see System.currentTimeMillis()
+	 * @see java.lang.System#currentTimeMillis()
 	 * @param timeOfLastReceive the timeOfLastReceive to set
 	 */
 	public void setTimeOfLastReceive(long timeOfLastReceive) {

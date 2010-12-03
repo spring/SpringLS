@@ -7,8 +7,9 @@ import java.net.*;
 import java.util.*;
 
 /**
- * This web server code was copied from sun's simple web server tutorial:
- *   http://java.sun.com/developer/technicalArticles/Networking/Webserver/
+ * This web server code was copied from SUN's
+ * <a href="http://java.sun.com/developer/technicalArticles/Networking/Webserver/">
+ * simple web server tutorial</a>
  *
  * Use "www.server.properties" file for server config.
  *

@@ -39,7 +39,11 @@ public class Statistics implements ContextReceiver {
 
 	/** in milliseconds */
 	private final long saveStatisticsInterval = 1000 * 60 * 20;
-	private static final String PLOTICUS_FULLPATH = "./ploticus/bin/pl"; // see http://ploticus.sourceforge.net/ for more info on ploticus
+	/**
+	 * See the <a href="http://ploticus.sourceforge.net/">Ploticus page</a>
+	 * for more info.
+	 */
+	private static final String PLOTICUS_FULLPATH = "./ploticus/bin/pl";
 	private static final String STATISTICS_FOLDER = "./stats/";
 
 	/**
@@ -434,10 +438,12 @@ public class Statistics implements ContextReceiver {
 	 * System.out.println(now("K:mm a,z"));
 	 * System.out.println(now("yyyy.MMMMM.dd GGG hh:mm aaa"));
 	 *
-	 * Taken from http://www.rgagnon.com/javadetails/java-0106.html.
+	 * Taken from <a href="http://www.rgagnon.com/javadetails/java-0106.html">
+	 * here</a>.
 	 *
-	 * Also see http://java.sun.com/j2se/1.4.2/docs/api/java/text/SimpleDateFormat.html
-	 * for more info on SimpleDateFormat.
+	 * Also see
+	 * <a href="http://java.sun.com/j2se/1.4.2/docs/api/java/text/SimpleDateFormat.html">
+	 * SimpleDateFormat JavaDoc</a> for more info.
 	 */
 	private static String now(String format) {
 

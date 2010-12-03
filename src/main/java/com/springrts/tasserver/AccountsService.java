@@ -52,7 +52,7 @@ public interface AccountsService extends ContextReceiver, LiveStateListener {
 	/**
 	 * Saves accounts only if they have not been saved for some time.
 	 * This method should be called periodically!
-	 * @see saveAccounts()
+	 * @see #saveAccounts(boolean block)
 	 */
 	public void saveAccountsIfNeeded();
 

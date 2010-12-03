@@ -144,7 +144,7 @@ public class Account implements Serializable, Cloneable {
 	 * This applies to users that registered in some early version,
 	 * when this field was not yet present. Note that this field was first
 	 * introduced with Spring 0.67b3, Dec 18 2005.
-	 * @see java.lang.System.currentTimeMillis()
+	 * @see java.lang.System#currentTimeMillis()
 	 */
 	@Column(
 		name       = "register_date",
@@ -157,7 +157,7 @@ public class Account implements Serializable, Cloneable {
 
 	/**
 	 * Time of the last login.
-	 * @see java.lang.System.currentTimeMillis()
+	 * @see java.lang.System#currentTimeMillis()
 	 */
 	@Column(
 		name       = "last_login",
@@ -564,7 +564,7 @@ public class Account implements Serializable, Cloneable {
 	/**
 	 * Unique account identification number.
 	 * This is different to the <code>lastUserId</code>, because it
-	 * @see lastUserId
+	 * @see #getLastUserId()
 	 * @return the id
 	 */
 	protected int getId() {
@@ -574,7 +574,7 @@ public class Account implements Serializable, Cloneable {
 	/**
 	 * Unique account identification number.
 	 * This is different to the <code>lastUserId</code>, because it
-	 * @see lastUserId
+	 * @see #getLastUserId()
 	 * @param id the id to set
 	 */
 	protected void setId(int id) {
@@ -631,7 +631,7 @@ public class Account implements Serializable, Cloneable {
 	 * Access type.
 	 * Bit 31 must be 0 (due to int being a signed number, and we don't want to
 	 * use any binary complement conversions).
-	 * @param accessType the accessType to set
+	 * @param access the access type to set
 	 */
 	public void setAccess(Access access) {
 		this.access = access;
@@ -644,7 +644,7 @@ public class Account implements Serializable, Cloneable {
 	 * indicates last ID as sent with the LOGIN or USERID command by the client.
 	 * We use it to detect spawned accounts (accounts registered by the same
 	 * name), ban evasion etc.
-	 * @see accountID
+	 * @see #getId()
 	 * @return the lastUserId
 	 */
 	public int getLastUserId() {
@@ -658,7 +658,7 @@ public class Account implements Serializable, Cloneable {
 	 * indicates last ID as sent with the LOGIN or USERID command by the client.
 	 * We use it to detect spawned accounts (accounts registered by the same
 	 * name), ban evasion etc.
-	 * @see accountID
+	 * @see #getId()
 	 * @param lastUserId the lastUserId to set
 	 */
 	public void setLastUserId(int lastUserId) {
