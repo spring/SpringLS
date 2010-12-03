@@ -51,7 +51,7 @@ public class BanEntry implements Serializable {
 		updatable  = true,
 		length     = 40
 		)
-	private String userName;
+	private String username;
 	/** Start of IP range which was banned (may be 0) */
 	@Column(
 		name       = "IP_start",
@@ -114,7 +114,7 @@ public class BanEntry implements Serializable {
 			int userId, String publicReason) {
 
 		this.expireDate   = expireDate;
-		this.userName     = userName;
+		this.username     = userName;
 		this.ipStart      = ipStart;
 		this.ipEnd        = ipEnd;
 		this.userId       = userId;
@@ -135,7 +135,7 @@ public class BanEntry implements Serializable {
 	 * @return the username
 	 */
 	public String getUserName() {
-		return userName;
+		return username;
 	}
 
 	/**
