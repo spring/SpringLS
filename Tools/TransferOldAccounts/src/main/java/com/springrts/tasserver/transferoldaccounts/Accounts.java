@@ -6,16 +6,18 @@
  *
  */
 
-/**
- * @author Betalord
- *
- */
+package com.springrts.tasserver.transferoldaccounts;
+
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 
+/**
+ * @author Betalord
+ *
+ */
 public class Accounts {
 	private static ArrayList<Account> accounts = new ArrayList<Account>(); // note: ArrayList is not synchronized! Use Vector class instead if multiple threads are going to access it.
 

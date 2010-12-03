@@ -6,15 +6,17 @@
  *
  */
 
-/**
- * @author Betalord
- *
- */
+package com.springrts.tasserver.transferoldaccounts;
+
 
 import java.util.*;
 import java.sql.*;
 import java.text.*;
 
+/**
+ * @author Betalord
+ *
+ */
 public class TransferOldAccounts {
 
 	// database related:

@@ -9,13 +9,14 @@
  *   but since all usernames must be unique, we don't need another unique identifier).
  */
 
+package com.springrts.tasserver.transferoldaccounts;
+
 /**
  * @author Betalord
  *
  * TODO To change the template for this generated type comment go to
  * Window - Preferences - Java - Code Style - Code Templates
  */
-
 public class Account {
 
 	/*

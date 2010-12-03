@@ -3,13 +3,15 @@
  *
  */
 
+package com.springrts.tasserver.transferoldaccounts;
+
+
+import java.sql.*;
+
 /**
  * @author Betalord
  *
  */
-
-import java.sql.*;
-
 public class DBInterface {
 	private Connection conn;
 	private Statement stmt;
