@@ -8,6 +8,7 @@ package com.springrts.chanserv;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -108,6 +109,8 @@ public class RemoteAccessServer extends Thread {
 	/** A list of all currently running client threads (needs to be thread-save) */
 	private final Map<Integer, RemoteClientThread> threads;
 	private final int port;
+	private ServerSocket serverSocket;
+	private boolean running;
 
 	private Context context;
 
@@ -115,6 +118,8 @@ public class RemoteAccessServer extends Thread {
 
 		this.context = context;
 		this.port = port;
+		this.serverSocket = null;
+		this.running = false;
 		this.remoteAccounts = java.util.Collections.synchronizedList(new LinkedList<String>());
 		this.threads = java.util.Collections.synchronizedMap(new HashMap<Integer, RemoteClientThread>());
 	}
@@ -122,17 +127,28 @@ public class RemoteAccessServer extends Thread {
 	@Override
 	public void run() {
 
-		try {
-			ServerSocket ss = new ServerSocket(port);
+		logger.info("Trying to run remote access server on port {} ...", port);
 
-			while (true) {
-				Socket cs = ss.accept();
-				RemoteClientThread thread = new RemoteClientThread(context, this, cs);
-				threads.put(thread.ID, thread);
-				thread.start();
-			}
+		try {
+			serverSocket = new ServerSocket(port);
+			running = true;
 		} catch (IOException ex) {
-			logger.error("Error occured while trying to handle a remote client connect operation", ex);
+			logger.error("Failed to start the remote access server", ex);
+		}
+
+		while (running) {
+			try {
+				Socket cs = serverSocket.accept();
+				RemoteClientThread thread = new RemoteClientThread(context, this, cs);
+				threads.put(thread.getClientId(), thread);
+				thread.start();
+			} catch (SocketException sex) {
+				// this is triggered when the server-socket was closed while we
+				// were blocked in accept()
+				// -> nothing bad, server is beeing closed
+			} catch (IOException ex) {
+				logger.warn("Failed to handle a remote client connect operation", ex);
+			}
 		}
 	}
 
@@ -169,6 +185,6 @@ public class RemoteAccessServer extends Thread {
 	}
 
 	public RemoteClientThread removeRemoteClientThread(RemoteClientThread thread) {
-		return threads.remove(thread.ID);
+		return threads.remove(thread.getClientId());
 	}
 }

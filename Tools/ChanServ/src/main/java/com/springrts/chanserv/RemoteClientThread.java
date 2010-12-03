@@ -33,7 +33,7 @@ public class RemoteClientThread extends Thread {
 	 * A unique ID which we will use as a message ID when sending commands to
 	 * the lobby server.
 	 */
-	public final int ID = new Random().nextInt(Short.MAX_VALUE);
+	private final int id;
 
 	/**
 	 * Reply queue which gets filled by context.getChanServ() automatically
@@ -44,12 +44,13 @@ public class RemoteClientThread extends Thread {
 
 	/* socket for the client which we are handling */
 	private Socket socket;
-	private String IP;
+	private final String IP;
 	/** whether the remote client has already identified */
-	private boolean identified = false;
+	private boolean identified;
 
 	private PrintWriter out;
 	private BufferedReader in;
+	private boolean running;
 
 	/** the object that spawned this thread */
 	private RemoteAccessServer parent;
@@ -58,29 +59,39 @@ public class RemoteClientThread extends Thread {
 
 	RemoteClientThread(Context context, RemoteAccessServer parent, Socket s) throws IOException {
 
-		this.context = context;
+		this.id = new Random().nextInt(Short.MAX_VALUE);
 		// LinkedBlockingQueue is thread-save
 		this.replyQueue = new LinkedBlockingQueue<String>();
 		this.socket = s;
+		this.IP = socket.getInetAddress().getHostAddress();
+		this.identified = false;
 		this.parent = parent;
+		this.context = context;
+
+		initConnection();
+	}
+
+	private void initConnection() throws IOException {
+
 		try {
 			socket.setSoTimeout(TIMEOUT);
 			socket.setTcpNoDelay(true);
 		} catch (SocketException ex) {
-			logger.error("Serious error in RemoteClient constructor (SocketException)", ex);
+			throw new IOException("Failed to setup the remote client socket", ex);
 		}
-		IP = socket.getInetAddress().getHostAddress();
 
 		OutputStream rawOut = null;
 		out = null;
 		InputStream rawIn = null;
 		in = null;
+		running = false;
 		try {
 			rawOut = socket.getOutputStream();
 			out = new PrintWriter(rawOut, true);
 
 			rawIn = socket.getInputStream();
 			in = new BufferedReader(new InputStreamReader(rawIn));
+			running = true;
 		} catch (IOException ex) {
 			if (out != null) {
 				out.close();
@@ -96,8 +107,8 @@ public class RemoteClientThread extends Thread {
 		}
 	}
 
-	public String readLine() throws IOException {
-		return in.readLine();
+	public int getClientId() {
+		return id;
 	}
 
 	public void sendLine(String text) {
@@ -107,14 +118,15 @@ public class RemoteClientThread extends Thread {
 	}
 
 	private void disconnect() {
-		try {
-			if (!socket.isClosed()) {
+
+		if (!socket.isClosed()) {
+			try {
 				out.close();
 				in.close();
 				socket.close();
+			} catch (IOException ex) {
+				logger.warn("Failed to propperly close the remote client connection with " + IP, ex);
 			}
-		} catch (IOException ex) {
-			logger.warn("Failed to propperly close remote client connection with " + IP, ex);
 		}
 	}
 
@@ -125,28 +137,30 @@ public class RemoteClientThread extends Thread {
 
 	@Override
 	public void run() {
-		String input;
 
-		try {
-			while (true) {
-				input = readLine();
-				if (input == null) {
-					throw new IOException();
-				}
-				logger.debug("{}: \"{}\"", IP, input);
+		String input = null;
+		while (running) {
+			try {
+				input = in.readLine();
+			} catch (InterruptedIOException ex) {
+				running = false;
+			} catch (IOException ex) {
+				running = false;
+			}
+			if (input == null) {
+				running = false;
+			}
+
+			if (running) {
 				processCommand(input);
 			}
-		} catch (InterruptedIOException ex) {
-			kill();
-			return;
-		} catch (IOException ex) {
-			kill();
-			return;
 		}
+
+		kill();
 	}
 
 	private void queryTASServer(String command) {
-		context.getChanServ().sendLine("#" + ID + " " + command);
+		context.getChanServ().sendLine("#" + id + " " + command);
 	}
 
 	/** Will wait until queue doesn't contain a response */
@@ -172,6 +186,8 @@ public class RemoteClientThread extends Thread {
 		if (cleanCommand.equals("")) {
 			return;
 		}
+
+		logger.debug("processCommand from {}: \"{}\"", IP, command);
 
 		String[] params = cleanCommand.split(" ");
 		params[0] = params[0].toUpperCase();
