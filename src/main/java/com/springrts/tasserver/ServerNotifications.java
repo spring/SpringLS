@@ -8,7 +8,10 @@ package com.springrts.tasserver;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -71,7 +74,7 @@ public class ServerNotifications implements ContextReceiver {
 			if (tmpFile.createNewFile()) {
 				notifFile = tmpFile;
 			} else {
-				throw new IOException();
+				throw new IOException("File already exists");
 			}
 		} catch (IOException ex) {
 			s_log.error("Failed creating notification-file: " + tmpFile, ex);

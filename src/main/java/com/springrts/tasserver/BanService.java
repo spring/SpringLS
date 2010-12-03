@@ -4,8 +4,8 @@
 
 package com.springrts.tasserver;
 
-import java.util.List;
 
+import java.util.List;
 
 /**
  * Data Access Object (DAO) interface for BanEntry's.

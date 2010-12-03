@@ -10,10 +10,16 @@ import org.apache.commons.logging.LogFactory;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.nio.*;
-import java.nio.channels.*;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.channels.ClosedChannelException;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.SocketChannel;
 import java.nio.charset.CharacterCodingException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
 
 /**
  * A Client instance can be seen as a session of a user, which has logged into
