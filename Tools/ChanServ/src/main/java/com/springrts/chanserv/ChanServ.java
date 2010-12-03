@@ -1296,7 +1296,6 @@ public class ChanServ {
 		Configuration config = context.getConfiguration();
 
 		// run remote access server:
-		logger.info("Trying to run remote access server on port " + config.getRemoteAccessPort() + " ...");
 		RemoteAccessServer remoteAccessServer = new RemoteAccessServer(context, config.getRemoteAccessPort());
 		context.setRemoteAccessServer(remoteAccessServer);
 		remoteAccessServer.start();

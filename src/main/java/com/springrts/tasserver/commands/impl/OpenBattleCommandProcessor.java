@@ -15,8 +15,7 @@ import java.util.List;
  * @author hoijui
  */
 @SupportedCommand("OPENBATTLE")
-public class OpenBattleCommandProcessor extends AbstractCommandProcessor
-		implements CommandProcessor {
+public class OpenBattleCommandProcessor extends AbstractCommandProcessor {
 
 	public OpenBattleCommandProcessor() {
 		super(Account.Access.NORMAL);

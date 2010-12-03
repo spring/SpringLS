@@ -12,8 +12,7 @@ import java.util.List;
  * @author hoijui
  */
 @SupportedCommand("PING")
-public class PingCommandProcessor extends AbstractCommandProcessor
-		implements CommandProcessor {
+public class PingCommandProcessor extends AbstractCommandProcessor {
 
 	public PingCommandProcessor() {
 	}
