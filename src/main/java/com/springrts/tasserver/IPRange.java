@@ -59,9 +59,9 @@ public class IPRange implements Comparable<IPRange> {
 		if (!(obj instanceof IPRange)) {
 			return false;
 		}
-		return (this.getFromIP() == ((IPRange) obj).getFromIP()) &&
-				(this.getToIP() == ((IPRange) obj).getToIP()) &&
-				(this.getCountryCode2().equals(((IPRange) obj).getCountryCode2()));
+		return (this.getFromIP() == ((IPRange) obj).getFromIP())
+				&& (this.getToIP() == ((IPRange) obj).getToIP())
+				&& (this.getCountryCode2().equals(((IPRange) obj).getCountryCode2()));
 	}
 
 	@Override

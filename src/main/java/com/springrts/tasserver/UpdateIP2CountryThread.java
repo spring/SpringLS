@@ -49,7 +49,7 @@ public class UpdateIP2CountryThread implements Runnable, ContextReceiver {
 	 * This is the maximum speed at which this thread will attempt
 	 * to download files from the Internet in bytes per second.
 	 */
-	private final int DOWNLOAD_LIMIT = 1024 * 128;
+	private static final int DOWNLOAD_LIMIT = 1024 * 128;
 
 	private Context context = null;
 
@@ -91,7 +91,7 @@ public class UpdateIP2CountryThread implements Runnable, ContextReceiver {
 			if (inProgress.compareAndSet(false, true)) {
 				throw new Exception("Update already in progress");
 			}
-		
+
 			List<URL> sourceUrls = new ArrayList<URL>(2);
 			sourceUrls.add(new URL("http://ip-to-country.webhosting.info/downloads/ip-to-country.csv.zip"));
 			sourceUrls.add(new URL("http://software77.net/cgi-bin/ip-country/geo-ip.pl?action=downloadZ"));

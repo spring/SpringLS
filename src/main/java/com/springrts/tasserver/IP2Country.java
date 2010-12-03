@@ -14,16 +14,16 @@ import org.apache.commons.logging.LogFactory;
  * @author Betalord
  */
 public class IP2Country {
-	
+
 	private Log s_log  = LogFactory.getLog(IP2Country.class);
 
 	private TreeSet<String> countries = new TreeSet<String>();
 	private TreeMap<IPRange, IPRange> resolveTable = new TreeMap<IPRange, IPRange>();
 
 	private UpdateIP2CountryThread updater = null;
-	private Thread update_thread = null;
+	private Thread updateThread = null;
 
-	private final static String DEFAULT_DATA_FILE = "ip2country.dat";
+	private static final String DEFAULT_DATA_FILE = "ip2country.dat";
 	private File dataFile;
 
 
@@ -79,9 +79,9 @@ public class IP2Country {
 		}
 
 		updater = new UpdateIP2CountryThread(this);
-		update_thread = new Thread(updater);
-		update_thread.setPriority(Thread.NORM_PRIORITY - 2);
-		update_thread.start();
+		updateThread = new Thread(updater);
+		updateThread.setPriority(Thread.NORM_PRIORITY - 2);
+		updateThread.start();
 	}
 
 	/**
@@ -99,7 +99,7 @@ public class IP2Country {
 			resolveTable.clear();
 
 			String line;
-			String tokens[];
+			String[] tokens;
 
 			while ((line = in.readLine()) != null) {
 				tokens = line.split(",");
@@ -130,7 +130,7 @@ public class IP2Country {
 			resolveTable.clear();
 
 			String line;
-			String tokens[];
+			String[] tokens;
 
 			while ((line = in.readLine()) != null) {
 				tokens = line.split(",");
@@ -267,11 +267,11 @@ public class IP2Country {
 	}
 
 	/** For a given IP address it returns corresponding country code (2-chars wide) */
-	public String getCountryCode(long IP) {
+	public String getCountryCode(long ip) {
 		String result = "XX";
 		try {
-			IPRange x = resolveTable.headMap(new IPRange(IP+1, IP+1, "XX")).lastKey(); // +1 because headMap() returns keys that are strictly less than given key
-			if ((x.getFromIP() <= IP) && (x.getToIP() >= IP)) {
+			IPRange x = resolveTable.headMap(new IPRange(ip+1, ip+1, "XX")).lastKey(); // +1 because headMap() returns keys that are strictly less than given key
+			if ((x.getFromIP() <= ip) && (x.getToIP() >= ip)) {
 				result = x.getCountryCode2();
 			}
 		} catch (NoSuchElementException e) {

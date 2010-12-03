@@ -19,22 +19,23 @@ import javax.persistence.*;
  * @author Betalord
  */
 @Entity
-@Table(name="users")
+@Table(name = "users")
 @NamedQueries({
-	@NamedQuery(name="acc_size", query="SELECT count(a.id) FROM Account a"),
-//	@NamedQuery(name="size_active", query="SELECT count(a.id) FROM Account a WHERE ((a.inGameTime >= :minInGameTime) AND (a.lastLogin > :oneWeekAgo))"),
+	@NamedQuery(name = "acc_size",             query = "SELECT count(a.id) FROM Account a"),
+//	@NamedQuery(name = "size_active",          query = "SELECT count(a.id) FROM Account a WHERE ((a.inGameTime >= :minInGameTime) AND (a.lastLogin > :oneWeekAgo))"),
 //	q_size_active.setParameter("minInGameTime", Account.Rank.Beginner.getRequiredTime());
-	@NamedQuery(name="acc_size_active", query="SELECT count(a.id) FROM Account a WHERE ((a.inGameTime >= " + /*Account.Rank.Beginner.getRequiredTime()*/(5 * 60 * 60) + ") AND (a.lastLogin > :oneWeekAgo))"),
-	@NamedQuery(name="acc_list", query="SELECT a FROM Account a"),
-	@NamedQuery(name="acc_fetchByName", query="SELECT a FROM Account a WHERE a.name = :name"),
-	@NamedQuery(name="acc_fetchByLowerName", query="SELECT a FROM Account a WHERE (LOWER(a.name) = :lowerName)"),
-	@NamedQuery(name="acc_fetchByLastIP", query="SELECT a FROM Account a WHERE a.lastIP = :ip")
+	@NamedQuery(name = "acc_size_active",      query = "SELECT count(a.id) FROM Account a WHERE ((a.inGameTime >= " + /*Account.Rank.Beginner.getRequiredTime()*/(5 * 60 * 60) + ") AND (a.lastLogin > :oneWeekAgo))"),
+	@NamedQuery(name = "acc_list",             query = "SELECT a FROM Account a"),
+	@NamedQuery(name = "acc_fetchByName",      query = "SELECT a FROM Account a WHERE a.name = :name"),
+	@NamedQuery(name = "acc_fetchByLowerName", query = "SELECT a FROM Account a WHERE (LOWER(a.name) = :lowerName)"),
+	@NamedQuery(name = "acc_fetchByLastIP",    query = "SELECT a FROM Account a WHERE a.lastIP = :ip")
 })
 public class Account implements Serializable, Cloneable {
 
 	private static final Log s_log  = LogFactory.getLog(Account.class);
 
 	/**
+	 * Player ranks, based on in-game time.
 	 * Current rank categories:
 	 * < 5h = newbie
 	 * 5h - 15h = beginner
@@ -96,7 +97,7 @@ public class Account implements Serializable, Cloneable {
 	/**
 	 * Unique account identification number.
 	 * This is different to the <code>lastUserId</code>, because it
-	 * @see lastUserId
+	 * @see #lastUserId
 	 */
 	@Id
 	@GeneratedValue
@@ -143,7 +144,7 @@ public class Account implements Serializable, Cloneable {
 	 * This applies to users that registered in some early version,
 	 * when this field was not yet present. Note that this field was first
 	 * introduced with Spring 0.67b3, Dec 18 2005.
-	 * @see System.currentTimeMillis()
+	 * @see java.lang.System.currentTimeMillis()
 	 */
 	@Column(
 		name       = "register_date",
@@ -156,7 +157,7 @@ public class Account implements Serializable, Cloneable {
 
 	/**
 	 * Time of the last login.
-	 * @see System.currentTimeMillis()
+	 * @see java.lang.System.currentTimeMillis()
 	 */
 	@Column(
 		name       = "last_login",
@@ -187,7 +188,7 @@ public class Account implements Serializable, Cloneable {
 	 * indicates last ID as sent with the LOGIN or USERID command by the client.
 	 * We use it to detect spawned accounts (accounts registered by the same
 	 * name), ban evasion etc.
-	 * @see id
+	 * @see #id
 	 */
 	@Column(
 		name       = "last_id",
@@ -285,8 +286,8 @@ public class Account implements Serializable, Cloneable {
 	Account(String name, String password, Access access, int lastUserId,
 			long lastLogin, String lastIP, long registrationDate,
 			String lastCountry, int id, boolean bot, long inGameTime,
-			boolean agreementAccepted) {
-
+			boolean agreementAccepted)
+	{
 		this.id                = id;
 		this.name              = name;
 		this.password          = password;
@@ -509,18 +510,18 @@ public class Account implements Serializable, Cloneable {
 		}
 		// check if prefix is valid:
 		else if (!nickName.matches("^([A-Za-z0-9\\[\\]\\|]+[\\|\\]])?" + baseUserName)) {
-			return "Invalid prefix found in nickname: embed your prefix " +
-					"in [] brackets or separate it by a | character";
+			return "Invalid prefix found in nickname: embed your prefix "
+					+ "in [] brackets or separate it by a | character";
 		}
 		// check if postfix is valid:
 		else if (!nickName.matches(baseUserName + "([\\|\\[][A-Za-z0-9\\[\\]\\|]+)?$")) {
-			return "Invalid postfix found in nickname: embed your postfix " +
-					"in [] brackets or separate it by a | character";
+			return "Invalid postfix found in nickname: embed your postfix "
+					+ "in [] brackets or separate it by a | character";
 		}
 		// check if prefix and postfix are both valid in one shot:
 		else if (!nickName.matches("^([A-Za-z0-9\\[\\]\\|]+[\\|\\]])?" + baseUserName + "([\\|\\[][A-Za-z0-9\\[\\]\\|]+)?$")) {
-			return "Nickname contains invalid prefix/postfix. " +
-					"Your username should be contained in your nickname!";
+			return "Nickname contains invalid prefix/postfix. "
+					+ "Your username should be contained in your nickname!";
 		} else {
 			// everything is OK:
 			return null;

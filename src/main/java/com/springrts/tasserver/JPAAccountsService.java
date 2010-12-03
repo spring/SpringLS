@@ -110,10 +110,10 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 		EntityManager em = null;
 		try {
 			em = open();
-			Query q_size_active = em.createNamedQuery("acc_size_active");
+			Query activeSizeQuery = em.createNamedQuery("acc_size_active");
 			final long oneWeekAgo = System.currentTimeMillis() - (1000 * 60 * 60 * 24 * 7);
-			q_size_active.setParameter("oneWeekAgo", oneWeekAgo);
-			activeAccounts = (int) (long) (Long) (q_size_active.getSingleResult());
+			activeSizeQuery.setParameter("oneWeekAgo", oneWeekAgo);
+			activeAccounts = (int) (long) (Long) (activeSizeQuery.getSingleResult());
 		} catch (Exception ex) {
 			s_log.error("Failed fetching active accounts", ex);
 			activeAccounts = -1;
@@ -207,9 +207,9 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 		EntityManager em = null;
 		try {
 			em = open();
-			Query q_fetchByName = em.createNamedQuery("acc_fetchByName");
-			q_fetchByName.setParameter("name", username);
-			act = (Account) q_fetchByName.getSingleResult();
+			Query fetchByNameQuery = em.createNamedQuery("acc_fetchByName");
+			fetchByNameQuery.setParameter("name", username);
+			act = (Account) fetchByNameQuery.getSingleResult();
 		} catch (NoResultException ex) {
 			s_log.trace("Failed fetching an account by name: " + username + " (user not found)", ex);
 		} catch (Exception ex) {
@@ -230,9 +230,9 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 		EntityManager em = null;
 		try {
 			em = open();
-			Query q_fetchByLowerName = em.createNamedQuery("acc_fetchByLowerName");
-			q_fetchByLowerName.setParameter("lowerName", username.toLowerCase());
-			act = (Account) q_fetchByLowerName.getSingleResult();
+			Query fetchByLowerNameQuery = em.createNamedQuery("acc_fetchByLowerName");
+			fetchByLowerNameQuery.setParameter("lowerName", username.toLowerCase());
+			act = (Account) fetchByLowerNameQuery.getSingleResult();
 		} catch (Exception ex) {
 			s_log.trace("Failed fetching an account by name (case-insensitive)", ex);
 		} finally {
@@ -251,9 +251,9 @@ public class JPAAccountsService extends AbstractAccountsService implements Accou
 		EntityManager em = null;
 		try {
 			em = open();
-			Query q_fetchByLastIP = em.createNamedQuery("acc_fetchByLastIP");
-			q_fetchByLastIP.setParameter("ip", ip);
-			act = (Account) q_fetchByLastIP.getSingleResult();
+			Query fetchByLastIpQuery = em.createNamedQuery("acc_fetchByLastIP");
+			fetchByLastIpQuery.setParameter("ip", ip);
+			act = (Account) fetchByLastIpQuery.getSingleResult();
 		} catch (Exception ex) {
 			s_log.trace("Failed fetching an account by last ip", ex);
 		} finally {

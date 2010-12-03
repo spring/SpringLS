@@ -149,8 +149,9 @@ public class Clients implements ContextReceiver {
 
 		for (int i = 0; i < clients.size(); i++) {
 			Client toBeNotified = clients.get(i);
-			if ((toBeNotified.getAccount().getAccess().compareTo(Account.Access.NORMAL) >= 0) &&
-			    (toBeNotified != client)) {
+			if ((toBeNotified.getAccount().getAccess().compareTo(Account.Access.NORMAL) >= 0)
+					&& (toBeNotified != client))
+			{
 				continue;
 			}
 			toBeNotified.sendLine(s);
@@ -176,8 +177,9 @@ public class Clients implements ContextReceiver {
 		client.beginFastWrite();
 		for (int i = 0; i < clients.size(); i++) {
 			Client toBeNotified = clients.get(i);
-			if ((toBeNotified.getAccount().getAccess().compareTo(Account.Access.NORMAL) >= 0) &&
-				toBeNotified.getStatus() != 0) {
+			if ((toBeNotified.getAccount().getAccess().compareTo(Account.Access.NORMAL) >= 0)
+				&& toBeNotified.getStatus() != 0)
+			{
 				// only send it if not 0.
 				// The user assumes that every new user's status is 0,
 				// so we don't need to tell him that explicitly.
@@ -237,8 +239,9 @@ public class Clients implements ContextReceiver {
 
 		for (int i = 0; i < clients.size(); i++) {
 			Client toBeNotified = clients.get(i);
-			if ((toBeNotified.getAccount().getAccess().compareTo(Account.Access.NORMAL) >= 0) &&
-			    (toBeNotified != client)) {
+			if ((toBeNotified.getAccount().getAccess().compareTo(Account.Access.NORMAL) >= 0)
+					&& (toBeNotified != client))
+			{
 				if (toBeNotified.isAcceptAccountIDs()) {
 					toBeNotified.sendLine(new StringBuilder("ADDUSER ")
 							.append(client.getAccount().getName()).append(" ")
@@ -266,9 +269,10 @@ public class Clients implements ContextReceiver {
 		for (Client toBeNotified : clients)  {
 			if (toBeNotified.getAccount().getAccess().compareTo(Account.Access.NORMAL) >= 0) {
 				StringBuilder cmd = new StringBuilder(cmdBase);
-				if ((toBeNotified.equals(battle.getFounder()) || toBeNotified.equals(client)) &&
-						client.isScriptPassordSupported() &&
-						(!client.getScriptPassword().equals(Client.NO_SCRIPT_PASSWORD))) {
+				if ((toBeNotified.equals(battle.getFounder()) || toBeNotified.equals(client))
+						&& client.isScriptPassordSupported()
+						&& (!client.getScriptPassword().equals(Client.NO_SCRIPT_PASSWORD)))
+				{
 					cmd.append(" ").append(client.getScriptPassword());
 				}
 				toBeNotified.sendLine(cmd.toString());

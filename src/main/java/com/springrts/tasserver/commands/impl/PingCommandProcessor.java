@@ -19,7 +19,8 @@ public class PingCommandProcessor extends AbstractCommandProcessor {
 
 	@Override
 	public boolean process(Client client, List<String> args)
-			throws CommandProcessingException {
+			throws CommandProcessingException
+	{
 		boolean checksOk = super.process(client, args);
 		if (!checksOk) {
 			return false;

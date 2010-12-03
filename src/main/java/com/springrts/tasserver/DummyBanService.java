@@ -33,7 +33,7 @@ public class DummyBanService implements BanService{
 	}
 
 	@Override
-	public BanEntry getBanEntry(String username, long IP, int userID) {
+	public BanEntry getBanEntry(String username, long ip, int userId) {
 		return null;
 	}
 

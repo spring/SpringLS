@@ -40,7 +40,7 @@ public class NatHelpServer implements Runnable, LiveStateListener {
 	private List<DatagramPacket> msgList;
 	private DatagramSocket socket;
 	private Thread myThread;
-	
+
 
 	public NatHelpServer() {
 

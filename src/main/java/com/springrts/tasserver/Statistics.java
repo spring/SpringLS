@@ -39,8 +39,8 @@ public class Statistics implements ContextReceiver {
 
 	/** in milliseconds */
 	private final long saveStatisticsInterval = 1000 * 60 * 20;
-	private final String PLOTICUS_FULLPATH = "./ploticus/bin/pl"; // see http://ploticus.sourceforge.net/ for more info on ploticus
-	private final String STATISTICS_FOLDER = "./stats/";
+	private static final String PLOTICUS_FULLPATH = "./ploticus/bin/pl"; // see http://ploticus.sourceforge.net/ for more info on ploticus
+	private static final String STATISTICS_FOLDER = "./stats/";
 
 	/**
 	 * Time when we last updated statistics.
@@ -101,7 +101,7 @@ public class Statistics implements ContextReceiver {
 	public int saveStatisticsToDisk() {
 
 		long taken;
-		
+
 		try {
 			ensureStatsDirExists();
 
@@ -116,7 +116,7 @@ public class Statistics implements ContextReceiver {
 			s_log.error("*** Failed saving statistics... Stack trace:", ex);
 			taken = -1;
 		}
-		
+
 		return (int) taken;
 	}
 
@@ -132,8 +132,9 @@ public class Statistics implements ContextReceiver {
 
 		int activeBattlesCount = 0;
 		for (int i = 0; i < context.getBattles().getBattlesSize(); i++) {
-			if ((context.getBattles().getBattleByIndex(i).getClientsSize() >= 1 /* at least 1 client + founder == 2 players */) &&
-					(context.getBattles().getBattleByIndex(i).inGame())) {
+			if ((context.getBattles().getBattleByIndex(i).getClientsSize() >= 1 /* at least 1 client + founder == 2 players */)
+					&& (context.getBattles().getBattleByIndex(i).inGame()))
+			{
 				activeBattlesCount++;
 			}
 		}
@@ -216,8 +217,8 @@ public class Statistics implements ContextReceiver {
 
 		try {
 			String cmd;
-			String cmds[];
-			
+			String[] cmds;
+
 			SimpleDateFormat dayFormatter = new SimpleDateFormat("ddMMyy");
 			Date endDate = today(); // today_00:00
 			Date startDate = new Date(endDate.getTime() - ((long) 6 * (1000 * 60 * 60 * 24))); // today_00:00 - 6 days
@@ -225,7 +226,7 @@ public class Statistics implements ContextReceiver {
 			String endDateString = dayFormatter.format(endDate);
 
 			SimpleDateFormat lastUpdateFormatter = new SimpleDateFormat("dd/MM/yyyy, HH:mm:ss (z)");
-			
+
 			long upTime = System.currentTimeMillis() - context.getServer().getStartTime();
 
 			// generate "server stats diagram":
@@ -446,12 +447,12 @@ public class Statistics implements ContextReceiver {
 
 		return current;
 	}
-	
+
 	private static final String TODAY_FILTER_FORMAT = "ddMMyy";
 	private static Date today() {
 
 		Date today = null;
-		
+
 		try {
 			today = new SimpleDateFormat(TODAY_FILTER_FORMAT).parse(now(TODAY_FILTER_FORMAT));
 		} catch (ParseException ex) {

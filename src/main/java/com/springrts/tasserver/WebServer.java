@@ -16,7 +16,7 @@ import java.util.*;
  * Implementation notes are in WebServer.html, and also
  * as comments in the source code.
  */
-class WebServer implements HttpConstants {
+class WebServer {
 
 	/* static class data/methods */
 
@@ -143,7 +143,7 @@ class WebServer implements HttpConstants {
 	}
 }
 
-class Worker extends WebServer implements HttpConstants, Runnable {
+class Worker extends WebServer implements Runnable {
 
 	final static int BUF_SIZE = 2048;
 	static final byte[] EOL = {(byte) '\r', (byte) '\n'};
@@ -237,23 +237,25 @@ class Worker extends WebServer implements HttpConstants, Runnable {
 			boolean doingGet;
 			/* beginning of file name */
 			int index;
-			if (buf[0] == (byte) 'G' &&
-					buf[1] == (byte) 'E' &&
-					buf[2] == (byte) 'T' &&
-					buf[3] == (byte) ' ') {
+			if (buf[0] == (byte) 'G'
+					&& buf[1] == (byte) 'E'
+					&& buf[2] == (byte) 'T'
+					&& buf[3] == (byte) ' ')
+			{
 				doingGet = true;
 				index = 4;
-			} else if (buf[0] == (byte) 'H' &&
-					buf[1] == (byte) 'E' &&
-					buf[2] == (byte) 'A' &&
-					buf[3] == (byte) 'D' &&
-					buf[4] == (byte) ' ') {
+			} else if (buf[0] == (byte) 'H'
+					&& buf[1] == (byte) 'E'
+					&& buf[2] == (byte) 'A'
+					&& buf[3] == (byte) 'D'
+					&& buf[4] == (byte) ' ')
+			{
 				doingGet = false;
 				index = 5;
 			} else {
 				/* we don't support this method */
-				ps.print("HTTP/1.0 " + HTTP_BAD_METHOD +
-						" unsupported method type: ");
+				ps.print("HTTP/1.0 " + HttpConstants.HTTP_BAD_METHOD
+						+ " unsupported method type: ");
 				ps.write(buf, 0, 5);
 				ps.write(EOL);
 				ps.flush();
@@ -283,9 +285,9 @@ class Worker extends WebServer implements HttpConstants, Runnable {
 					targ = ind;
 				}
 			}
-			boolean OK = printHeaders(targ, ps);
+			boolean ok = printHeaders(targ, ps);
 			if (doingGet) {
-				if (OK) {
+				if (ok) {
 					sendFile(targ, ps);
 				} else {
 					send404(targ, ps);
@@ -300,18 +302,18 @@ class Worker extends WebServer implements HttpConstants, Runnable {
 		boolean ret = false;
 		int rCode = 0;
 		if (!targ.exists()) {
-			rCode = HTTP_NOT_FOUND;
-			ps.print("HTTP/1.0 " + HTTP_NOT_FOUND + " not found");
+			rCode = HttpConstants.HTTP_NOT_FOUND;
+			ps.print("HTTP/1.0 " + HttpConstants.HTTP_NOT_FOUND + " not found");
 			ps.write(EOL);
 			ret = false;
 		} else {
-			rCode = HTTP_OK;
-			ps.print("HTTP/1.0 " + HTTP_OK + " OK");
+			rCode = HttpConstants.HTTP_OK;
+			ps.print("HTTP/1.0 " + HttpConstants.HTTP_OK + " OK");
 			ps.write(EOL);
 			ret = true;
 		}
-		log("From " + s.getInetAddress().getHostAddress() + ": GET " +
-				targ.getAbsolutePath() + "-->" + rCode);
+		log("From " + s.getInetAddress().getHostAddress() + ": GET "
+				+ targ.getAbsolutePath() + "-->" + rCode);
 		ps.print("Server: Simple java");
 		ps.write(EOL);
 		ps.print("Date: " + (new Date()));
@@ -344,8 +346,8 @@ class Worker extends WebServer implements HttpConstants, Runnable {
 	void send404(File targ, PrintStream ps) throws IOException {
 		ps.write(EOL);
 		ps.write(EOL);
-		ps.println("Not Found\n\n" +
-				"The requested resource was not found.\n");
+		ps.println("Not Found\n\n"
+				+ "The requested resource was not found.\n");
 	}
 
 	void sendFile(File targ, PrintStream ps) throws IOException {
@@ -423,7 +425,9 @@ class Worker extends WebServer implements HttpConstants, Runnable {
 	}
 }
 
-interface HttpConstants {
+final class HttpConstants {
+	
+	private HttpConstants() {}
 
 	/** 2XX: generally "OK" */
 	public static final int HTTP_OK = 200;

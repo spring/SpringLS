@@ -81,10 +81,10 @@ public class AccountUtils {
 		actSrvc.addAccount(admin);
 
 		System.out.println("and the 40 thievs ...");
-		for (int i=0; i < 40; i++) {
-			Account user_x = createTestAccount("user_" + i);
-			user_x.setAgreementAccepted(true);
-			actSrvc.addAccount(user_x);
+		for (int i = 0; i < 40; i++) {
+			Account userX = createTestAccount("user_" + i);
+			userX.setAgreementAccepted(true);
+			actSrvc.addAccount(userX);
 		}
 
 		System.out.println("Accounts: " + actSrvc.getAccountsSize());

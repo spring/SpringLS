@@ -339,7 +339,7 @@ public class Battle implements ContextReceiver {
 
 		if (getDisabledUnits().isEmpty()) {
 			// nothing to send
-			return ;
+			return;
 		}
 
 		StringBuilder line = new StringBuilder("DISABLEUNITS ");

@@ -538,7 +538,7 @@ public class TASServer implements LiveStateListener {
 		String[] commands = command.split(" ");
 		commands[0] = commands[0].toUpperCase();
 
-		client.setSendMsgID(msgId);
+		client.setSendMsgId(msgId);
 
 		try {
 			CommandProcessor cp = commandProcessors.get(commands[0]);
@@ -1342,7 +1342,7 @@ public class TASServer implements LiveStateListener {
 				}
 
 				client.sendLine(new StringBuilder("SERVERMSG Country = ")
-						.append(IP2Country.getInstance().getCountryCode(Misc.IP2Long(Misc.makeSentence(commands, 1)))).toString());
+						.append(IP2Country.getInstance().getCountryCode(Misc.ip2Long(Misc.makeSentence(commands, 1)))).toString());
 			} else if (commands[0].equals("REINITIP2COUNTRY")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
@@ -1910,7 +1910,7 @@ public class TASServer implements LiveStateListener {
 						client.sendLine("DENIED Already logged in");
 						return false;
 					}
-					BanEntry ban = context.getBanService().getBanEntry(username, Misc.IP2Long(client.getIp()), userID);
+					BanEntry ban = context.getBanService().getBanEntry(username, Misc.ip2Long(client.getIp()), userID);
 					if (ban != null && ban.isActive()) {
 						client.sendLine(new StringBuilder("DENIED You are banned from this server! (Reason: ")
 								.append(ban.getPublicReason()).append("). Please contact server administrator.").toString());
@@ -3427,7 +3427,7 @@ public class TASServer implements LiveStateListener {
 				return false;
 			}
 		} finally {
-			client.setSendMsgID(Client.NO_MSG_ID);
+			client.setSendMsgId(Client.NO_MSG_ID);
 		}
 
 

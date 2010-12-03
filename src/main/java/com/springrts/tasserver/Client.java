@@ -30,7 +30,7 @@ public class Client implements ContextReceiver {
 	 * (see protocol description on message/command IDs)
 	 */
 	public static final int NO_MSG_ID = -1;
-	
+
 	/**
 	 * Indicates that no script-password is set.
 	 */
@@ -96,10 +96,10 @@ public class Client implements ContextReceiver {
 	/**
 	 * This is the message/command ID used when sending command
 	 * as described in the "lobby protocol description" document.
-	 * Use setSendMsgID() and resetSendMsgID() methods to manipulate it.
+	 * Use setSendMsgId() and resetSendMsgId() methods to manipulate it.
 	 * NO_MSG_ID means no ID is used.
 	 */
-	private int m_msgID = NO_MSG_ID;
+	private int myMsgId = NO_MSG_ID;
 	/**
 	 * Queue of "delayed data".
 	 * We failed sending this the first time, so we will have to try sending it
@@ -186,8 +186,8 @@ public class Client implements ContextReceiver {
 			if (newIP != null) {
 				ip = newIP;
 			} else {
-				s_log.warn("Could not resolve local IP address. User may have problems \n" +
-						"with hosting battles.");
+				s_log.warn("Could not resolve local IP address. User may have problems \n"
+						+ "with hosting battles.");
 			}
 		}
 		localIP = ip; // will be changed later once client logs in
@@ -195,7 +195,7 @@ public class Client implements ContextReceiver {
 		selKey = null;
 		recvBuf = new StringBuilder();
 		status = 0;
-		country = IP2Country.getInstance().getCountryCode(Misc.IP2Long(ip));
+		country = IP2Country.getInstance().getCountryCode(Misc.ip2Long(ip));
 		battleStatus = 0;
 		teamColor = 0;
 		inGameTime = 0;
@@ -241,34 +241,34 @@ public class Client implements ContextReceiver {
 	 * See "lobby protocol description" document for more info
 	 * on message/command IDs.
 	 */
-	public void setSendMsgID(int msgID) {
-		this.m_msgID = msgID;
+	public void setSendMsgId(int msgId) {
+		this.myMsgId = msgId;
 	}
 
-	public void resetSendMsgID(int msgID) {
-		this.m_msgID = msgID;
+	public void resetSendMsgId(int msgId) {
+		this.myMsgId = msgId;
 	}
 
 	/**
-	 * Will prefix the message with a msgID value, if it was previously
-	 * set via setSendMsgID() method.
+	 * Will prefix the message with a msgId value, if it was previously
+	 * set via setSendMsgId() method.
 	 */
 	public boolean sendLine(String text) {
-		return sendLine(text, m_msgID);
+		return sendLine(text, myMsgId);
 	}
 
 	/**
-	 * @param msgID overrides any previously set message ID {@see #setSendMsgID()}.
+	 * @param msgId overrides any previously set message ID {@see #setSendMsgId()}.
 	 * Use NO_MSG_ID (which should equal to -1) for none.
 	 */
-	public boolean sendLine(String text, int msgID) {
+	public boolean sendLine(String text, int msgId) {
 		if (!alive || halfDead) {
 			return false;
 		}
 
 		// prefix message with a message ID:
-		if (msgID != NO_MSG_ID) {
-			text = "#" + msgID + " " + text;
+		if (msgId != NO_MSG_ID) {
+			text = "#" + msgId + " " + text;
 		}
 
 		if (fastWrite != null) {
@@ -336,7 +336,7 @@ public class Client implements ContextReceiver {
 	public void disconnect() {
 		if (!alive) {
 			s_log.error("PROBLEM DETECTED: disconnecting dead client. Skipping ...");
-			return ;
+			return;
 		}
 
 		try {

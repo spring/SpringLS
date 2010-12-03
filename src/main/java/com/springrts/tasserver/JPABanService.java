@@ -153,18 +153,18 @@ public class JPABanService implements BanService {
 	}
 
 	@Override
-	public BanEntry getBanEntry(String username, long IP, int userID) {
+	public BanEntry getBanEntry(String username, long ip, int userId) {
 
 		BanEntry ban = null;
 
 		EntityManager em = null;
 		try {
 			em = open();
-			Query q_fetch = em.createNamedQuery("ban_fetch");
-			q_fetch.setParameter("username", username);
-			q_fetch.setParameter("ip", IP);
-			q_fetch.setParameter("userId", userID);
-			ban = (BanEntry) q_fetch.getSingleResult();
+			Query fetchQuery = em.createNamedQuery("ban_fetch");
+			fetchQuery.setParameter("username", username);
+			fetchQuery.setParameter("ip", ip);
+			fetchQuery.setParameter("userId", userId);
+			ban = (BanEntry) fetchQuery.getSingleResult();
 		} catch (Exception ex) {
 			s_log.trace("Failed fetching a ban", ex);
 			ban = null;

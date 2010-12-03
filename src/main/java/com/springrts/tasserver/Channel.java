@@ -25,7 +25,7 @@ public class Channel implements ContextReceiver, LiveStateListener {
 
 	private static final Log s_log  = LogFactory.getLog(Channel.class);
 
-	private static final String logFilesDir  = "./";
+	private static final String LOG_FILES_DIR  = "./";
 
 	private String name;
 	private String topic; // "" represents no topic (topic is disabled for this channel)
@@ -52,7 +52,7 @@ public class Channel implements ContextReceiver, LiveStateListener {
 		topic = "";
 		topicAuthor = "";
 		clients = new ArrayList<Client>();
-		logFile = new File(logFilesDir, "channel_" + name + ".log");
+		logFile = new File(LOG_FILES_DIR, "channel_" + name + ".log");
 		logging = false;
 		fileLog = null;
 	}
@@ -225,8 +225,8 @@ public class Channel implements ContextReceiver, LiveStateListener {
 						fileLog.close();
 					}
 					fileLog = null;
-					s_log.error("Unable to open channel log file for channel " +
-							name + ": " + logFile.getAbsolutePath(), e);
+					s_log.error("Unable to open channel log file for channel "
+							+ name + ": " + logFile.getAbsolutePath(), e);
 					logFile = null;
 				}
 			} else {

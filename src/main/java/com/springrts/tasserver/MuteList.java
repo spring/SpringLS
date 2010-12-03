@@ -63,11 +63,11 @@ public class MuteList {
 		return false;
 	}
 
-	public boolean isMuted(String username, String IP) {
+	public boolean isMuted(String username, String ip) {
 		clearExpiredOnes();
 
 		for (int i = 0; i < usernames.size(); i++) {
-			if (usernames.get(i).equals(username) || ((ips.get(i) != null) && (ips.get(i).equals(IP)))) {
+			if (usernames.get(i).equals(username) || ((ips.get(i) != null) && (ips.get(i).equals(ip)))) {
 				return true;
 			}
 		}
@@ -75,11 +75,11 @@ public class MuteList {
 		return false;
 	}
 
-	public boolean isIPMuted(String IP) {
+	public boolean isIPMuted(String ip) {
 		clearExpiredOnes();
 
 		for (int i = 0; i < ips.size(); i++) {
-			if ((ips.get(i) != null) && (ips.get(i).equals(IP))) {
+			if ((ips.get(i) != null) && (ips.get(i).equals(ip))) {
 				return true;
 			}
 		}
@@ -91,10 +91,10 @@ public class MuteList {
 	 * Mutes a user.
 	 * @param username name of hte user to mute.
 	 * @param seconds use to specify for how long he user should be muted.
-	 * @param IP set to 'null' if you don't want to mute this user by the IP.
+	 * @param ip set to 'null' if you don't want to mute this user by the IP.
 	 * @return false if already muted
 	 */
-	public boolean mute(String username, long seconds, String IP) {
+	public boolean mute(String username, long seconds, String ip) {
 
 		for (int i = 0; i < usernames.size(); i++) {
 			if (usernames.get(i).equals(username)) {
@@ -108,7 +108,7 @@ public class MuteList {
 			until = System.currentTimeMillis() + (seconds * 1000);
 		}
 		mutedUntil.add(until);
-		ips.add(IP);
+		ips.add(ip);
 		return true;
 	}
 

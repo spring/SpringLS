@@ -12,13 +12,13 @@ import javax.persistence.*;
  * @author Betalord
  */
 @Entity
-@Table(name="BanEntries")
+@Table(name = "BanEntries")
 @NamedQueries({
-	@NamedQuery(name="ban_size", query="SELECT count(b.id) FROM BanEntry b"),
-	@NamedQuery(name="ban_size_active", query="SELECT count(b.id) FROM BanEntry b WHERE ((b.enabled = TRUE) AND (b.expireDate IS NULL OR b.expireDate > CURRENT_TIMESTAMP))"),
-	@NamedQuery(name="ban_list", query="SELECT b FROM BanEntry b"),
-	@NamedQuery(name="ban_list_active", query="SELECT b FROM BanEntry b WHERE ((b.enabled = TRUE) AND (b.expireDate IS NULL OR b.expireDate > CURRENT_TIMESTAMP))"),
-	@NamedQuery(name="ban_fetch", query="SELECT b FROM BanEntry b WHERE ((b.username = :username) OR ((b.ipStart <= :ip) AND (b.ipStart >= :ip)) OR (b.userId >= :userId))")
+	@NamedQuery(name = "ban_size",        query = "SELECT count(b.id) FROM BanEntry b"),
+	@NamedQuery(name = "ban_size_active", query = "SELECT count(b.id) FROM BanEntry b WHERE ((b.enabled = TRUE) AND (b.expireDate IS NULL OR b.expireDate > CURRENT_TIMESTAMP))"),
+	@NamedQuery(name = "ban_list",        query = "SELECT b FROM BanEntry b"),
+	@NamedQuery(name = "ban_list_active", query = "SELECT b FROM BanEntry b WHERE ((b.enabled = TRUE) AND (b.expireDate IS NULL OR b.expireDate > CURRENT_TIMESTAMP))"),
+	@NamedQuery(name = "ban_fetch",       query = "SELECT b FROM BanEntry b WHERE ((b.username = :username) OR ((b.ipStart <= :ip) AND (b.ipStart >= :ip)) OR (b.userId >= :userId))")
 })
 public class BanEntry implements Serializable {
 
@@ -26,9 +26,9 @@ public class BanEntry implements Serializable {
 	@GeneratedValue
 	private Long id;
 
-	/** person who issued the ban */
+	/** Username of the account that issued the ban. */
 //	private String owner;
-	/** timestamp of when ban was issued */
+	/** Timestamp of when ban was issued. */
 //	private long banDate;
 	/**
 	 * Timestamp of when ban will expire.
@@ -42,7 +42,7 @@ public class BanEntry implements Serializable {
 		updatable  = true
 		)
 	private long expireDate;
-	/** Username of the banned account (may be 'null' as well) */
+	/** Username of the banned account, which may be <code>null</code>. */
 	@Column(
 		name       = "Username",
 		unique     = false,
@@ -52,7 +52,7 @@ public class BanEntry implements Serializable {
 		length     = 40
 		)
 	private String username;
-	/** Start of IP range which was banned (may be 0) */
+	/** The start of IP range which was banned, which may be <code>0</code>. */
 	@Column(
 		name       = "IP_start",
 		unique     = false,
@@ -61,7 +61,7 @@ public class BanEntry implements Serializable {
 		updatable  = true
 		)
 	private long ipStart;
-	/** End of IP range which was banned (may be 0) */
+	/** The end of IP range which was banned, which may be <code>0</code>. */
 	@Column(
 		name       = "IP_end",
 		unique     = false,
@@ -70,7 +70,10 @@ public class BanEntry implements Serializable {
 		updatable  = true
 		)
 	private long ipEnd;
-	/** Account ID of the banned account. If 0, then ignore it */
+	/**
+	 * Account ID of the banned account.
+	 * If <code>0</code>, then we ignore it.
+	 */
 	@Column(
 		name       = "userID",
 		unique     = true,
@@ -81,7 +84,7 @@ public class BanEntry implements Serializable {
 	private int userId;
 	/**
 	 * Private reason for the ban.
-	 * Only moderators (and admins) can see see this.
+	 * Only moderators (and admins) can see this.
 	 */
 //	private String privatReason;
 	/**
@@ -111,8 +114,8 @@ public class BanEntry implements Serializable {
 	/** Used by JPA */
 	public BanEntry() {}
 	public BanEntry(long expireDate, String userName, long ipStart, long ipEnd,
-			int userId, String publicReason) {
-
+			int userId, String publicReason)
+	{
 		this.expireDate   = expireDate;
 		this.username     = userName;
 		this.ipStart      = ipStart;

@@ -87,8 +87,8 @@ public class Server implements ContextReceiver {
 	}
 
 	public boolean setCharset(String newCharset)
-			throws IllegalCharsetNameException, UnsupportedCharsetException {
-
+			throws IllegalCharsetNameException, UnsupportedCharsetException
+	{
 		CharsetDecoder dec;
 		CharsetEncoder enc;
 

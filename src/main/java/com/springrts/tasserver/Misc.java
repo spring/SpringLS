@@ -33,9 +33,10 @@ public class Misc {
 	public static final String MAVEN_ARTIFACT_ID = "tasserver";
 
 	/**
-	 * Puts together strings from 'a', starting at a[startIndex]
-	 * see http://leepoint.net/notes-java/data/strings/96string_examples/example_arrayToString.html
-	 * on why StringBuilder is faster.
+	 * Puts together strings from <code>a</code>, starting at
+	 * <code>a[startIndex]</code>, see
+	 * http://leepoint.net/notes-java/data/strings/96string_examples/example_arrayToString.html
+	 * on why <code>StringBuilder</code> is faster.
 	 */
 	public static String makeSentence(String[] a, int startIndex) {
 		if (startIndex > a.length - 1) {
@@ -84,7 +85,7 @@ public class Misc {
 	/**
 	 * This method will return the local IP address, such as "192.168.1.100"
 	 * instead of "127.0.0.1".
-	 * @see http://forum.java.sun.com/thread.jspa?threadID=619056&messageID=3477258
+	 * http://forum.java.sun.com/thread.jspa?threadID=619056&messageID=3477258
 	 */
 	public static String getLocalIPAddress() {
 
@@ -108,11 +109,11 @@ public class Misc {
 		return null;
 	}
 
-	public static long IP2Long(String ip) {
+	public static long ip2Long(String ip) {
 
 		long res = 0;
 
-		String tokens[] = ip.split("\\.");
+		String[] tokens = ip.split("\\.");
 		if (tokens.length != 4) {
 			res = -1;
 		}
@@ -131,7 +132,7 @@ public class Misc {
 	}
 
 	@Deprecated
-	public static String long2IP(long ip) {
+	public static String long2ip(long ip) {
 
 		StringBuilder result = new StringBuilder(15);
 
@@ -174,7 +175,7 @@ public class Misc {
 	 * @param oldArray  the old array, to be reallocated.
 	 * @param newSize   the new array size.
 	 * @return          A new array with the same contents.
-	 * @see http://www.source-code.biz/snippets/java/3.htm
+	 * http://www.source-code.biz/snippets/java/3.htm
 	 */
 	public static Object resizeArray(Object oldArray, int newSize) {
 
@@ -191,10 +192,10 @@ public class Misc {
 
 	/**
 	 * Sorts an array of integers using simple bubble sort algorithm.
-	 * @see http://en.wikisource.org/wiki/Bubble_sort
+	 * http://en.wikisource.org/wiki/Bubble_sort
 	 */
 	@Deprecated
-	public static void bubbleSort(int data[]) {
+	public static void bubbleSort(int[] data) {
 		boolean isSorted;
 		int tempVariable;
 		int numberOfTimesLooped = 0;
@@ -219,9 +220,9 @@ public class Misc {
 	/**
 	 * Sorts an array of integers plus a parallel List of objects
 	 * using simple bubble sort. This is a generic method.
-	 * @see http://java.sun.com/docs/books/tutorial/extra/generics/methods.html
+	 * http://java.sun.com/docs/books/tutorial/extra/generics/methods.html
 	 */
-	public static <T> void bubbleSort(int data[], List<T> list) {
+	public static <T> void bubbleSort(int[] data, List<T> list) {
 		boolean isSorted;
 		int tempInt;
 		T tempObj;
@@ -461,7 +462,7 @@ public class Misc {
 	public static String exceptionToFullString(Exception e) {
 
 		StringBuilder res = new StringBuilder(512);
-		
+
 		res.append(e.toString());
 
 		StackTraceElement[] trace = e.getStackTrace();
@@ -530,21 +531,21 @@ public class Misc {
 	}
 	// END: various methods dealing with battleStatus
 
-	public static  boolean isSameIP(final String[] ip1_s, final String ip2) {
+	public static  boolean isSameIP(final String[] ip1Split, final String ip2) {
 
-		String[] ip2_s = ip2.split("\\.");
+		String[] ip2Split = ip2.split("\\.");
 
-		return isSameIP(ip1_s, ip2_s);
+		return isSameIP(ip1Split, ip2Split);
 	}
-	public static  boolean isSameIP(final String[] ip1_s, final String[] ip2_s) {
+	public static  boolean isSameIP(final String[] ip1Split, final String[] ip2Split) {
 
-		if        (!ip1_s[0].equals("*") && !ip1_s[0].equals(ip2_s[0])) {
+		if        (!ip1Split[0].equals("*") && !ip1Split[0].equals(ip2Split[0])) {
 			return false;
-		} else if (!ip1_s[1].equals("*") && !ip1_s[1].equals(ip2_s[1])) {
+		} else if (!ip1Split[1].equals("*") && !ip1Split[1].equals(ip2Split[1])) {
 			return false;
-		} else if (!ip1_s[2].equals("*") && !ip1_s[2].equals(ip2_s[2])) {
+		} else if (!ip1Split[2].equals("*") && !ip1Split[2].equals(ip2Split[2])) {
 			return false;
-		} else if (!ip1_s[3].equals("*") && !ip1_s[3].equals(ip2_s[3])) {
+		} else if (!ip1Split[3].equals("*") && !ip1Split[3].equals(ip2Split[3])) {
 			return false;
 		}
 

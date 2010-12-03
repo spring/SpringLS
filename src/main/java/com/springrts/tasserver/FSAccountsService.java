@@ -20,7 +20,7 @@ import java.util.*;
 public class FSAccountsService extends AbstractAccountsService implements AccountsService {
 
 	private static final Log s_log  = LogFactory.getLog(FSAccountsService.class);
-	
+
 	/** in milliseconds */
 	private static final long SAVE_ACCOUNT_INFO_INTERVAL = 1000 * 60 * 60;
 
@@ -89,8 +89,9 @@ public class FSAccountsService extends AbstractAccountsService implements Accoun
 		final long oneWeekAgo = System.currentTimeMillis() - (1000 * 60 * 60 * 24 * 7);
 		for (int i = 0; i < getAccountsSize(); i++) {
 			Account act = getAccount(i);
-			if ((act.getRank().compareTo(Account.Rank.Newbie) > 0) &&
-					(act.getLastLogin() > oneWeekAgo)) {
+			if ((act.getRank().compareTo(Account.Rank.Newbie) > 0)
+					&& (act.getLastLogin() > oneWeekAgo))
+			{
 				activeAccounts++;
 			}
 		}
@@ -155,7 +156,6 @@ public class FSAccountsService extends AbstractAccountsService implements Accoun
 			accounts.clear();
 
 			String line;
-			String tokens[];
 
 			while ((line = in.readLine()) != null) {
 				if (line.equals("")) {
@@ -190,9 +190,9 @@ public class FSAccountsService extends AbstractAccountsService implements Accoun
 			return; // already in progress. Let's just skip it ...
 		}
 		lastSaveAccountsTime = System.currentTimeMillis();
-		List<Account> accounts_cpy = new ArrayList<Account>(accounts.size());
-		Collections.copy(accounts_cpy, accounts);
-		saveAccountsThread = new FSSaveAccountsThread(new File(ACCOUNTS_INFO_FILEPATH), accounts_cpy);
+		List<Account> accountsCopy = new ArrayList<Account>(accounts.size());
+		Collections.copy(accountsCopy, accounts);
+		saveAccountsThread = new FSSaveAccountsThread(new File(ACCOUNTS_INFO_FILEPATH), accountsCopy);
 		saveAccountsThread.receiveContext(getContext());
 		saveAccountsThread.start();
 
@@ -275,13 +275,13 @@ public class FSAccountsService extends AbstractAccountsService implements Accoun
 
 		Account account = null;
 
-		final String[] ip_s = ip.split("\\.");
+		final String[] ipSplit = ip.split("\\.");
 		for (int i = 0; i < getAccountsSize(); i++) {
-			Account act_tmp = getAccount(i);
-			if (!Misc.isSameIP(ip_s, act_tmp.getLastIP())) {
+			Account actTmp = getAccount(i);
+			if (!Misc.isSameIP(ipSplit, actTmp.getLastIP())) {
 				continue;
 			}
-			account = act_tmp;
+			account = actTmp;
 		}
 
 		return account;

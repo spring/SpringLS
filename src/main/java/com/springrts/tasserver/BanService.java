@@ -34,7 +34,7 @@ public interface BanService {
 	public boolean removeBanEntry(BanEntry ban);
 
 	/** Returns null if no matching ban is found */
-	public BanEntry getBanEntry(String username, long IP, int userID);
+	public BanEntry getBanEntry(String username, long ip, int userId);
 
 	/**
 	 * Save changes to a ban entry to permanent storage.
