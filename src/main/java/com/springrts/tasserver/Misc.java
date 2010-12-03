@@ -29,6 +29,9 @@ public class Misc {
 
 	public static final String EOL = "\n";
 
+	public static final String MAVEN_GROUP_ID = "com.springrts";
+	public static final String MAVEN_ARTIFACT_ID = "tasserver";
+
 	/**
 	 * Puts together strings from 'a', starting at a[startIndex]
 	 * see http://leepoint.net/notes-java/data/strings/96string_examples/example_arrayToString.html
@@ -554,7 +557,7 @@ public class Misc {
 		InputStream propFileIn = null;
 
 		try {
-			final String pomPropsLoc = "/META-INF/maven/com.springrts/tasserver/pom.properties";
+			final String pomPropsLoc = "/META-INF/maven/" + MAVEN_GROUP_ID + "/" + MAVEN_ARTIFACT_ID + "/pom.properties";
 			propFileIn = Misc.class.getResourceAsStream(pomPropsLoc);
 			if (propFileIn == null) {
 				throw new IOException("Failed locating resource in the classpath: " + pomPropsLoc);
