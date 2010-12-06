@@ -204,6 +204,7 @@ public class LegacyConfigStorage implements ConfigStorage {
 				if (root == null) {
 					logger.error("Bad XML document. Path config/channels/static does not exist. Exiting ...");
 					chanServ.closeAndExit(1);
+					return; // never reached
 				}
 
 				// delete all static channels:
@@ -239,6 +240,7 @@ public class LegacyConfigStorage implements ConfigStorage {
 				if (root == null) {
 					logger.error("Bad XML document. Path config/channels/registered does not exist. Exiting ...");
 					chanServ.closeAndExit(1);
+					return; // never reached
 				}
 
 				// delete all channels:

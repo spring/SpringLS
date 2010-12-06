@@ -42,7 +42,7 @@ public class MuteListRequest {
 	/**
 	 * Time when this request has been issued.
 	 * Old requests will be dropped.
-	 * @see System.currentTimeMillis()
+	 * @see java.lang.System#currentTimeMillis()
 	 * @return the requestTime
 	 */
 	public long getRequestTime() {

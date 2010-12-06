@@ -63,7 +63,7 @@ public class SpamSettings {
 	}
 
 	/**
-	 * @see fromProtocolString()
+	 * @see #fromProtocolString(String settings)
 	 */
 	public String toProtocolString() {
 
@@ -80,7 +80,7 @@ public class SpamSettings {
 
 	/**
 	 * Returns null if settings string is malformed.
-	 * @see toProtocolString()
+	 * @see #toProtocolString()
 	 */
 	public static SpamSettings fromProtocolString(String settings) {
 
