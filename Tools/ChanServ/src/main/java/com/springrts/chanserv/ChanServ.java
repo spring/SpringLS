@@ -174,7 +174,7 @@ public class ChanServ {
 				configLock.acquire();
 				execRemoteCommand(line);
 			} catch (InterruptedException e) {
-				//return ;
+				//return;
 			} finally {
 				configLock.release();
 			}
@@ -471,24 +471,24 @@ public class ChanServ {
 
 			if (params.size() != 1) {
 				sendMessage(client, channel, "Error: Invalid params!");
-				return ;
+				return;
 			}
 
 			if (params.get(0).charAt(0) != '#') {
 				sendMessage(client, channel, "Error: Bad channel name (forgot #?)");
-				return ;
+				return;
 			}
 
 			String chanName = params.get(0).substring(1);
 			Channel chan = getChannel(chanName);
 			if (chan == null) {
 				sendMessage(client, channel, "Channel #" + chanName + " is not registered!");
-				return ;
+				return;
 			}
 
 			if (chan.isStatic()) {
 				sendMessage(client, channel, "Channel #" + chanName + " is registered as a static channel, no further info available!");
-				return ;
+				return;
 			}
 
 			StringBuilder respond = new StringBuilder("Channel #");
@@ -511,24 +511,24 @@ public class ChanServ {
 		} else if (commandName.equals("REGISTER")) {
 			if (!client.isModerator()) {
 				sendMessage(client, channel, "Sorry, you'll have to contact one of the server moderators to register a channel for you!");
-				return ;
+				return;
 			}
 
 			if (params.size() != 2) {
 				sendMessage(client, channel, "Error: Invalid params!");
-				return ;
+				return;
 			}
 
 			if (params.get(0).charAt(0) != '#') {
 				sendMessage(client, channel, "Error: Bad channel name (forgot #?)");
-				return ;
+				return;
 			}
 
 			String chanName = params.get(0).substring(1, params.get(0).length());
 			String valid = Channel.isChanNameValid(chanName);
 			if (valid != null) {
 				sendMessage(client, channel, "Error: Bad channel name (" + valid + ")");
-				return ;
+				return;
 			}
 
 			for (Channel chan : context.getConfiguration().getChannels()) {
@@ -559,30 +559,30 @@ public class ChanServ {
 
 			if (params.size() != 2) {
 				sendMessage(client, channel, "Error: Invalid params!");
-				return ;
+				return;
 			}
 
 			if (params.get(0).charAt(0) != '#') {
 				sendMessage(client, channel, "Error: Bad channel name (forgot #?)");
-				return ;
+				return;
 			}
 
 			String chanName = params.get(0).substring(1);
 			Channel chan = getChannel(chanName);
 			if ((chan == null) || (chan.isStatic())) {
 				sendMessage(client, channel, "Channel #" + chanName + " is not registered!");
-				return ;
+				return;
 			}
 
 			if (!(client.isModerator() || client.getName().equals(chan.getFounder()))) {
 				sendMessage(client, channel, "Insufficient access to execute " + commandName + " command!");
-				return ;
+				return;
 			}
 
 			// just to protect from flooding the bot with long usernames:
 			if (params.get(1).length() > 30) {
 				sendMessage(client, channel, "Error: Too long username!");
-				return ;
+				return;
 			}
 
 			// set founder:
@@ -593,24 +593,24 @@ public class ChanServ {
 		} else if (commandName.equals("UNREGISTER")) {
 			if (params.size() != 1) {
 				sendMessage(client, channel, "Error: Invalid params!");
-				return ;
+				return;
 			}
 
 			if (params.get(0).charAt(0) != '#') {
 				sendMessage(client, channel, "Error: Bad channel name (forgot #?)");
-				return ;
+				return;
 			}
 
 			String chanName = params.get(0).substring(1);
 			Channel chan = getChannel(chanName);
 			if ((chan == null) || (chan.isStatic())) {
 				sendMessage(client, channel, "Channel #" + chanName + " is not registered!");
-				return ;
+				return;
 			}
 
 			if (!(client.isModerator() || client.getName().equals(chan.getFounder()))) {
 				sendMessage(client, channel, "Insufficient access to execute " + commandName + " command!");
-				return ;
+				return;
 			}
 
 			// ok unregister the channel now:
@@ -621,17 +621,17 @@ public class ChanServ {
 		} else if (commandName.equals("ADDSTATIC")) {
 			if (!client.isModerator()) {
 				sendMessage(client, channel, "Insufficient access to execute " + commandName + " command!");
-				return ;
+				return;
 			}
 
 			if (params.size() != 1) {
 				sendMessage(client, channel, "Error: Invalid params!");
-				return ;
+				return;
 			}
 
 			if (params.get(0).charAt(0) != '#') {
 				sendMessage(client, channel, "Error: Bad channel name (forgot #?)");
-				return ;
+				return;
 			}
 
 			String chanName = params.get(0).substring(1);
@@ -658,24 +658,24 @@ public class ChanServ {
 		} else if (commandName.equals("REMOVESTATIC")) {
 			if (params.size() != 1) {
 				sendMessage(client, channel, "Error: Invalid params!");
-				return ;
+				return;
 			}
 
 			if (params.get(0).charAt(0) != '#') {
 				sendMessage(client, channel, "Error: Bad channel name (forgot #?)");
-				return ;
+				return;
 			}
 
 			String chanName = params.get(0).substring(1);
 			Channel chan = getChannel(chanName);
 			if ((chan == null) || (!chan.isStatic())) {
 				sendMessage(client, channel, "Channel #" + chanName + " is not in the static channel list!");
-				return ;
+				return;
 			}
 
 			if (!(client.isModerator() || client.getName().equals(chan.getFounder()))) {
 				sendMessage(client, channel, "Insufficient access to execute " + commandName + " command!");
-				return ;
+				return;
 			}
 
 			// ok remove the channel from static channel list now:
@@ -690,40 +690,40 @@ public class ChanServ {
 
 			if (params.size() != 2) {
 				sendMessage(client, channel, "Error: Invalid params!");
-				return ;
+				return;
 			}
 
 			if (params.get(0).charAt(0) != '#') {
 				sendMessage(client, channel, "Error: Bad channel name (forgot #?)");
-				return ;
+				return;
 			}
 
 			String chanName = params.get(0).substring(1);
 			Channel chan = getChannel(chanName);
 			if ((chan == null) || (chan.isStatic())) {
 				sendMessage(client, channel, "Channel #" + chanName + " is not registered!");
-				return ;
+				return;
 			}
 
 			if (!(client.isModerator() || client.getName().equals(chan.getFounder()))) {
 				sendMessage(client, channel, "Insufficient access to execute " + commandName + " command!");
-				return ;
+				return;
 			}
 
 			if (chan.isOperator(params.get(1))) {
 				sendMessage(client, channel, "Error: User is already in this channel's operator list!");
-				return ;
+				return;
 			}
 
 			// just to protect from flooding the bot with long usernames:
 			if (params.get(1).length() > 30) {
 				sendMessage(client, channel, "Error: Too long username!");
-				return ;
+				return;
 			}
 
 			if (chan.getOperatorList().size() > 100) {
 				sendMessage(client, channel, "Error: Too many operators (100) registered. This is part of a bot-side protection against flooding, if you think you really need more operators assigned, please contact bot maintainer.");
-				return ;
+				return;
 			}
 
 			// ok add user to channel's operator list:
@@ -737,29 +737,29 @@ public class ChanServ {
 
 			if (params.size() != 2) {
 				sendMessage(client, channel, "Error: Invalid params!");
-				return ;
+				return;
 			}
 
 			if (params.get(0).charAt(0) != '#') {
 				sendMessage(client, channel, "Error: Bad channel name (forgot #?)");
-				return ;
+				return;
 			}
 
 			String chanName = params.get(0).substring(1);
 			Channel chan = getChannel(chanName);
 			if ((chan == null) || (chan.isStatic())) {
 				sendMessage(client, channel, "Channel #" + chanName + " is not registered!");
-				return ;
+				return;
 			}
 
 			if (!(client.isModerator() || client.getName().equals(chan.getFounder()))) {
 				sendMessage(client, channel, "Insufficient access to execute " + commandName + " command!");
-				return ;
+				return;
 			}
 
 			if (!chan.isOperator(params.get(1))) {
 				sendMessage(client, channel, "Error: User <" + params.get(1) + "> is not in this channel's operator list!");
-				return ;
+				return;
 			}
 
 			// ok remove user from channel's operator list:
@@ -773,44 +773,44 @@ public class ChanServ {
 
 			if ((params.size() != 2) && (params.size() != 1)) {
 				sendMessage(client, channel, "Error: Invalid params!");
-				return ;
+				return;
 			}
 
 			if (params.get(0).charAt(0) != '#') {
 				sendMessage(client, channel, "Error: Bad channel name (forgot #?)");
-				return ;
+				return;
 			}
 
 			String chanName = params.get(0).substring(1);
 			Channel chan = getChannel(chanName);
 			if (chan == null) {
 				sendMessage(client, channel, "Channel #" + chanName + " does not exist!");
-				return ;
+				return;
 			}
 
 			if (params.size() == 1) {
 				sendMessage(client, channel, "Anti-spam protection for channel #" + chan.getName() + " is " + (chan.isAntiSpam() ? "on (settings: " + chan.getAntiSpamSettings() + ")" : "off"));
-				return ;
+				return;
 			}
 
 			if (!(client.isModerator() || client.getName().equals(chan.getFounder()))) {
 				sendMessage(client, channel, "Insufficient access to execute " + commandName + " command!");
-				return ;
+				return;
 			}
 
 			if (params.get(1).toUpperCase().equals("ON")) {
 				sendMessage(client, channel, "Anti-spam protection has been enabled for #" + chan.getName());
 				sendLine("CHANNELMESSAGE " + chan.getName() + " Anti-spam protection for channel #" + chan.getName() + " has been enabled");
 				chan.setAntiSpam(true);
-				return ;
+				return;
 			} else if (params.get(1).toUpperCase().equals("OFF")) {
 				sendMessage(client, channel, "Anti-spam protection has been disabled for #" + chan.getName());
 				sendLine("CHANNELMESSAGE " + chan.getName() + " Anti-spam protection for channel #" + chan.getName() + " has been disabled");
 				chan.setAntiSpam(false);
-				return ;
+				return;
 			} else {
 				sendMessage(client, channel, "Error: Invalid parameter (\"" + params.get(1) + "\"). Valid is \"on|off\"");
-				return ;
+				return;
 			}
 		} else if (commandName.equals("SPAMSETTINGS")) {
 			// if the command was issued from a channel:
@@ -820,24 +820,24 @@ public class ChanServ {
 
 			if (params.size() != 6) {
 				sendMessage(client, channel, "Error: Invalid params!");
-				return ;
+				return;
 			}
 
 			if (params.get(0).charAt(0) != '#') {
 				sendMessage(client, channel, "Error: Bad channel name (forgot #?)");
-				return ;
+				return;
 			}
 
 			String chanName = params.get(0).substring(1);
 			Channel chan = getChannel(chanName);
 			if (chan == null) {
 				sendMessage(client, channel, "Channel #" + chanName + " does not exist!");
-				return ;
+				return;
 			}
 
 			if (!(client.isModerator() || client.getName().equals(chan.getFounder()))) {
 				sendMessage(client, channel, "Insufficient access to execute " + commandName + " command!");
-				return ;
+				return;
 			}
 
 			String spamSettingsString = Misc.makeSentence(params, 1);
@@ -861,12 +861,12 @@ public class ChanServ {
 
 			if (params.size() < 1) {
 				sendMessage(client, channel, "Error: Invalid params!");
-				return ;
+				return;
 			}
 
 			if (params.get(0).charAt(0) != '#') {
 				sendMessage(client, channel, "Error: Bad channel name (forgot #?)");
-				return ;
+				return;
 			}
 
 			String topic;
@@ -883,12 +883,12 @@ public class ChanServ {
 			Channel chan = getChannel(chanName);
 			if ((chan == null) || (chan.isStatic())) {
 				sendMessage(client, channel, "Channel #" + chanName + " is not registered!");
-				return ;
+				return;
 			}
 
 			if (!(client.isModerator() || client.getName().equals(chan.getFounder()) || chan.isOperator(client.getName()))) {
 				sendMessage(client, channel, "Insufficient access to execute " + commandName + " command!");
-				return ;
+				return;
 			}
 
 			// ok set the topic:
@@ -901,30 +901,30 @@ public class ChanServ {
 
 			if (params.size() < 2) {
 				sendMessage(client, channel, "Error: Invalid params!");
-				return ;
+				return;
 			}
 
 			if (params.get(0).charAt(0) != '#') {
 				sendMessage(client, channel, "Error: Bad channel name (forgot #?)");
-				return ;
+				return;
 			}
 
 			String msg = Misc.makeSentence(params, 1);
 			if (msg.trim().equals("")) {
 				sendMessage(client, channel, "Error: Invalid params!");
-				return ;
+				return;
 			}
 
 			String chanName = params.get(0).substring(1);
 			Channel chan = getChannel(chanName);
 			if ((chan == null) || (chan.isStatic())) {
 				sendMessage(client, channel, "Channel #" + chanName + " is not registered!");
-				return ;
+				return;
 			}
 
 			if (!(client.isModerator() || client.getName().equals(chan.getFounder()) || chan.isOperator(client.getName()))) {
 				sendMessage(client, channel, "Insufficient access to execute " + commandName + " command!");
-				return ;
+				return;
 			}
 
 			// ok send the channel message:
@@ -937,29 +937,29 @@ public class ChanServ {
 
 			if (params.size() != 2) {
 				sendMessage(client, channel, "Error: Invalid params!");
-				return ;
+				return;
 			}
 
 			if (params.get(0).charAt(0) != '#') {
 				sendMessage(client, channel, "Error: Bad channel name (forgot #?)");
-				return ;
+				return;
 			}
 
 			String chanName = params.get(0).substring(1);
 			Channel chan = getChannel(chanName);
 			if ((chan == null) || (chan.isStatic())) {
 				sendMessage(client, channel, "Channel #" + chanName + " is not registered!");
-				return ;
+				return;
 			}
 
 			if (!(client.isModerator() || client.getName().equals(chan.getFounder()) || chan.isOperator(client.getName()))) {
 				sendMessage(client, channel, "Insufficient access to execute " + commandName + " command!");
-				return ;
+				return;
 			}
 
 			if (!Misc.isValidName(params.get(1))) {
 				sendMessage(client, channel, "Error: key contains some invalid characters!");
-				return ;
+				return;
 			}
 
 			// ok lock the channel:
@@ -977,24 +977,24 @@ public class ChanServ {
 
 			if (params.size() != 1) {
 				sendMessage(client, channel, "Error: Invalid params!");
-				return ;
+				return;
 			}
 
 			if (params.get(0).charAt(0) != '#') {
 				sendMessage(client, channel, "Error: Bad channel name (forgot #?)");
-				return ;
+				return;
 			}
 
 			String chanName = params.get(0).substring(1);
 			Channel chan = getChannel(chanName);
 			if ((chan == null) || (chan.isStatic())) {
 				sendMessage(client, channel, "Channel #" + chanName + " is not registered!");
-				return ;
+				return;
 			}
 
 			if (!(client.isModerator() || client.getName().equals(chan.getFounder()) || chan.isOperator(client.getName()))) {
 				sendMessage(client, channel, "Insufficient access to execute " + commandName + " command!");
-				return ;
+				return;
 			}
 
 			// ok unlock the channel:
@@ -1008,36 +1008,36 @@ public class ChanServ {
 
 			if (params.size() < 2) {
 				sendMessage(client, channel, "Error: Invalid params!");
-				return ;
+				return;
 			}
 
 			if (params.get(0).charAt(0) != '#') {
 				sendMessage(client, channel, "Error: Bad channel name (forgot #?)");
-				return ;
+				return;
 			}
 
 			String chanName = params.get(0).substring(1);
 			Channel chan = getChannel(chanName);
 			if ((chan == null) || (chan.isStatic())) {
 				sendMessage(client, channel, "Channel #" + chanName + " is not registered!");
-				return ;
+				return;
 			}
 
 			if (!(client.isModerator() || client.getName().equals(chan.getFounder()) || chan.isOperator(client.getName()))) {
 				sendMessage(client, channel, "Insufficient access to execute " + commandName + " command!");
-				return ;
+				return;
 			}
 
 			String target = params.get(1);
 			if (!chan.isClient(target)) {
 				sendMessage(client, channel, "Error: <" + target + "> not found in #" + chanName + "!");
-				return ;
+				return;
 			}
 
 			if (target.equals(context.getConfiguration().getUsername())) {
 				// not funny!
 				sendMessage(client, channel, "You are not allowed to issue this command!");
-				return ;
+				return;
 			}
 
 			String reason = "";
@@ -1055,36 +1055,36 @@ public class ChanServ {
 
 			if (params.size() < 2) {
 				sendMessage(client, channel, "Error: Invalid params!");
-				return ;
+				return;
 			}
 
 			if (params.get(0).charAt(0) != '#') {
 				sendMessage(client, channel, "Error: Bad channel name (forgot #?)");
-				return ;
+				return;
 			}
 
 			String chanName = params.get(0).substring(1);
 			Channel chan = getChannel(chanName);
 			if ((chan == null) || (chan.isStatic())) {
 				sendMessage(client, channel, "Channel #" + chanName + " is not registered!");
-				return ;
+				return;
 			}
 
 			if (!(client.isModerator() || client.getName().equals(chan.getFounder()) || chan.isOperator(client.getName()))) {
 				sendMessage(client, channel, "Insufficient access to execute " + commandName + " command!");
-				return ;
+				return;
 			}
 
 			String target = params.get(1);
 			if (getClient(target) == null) {
 				sendMessage(client, channel, "Error: Invalid username - <" + target + "> does not exist or is not online. Command dropped.");
-				return ;
+				return;
 			}
 
 			if (target.equals(context.getConfiguration().getUsername())) {
 				// not funny!
 				sendMessage(client, channel, "You are not allowed to issue this command!");
-				return ;
+				return;
 			}
 
 			int duration = 0;
@@ -1107,24 +1107,24 @@ public class ChanServ {
 
 			if (params.size() != 2) {
 				sendMessage(client, channel, "Error: Invalid params!");
-				return ;
+				return;
 			}
 
 			if (params.get(0).charAt(0) != '#') {
 				sendMessage(client, channel, "Error: Bad channel name (forgot #?)");
-				return ;
+				return;
 			}
 
 			String chanName = params.get(0).substring(1);
 			Channel chan = getChannel(chanName);
 			if ((chan == null) || (chan.isStatic())) {
 				sendMessage(client, channel, "Channel #" + chanName + " is not registered!");
-				return ;
+				return;
 			}
 
 			if (!(client.isModerator() || client.getName().equals(chan.getFounder()) || chan.isOperator(client.getName()))) {
 				sendMessage(client, channel, "Insufficient access to execute " + commandName + " command!");
-				return ;
+				return;
 			}
 
 			String target = params.get(1);
@@ -1139,24 +1139,24 @@ public class ChanServ {
 
 			if (params.size() != 1) {
 				sendMessage(client, channel, "Error: Invalid params!");
-				return ;
+				return;
 			}
 
 			if (params.get(0).charAt(0) != '#') {
 				sendMessage(client, channel, "Error: Bad channel name (forgot #?)");
-				return ;
+				return;
 			}
 
 			String chanName = params.get(0).substring(1);
 			Channel chan = getChannel(chanName);
 			if ((chan == null) || (chan.isStatic())) {
 				sendMessage(client, channel, "Channel #" + chanName + " is not registered!");
-				return ;
+				return;
 			}
 
 			if (!(client.isModerator() || client.getName().equals(chan.getFounder()) || chan.isOperator(client.getName()))) {
 				sendMessage(client, channel, "Insufficient access to execute " + commandName + " command!");
-				return ;
+				return;
 			}
 
 			forwardMuteList.add(new MuteListRequest(chanName, client.getName(), System.currentTimeMillis(), (channel != null) ? channel.getName() : ""));
@@ -1164,7 +1164,7 @@ public class ChanServ {
 		} else if (commandName.equals("SHUTDOWN")) {
 			if (!client.isModerator()) {
 				sendMessage(client, channel, "Insufficient access to execute " + commandName + " command!");
-				return ;
+				return;
 			}
 
 			String reason = "restarting ..."; // default reason text

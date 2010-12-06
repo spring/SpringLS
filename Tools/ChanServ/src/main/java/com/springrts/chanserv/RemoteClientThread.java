@@ -44,7 +44,7 @@ public class RemoteClientThread extends Thread {
 
 	/* socket for the client which we are handling */
 	private Socket socket;
-	private final String IP;
+	private final String ip;
 	/** whether the remote client has already identified */
 	private boolean identified;
 
@@ -63,7 +63,7 @@ public class RemoteClientThread extends Thread {
 		// LinkedBlockingQueue is thread-save
 		this.replyQueue = new LinkedBlockingQueue<String>();
 		this.socket = s;
-		this.IP = socket.getInetAddress().getHostAddress();
+		this.ip = socket.getInetAddress().getHostAddress();
 		this.identified = false;
 		this.parent = parent;
 		this.context = context;
@@ -125,7 +125,7 @@ public class RemoteClientThread extends Thread {
 				in.close();
 				socket.close();
 			} catch (IOException ex) {
-				logger.warn("Failed to propperly close the remote client connection with " + IP, ex);
+				logger.warn("Failed to propperly close the remote client connection with " + ip, ex);
 			}
 		}
 	}
@@ -187,7 +187,7 @@ public class RemoteClientThread extends Thread {
 			return;
 		}
 
-		logger.debug("processCommand from {}: \"{}\"", IP, command);
+		logger.debug("processCommand from {}: \"{}\"", ip, command);
 
 		String[] params = cleanCommand.split(" ");
 		params[0] = params[0].toUpperCase();
@@ -199,13 +199,13 @@ public class RemoteClientThread extends Thread {
 			}
 			if (!context.getChanServ().isConnected()) {
 				sendLine("FAILED");
-				return ;
+				return;
 			}
 			for (int i = 0; i < parent.getRemoteAccounts().size(); i++) {
 				if (parent.getRemoteAccounts().get(i).equals(params[1])) {
 					sendLine("PROCEED");
 					identified = true; // client has successfully identified
-					return ;
+					return;
 				}
 			}
 			sendLine("FAILED");
@@ -219,7 +219,7 @@ public class RemoteClientThread extends Thread {
 			}
 			if (!context.getChanServ().isConnected()) {
 				sendLine("LOGINBAD");
-				return ;
+				return;
 			}
 			queryTASServer("TESTLOGIN " + params[1] + " " + params[2]);
 			String reply = waitForReply().toUpperCase();
@@ -238,7 +238,7 @@ public class RemoteClientThread extends Thread {
 			}
 			if (!context.getChanServ().isConnected()) {
 				kill();
-				return ;
+				return;
 			}
 			queryTASServer("GETACCOUNTACCESS " + params[1]);
 			String reply = waitForReply();
@@ -246,7 +246,7 @@ public class RemoteClientThread extends Thread {
 			// if user not found:
 			if (reply.equals("User <" + params[1] + "> not found!")) {
 				sendLine("0");
-				return ;
+				return;
 			}
 
 			String[] tmp = reply.split(" ");
@@ -255,7 +255,7 @@ public class RemoteClientThread extends Thread {
 				access = Integer.parseInt(tmp[tmp.length-1]);
 			} catch (NumberFormatException e) { // should not happen
 				kill();
-				return ;
+				return;
 			}
 			sendLine("" + (access & 0x7));
 		} else if (params[0].equals("GENERATEUSERID")) {
@@ -268,7 +268,7 @@ public class RemoteClientThread extends Thread {
 			}
 			if (!context.getChanServ().isConnected()) {
 				kill();
-				return ;
+				return;
 			}
 			queryTASServer("FORGEMSG " + params[1] + " ACQUIREUSERID");
 			sendLine("OK");
@@ -282,7 +282,7 @@ public class RemoteClientThread extends Thread {
 			}
 			if (!context.getChanServ().isConnected()) {
 				kill();
-				return ;
+				return;
 			}
 
 			boolean success = false;
@@ -305,7 +305,7 @@ public class RemoteClientThread extends Thread {
 			}
 			if (!context.getChanServ().isConnected()) {
 				kill();
-				return ;
+				return;
 			}
 			boolean allow = RemoteAccessServer.getAllowedQueryCommands().contains(params[1]);
 

@@ -18,7 +18,7 @@ public class DefaultAntiSpamSystem implements AntiSpamSystem{
 	 * that counts how many CLIENTSTATUS command have been received from a user
 	 * In milliseconds.
 	 */
-	final static int CHECK_CLIENTSTATUSCHANGE_INTERVAL = 3000;
+	static final int CHECK_CLIENTSTATUSCHANGE_INTERVAL = 3000;
 	/**
 	 * Max frequency of CLIENTSTATUS command.
 	 * If we receive more than this times per second,
@@ -27,10 +27,10 @@ public class DefaultAntiSpamSystem implements AntiSpamSystem{
 	 * taking actions, because a user might change status quickly
 	 * (in few milliseconds) by accident (if spring crashes, for example).
 	 */
-	final static float MAX_CLIENTSTATUSCHANGE_FREQUENCY = 5.0f;
-	final static int MIN_CLIENTSTATUCCHANGE_COUNT_BEFORE_ALERT = 5;
+	static final float MAX_CLIENTSTATUSCHANGE_FREQUENCY = 5.0f;
+	static final int MIN_CLIENTSTATUCCHANGE_COUNT_BEFORE_ALERT = 5;
 
-	/** as a key in this list we use a combination of "channel-name:user-name" */
+	/** as key in this list, we use a combination of "channel-name:user-name" */
 	static final Map<String, SpamRecord> spamRecords = new HashMap<String, SpamRecord>();
 
 	/** spam settings for each individual channel */
@@ -117,8 +117,9 @@ public class DefaultAntiSpamSystem implements AntiSpamSystem{
 
 		long timeSinceLastCheckpoint = System.currentTimeMillis() - client.getClientStatusChangeCheckpoint();
 		double statusChangeFreq = (double) timeSinceLastCheckpoint / client.getStatusChanges();
-		if (statusChangeFreq > MAX_CLIENTSTATUSCHANGE_FREQUENCY &&
-				client.getStatusChanges() > MIN_CLIENTSTATUCCHANGE_COUNT_BEFORE_ALERT) {
+		if (statusChangeFreq > MAX_CLIENTSTATUSCHANGE_FREQUENCY
+				&& client.getStatusChanges() > MIN_CLIENTSTATUCCHANGE_COUNT_BEFORE_ALERT)
+		{
 			// reset the counter:
 			client.setClientStatusChangeCheckpoint(System.currentTimeMillis());
 			client.resetStatusChanges();

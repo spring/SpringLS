@@ -46,7 +46,7 @@ public class Channel implements Serializable {
 	 */
 	private String founder;
 	@XmlElementWrapper()
-	@XmlElement(name="name")
+	@XmlElement(name = "name")
 	private final List<String> operators;
 	private final List<String> clients;
 	/**
@@ -65,7 +65,7 @@ public class Channel implements Serializable {
 	}
 
 	public Channel(Context context, String name) {
-		
+
 		this.context = context;
 		this.name = name;
 		this.topic = "";

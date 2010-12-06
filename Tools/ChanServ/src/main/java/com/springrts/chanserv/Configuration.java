@@ -24,10 +24,10 @@ public class Configuration implements Serializable {
 	private String password;
 	private int remoteAccessPort;
 	@XmlElementWrapper()
-	@XmlElement(name="channel")
+	@XmlElement(name = "channel")
 	private final List<Channel> channels;
 	@XmlElementWrapper()
-	@XmlElement(name="name")
+	@XmlElement(name = "name")
 	private final List<String> remoteAccessAccounts;
 
 	Configuration() {
