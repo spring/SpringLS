@@ -97,15 +97,15 @@ public class Misc {
 	 */
 	public static String timeToDHM(long duration) {
 
-		long duration_left = duration;
+		long durationLeft = duration;
 
 		long days = duration / (1000 * 60 * 60 * 24);
 
-		duration_left -= days * (1000 * 60 * 60 * 24);
-		long hours = duration / (1000 * 60 * 60);
+		durationLeft -= days * (1000 * 60 * 60 * 24);
+		long hours = durationLeft / (1000 * 60 * 60);
 
-		duration_left -= hours * (1000 * 60 * 60);
-		long minutes = duration / (1000 * 60);
+		durationLeft -= hours * (1000 * 60 * 60);
+		long minutes = durationLeft / (1000 * 60);
 
 		String res = String.format(
 				"%i days, %i hours and %i minutes",
