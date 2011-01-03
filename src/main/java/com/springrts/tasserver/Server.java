@@ -69,6 +69,8 @@ public class Server implements ContextReceiver {
 	private CharsetDecoder asciiDecoder;
  	private CharsetEncoder asciiEncoder;
 
+	private FloodProtection floodProtection;
+
 
 	public Server() {
 
@@ -78,6 +80,7 @@ public class Server implements ContextReceiver {
 		lanAdminPassword = Misc.encodePassword(DEFAULT_LAN_ADMIN_PASSWORD);
 		port = DEFAULT_PORT;
 		useUserDB = false;
+		floodProtection = new FloodProtection();
 	}
 
 
@@ -238,7 +241,14 @@ public class Server implements ContextReceiver {
 	 * If true, we will use a DB instead of flat files for user management.
 	 * @param useUserDB the useUserDB to set
 	 */
-	 public void setUseUserDB(boolean useUserDB) {
+	public void setUseUserDB(boolean useUserDB) {
 		this.useUserDB = useUserDB;
+	}
+
+	/**
+	 * Returns the flood-protection system.
+	 */
+	public FloodProtection getFloodProtection() {
+		return floodProtection;
 	}
 }

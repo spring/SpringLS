@@ -88,10 +88,6 @@ public class TASServer implements LiveStateListener {
 	private final int READ_BUFFER_SIZE = 256; // size of the ByteBuffer used to read data from the socket channel. This size doesn't really matter - server will work with any size (tested with READ_BUFFER_SIZE==1), but too small buffer size may impact the performance.
 	private final int SEND_BUFFER_SIZE = 8192 * 2; // socket's send buffer size
 	private final long MAIN_LOOP_SLEEP = 10L;
-	private int recvRecordPeriod = 10; // in seconds. Length of time period for which we keep record of bytes received from client. Used with anti-flood protection.
-	private int maxBytesAlert = 20000; // maximum number of bytes received in the last {@link #recvRecordPeriod} seconds from a single client before we raise "flood alert". Used with anti-flood protection.
-	private int maxBytesAlertForBot = 50000; // same as {@link #maxBytesAlert} but is used for clients in "bot mode" only (see client.status bits)
-	private long lastFloodCheckedTime = System.currentTimeMillis(); // time (in same format as System.currentTimeMillis) when we last updated it. Used with anti-flood protection.
 	private long maxChatMessageLength = 1024; // used with basic anti-flood protection. Any chat messages (channel or private chat messages) longer than this are considered flooding. Used with following commands: SAY, SAYEX, SAYPRIVATE, SAYBATTLE, SAYBATTLEEX
 	private boolean loginEnabled = true;
 	private long lastTimeoutCheck = System.currentTimeMillis(); // time ({@link java.lang.System#currentTimeMillis()}) when we last checked for timeouts from clients
@@ -318,8 +314,7 @@ public class TASServer implements LiveStateListener {
 				client.addToDataOverLastTimePeriod(nbytes);
 
 				// basic anti-flood protection:
-				if ((client.getAccount().getAccess().compareTo(Account.Access.ADMIN) >= 0) && (((client.getBotModeFromStatus() == false) && (client.getDataOverLastTimePeriod() > maxBytesAlert)) ||
-						((client.getBotModeFromStatus() == true) && (client.getDataOverLastTimePeriod() > maxBytesAlertForBot)))) {
+				if (context.getServer().getFloodProtection().isFlooding(client)) {
 					s_log.warn(new StringBuilder("Flooding detected from ")
 							.append(client.getIp()).append(" (")
 							.append(client.getAccount().getName()).append(")").toString());
@@ -581,17 +576,20 @@ public class TASServer implements LiveStateListener {
 				}
 				if (commands.length == 3) {
 					if (commands[1].toUpperCase().equals("PERIOD")) {
-						recvRecordPeriod = Integer.parseInt(commands[2]);
+						int seconds = Integer.parseInt(commands[2]);
+						context.getServer().getFloodProtection().setReceivedRecordPeriod(seconds);
 						client.sendLine(new StringBuilder("SERVERMSG The antiflood period is now ")
-								.append(commands[2]).append(" seconds.").toString());
+								.append(seconds).append(" seconds.").toString());
 					} else if (commands[1].toUpperCase().equals("USER")) {
-						maxBytesAlert = Integer.parseInt(commands[2]);
+						int bytes = Integer.parseInt(commands[2]);
+						context.getServer().getFloodProtection().setMaxBytesAlert(bytes);
 						client.sendLine(new StringBuilder("SERVERMSG The antiflood amount for a normal user is now ")
-								.append(commands[2]).append(" bytes.").toString());
+								.append(bytes).append(" bytes.").toString());
 					} else if (commands[1].toUpperCase().equals("BOT")) {
-						maxBytesAlertForBot = Integer.parseInt(commands[2]);
+						int bytes = Integer.parseInt(commands[2]);
+						context.getServer().getFloodProtection().setMaxBytesAlertForBot(bytes);
 						client.sendLine(new StringBuilder("SERVERMSG The antiflood amount for a bot is now ")
-								.append(commands[2]).append(" bytes.").toString());
+								.append(bytes).append(" bytes.").toString());
 					}
 				}
 			} else if (commands[0].equals("KILL")) {
@@ -3423,8 +3421,7 @@ public class TASServer implements LiveStateListener {
 			context.getClients().flushData();
 
 			// reset received bytes count every n seconds
-			if (System.currentTimeMillis() - lastFloodCheckedTime > recvRecordPeriod * 1000) {
-				lastFloodCheckedTime = System.currentTimeMillis();
+			if (context.getServer().getFloodProtection().hasFloodCheckPeriodPassed()) {
 				for (int i = 0; i < context.getClients().getClientsSize(); i++) {
 					context.getClients().getClient(i).setDataOverLastTimePeriod(0);
 				}
