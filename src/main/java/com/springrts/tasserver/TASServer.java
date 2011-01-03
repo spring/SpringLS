@@ -587,29 +587,6 @@ public class TASServer implements LiveStateListener {
 //					client.sendLine("SERVERMSG Bad command- UNWHITELIST IP");
 //				}
 				client.sendLine("SERVERMSG IP white-listing is disabled");
-			} else if (commands[0].equals("REMOVEACCOUNT")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-				if (commands.length != 2) {
-					return false;
-				}
-
-				if (!context.getAccountsService().removeAccount(commands[1])) {
-					return false;
-				}
-
-				// if any user is connected to this account, kick him:
-				for (int j = 0; j < context.getClients().getClientsSize(); j++) {
-					if (context.getClients().getClient(j).getAccount().getName().equals(commands[1])) {
-						context.getClients().killClient(context.getClients().getClient(j));
-						j--;
-					}
-				}
-
-				context.getAccountsService().saveAccounts(false); // let's save new accounts info to disk
-				client.sendLine(new StringBuilder("SERVERMSG You have successfully removed <")
-						.append(commands[1]).append("> account!").toString());
 			} else if (commands[0].equals("STOPSERVER")) {
 				// stop server gracefully:
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
