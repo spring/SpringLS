@@ -570,19 +570,6 @@ public class TASServer implements LiveStateListener {
 							Misc.makeSentence(commands) + "\"", ex);
 					return false;
 				}
-			} else if (commands[0].equals("KILL")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-				if (commands.length < 2) {
-					return false;
-				}
-
-				Client target = context.getClients().getClient(commands[1]);
-				if (target == null) {
-					return false;
-				}
-				context.getClients().killClient(target);
 			} else if (commands[0].equals("KILLIP")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
