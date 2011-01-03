@@ -21,6 +21,7 @@ package com.springrts.tasserver.commands;
 import com.springrts.tasserver.Context;
 import com.springrts.tasserver.ContextReceiver;
 import com.springrts.tasserver.commands.impl.CreateAccountCommandProcessor;
+import com.springrts.tasserver.commands.impl.KickUserCommandProcessor;
 import com.springrts.tasserver.commands.impl.OpenBattleCommandProcessor;
 import com.springrts.tasserver.commands.impl.PingCommandProcessor;
 import com.springrts.tasserver.commands.impl.RegisterCommandProcessor;
@@ -94,6 +95,7 @@ public class CommandProcessors implements ContextReceiver {
 		commandProcessorClasses.add(OpenBattleCommandProcessor.class);
 		commandProcessorClasses.add(CreateAccountCommandProcessor.class);
 		commandProcessorClasses.add(RegisterCommandProcessor.class);
+		commandProcessorClasses.add(KickUserCommandProcessor.class);
 
 		try {
 			load(commandProcessorClasses);

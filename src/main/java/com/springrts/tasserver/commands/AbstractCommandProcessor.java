@@ -29,8 +29,8 @@ import java.util.List;
  */
 public abstract class AbstractCommandProcessor implements CommandProcessor {
 
-	private static final int ARGS_MIN_NOCHECK = -1;
-	private static final int ARGS_MAX_NOCHECK = -1;
+	public static final int ARGS_MIN_NOCHECK = -1;
+	public static final int ARGS_MAX_NOCHECK = -1;
 	private static final Account.Access ACCESS_NOCHECK = null;
 	private Context context = null;
 	private final String commandName;

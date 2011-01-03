@@ -31,9 +31,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
@@ -587,35 +585,6 @@ public class TASServer implements LiveStateListener {
 
 				client.sendLine(new StringBuilder("SERVERMSG Server's uptime is ")
 						.append(Misc.timeToDHM(System.currentTimeMillis() - context.getServer().getStartTime())).toString());
-			} /* some admin/moderator specific commands: */ else if (commands[0].equals("KICKUSER")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
-					return false;
-				}
-				if (commands.length < 2) {
-					return false;
-				}
-
-				Client target = context.getClients().getClient(commands[1]);
-				String reason = "";
-				if (commands.length > 2) {
-					reason = new StringBuilder(" (reason: ").append(Misc.makeSentence(commands, 2)).append(")").toString();
-				}
-				if (target == null) {
-					return false;
-				}
-				final String broadcastMsg = new StringBuilder("<")
-						.append(client.getAccount().getName()).append("> has kicked <")
-						.append(target.getAccount().getName()).append("> from server")
-						.append(reason).toString();
-				for (int i = 0; i < context.getChannels().getChannelsSize(); i++) {
-					if (context.getChannels().getChannel(i).isClientInThisChannel(target)) {
-						context.getChannels().getChannel(i).broadcast(broadcastMsg);
-					}
-				}
-				target.sendLine(new StringBuilder("SERVERMSG You've been kicked from server by <")
-						.append(client.getAccount().getName()).append(">")
-						.append(reason).toString());
-				context.getClients().killClient(target, "Quit: kicked from server");
 			} else if (commands[0].equals("FLOODLEVEL")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
