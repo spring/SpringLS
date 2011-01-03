@@ -31,7 +31,7 @@ public abstract class AbstractCommandProcessor implements CommandProcessor {
 
 	private static final int ARGS_MIN_NOCHECK = -1;
 	private static final int ARGS_MAX_NOCHECK = -1;
-	private static final Account.Access ACCES_NOCHECK = null;
+	private static final Account.Access ACCESS_NOCHECK = null;
 	private Context context = null;
 	private final String commandName;
 	private final int argsMin;
@@ -46,7 +46,7 @@ public abstract class AbstractCommandProcessor implements CommandProcessor {
 		this.accessMin = accessMin;
 	}
 	protected AbstractCommandProcessor(int argsMin, int argsMax) {
-		this(argsMin, argsMax, ACCES_NOCHECK);
+		this(argsMin, argsMax, ACCESS_NOCHECK);
 	}
 	protected AbstractCommandProcessor(Account.Access accessMin) {
 		this(ARGS_MIN_NOCHECK, ARGS_MAX_NOCHECK, accessMin);
@@ -96,7 +96,7 @@ public abstract class AbstractCommandProcessor implements CommandProcessor {
 	public boolean process(Client client, List<String> args)
 			throws CommandProcessingException {
 
-		if ((getAccessMin() != ACCES_NOCHECK) &&
+		if ((getAccessMin() != ACCESS_NOCHECK) &&
 				client.getAccount().getAccess().compareTo(getAccessMin()) < 0) {
 			throw new CommandProcessingException(
 					"Insufficient access rights to execute command \"" +
