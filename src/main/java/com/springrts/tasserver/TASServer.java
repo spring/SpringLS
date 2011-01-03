@@ -67,7 +67,7 @@ public class TASServer implements LiveStateListener {
 	 * the channel #main (in file "MainChanLog.log")
 	 */
 	//boolean logMainChannel = false;
-	private List<String> whiteList = new LinkedList<String>();
+	//private List<String> whiteList = new LinkedList<String>();
 	/**
 	 * In this interval, all channel mute lists will be checked
 	 * for expirations and purged accordingly. In milliseconds.
@@ -625,8 +625,8 @@ public class TASServer implements LiveStateListener {
 					client.sendLine("REGISTRATIONDENIED Invalid account name - you are trying to register a reserved account name");
 						return false;
 				}
-				if (!whiteList.contains(client.getIp())) {
-					/*if (registrationTimes.containsKey(client.ip)
+				/*if (!whiteList.contains(client.getIp())) {
+					if (registrationTimes.containsKey(client.ip)
 					&& (int)(registrationTimes.get(client.ip)) + 3600 > (System.currentTimeMillis()/1000)) {
 					client.sendLine("REGISTRATIONDENIED This ip has already registered an account recently");
 					context.getClients().sendToAllAdministrators("SERVERMSG Client at " + client.ip + "'s registration of " + commands[1] + " was blocked due to register spam");
@@ -644,8 +644,8 @@ public class TASServer implements LiveStateListener {
 					context.getClients().sendToAllAdministrators("SERVERMSG Client at " + client.ip + "'s registration of " + commands[1] + " was blocked as it is a proxy ip");
 					return false;
 					} catch (UnknownHostException e) {
-					}*/
-				}
+					}
+				}*/
 				context.getClients().sendToAllAdministrators(new StringBuilder("SERVERMSG New registration of <")
 						.append(commands[1]).append("> at ")
 						.append(client.getIp()).toString());
@@ -749,21 +749,23 @@ public class TASServer implements LiveStateListener {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
-				if (commands.length == 2) {
-					whiteList.add(commands[1]);
-					client.sendLine("SERVERMSG IP successfully whitelisted from REGISTER constraints");
-				} else {
-					client.sendLine(new StringBuilder("SERVERMSG Whitelist is: ").append(whiteList.toString()).toString());
-				}
+//				if (commands.length == 2) {
+//					whiteList.add(commands[1]);
+//					client.sendLine("SERVERMSG IP successfully whitelisted from REGISTER constraints");
+//				} else {
+//					client.sendLine(new StringBuilder("SERVERMSG Whitelist is: ").append(whiteList.toString()).toString());
+//				}
+				client.sendLine("SERVERMSG IP white-listing is disabled");
 			} else if (commands[0].equals("UNWHITELIST")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
-				if (commands.length == 2) {
-					client.sendLine((whiteList.remove(commands[1])) ? "SERVERMSG IP removed from whitelist" : "SERVERMSG IP not in whitelist");
-				} else {
-					client.sendLine("SERVERMSG Bad command- UNWHITELIST IP");
-				}
+//				if (commands.length == 2) {
+//					client.sendLine((whiteList.remove(commands[1])) ? "SERVERMSG IP removed from whitelist" : "SERVERMSG IP not in whitelist");
+//				} else {
+//					client.sendLine("SERVERMSG Bad command- UNWHITELIST IP");
+//				}
+				client.sendLine("SERVERMSG IP white-listing is disabled");
 			} else if (commands[0].equals("ENABLELOGIN")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
