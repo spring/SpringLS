@@ -95,7 +95,6 @@ public class TASServer implements LiveStateListener {
 	private int maxBytesAlertForBot = 50000; // same as {@link #maxBytesAlert} but is used for clients in "bot mode" only (see client.status bits)
 	private long lastFloodCheckedTime = System.currentTimeMillis(); // time (in same format as System.currentTimeMillis) when we last updated it. Used with anti-flood protection.
 	private long maxChatMessageLength = 1024; // used with basic anti-flood protection. Any chat messages (channel or private chat messages) longer than this are considered flooding. Used with following commands: SAY, SAYEX, SAYPRIVATE, SAYBATTLE, SAYBATTLEEX
-	private boolean regEnabled = true;
 	private boolean loginEnabled = true;
 	private long lastTimeoutCheck = System.currentTimeMillis(); // time ({@link java.lang.System#currentTimeMillis()}) when we last checked for timeouts from clients
 	private ServerSocketChannel sSockChan;
@@ -584,7 +583,7 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
-				if (!regEnabled) {
+				if (!context.getAccountsService().isRegistrationEnabled()) {
 					client.sendLine("REGISTRATIONDENIED Sorry, account registration is currently disabled");
 					return false;
 				}
@@ -781,10 +780,10 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 				if (commands.length == 2) {
-					regEnabled = (commands[1].equals("1"));
+					context.getAccountsService().setRegistrationEnabled(commands[1].equals("1"));
 				}
 				client.sendLine(new StringBuilder("SERVERMSG The REGISTER command is ")
-						.append((regEnabled ? "enabled" : "disabled")).toString());
+						.append((context.getAccountsService().isRegistrationEnabled() ? "enabled" : "disabled")).toString());
 			} else if (commands[0].equals("SETTIMEOUT")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;

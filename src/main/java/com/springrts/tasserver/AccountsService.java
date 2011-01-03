@@ -93,4 +93,15 @@ public interface AccountsService extends ContextReceiver, LiveStateListener {
 	 * server up-time.
 	 */
 	public List<Account> fetchAllAccounts();
+
+	/**
+	 * Indicates whether or not it is possible to register new accounts.
+	 */
+	public boolean isRegistrationEnabled();
+
+	/**
+	 * Sets whether or not it is possible to register new accounts.
+	 * @return true if new value was successfully set
+	 */
+	public boolean setRegistrationEnabled(boolean registrationEnabled);
 }

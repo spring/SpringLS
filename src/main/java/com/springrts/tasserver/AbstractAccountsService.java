@@ -16,11 +16,17 @@ public abstract class AbstractAccountsService implements AccountsService {
 
 	private static final Log s_log  = LogFactory.getLog(AbstractAccountsService.class);
 
-	private Context context = null;
-	private boolean started = false;
+	private Context context;
+	private boolean started;
+	private boolean registrationEnabled;
 
 
-	protected AbstractAccountsService() {}
+	protected AbstractAccountsService() {
+
+		this.context = null;
+		this.started = false;
+		this.registrationEnabled = false;
+	}
 
 
 	@Override
@@ -83,5 +89,16 @@ public abstract class AbstractAccountsService implements AccountsService {
 	@Override
 	public boolean doesAccountExist(String username) {
 		return getAccount(username) != null;
+	}
+
+	@Override
+	public boolean isRegistrationEnabled() {
+		return registrationEnabled;
+	}
+
+	@Override
+	public boolean setRegistrationEnabled(boolean registrationEnabled) {
+		this.registrationEnabled = registrationEnabled;
+		return true;
 	}
 }
