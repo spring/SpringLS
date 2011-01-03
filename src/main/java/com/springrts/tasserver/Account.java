@@ -6,6 +6,8 @@ package com.springrts.tasserver;
 
 
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Collection;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -39,6 +41,12 @@ import org.apache.commons.logging.LogFactory;
 public class Account implements Serializable, Cloneable {
 
 	private static final Log s_log  = LogFactory.getLog(Account.class);
+
+	/**
+	 * Accounts with these names can not be registered,
+	 * as they may be used internally by the server.
+	 */
+	public static final Collection<String> RESERVED_NAMES = Arrays.asList(new String[] {"TASServer", "Server", "server"});
 
 	/**
 	 * Player ranks, based on in-game time.

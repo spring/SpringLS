@@ -79,11 +79,6 @@ public class TASServer implements LiveStateListener {
 	 */
 	private long lastMutesPurgeTime = System.currentTimeMillis();
 	/**
-	 * Accounts with these names can not be registered,
-	 * as they may be used internally by the server.
-	 */
-	private final Collection<String> reservedAccountNames = Arrays.asList(new String[] {"TASServer", "Server", "server"});
-	/**
 	 * Here we store information on latest failed login attempts.
 	 * We use it to block users from brute-forcing other accounts.
 	 */
@@ -583,43 +578,6 @@ public class TASServer implements LiveStateListener {
 							Misc.makeSentence(commands) + "\"", ex);
 					return false;
 				}
-			} else if (commands[0].equals("CREATEACCOUNT")) {
-				if (client.getAccount().getAccess() != Account.Access.ADMIN) {
-					return false;
-				}
-				if (commands.length != 3) {
-					client.sendLine("SERVERMSG bad params");
-					return false;
-				}
-				String valid = Account.isOldUsernameValid(commands[1]);
-				if (valid != null) {
-					client.sendLine(new StringBuilder("SERVERMSG Invalid username (reason: ")
-							.append(valid).append(")").toString());
-					return false;
-				}
-
-				// validate password:
-				valid = Account.isPasswordValid(commands[2]);
-				if (valid != null) {
-					client.sendLine(new StringBuilder("SERVERMSG Invalid password (reason: ")
-							.append(valid).append(")").toString());
-					return false;
-				}
-				Account acc = context.getAccountsService().findAccountNoCase(commands[1]);
-				if (acc != null) {
-					client.sendLine("SERVERMSG Account already exists");
-					return false;
-				}
-				if (reservedAccountNames.contains(commands[1])) {
-					client.sendLine("SERVERMSG Invalid account name - you are trying to register a reserved account name");
-					return false;
-				}
-				acc = new Account(
-						commands[1],
-						commands[2], client.getIp(), client.getCountry());
-				context.getAccountsService().addAccount(acc);
-				context.getAccountsService().saveAccounts(false); // let's save new accounts info to disk
-				client.sendLine("SERVERMSG Account created.");
 			} else if (commands[0].equals("REGISTER")) {
 				if (commands.length != 3) {
 					client.sendLine("REGISTRATIONDENIED Bad command arguments");
@@ -663,7 +621,7 @@ public class TASServer implements LiveStateListener {
 				}
 
 				// check for reserved names:
-				if (reservedAccountNames.contains(commands[1])) {
+				if (Account.RESERVED_NAMES.contains(commands[1])) {
 					client.sendLine("REGISTRATIONDENIED Invalid account name - you are trying to register a reserved account name");
 						return false;
 				}
