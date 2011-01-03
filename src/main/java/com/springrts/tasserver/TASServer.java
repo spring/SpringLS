@@ -587,15 +587,6 @@ public class TASServer implements LiveStateListener {
 //					client.sendLine("SERVERMSG Bad command- UNWHITELIST IP");
 //				}
 				client.sendLine("SERVERMSG IP white-listing is disabled");
-			} else if (commands[0].equals("SETTIMEOUT")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-				if (commands.length == 2) {
-					context.getServer().setTimeoutLength(Integer.parseInt(commands[1]) * 1000);
-					client.sendLine(new StringBuilder("SERVERMSG Timeout length is now ")
-							.append(commands[1]).append(" seconds.").toString());
-				}
 			} else if (commands[0].equals("REMOVEACCOUNT")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
