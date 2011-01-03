@@ -590,16 +590,6 @@ public class TASServer implements LiveStateListener {
 //					client.sendLine("SERVERMSG Bad command- UNWHITELIST IP");
 //				}
 				client.sendLine("SERVERMSG IP white-listing is disabled");
-			} else if (commands[0].equals("ENABLELOGIN")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-				if (commands.length == 2) {
-					context.getServer().setLoginEnabled(commands[1].equals("1"));
-				}
-				client.sendLine(new StringBuilder("SERVERMSG The LOGIN command is ")
-						.append((context.getServer().isLoginEnabled() ? "enabled" : "disabled"))
-						.append(" for non-moderators").toString());
 			} else if (commands[0].equals("ENABLEREGISTER")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
