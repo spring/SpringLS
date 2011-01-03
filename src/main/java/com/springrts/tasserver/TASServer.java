@@ -570,25 +570,6 @@ public class TASServer implements LiveStateListener {
 							Misc.makeSentence(commands) + "\"", ex);
 					return false;
 				}
-			} else if (commands[0].equals("KILLIP")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-				if (commands.length != 2) {
-					return false;
-				}
-				String IP = commands[1];
-				String[] sp1 = IP.split("\\.");
-				if (sp1.length != 4) {
-					client.sendLine(new StringBuilder("SERVERMSG Invalid IP address/range: ").append(IP).toString());
-					return false;
-				}
-				for (int i = 0; i < context.getClients().getClientsSize(); i++) {
-					if (!Misc.isSameIP(sp1, context.getClients().getClient(i).getIp())) {
-						continue;
-					}
-					context.getClients().killClient(context.getClients().getClient(i));
-				}
 			} else if (commands[0].equals("WHITELIST")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
