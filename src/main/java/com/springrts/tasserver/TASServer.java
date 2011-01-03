@@ -570,28 +570,6 @@ public class TASServer implements LiveStateListener {
 							Misc.makeSentence(commands) + "\"", ex);
 					return false;
 				}
-			} else if (commands[0].equals("FLOODLEVEL")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-				if (commands.length == 3) {
-					if (commands[1].toUpperCase().equals("PERIOD")) {
-						int seconds = Integer.parseInt(commands[2]);
-						context.getServer().getFloodProtection().setReceivedRecordPeriod(seconds);
-						client.sendLine(new StringBuilder("SERVERMSG The antiflood period is now ")
-								.append(seconds).append(" seconds.").toString());
-					} else if (commands[1].toUpperCase().equals("USER")) {
-						int bytes = Integer.parseInt(commands[2]);
-						context.getServer().getFloodProtection().setMaxBytesAlert(bytes);
-						client.sendLine(new StringBuilder("SERVERMSG The antiflood amount for a normal user is now ")
-								.append(bytes).append(" bytes.").toString());
-					} else if (commands[1].toUpperCase().equals("BOT")) {
-						int bytes = Integer.parseInt(commands[2]);
-						context.getServer().getFloodProtection().setMaxBytesAlertForBot(bytes);
-						client.sendLine(new StringBuilder("SERVERMSG The antiflood amount for a bot is now ")
-								.append(bytes).append(" bytes.").toString());
-					}
-				}
 			} else if (commands[0].equals("KILL")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
