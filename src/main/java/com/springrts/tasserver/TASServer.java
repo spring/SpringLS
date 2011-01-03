@@ -89,7 +89,6 @@ public class TASServer implements LiveStateListener {
 	private final int SEND_BUFFER_SIZE = 8192 * 2; // socket's send buffer size
 	private final long MAIN_LOOP_SLEEP = 10L;
 	private long maxChatMessageLength = 1024; // used with basic anti-flood protection. Any chat messages (channel or private chat messages) longer than this are considered flooding. Used with following commands: SAY, SAYEX, SAYPRIVATE, SAYBATTLE, SAYBATTLEEX
-	private boolean loginEnabled = true;
 	private long lastTimeoutCheck = System.currentTimeMillis(); // time ({@link java.lang.System#currentTimeMillis()}) when we last checked for timeouts from clients
 	private ServerSocketChannel sSockChan;
 	private Selector readSelector;
@@ -596,10 +595,10 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 				if (commands.length == 2) {
-					loginEnabled = (commands[1].equals("1"));
+					context.getServer().setLoginEnabled(commands[1].equals("1"));
 				}
 				client.sendLine(new StringBuilder("SERVERMSG The LOGIN command is ")
-						.append((loginEnabled ? "enabled" : "disabled"))
+						.append((context.getServer().isLoginEnabled() ? "enabled" : "disabled"))
 						.append(" for non-moderators").toString());
 			} else if (commands[0].equals("ENABLEREGISTER")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
@@ -1639,7 +1638,7 @@ public class TASServer implements LiveStateListener {
 					return false; // user with accessLevel > 0 cannot re-login
 				}
 
-				if (!loginEnabled && context.getAccountsService().getAccount(commands[1]).getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
+				if (!context.getServer().isLoginEnabled() && context.getAccountsService().getAccount(commands[1]).getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
 					client.sendLine("DENIED Sorry, logging in is currently disabled");
 					return false;
 				}

@@ -71,6 +71,8 @@ public class Server implements ContextReceiver {
 
 	private FloodProtection floodProtection;
 
+	private boolean loginEnabled;
+
 
 	public Server() {
 
@@ -81,6 +83,7 @@ public class Server implements ContextReceiver {
 		port = DEFAULT_PORT;
 		useUserDB = false;
 		floodProtection = new FloodProtection();
+		loginEnabled = true;
 	}
 
 
@@ -250,5 +253,13 @@ public class Server implements ContextReceiver {
 	 */
 	public FloodProtection getFloodProtection() {
 		return floodProtection;
+	}
+
+	public boolean isLoginEnabled() {
+		return loginEnabled;
+	}
+
+	public void setLoginEnabled(boolean loginEnabled) {
+		this.loginEnabled = loginEnabled;
 	}
 }
