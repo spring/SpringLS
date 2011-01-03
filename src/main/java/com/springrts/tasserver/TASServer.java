@@ -31,6 +31,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
@@ -52,10 +53,7 @@ public class TASServer implements LiveStateListener {
 	private String agreement = "";
 	private final String MOTD_FILENAME = "motd.txt";
 	private final String AGREEMENT_FILENAME = "agreement.rtf";
-	final String UPDATE_PROPERTIES_FILENAME = "updates.xml";
-	final int TIMEOUT_CHECK = 5000;
-	/** in milliseconds */
-	private int timeoutLength = 50000;
+	private final String UPDATE_PROPERTIES_FILENAME = "updates.xml";
 	/** if true, server is redirection clients to new IP */
 	private boolean redirect = false;
 	/** new IP to which clients are redirected if (redirected==true) */
@@ -89,7 +87,6 @@ public class TASServer implements LiveStateListener {
 	private final int SEND_BUFFER_SIZE = 8192 * 2; // socket's send buffer size
 	private final long MAIN_LOOP_SLEEP = 10L;
 	private long maxChatMessageLength = 1024; // used with basic anti-flood protection. Any chat messages (channel or private chat messages) longer than this are considered flooding. Used with following commands: SAY, SAYEX, SAYPRIVATE, SAYBATTLE, SAYBATTLEEX
-	private long lastTimeoutCheck = System.currentTimeMillis(); // time ({@link java.lang.System#currentTimeMillis()}) when we last checked for timeouts from clients
 	private ServerSocketChannel sSockChan;
 	private Selector readSelector;
 	private boolean running;
@@ -595,7 +592,7 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 				if (commands.length == 2) {
-					timeoutLength = Integer.parseInt(commands[1]) * 1000;
+					context.getServer().setTimeoutLength(Integer.parseInt(commands[1]) * 1000);
 					client.sendLine(new StringBuilder("SERVERMSG Timeout length is now ")
 							.append(commands[1]).append(" seconds.").toString());
 				}
@@ -3354,20 +3351,15 @@ public class TASServer implements LiveStateListener {
 			}
 
 			// check for timeouts:
-			if (System.currentTimeMillis() - lastTimeoutCheck > TIMEOUT_CHECK) {
-				lastTimeoutCheck = System.currentTimeMillis();
-				long now = System.currentTimeMillis();
-				for (int i = 0; i < context.getClients().getClientsSize(); i++) {
-					if (context.getClients().getClient(i).isHalfDead()) {
-						continue; // already scheduled for kill
-					}
-					if (now - context.getClients().getClient(i).getTimeOfLastReceive() > timeoutLength) {
-						s_log.warn(new StringBuilder("Timeout detected from ")
-								.append(context.getClients().getClient(i).getAccount().getName()).append(" (")
-								.append(context.getClients().getClient(i).getIp()).append("). Client has been scheduled for kill ...").toString());
-						context.getClients().killClientDelayed(context.getClients().getClient(i), "Quit: timeout");
-					}
+			Collection<Client> timedOutClients = context.getServer().getTimedOutClients();
+			for (Client client : timedOutClients) {
+				if (client.isHalfDead()) {
+					continue; // already scheduled for kill
 				}
+				s_log.warn(new StringBuilder("Timeout detected from ")
+						.append(client.getAccount().getName()).append(" (")
+						.append(client.getIp()).append("). Client has been scheduled for kill ...").toString());
+				context.getClients().killClientDelayed(client, "Quit: timeout");
 			}
 
 			// kill all clients scheduled to be killed:
