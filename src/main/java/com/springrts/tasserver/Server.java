@@ -108,6 +108,14 @@ public class Server implements ContextReceiver {
 		return true;
 	}
 
+	/**
+	 * Returns the servers up-time.
+	 * @return the servers up-time in milli-seconds
+	 */
+	public long getUpTime() {
+		return System.currentTimeMillis() - getStartTime();
+	}
+
 	public CharsetDecoder getAsciiDecoder() {
 		return asciiDecoder;
 	}

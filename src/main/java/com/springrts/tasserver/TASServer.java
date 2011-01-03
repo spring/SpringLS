@@ -575,16 +575,6 @@ public class TASServer implements LiveStateListener {
 							Misc.makeSentence(commands) + "\"", ex);
 					return false;
 				}
-			} else if (commands[0].equals("UPTIME")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.NORMAL) < 0) {
-					return false;
-				}
-				if (commands.length != 1) {
-					return false;
-				}
-
-				client.sendLine(new StringBuilder("SERVERMSG Server's uptime is ")
-						.append(Misc.timeToDHM(System.currentTimeMillis() - context.getServer().getStartTime())).toString());
 			} else if (commands[0].equals("FLOODLEVEL")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
