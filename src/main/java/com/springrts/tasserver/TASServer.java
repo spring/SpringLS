@@ -594,40 +594,6 @@ public class TASServer implements LiveStateListener {
 				}
 
 				running = false;
-			} else if (commands[0].equals("CHANGEACCOUNTPASS")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-				if (commands.length != 3) {
-					return false;
-				}
-
-				Account acc = context.getAccountsService().getAccount(commands[1]);
-				if (acc == null) {
-					return false;
-				}
-				// validate password:
-				if (Account.isPasswordValid(commands[2]) != null) {
-					return false;
-				}
-
-				final String oldPasswd = acc.getPassword();
-				acc.setPassword(commands[2]);
-				final boolean mergeOk = context.getAccountsService().mergeAccountChanges(acc, acc.getName());
-				if (!mergeOk) {
-					acc.setPassword(oldPasswd);
-					client.sendLine("SERVERMSG CHANGEACCOUNTPASS failed: Failed saving to persistent storage.");
-					return false;
-				}
-
-				context.getAccountsService().saveAccounts(false); // save changes
-
-				// add server notification:
-				ServerNotification sn = new ServerNotification("Account password changed by admin");
-				sn.addLine(new StringBuilder("Admin <")
-						.append(client.getAccount().getName()).append("> has changed password for account <")
-						.append(acc.getName()).append(">").toString());
-				context.getServerNotifications().addNotification(sn);
 			} else if (commands[0].equals("CHANGEACCOUNTACCESS")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
