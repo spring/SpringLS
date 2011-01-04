@@ -28,10 +28,13 @@ import com.springrts.tasserver.commands.impl.ChangeAccountPasswordCommandProcess
 import com.springrts.tasserver.commands.impl.CreateAccountCommandProcessor;
 import com.springrts.tasserver.commands.impl.EnableLoginCommandProcessor;
 import com.springrts.tasserver.commands.impl.EnableRegisterCommandProcessor;
+import com.springrts.tasserver.commands.impl.FindIpCommandProcessor;
 import com.springrts.tasserver.commands.impl.FloodLevelCommandProcessor;
 import com.springrts.tasserver.commands.impl.ForceStopServerCommandProcessor;
 import com.springrts.tasserver.commands.impl.GetAccountAccessCommandProcessor;
 import com.springrts.tasserver.commands.impl.GetAccountCountCommandProcessor;
+import com.springrts.tasserver.commands.impl.GetAccountInfoCommandProcessor;
+import com.springrts.tasserver.commands.impl.GetLastIpCommandProcessor;
 import com.springrts.tasserver.commands.impl.KickUserCommandProcessor;
 import com.springrts.tasserver.commands.impl.KillCommandProcessor;
 import com.springrts.tasserver.commands.impl.KillIpCommandProcessor;
@@ -134,6 +137,9 @@ public class CommandProcessors implements ContextReceiver {
 		commandProcessorClasses.add(BroadcastExtendedCommandProcessor.class);
 		commandProcessorClasses.add(AdminBroadcastCommandProcessor.class);
 		commandProcessorClasses.add(GetAccountCountCommandProcessor.class);
+		commandProcessorClasses.add(FindIpCommandProcessor.class);
+		commandProcessorClasses.add(GetLastIpCommandProcessor.class);
+		commandProcessorClasses.add(GetAccountInfoCommandProcessor.class);
 
 		try {
 			load(commandProcessorClasses);
