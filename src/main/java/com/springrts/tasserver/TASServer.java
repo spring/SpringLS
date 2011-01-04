@@ -607,22 +607,6 @@ public class TASServer implements LiveStateListener {
 				}
 
 				tryToExecCommand(Misc.makeSentence(commands, 2), targetClient);
-			} else if (commands[0].equals("CHANNELMESSAGE")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
-					return false;
-				}
-				if (commands.length < 3) {
-					return false;
-				}
-
-				Channel chan = context.getChannels().getChannel(commands[1]);
-				if (chan == null) {
-					client.sendLine(new StringBuilder("SERVERMSG CHANNELMESSAGE failed: Channel #")
-							.append(commands[1]).append(" does not exist!").toString());
-					return false;
-				}
-
-				chan.broadcast(Misc.makeSentence(commands, 2));
 			} else if (commands[0].equals("IP2COUNTRY")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;

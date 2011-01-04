@@ -25,6 +25,7 @@ import com.springrts.tasserver.commands.impl.BroadcastCommandProcessor;
 import com.springrts.tasserver.commands.impl.BroadcastExtendedCommandProcessor;
 import com.springrts.tasserver.commands.impl.ChangeAccountAccessCommandProcessor;
 import com.springrts.tasserver.commands.impl.ChangeAccountPasswordCommandProcessor;
+import com.springrts.tasserver.commands.impl.ChannelMessageCommandProcessor;
 import com.springrts.tasserver.commands.impl.CreateAccountCommandProcessor;
 import com.springrts.tasserver.commands.impl.EnableLoginCommandProcessor;
 import com.springrts.tasserver.commands.impl.EnableRegisterCommandProcessor;
@@ -154,6 +155,7 @@ public class CommandProcessors implements ContextReceiver {
 		commandProcessorClasses.add(MuteCommandProcessor.class);
 		commandProcessorClasses.add(UnmuteCommandProcessor.class);
 		commandProcessorClasses.add(MuteListCommandProcessor.class);
+		commandProcessorClasses.add(ChannelMessageCommandProcessor.class);
 
 		try {
 			load(commandProcessorClasses);
