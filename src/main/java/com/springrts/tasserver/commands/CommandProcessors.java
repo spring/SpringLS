@@ -33,6 +33,8 @@ import com.springrts.tasserver.commands.impl.KillCommandProcessor;
 import com.springrts.tasserver.commands.impl.KillIpCommandProcessor;
 import com.springrts.tasserver.commands.impl.OpenBattleCommandProcessor;
 import com.springrts.tasserver.commands.impl.PingCommandProcessor;
+import com.springrts.tasserver.commands.impl.RedirectCommandProcessor;
+import com.springrts.tasserver.commands.impl.RedirectOffCommandProcessor;
 import com.springrts.tasserver.commands.impl.RegisterCommandProcessor;
 import com.springrts.tasserver.commands.impl.RemoveAccountCommandProcessor;
 import com.springrts.tasserver.commands.impl.SaveAccountsServerCommandProcessor;
@@ -122,6 +124,8 @@ public class CommandProcessors implements ContextReceiver {
 		commandProcessorClasses.add(ChangeAccountPasswordCommandProcessor.class);
 		commandProcessorClasses.add(ChangeAccountAccessCommandProcessor.class);
 		commandProcessorClasses.add(GetAccountAccessCommandProcessor.class);
+		commandProcessorClasses.add(RedirectCommandProcessor.class);
+		commandProcessorClasses.add(RedirectOffCommandProcessor.class);
 
 		try {
 			load(commandProcessorClasses);

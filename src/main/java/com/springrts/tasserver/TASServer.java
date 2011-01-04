@@ -8,7 +8,6 @@ package com.springrts.tasserver;
 import com.springrts.tasserver.commands.CommandProcessingException;
 import com.springrts.tasserver.commands.CommandProcessor;
 import com.springrts.tasserver.commands.CommandProcessors;
-import java.net.UnknownHostException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -591,40 +590,6 @@ public class TASServer implements LiveStateListener {
 				}
 
 				running = false;
-			} else if (commands[0].equals("REDIRECT")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-				if (commands.length != 2) {
-					return false;
-				}
-
-				String redirectIpStr = commands[1];
-				try {
-					context.getServer().setRedirectAddress(InetAddress.getByName(redirectIpStr));
-				} catch (UnknownHostException ex) {
-					s_log.debug("Invalid redirect IP supplied", ex);
-					return false;
-				}
-				context.getClients().sendToAllRegisteredUsers("BROADCAST Server has entered redirection mode");
-
-				// add server notification:
-				ServerNotification sn = new ServerNotification("Entered redirection mode");
-				sn.addLine(new StringBuilder("Admin <").append(client.getAccount().getName()).append("> has enabled redirection mode. New address: ").append(redirectIpStr).toString());
-				context.getServerNotifications().addNotification(sn);
-			} else if (commands[0].equals("REDIRECTOFF")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-
-				context.getServer().disableRedirect();
-				context.getClients().sendToAllRegisteredUsers("BROADCAST Server has left redirection mode");
-
-				// add server notification:
-				ServerNotification sn = new ServerNotification("Redirection mode disabled");
-				sn.addLine(new StringBuilder("Admin <").append(client.getAccount().getName())
-						.append("> has disabled redirection mode.").toString());
-				context.getServerNotifications().addNotification(sn);
 			} else if (commands[0].equals("BROADCAST")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
