@@ -590,46 +590,6 @@ public class TASServer implements LiveStateListener {
 				}
 
 				running = false;
-			} else if (commands[0].equals("BROADCAST")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-				if (commands.length < 2) {
-					return false;
-				}
-
-				context.getClients().sendToAllRegisteredUsers(new StringBuilder("BROADCAST ")
-						.append(Misc.makeSentence(commands, 1)).toString());
-			} else if (commands[0].equals("BROADCASTEX")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-				if (commands.length < 2) {
-					return false;
-				}
-
-				context.getClients().sendToAllRegisteredUsers(new StringBuilder("SERVERMSGBOX ")
-						.append(Misc.makeSentence(commands, 1)).toString());
-			} else if (commands[0].equals("ADMINBROADCAST")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-				if (commands.length < 2) {
-					return false;
-				}
-
-				context.getClients().sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: ")
-						.append(Misc.makeSentence(commands, 1)).toString());
-			} else if (commands[0].equals("GETACCOUNTCOUNT")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-				if (commands.length != 1) {
-					return false;
-				}
-
-				client.sendLine(new StringBuilder("SERVERMSG ")
-						.append(context.getAccountsService().getAccountsSize()).toString());
 			} else if (commands[0].equals("FINDIP")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
 					return false;
