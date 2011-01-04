@@ -590,22 +590,6 @@ public class TASServer implements LiveStateListener {
 				}
 
 				running = false;
-			} else if (commands[0].equals("FORGEMSG")) {
-				/* this command is used only for debugging purposes. It sends the string
-				 * to client specified as first argument. */
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-				if (commands.length < 3) {
-					return false;
-				}
-
-				Client targetClient = context.getClients().getClient(commands[1]);
-				if (targetClient == null) {
-					return false;
-				}
-
-				targetClient.sendLine(Misc.makeSentence(commands, 2));
 			} else if (commands[0].equals("FORGEREVERSEMSG")) {
 				/* this command is used only for debugging purposes. It forces server to process
 				 * string passed to this command as if it were sent by the user specified
