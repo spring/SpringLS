@@ -594,19 +594,6 @@ public class TASServer implements LiveStateListener {
 				}
 
 				running = false;
-			} else if (commands[0].equals("FORCESTOPSERVER")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-
-				context.getServer().closeServerAndExit();
-			} else if (commands[0].equals("SAVEACCOUNTS")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-
-				context.getAccountsService().saveAccounts(false);
-				client.sendLine("SERVERMSG Accounts will be saved in a background thread.");
 			} else if (commands[0].equals("CHANGEACCOUNTPASS")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;

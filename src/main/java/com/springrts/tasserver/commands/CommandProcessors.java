@@ -24,6 +24,7 @@ import com.springrts.tasserver.commands.impl.CreateAccountCommandProcessor;
 import com.springrts.tasserver.commands.impl.EnableLoginCommandProcessor;
 import com.springrts.tasserver.commands.impl.EnableRegisterCommandProcessor;
 import com.springrts.tasserver.commands.impl.FloodLevelCommandProcessor;
+import com.springrts.tasserver.commands.impl.ForceStopServerCommandProcessor;
 import com.springrts.tasserver.commands.impl.KickUserCommandProcessor;
 import com.springrts.tasserver.commands.impl.KillCommandProcessor;
 import com.springrts.tasserver.commands.impl.KillIpCommandProcessor;
@@ -31,6 +32,7 @@ import com.springrts.tasserver.commands.impl.OpenBattleCommandProcessor;
 import com.springrts.tasserver.commands.impl.PingCommandProcessor;
 import com.springrts.tasserver.commands.impl.RegisterCommandProcessor;
 import com.springrts.tasserver.commands.impl.RemoveAccountCommandProcessor;
+import com.springrts.tasserver.commands.impl.SaveAccountsServerCommandProcessor;
 import com.springrts.tasserver.commands.impl.SetTimeOutCommandProcessor;
 import com.springrts.tasserver.commands.impl.UpTimeCommandProcessor;
 import java.lang.reflect.Constructor;
@@ -112,6 +114,8 @@ public class CommandProcessors implements ContextReceiver {
 		commandProcessorClasses.add(EnableRegisterCommandProcessor.class);
 		commandProcessorClasses.add(SetTimeOutCommandProcessor.class);
 		commandProcessorClasses.add(RemoveAccountCommandProcessor.class);
+		commandProcessorClasses.add(ForceStopServerCommandProcessor.class);
+		commandProcessorClasses.add(SaveAccountsServerCommandProcessor.class);
 
 		try {
 			load(commandProcessorClasses);
