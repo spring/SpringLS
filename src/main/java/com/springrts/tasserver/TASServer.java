@@ -607,50 +607,6 @@ public class TASServer implements LiveStateListener {
 				}
 
 				tryToExecCommand(Misc.makeSentence(commands, 2), targetClient);
-			} else if (commands[0].equals("GETIP")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
-					return false;
-				}
-				if (commands.length != 2) {
-					return false;
-				}
-
-				Client targetClient = context.getClients().getClient(commands[1]);
-				if (targetClient == null) {
-					return false;
-				}
-
-				client.sendLine(new StringBuilder("SERVERMSG ")
-						.append(targetClient.getAccount().getName()).append("'s IP is ")
-						.append(targetClient.getIp()).toString());
-			} else if (commands[0].equals("GETINGAMETIME")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.NORMAL) < 0) {
-					return false;
-				}
-
-				if (commands.length == 1) {
-					client.sendLine(new StringBuilder("SERVERMSG Your in-game time is ")
-							.append(client.getAccount().getInGameTimeInMins()).append(" minutes.").toString());
-				} else {
-					if (client.getAccount().getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
-						client.sendLine("SERVERMSG You have no access to see other player's in-game time!");
-						return false;
-					}
-
-					if (commands.length != 2) {
-						return false;
-					}
-					Account acc = context.getAccountsService().getAccount(commands[1]);
-					if (acc == null) {
-						client.sendLine(new StringBuilder("SERVERMSG GETINGAMETIME failed: user ")
-								.append(commands[1]).append(" not found!").toString());
-						return false;
-					}
-
-					client.sendLine(new StringBuilder("SERVERMSG ")
-							.append(acc.getName()).append("'s in-game time is ")
-							.append(acc.getInGameTimeInMins()).append(" minutes.").toString());
-				}
 			} else if (commands[0].equals("FORCECLOSEBATTLE")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;

@@ -35,6 +35,8 @@ import com.springrts.tasserver.commands.impl.ForgeMessageCommandProcessor;
 import com.springrts.tasserver.commands.impl.GetAccountAccessCommandProcessor;
 import com.springrts.tasserver.commands.impl.GetAccountCountCommandProcessor;
 import com.springrts.tasserver.commands.impl.GetAccountInfoCommandProcessor;
+import com.springrts.tasserver.commands.impl.GetInGameTimeCommandProcessor;
+import com.springrts.tasserver.commands.impl.GetIpCommandProcessor;
 import com.springrts.tasserver.commands.impl.GetLastIpCommandProcessor;
 import com.springrts.tasserver.commands.impl.KickUserCommandProcessor;
 import com.springrts.tasserver.commands.impl.KillCommandProcessor;
@@ -142,6 +144,8 @@ public class CommandProcessors implements ContextReceiver {
 		commandProcessorClasses.add(GetLastIpCommandProcessor.class);
 		commandProcessorClasses.add(GetAccountInfoCommandProcessor.class);
 		commandProcessorClasses.add(ForgeMessageCommandProcessor.class);
+		commandProcessorClasses.add(GetIpCommandProcessor.class);
+		commandProcessorClasses.add(GetInGameTimeCommandProcessor.class);
 
 		try {
 			load(commandProcessorClasses);
