@@ -607,30 +607,6 @@ public class TASServer implements LiveStateListener {
 				}
 
 				tryToExecCommand(Misc.makeSentence(commands, 2), targetClient);
-			} else if (commands[0].equals("FORCECLOSEBATTLE")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-				if (commands.length != 2) {
-					return false;
-				}
-
-				int battleID;
-				try {
-					battleID = Integer.parseInt(commands[1]);
-				} catch (NumberFormatException e) {
-					client.sendLine("SERVERMSG Invalid BattleID!");
-					return false;
-				}
-
-				Battle bat = context.getBattles().getBattleByID(battleID);
-				if (bat == null) {
-					client.sendLine("SERVERMSG Error: unknown BATTLE_ID!");
-					return false;
-				}
-
-				context.getBattles().closeBattleAndNotifyAll(bat);
-
 			} else if (commands[0].equals("MUTE")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
 					return false;
