@@ -20,12 +20,14 @@ package com.springrts.tasserver.commands;
 
 import com.springrts.tasserver.Context;
 import com.springrts.tasserver.ContextReceiver;
+import com.springrts.tasserver.commands.impl.ChangeAccountAccessCommandProcessor;
 import com.springrts.tasserver.commands.impl.ChangeAccountPasswordCommandProcessor;
 import com.springrts.tasserver.commands.impl.CreateAccountCommandProcessor;
 import com.springrts.tasserver.commands.impl.EnableLoginCommandProcessor;
 import com.springrts.tasserver.commands.impl.EnableRegisterCommandProcessor;
 import com.springrts.tasserver.commands.impl.FloodLevelCommandProcessor;
 import com.springrts.tasserver.commands.impl.ForceStopServerCommandProcessor;
+import com.springrts.tasserver.commands.impl.GetAccountAccessCommandProcessor;
 import com.springrts.tasserver.commands.impl.KickUserCommandProcessor;
 import com.springrts.tasserver.commands.impl.KillCommandProcessor;
 import com.springrts.tasserver.commands.impl.KillIpCommandProcessor;
@@ -118,6 +120,8 @@ public class CommandProcessors implements ContextReceiver {
 		commandProcessorClasses.add(ForceStopServerCommandProcessor.class);
 		commandProcessorClasses.add(SaveAccountsServerCommandProcessor.class);
 		commandProcessorClasses.add(ChangeAccountPasswordCommandProcessor.class);
+		commandProcessorClasses.add(ChangeAccountAccessCommandProcessor.class);
+		commandProcessorClasses.add(GetAccountAccessCommandProcessor.class);
 
 		try {
 			load(commandProcessorClasses);
