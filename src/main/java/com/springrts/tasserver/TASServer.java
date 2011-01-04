@@ -8,6 +8,7 @@ package com.springrts.tasserver;
 import com.springrts.tasserver.commands.CommandProcessingException;
 import com.springrts.tasserver.commands.CommandProcessor;
 import com.springrts.tasserver.commands.CommandProcessors;
+import java.net.UnknownHostException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -54,10 +55,6 @@ public class TASServer implements LiveStateListener {
 	private final String MOTD_FILENAME = "motd.txt";
 	private final String AGREEMENT_FILENAME = "agreement.rtf";
 	private final String UPDATE_PROPERTIES_FILENAME = "updates.xml";
-	/** if true, server is redirection clients to new IP */
-	private boolean redirect = false;
-	/** new IP to which clients are redirected if (redirected==true) */
-	private String redirectToIP = "";
 	/**
 	 * If true, the server will keep a log of all conversations from
 	 * the channel #main (in file "MainChanLog.log")
@@ -253,10 +250,10 @@ public class TASServer implements LiveStateListener {
 			// since sSockChan is non-blocking, this will return immediately
 			// regardless of whether there is a connection available
 			while ((clientChannel = sSockChan.accept()) != null) {
-				if (redirect) {
+				if (context.getServer().isRedirectActive()) {
 					if (s_log.isDebugEnabled()) {
 						s_log.debug(new StringBuilder("Client redirected to ")
-								.append(redirectToIP).append(": ")
+								.append(context.getServer().getRedirectAddress().getHostAddress()).append(": ")
 								.append(clientChannel.socket().getInetAddress().getHostAddress()).toString());
 					}
 					redirectAndKill(clientChannel.socket());
@@ -466,11 +463,11 @@ public class TASServer implements LiveStateListener {
 	}
 
 	public boolean redirectAndKill(Socket socket) {
-		if (!redirect) {
+		if (!context.getServer().isRedirectActive()) {
 			return false;
 		}
 		try {
-			(new PrintWriter(socket.getOutputStream(), true)).println("REDIRECT " + redirectToIP);
+			(new PrintWriter(socket.getOutputStream(), true)).println("REDIRECT " + context.getServer().getRedirectAddress().getHostAddress());
 			socket.close();
 		} catch (Exception e) {
 			return false;
@@ -602,20 +599,25 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
-				redirectToIP = commands[1];
-				redirect = true;
+				String redirectIpStr = commands[1];
+				try {
+					context.getServer().setRedirectAddress(InetAddress.getByName(redirectIpStr));
+				} catch (UnknownHostException ex) {
+					s_log.debug("Invalid redirect IP supplied", ex);
+					return false;
+				}
 				context.getClients().sendToAllRegisteredUsers("BROADCAST Server has entered redirection mode");
 
 				// add server notification:
 				ServerNotification sn = new ServerNotification("Entered redirection mode");
-				sn.addLine(new StringBuilder("Admin <").append(client.getAccount().getName()).append("> has enabled redirection mode. New address: ").append(redirectToIP).toString());
+				sn.addLine(new StringBuilder("Admin <").append(client.getAccount().getName()).append("> has enabled redirection mode. New address: ").append(redirectIpStr).toString());
 				context.getServerNotifications().addNotification(sn);
 			} else if (commands[0].equals("REDIRECTOFF")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 
-				redirect = false;
+				context.getServer().disableRedirect();
 				context.getClients().sendToAllRegisteredUsers("BROADCAST Server has left redirection mode");
 
 				// add server notification:

@@ -1,6 +1,7 @@
 package com.springrts.tasserver;
 
 
+import java.net.InetAddress;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
@@ -88,6 +89,12 @@ public class Server implements ContextReceiver {
 	 */
 	private int timeoutLength;
 
+	/**
+	 * The address to redirect clients to, or <code>null</code> if redirection
+	 * is disabled.
+	 */
+	private InetAddress redirectAddress;
+
 	public Server() {
 
 		lanMode = false;
@@ -100,6 +107,7 @@ public class Server implements ContextReceiver {
 		loginEnabled = true;
 		timeoutLength = 50000;
 		lastTimeoutCheck = System.currentTimeMillis();
+		redirectAddress = null;
 	}
 
 
@@ -319,5 +327,38 @@ public class Server implements ContextReceiver {
 		}
 
 		return timedOutClients;
+	}
+
+	/**
+	 * True if clients get redirected.
+	 * @return if clients get redirected
+	 */
+	public boolean isRedirectActive() {
+		return (redirectAddress != null);
+	}
+
+	/**
+	 * Disables redirecting of clients.
+	 */
+	public void disableRedirect() {
+		redirectAddress = null;
+	}
+
+	/**
+	 * The address to redirect clients to, or <code>null</code> if redirection
+	 * is disabled.
+	 * @return the redirectAddress
+	 */
+	public InetAddress getRedirectAddress() {
+		return redirectAddress;
+	}
+
+	/**
+	 * The address to redirect clients to, or <code>null</code> if redirection
+	 * is disabled.
+	 * @param redirectAddress the redirectAddress to set
+	 */
+	public void setRedirectAddress(InetAddress redirectAddress) {
+		this.redirectAddress = redirectAddress;
 	}
 }
