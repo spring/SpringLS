@@ -573,40 +573,6 @@ public class TASServer implements LiveStateListener {
 				}
 
 				client.sendLine("SERVERMSG Fetching ban entries is not needed anymore. Therefore, this is a no-op now.");
-			} else if (commands[0].equals("SETCHANNELKEY")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
-					return false;
-				}
-				if (commands.length != 3) {
-					client.sendLine("SERVERMSG Bad arguments (command SETCHANNELKEY)");
-					return false;
-				}
-
-				Channel chan = context.getChannels().getChannel(commands[1]);
-				if (chan == null) {
-					client.sendLine(new StringBuilder("SERVERMSG Error: Channel does not exist: ").append(commands[1]).toString());
-					return false;
-				}
-
-				if (commands[2].equals("*")) {
-					if (chan.getKey().equals("")) {
-						client.sendLine("SERVERMSG Error: Unable to unlock channel - channel is not locked!");
-						return false;
-					}
-					chan.setKey("");
-					chan.broadcast(new StringBuilder("<")
-							.append(client.getAccount().getName()).append("> has just unlocked #")
-							.append(chan.getName()).toString());
-				} else {
-					if (!commands[2].matches("^[A-Za-z0-9_]+$")) {
-						client.sendLine(new StringBuilder("SERVERMSG Error: Invalid key: ").append(commands[2]).toString());
-						return false;
-					}
-					chan.setKey(commands[2]);
-					chan.broadcast(new StringBuilder("<")
-							.append(client.getAccount().getName()).append("> has just locked #")
-							.append(chan.getName()).append(" with private key").toString());
-				}
 			} else if (commands[0].equals("FORCELEAVECHANNEL")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
 					return false;
