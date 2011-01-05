@@ -380,18 +380,6 @@ public class TASServer implements LiveStateListener {
 		}
 	}
 
-	private Account verifyLogin(String user, String pass) {
-		Account acc = context.getAccountsService().getAccount(user);
-		if (acc == null) {
-			return null;
-		}
-		if (acc.getPassword().equals(pass)) {
-			return acc;
-		} else {
-			return null;
-		}
-	}
-
 	private void recordFailedLoginAttempt(String username) {
 		FailedLoginAttempt attempt = findFailedLoginAttempt(username);
 		if (attempt == null) {
@@ -584,7 +572,7 @@ public class TASServer implements LiveStateListener {
 				String userName = commands[1];
 				String password = commands[2];
 
-				if (verifyLogin(userName, password) == null) {
+				if (context.getAccountsService().verifyLogin(userName, password) == null) {
 					client.sendLine("TESTLOGINDENY");
 					return false;
 				}
@@ -842,7 +830,7 @@ public class TASServer implements LiveStateListener {
 						return false;
 					}
 
-					Account acc = verifyLogin(username, password);
+					Account acc = context.getAccountsService().verifyLogin(username, password);
 					if (acc == null) {
 						client.sendLine("DENIED Bad username/password");
 						recordFailedLoginAttempt(username);

@@ -104,4 +104,15 @@ public interface AccountsService extends ContextReceiver, LiveStateListener {
 	 * @return true if new value was successfully set
 	 */
 	public boolean setRegistrationEnabled(boolean registrationEnabled);
+
+	/**
+	 * Checks if a pair of login credentials are valid.
+	 * This also obfuscates (by not logging) the reason why the login is
+	 * invalid.
+	 * @param username
+	 * @param password
+	 * @return the account that fits to the login credentials,
+	 *         or <code>null</code>, in case they are not valid
+	 */
+	public Account verifyLogin(String username, String password);
 }

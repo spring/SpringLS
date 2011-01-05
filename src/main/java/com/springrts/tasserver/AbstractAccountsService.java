@@ -101,4 +101,17 @@ public abstract class AbstractAccountsService implements AccountsService {
 		this.registrationEnabled = registrationEnabled;
 		return true;
 	}
+
+	@Override
+	public final Account verifyLogin(String username, String password) {
+
+		Account account = null;
+
+		account = getAccount(username);
+		if ((account != null) && !account.getPassword().equals(password)) {
+			account = null;
+		}
+
+		return account;
+	}
 }
