@@ -41,7 +41,6 @@ import java.util.regex.PatternSyntaxException;
  */
 public class TASServer implements LiveStateListener {
 
-	private String MOTD = "Enjoy your stay :-)";
 	/**
 	 * Agreement which is sent to user upon first login.
 	 * User must send CONFIRMAGREEMENT command to confirm the agreement
@@ -49,7 +48,6 @@ public class TASServer implements LiveStateListener {
 	 * See LOGIN command implementation for more details.
 	 */
 	private String agreement = "";
-	private final String MOTD_FILENAME = "motd.txt";
 	private final String AGREEMENT_FILENAME = "agreement.rtf";
 	private final String UPDATE_PROPERTIES_FILENAME = "updates.xml";
 	/**
@@ -106,25 +104,6 @@ public class TASServer implements LiveStateListener {
 	 * as a response, so it should contain a full server command.
 	 */
 	private Properties updateProperties = new Properties();
-
-
-	/** Reads MOTD from disk (if file is found) */
-	private boolean readMOTD(String fileName) {
-
-		boolean success = false;
-
-		try {
-			MOTD = Misc.readTextFile(new File(fileName));
-			success = true;
-			s_log.info("Using MOTD from file '" + fileName + "'.");
-		} catch (IOException ex) {
-			s_log.warn("Could not find or read from file '" + fileName + "'. Using default MOTD.");
-			s_log.debug("... reason:", ex);
-			success = false;
-		}
-
-		return success;
-	}
 
 	/** Reads agreement from disk (if file is found) */
 	private boolean readAgreement() {
@@ -432,23 +411,6 @@ public class TASServer implements LiveStateListener {
 		return null;
 	}
 
-	/** Sends "message of the day" (MOTD) to client */
-	private boolean sendMOTDToClient(Client client) {
-		client.beginFastWrite();
-		client.sendLine(new StringBuilder("MOTD Welcome, ").append(client.getAccount().getName()).append("!").toString());
-		client.sendLine(new StringBuilder("MOTD There are currently ").append((context.getClients().getClientsSize() - 1)).append(" clients connected").toString()); // -1 is because we shouldn't count the client to which we are sending MOTD
-		client.sendLine(new StringBuilder("MOTD to server talking in ").append(context.getChannels().getChannelsSize()).append(" open channels and").toString());
-		client.sendLine(new StringBuilder("MOTD participating in ").append(context.getBattles().getBattlesSize()).append(" battles.").toString());
-		client.sendLine(new StringBuilder("MOTD Server's uptime is ").append(Misc.timeToDHM(System.currentTimeMillis() - context.getServer().getStartTime())).append(".").toString());
-		client.sendLine("MOTD");
-		String[] sl = MOTD.split("\n");
-		for (int i = 0; i < sl.length; i++) {
-			client.sendLine(new StringBuilder("MOTD ").append(sl[i]).toString());
-		}
-		client.endFastWrite();
-		return true;
-	}
-
 	private void sendAgreementToClient(Client client) {
 		client.beginFastWrite();
 		String[] sl = agreement.split("\n");
@@ -619,7 +581,7 @@ public class TASServer implements LiveStateListener {
 					return false;
 				}
 
-				if (!readMOTD(commands[1])) {
+				if (!context.getMessageOfTheDay().read(commands[1])) {
 					client.sendLine(new StringBuilder("SERVERMSG Error: unable to read MOTD from ").append(commands[1]).toString());
 					return false;
 				} else {
@@ -1163,7 +1125,7 @@ public class TASServer implements LiveStateListener {
 
 				// do the notifying and all:
 				client.sendLine(new StringBuilder("ACCEPTED ").append(client.getAccount().getName()).toString());
-				sendMOTDToClient(client);
+				context.getMessageOfTheDay().sendTo(client);
 				context.getClients().sendListOfAllUsersToClient(client);
 				context.getBattles().sendInfoOnBattlesToClient(client);
 				context.getClients().sendInfoOnStatusesToClient(client);
@@ -2694,7 +2656,7 @@ public class TASServer implements LiveStateListener {
 			s_log.info("LAN mode enabled");
 		}
 
-		readMOTD(MOTD_FILENAME);
+		context.getMessageOfTheDay().read();
 		context.getServer().setStartTime(System.currentTimeMillis());
 
 		if (readUpdateProperties(UPDATE_PROPERTIES_FILENAME)) {
