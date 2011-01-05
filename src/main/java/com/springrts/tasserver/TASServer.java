@@ -573,46 +573,6 @@ public class TASServer implements LiveStateListener {
 				}
 
 				client.sendLine("SERVERMSG Fetching ban entries is not needed anymore. Therefore, this is a no-op now.");
-			} else if (commands[0].equals("FORCELEAVECHANNEL")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
-					return false;
-				}
-				if (commands.length < 3) {
-					client.sendLine("SERVERMSG Bad arguments (command FORCELEAVECHANNEL)");
-					return false;
-				}
-
-				Channel chan = context.getChannels().getChannel(commands[1]);
-				if (chan == null) {
-					client.sendLine(new StringBuilder("SERVERMSG Error: Channel does not exist: ").append(commands[1]).toString());
-					return false;
-				}
-
-				Client target = context.getClients().getClient(commands[2]);
-				if (target == null) {
-					client.sendLine(new StringBuilder("SERVERMSG Error: <").append(commands[2]).append("> not found!").toString());
-					return false;
-				}
-
-				if (!chan.isClientInThisChannel(target)) {
-					client.sendLine(new StringBuilder("SERVERMSG Error: <")
-							.append(commands[2]).append("> is not in the channel #")
-							.append(chan.getName()).append("!").toString());
-					return false;
-				}
-
-				String reason = "";
-				if (commands.length > 3) {
-					reason = " " + Misc.makeSentence(commands, 3);
-				}
-				chan.broadcast(new StringBuilder("<")
-						.append(client.getAccount().getName()).append("> has kicked <")
-						.append(target.getAccount().getName()).append("> from the channel")
-						.append(reason.equals("") ? "" : " (reason:").append(reason).append(")").toString());
-				target.sendLine(new StringBuilder("FORCELEAVECHANNEL ")
-						.append(chan.getName()).append(" ")
-						.append(client.getAccount().getName()).append(reason).toString());
-				target.leaveChannel(chan, "kicked from channel");
 			} else if (commands[0].equals("ADDNOTIFICATION")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
