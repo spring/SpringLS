@@ -41,11 +41,13 @@ import com.springrts.tasserver.commands.impl.GetAccountInfoCommandProcessor;
 import com.springrts.tasserver.commands.impl.GetInGameTimeCommandProcessor;
 import com.springrts.tasserver.commands.impl.GetIpCommandProcessor;
 import com.springrts.tasserver.commands.impl.GetLastIpCommandProcessor;
+import com.springrts.tasserver.commands.impl.GetLastLoginTimeCommandProcessor;
 import com.springrts.tasserver.commands.impl.GetLobbyVersionCommandProcessor;
 import com.springrts.tasserver.commands.impl.Ip2CountryCommandProcessor;
 import com.springrts.tasserver.commands.impl.KickUserCommandProcessor;
 import com.springrts.tasserver.commands.impl.KillCommandProcessor;
 import com.springrts.tasserver.commands.impl.KillIpCommandProcessor;
+import com.springrts.tasserver.commands.impl.LongTimeToDateCommandProcessor;
 import com.springrts.tasserver.commands.impl.MuteCommandProcessor;
 import com.springrts.tasserver.commands.impl.MuteListCommandProcessor;
 import com.springrts.tasserver.commands.impl.OpenBattleCommandProcessor;
@@ -170,6 +172,8 @@ public class CommandProcessors implements ContextReceiver {
 		commandProcessorClasses.add(GetLobbyVersionCommandProcessor.class);
 		commandProcessorClasses.add(UpdateStatisticsCommandProcessor.class);
 		commandProcessorClasses.add(UpdateMotdCommandProcessor.class);
+		commandProcessorClasses.add(LongTimeToDateCommandProcessor.class);
+		commandProcessorClasses.add(GetLastLoginTimeCommandProcessor.class);
 
 		try {
 			load(commandProcessorClasses);

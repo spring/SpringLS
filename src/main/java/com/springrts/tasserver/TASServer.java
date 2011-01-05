@@ -573,54 +573,6 @@ public class TASServer implements LiveStateListener {
 				}
 
 				client.sendLine("SERVERMSG Fetching ban entries is not needed anymore. Therefore, this is a no-op now.");
-			} else if (commands[0].equals("LONGTIMETODATE")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-				if (commands.length != 2) {
-					return false;
-				}
-
-				long time;
-				try {
-					time = Long.parseLong(commands[1]);
-				} catch (Exception e) {
-					client.sendLine("SERVERMSG LONGTIMETODATE failed: invalid argument.");
-					return false;
-				}
-
-				// As DateFormats are generally not-thread save,
-				// we always create a new one.
-				DateFormat dateTimeFormat = new SimpleDateFormat("d MMM yyyy HH:mm:ss z");
-
-				client.sendLine(new StringBuilder("SERVERMSG LONGTIMETODATE result: ")
-						.append(dateTimeFormat.format(new Date(time))).toString());
-			} else if (commands[0].equals("GETLASTLOGINTIME")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
-					return false;
-				}
-				if (commands.length != 2) {
-					return false;
-				}
-
-				Account acc = context.getAccountsService().getAccount(commands[1]);
-				if (acc == null) {
-					client.sendLine(new StringBuilder("SERVERMSG GETLASTLOGINTIME failed: <")
-							.append(commands[1]).append("> not found!").toString());
-					return false;
-				}
-
-				if (context.getClients().getClient(acc.getName()) == null) {
-					// As DateFormats are generally not-thread save,
-					// we always create a new one.
-					DateFormat dateTimeFormat = new SimpleDateFormat("d MMM yyyy HH:mm:ss z");
-					client.sendLine(new StringBuilder("SERVERMSG <")
-							.append(acc.getName()).append(">'s last login was on ")
-							.append(dateTimeFormat.format(new Date(acc.getLastLogin()))).toString());
-				} else {
-					client.sendLine(new StringBuilder("SERVERMSG <")
-							.append(acc.getName()).append("> is currently online").toString());
-				}
 			} else if (commands[0].equals("SETCHANNELKEY")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
 					return false;
