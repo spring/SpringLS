@@ -561,26 +561,6 @@ public class TASServer implements LiveStateListener {
 				}
 
 				client.sendLine("SERVERMSG Fetching ban entries is not needed anymore. Therefore, this is a no-op now.");
-			} else if (commands[0].equals("TESTLOGIN")) {
-				if (commands.length != 3) {
-					return false;
-				}
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-
-				String userName = commands[1];
-				String password = commands[2];
-
-				if (context.getAccountsService().verifyLogin(userName, password) == null) {
-					client.sendLine("TESTLOGINDENY");
-					return false;
-				}
-
-				// We don't check here if agreement bit is set yet,
-				// or if user is banned.
-				// We only verify if login info is correct
-				client.sendLine("TESTLOGINACCEPT");
 			} else if (commands[0].equals("SETBOTMODE")) {
 				if (commands.length != 3) {
 					return false;
