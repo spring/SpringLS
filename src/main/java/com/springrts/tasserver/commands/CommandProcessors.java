@@ -46,6 +46,7 @@ import com.springrts.tasserver.commands.impl.GetIpCommandProcessor;
 import com.springrts.tasserver.commands.impl.GetLastIpCommandProcessor;
 import com.springrts.tasserver.commands.impl.GetLastLoginTimeCommandProcessor;
 import com.springrts.tasserver.commands.impl.GetLobbyVersionCommandProcessor;
+import com.springrts.tasserver.commands.impl.GetRegistrationDateCommandProcessor;
 import com.springrts.tasserver.commands.impl.GetSendBufferSizeCommandProcessor;
 import com.springrts.tasserver.commands.impl.Ip2CountryCommandProcessor;
 import com.springrts.tasserver.commands.impl.KickUserCommandProcessor;
@@ -63,6 +64,7 @@ import com.springrts.tasserver.commands.impl.RedirectOffCommandProcessor;
 import com.springrts.tasserver.commands.impl.RegisterCommandProcessor;
 import com.springrts.tasserver.commands.impl.RemoveAccountCommandProcessor;
 import com.springrts.tasserver.commands.impl.SaveAccountsServerCommandProcessor;
+import com.springrts.tasserver.commands.impl.SetBotModeCommandProcessor;
 import com.springrts.tasserver.commands.impl.SetChannelKeyCommandProcessor;
 import com.springrts.tasserver.commands.impl.SetTimeOutCommandProcessor;
 import com.springrts.tasserver.commands.impl.TestLoginCommandProcessor;
@@ -188,6 +190,8 @@ public class CommandProcessors implements ContextReceiver {
 		commandProcessorClasses.add(GarbageCollectorCommandProcessor.class);
 		commandProcessorClasses.add(AddNotificationCommandProcessor.class);
 		commandProcessorClasses.add(TestLoginCommandProcessor.class);
+		commandProcessorClasses.add(SetBotModeCommandProcessor.class);
+		commandProcessorClasses.add(GetRegistrationDateCommandProcessor.class);
 
 		try {
 			load(commandProcessorClasses);
