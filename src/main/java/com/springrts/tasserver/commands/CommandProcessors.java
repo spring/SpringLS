@@ -25,6 +25,7 @@ import com.springrts.tasserver.commands.impl.BroadcastCommandProcessor;
 import com.springrts.tasserver.commands.impl.BroadcastExtendedCommandProcessor;
 import com.springrts.tasserver.commands.impl.ChangeAccountAccessCommandProcessor;
 import com.springrts.tasserver.commands.impl.ChangeAccountPasswordCommandProcessor;
+import com.springrts.tasserver.commands.impl.ChangeCharsetCommandProcessor;
 import com.springrts.tasserver.commands.impl.ChannelMessageCommandProcessor;
 import com.springrts.tasserver.commands.impl.CreateAccountCommandProcessor;
 import com.springrts.tasserver.commands.impl.EnableLoginCommandProcessor;
@@ -40,6 +41,7 @@ import com.springrts.tasserver.commands.impl.GetAccountInfoCommandProcessor;
 import com.springrts.tasserver.commands.impl.GetInGameTimeCommandProcessor;
 import com.springrts.tasserver.commands.impl.GetIpCommandProcessor;
 import com.springrts.tasserver.commands.impl.GetLastIpCommandProcessor;
+import com.springrts.tasserver.commands.impl.GetLobbyVersionCommandProcessor;
 import com.springrts.tasserver.commands.impl.Ip2CountryCommandProcessor;
 import com.springrts.tasserver.commands.impl.KickUserCommandProcessor;
 import com.springrts.tasserver.commands.impl.KillCommandProcessor;
@@ -58,6 +60,7 @@ import com.springrts.tasserver.commands.impl.SetTimeOutCommandProcessor;
 import com.springrts.tasserver.commands.impl.UnmuteCommandProcessor;
 import com.springrts.tasserver.commands.impl.UpTimeCommandProcessor;
 import com.springrts.tasserver.commands.impl.UpdateIp2CountryCommandProcessor;
+import com.springrts.tasserver.commands.impl.UpdateStatisticsCommandProcessor;
 import java.lang.reflect.Constructor;
 import java.util.Collection;
 import java.util.HashMap;
@@ -162,6 +165,9 @@ public class CommandProcessors implements ContextReceiver {
 		commandProcessorClasses.add(Ip2CountryCommandProcessor.class);
 		commandProcessorClasses.add(ReInitializeIp2CountryCommandProcessor.class);
 		commandProcessorClasses.add(UpdateIp2CountryCommandProcessor.class);
+		commandProcessorClasses.add(ChangeCharsetCommandProcessor.class);
+		commandProcessorClasses.add(GetLobbyVersionCommandProcessor.class);
+		commandProcessorClasses.add(UpdateStatisticsCommandProcessor.class);
 
 		try {
 			load(commandProcessorClasses);

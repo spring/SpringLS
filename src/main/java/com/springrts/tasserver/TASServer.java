@@ -25,8 +25,6 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.nio.charset.IllegalCharsetNameException;
-import java.nio.charset.UnsupportedCharsetException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -613,57 +611,6 @@ public class TASServer implements LiveStateListener {
 				}
 
 				client.sendLine("SERVERMSG Fetching ban entries is not needed anymore. Therefore, this is a no-op now.");
-			} else if (commands[0].equals("CHANGECHARSET")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-				if (commands.length != 2) {
-					return false;
-				}
-
-				try {
-					context.getServer().setCharset(commands[1]);
-				} catch (IllegalCharsetNameException e) {
-					client.sendLine(new StringBuilder("SERVERMSG Error: Illegal charset name: ").append(commands[1]).toString());
-					return false;
-				} catch (UnsupportedCharsetException e) {
-					client.sendLine(new StringBuilder("SERVERMSG Error: Unsupported charset: ").append(commands[1]).toString());
-					return false;
-				}
-
-				client.sendLine(new StringBuilder("SERVERMSG Charset set to ").append(commands[1]).toString());
-			} else if (commands[0].equals("GETLOBBYVERSION")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-				if (commands.length != 2) {
-					return false;
-				}
-
-				Client targetClient = context.getClients().getClient(commands[1]);
-				if (targetClient == null) {
-					client.sendLine(new StringBuilder("SERVERMSG <")
-							.append(commands[1]).append("> not found!").toString());
-					return false;
-				}
-				client.sendLine(new StringBuilder("SERVERMSG <")
-						.append(commands[1]).append("> is using \"")
-						.append(targetClient.getLobbyVersion()).append("\"").toString());
-			} else if (commands[0].equals("UPDATESTATISTICS")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-				if (commands.length != 1) {
-					return false;
-				}
-
-				int taken = context.getStatistics().saveStatisticsToDisk();
-				if (taken == -1) {
-					client.sendLine("SERVERMSG Unable to update statistics!");
-				} else {
-					client.sendLine(new StringBuilder("SERVERMSG Statistics have been updated. Time taken to calculate: ")
-							.append(taken).append(" ms.").toString());
-				}
 			} else if (commands[0].equals("UPDATEMOTD")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
