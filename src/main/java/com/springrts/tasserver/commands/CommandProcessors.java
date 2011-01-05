@@ -20,6 +20,7 @@ package com.springrts.tasserver.commands;
 
 import com.springrts.tasserver.Context;
 import com.springrts.tasserver.ContextReceiver;
+import com.springrts.tasserver.commands.impl.AddNotificationCommandProcessor;
 import com.springrts.tasserver.commands.impl.AdminBroadcastCommandProcessor;
 import com.springrts.tasserver.commands.impl.BroadcastCommandProcessor;
 import com.springrts.tasserver.commands.impl.BroadcastExtendedCommandProcessor;
@@ -184,6 +185,7 @@ public class CommandProcessors implements ContextReceiver {
 		commandProcessorClasses.add(GetSendBufferSizeCommandProcessor.class);
 		commandProcessorClasses.add(MemoryAvailableCommandProcessor.class);
 		commandProcessorClasses.add(GarbageCollectorCommandProcessor.class);
+		commandProcessorClasses.add(AddNotificationCommandProcessor.class);
 
 		try {
 			load(commandProcessorClasses);

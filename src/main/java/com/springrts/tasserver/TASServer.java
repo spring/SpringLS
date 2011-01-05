@@ -573,20 +573,6 @@ public class TASServer implements LiveStateListener {
 				}
 
 				client.sendLine("SERVERMSG Fetching ban entries is not needed anymore. Therefore, this is a no-op now.");
-			} else if (commands[0].equals("ADDNOTIFICATION")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-				if (commands.length < 2) {
-					client.sendLine("SERVERMSG Error: arguments missing (ADDNOTIFICATION command)");
-					return false;
-				}
-
-				if (context.getServerNotifications().addNotification(new ServerNotification("Admin notification", client.getAccount().getName(), Misc.makeSentence(commands, 1)))) {
-					client.sendLine("SERVERMSG Notification added.");
-				} else {
-					client.sendLine("SERVERMSG Error while adding notification! Notification not added.");
-				}
 			} else if (commands[0].equals("TESTLOGIN")) {
 				if (commands.length != 3) {
 					return false;
