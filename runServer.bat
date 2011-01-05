@@ -30,7 +30,7 @@ REM   Info about the default persistence provider for TASServer (Hibernate):
 REM   http://docs.jboss.org/hibernate/stable/entitymanager/reference/en/html/configuration.html
 REM
 
-SET MY_MAIN_CLASS_main=com.springrts.tasserver.TASServer
+SET MY_MAIN_CLASS_main=com.springrts.tasserver.Main
 SET MY_MAIN_CLASS_accountUtils=com.springrts.tasserver.AccountUtils
 SET MY_MAIN_CLASS=%MY_MAIN_CLASS_main%
 

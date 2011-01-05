@@ -42,7 +42,7 @@ else
 fi
 
 MY_FINAL_CP=conf:${MY_MAIN_CP}
-MY_MAIN_CLASS_main=com.springrts.tasserver.TASServer
+MY_MAIN_CLASS_main=com.springrts.tasserver.Main
 MY_MAIN_CLASS_accountUtils=com.springrts.tasserver.AccountUtils
 MY_MAIN_CLASS=${MY_MAIN_CLASS_main}
 
