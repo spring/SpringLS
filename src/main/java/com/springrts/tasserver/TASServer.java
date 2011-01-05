@@ -587,58 +587,6 @@ public class TASServer implements LiveStateListener {
 				} else {
 					client.sendLine("SERVERMSG Error while adding notification! Notification not added.");
 				}
-			} else if (commands[0].equals("GETSENDBUFFERSIZE")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-				if (commands.length != 2) {
-					client.sendLine("SERVERMSG Error: this method requires exactly 2 arguments!");
-					return false;
-				}
-
-				Client c = context.getClients().getClient(commands[1]);
-				if (c == null) {
-					client.sendLine(new StringBuilder("SERVERMSG Error: user <").append(commands[1]).append("> not found online!").toString());
-					return false;
-				}
-
-				int size;
-				try {
-					size = c.getSockChan().socket().getSendBufferSize();
-				} catch (Exception e) {
-					// this could perhaps happen if user just disconnected or something
-					client.sendLine(new StringBuilder("SERVERMSG Error: exception raised while trying to get send buffer size for <")
-							.append(commands[1]).append(">!").toString());
-					return false;
-				}
-
-				client.sendLine(new StringBuilder("SERVERMSG Send buffer size for <")
-						.append(c.getAccount().getName()).append("> is set to ")
-						.append(size).append(" bytes.").toString());
-			} else if (commands[0].equals("MEMORYAVAILABLE")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-				if (commands.length != 1) {
-					return false;
-				}
-
-				client.sendLine(new StringBuilder("SERVERMSG Amount of free memory in Java Virtual Machine: ")
-						.append(Runtime.getRuntime().freeMemory()).append(" bytes").toString());
-			} else if (commands[0].equals("CALLGARBAGECOLLECTOR")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-				if (commands.length != 1) {
-					return false;
-				}
-
-				long time = System.nanoTime();
-				System.gc();
-				time = (System.nanoTime() - time) / 1000000;
-
-				client.sendLine(new StringBuilder("SERVERMSG Garbage collector invoked (time taken: ")
-						.append(time).append(" ms)").toString());
 			} else if (commands[0].equals("TESTLOGIN")) {
 				if (commands.length != 3) {
 					return false;

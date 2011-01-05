@@ -36,6 +36,7 @@ import com.springrts.tasserver.commands.impl.ForceCloseBattleCommandProcessor;
 import com.springrts.tasserver.commands.impl.ForceLeaveChannelCommandProcessor;
 import com.springrts.tasserver.commands.impl.ForceStopServerCommandProcessor;
 import com.springrts.tasserver.commands.impl.ForgeMessageCommandProcessor;
+import com.springrts.tasserver.commands.impl.GarbageCollectorCommandProcessor;
 import com.springrts.tasserver.commands.impl.GetAccountAccessCommandProcessor;
 import com.springrts.tasserver.commands.impl.GetAccountCountCommandProcessor;
 import com.springrts.tasserver.commands.impl.GetAccountInfoCommandProcessor;
@@ -44,11 +45,13 @@ import com.springrts.tasserver.commands.impl.GetIpCommandProcessor;
 import com.springrts.tasserver.commands.impl.GetLastIpCommandProcessor;
 import com.springrts.tasserver.commands.impl.GetLastLoginTimeCommandProcessor;
 import com.springrts.tasserver.commands.impl.GetLobbyVersionCommandProcessor;
+import com.springrts.tasserver.commands.impl.GetSendBufferSizeCommandProcessor;
 import com.springrts.tasserver.commands.impl.Ip2CountryCommandProcessor;
 import com.springrts.tasserver.commands.impl.KickUserCommandProcessor;
 import com.springrts.tasserver.commands.impl.KillCommandProcessor;
 import com.springrts.tasserver.commands.impl.KillIpCommandProcessor;
 import com.springrts.tasserver.commands.impl.LongTimeToDateCommandProcessor;
+import com.springrts.tasserver.commands.impl.MemoryAvailableCommandProcessor;
 import com.springrts.tasserver.commands.impl.MuteCommandProcessor;
 import com.springrts.tasserver.commands.impl.MuteListCommandProcessor;
 import com.springrts.tasserver.commands.impl.OpenBattleCommandProcessor;
@@ -178,6 +181,9 @@ public class CommandProcessors implements ContextReceiver {
 		commandProcessorClasses.add(GetLastLoginTimeCommandProcessor.class);
 		commandProcessorClasses.add(SetChannelKeyCommandProcessor.class);
 		commandProcessorClasses.add(ForceLeaveChannelCommandProcessor.class);
+		commandProcessorClasses.add(GetSendBufferSizeCommandProcessor.class);
+		commandProcessorClasses.add(MemoryAvailableCommandProcessor.class);
+		commandProcessorClasses.add(GarbageCollectorCommandProcessor.class);
 
 		try {
 			load(commandProcessorClasses);
