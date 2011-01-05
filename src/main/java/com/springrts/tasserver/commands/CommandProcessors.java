@@ -66,6 +66,7 @@ import com.springrts.tasserver.commands.impl.RemoveAccountCommandProcessor;
 import com.springrts.tasserver.commands.impl.SaveAccountsServerCommandProcessor;
 import com.springrts.tasserver.commands.impl.SetBotModeCommandProcessor;
 import com.springrts.tasserver.commands.impl.SetChannelKeyCommandProcessor;
+import com.springrts.tasserver.commands.impl.SetLatestSpringVersionCommandProcessor;
 import com.springrts.tasserver.commands.impl.SetTimeOutCommandProcessor;
 import com.springrts.tasserver.commands.impl.TestLoginCommandProcessor;
 import com.springrts.tasserver.commands.impl.UnmuteCommandProcessor;
@@ -192,6 +193,7 @@ public class CommandProcessors implements ContextReceiver {
 		commandProcessorClasses.add(TestLoginCommandProcessor.class);
 		commandProcessorClasses.add(SetBotModeCommandProcessor.class);
 		commandProcessorClasses.add(GetRegistrationDateCommandProcessor.class);
+		commandProcessorClasses.add(SetLatestSpringVersionCommandProcessor.class);
 
 		try {
 			load(commandProcessorClasses);

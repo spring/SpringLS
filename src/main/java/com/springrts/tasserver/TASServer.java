@@ -561,20 +561,6 @@ public class TASServer implements LiveStateListener {
 				}
 
 				client.sendLine("SERVERMSG Fetching ban entries is not needed anymore. Therefore, this is a no-op now.");
-			} else if (commands[0].equals("SETLATESTSPRINGVERSION")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-				if (commands.length != 2) {
-					client.sendLine("SERVERMSG Bad arguments to SETLATESTSPRINGVERSION command!");
-					return false;
-				}
-
-				String engineVersion = commands[1];
-
-				context.setEngine(new Engine(engineVersion));
-
-				client.sendLine(new StringBuilder("SERVERMSG Latest spring version has been set to ").append(context.getEngine().getVersion()).toString());
 			} else if (commands[0].equals("RELOADUPDATEPROPERTIES")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
