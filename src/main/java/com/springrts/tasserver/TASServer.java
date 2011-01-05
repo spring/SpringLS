@@ -573,20 +573,6 @@ public class TASServer implements LiveStateListener {
 				}
 
 				client.sendLine("SERVERMSG Fetching ban entries is not needed anymore. Therefore, this is a no-op now.");
-			} else if (commands[0].equals("UPDATEMOTD")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-				if (commands.length != 2) {
-					return false;
-				}
-
-				if (!context.getMessageOfTheDay().read(commands[1])) {
-					client.sendLine(new StringBuilder("SERVERMSG Error: unable to read MOTD from ").append(commands[1]).toString());
-					return false;
-				} else {
-					client.sendLine(new StringBuilder("SERVERMSG MOTD has been successfully updated from ").append(commands[1]).toString());
-				}
 			} else if (commands[0].equals("LONGTIMETODATE")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;

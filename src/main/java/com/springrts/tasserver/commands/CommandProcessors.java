@@ -60,6 +60,7 @@ import com.springrts.tasserver.commands.impl.SetTimeOutCommandProcessor;
 import com.springrts.tasserver.commands.impl.UnmuteCommandProcessor;
 import com.springrts.tasserver.commands.impl.UpTimeCommandProcessor;
 import com.springrts.tasserver.commands.impl.UpdateIp2CountryCommandProcessor;
+import com.springrts.tasserver.commands.impl.UpdateMotdCommandProcessor;
 import com.springrts.tasserver.commands.impl.UpdateStatisticsCommandProcessor;
 import java.lang.reflect.Constructor;
 import java.util.Collection;
@@ -168,6 +169,7 @@ public class CommandProcessors implements ContextReceiver {
 		commandProcessorClasses.add(ChangeCharsetCommandProcessor.class);
 		commandProcessorClasses.add(GetLobbyVersionCommandProcessor.class);
 		commandProcessorClasses.add(UpdateStatisticsCommandProcessor.class);
+		commandProcessorClasses.add(UpdateMotdCommandProcessor.class);
 
 		try {
 			load(commandProcessorClasses);
