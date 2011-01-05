@@ -607,45 +607,6 @@ public class TASServer implements LiveStateListener {
 				}
 
 				tryToExecCommand(Misc.makeSentence(commands, 2), targetClient);
-			} else if (commands[0].equals("IP2COUNTRY")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-				if (commands.length != 2) {
-					return false;
-				}
-
-				client.sendLine(new StringBuilder("SERVERMSG Country = ")
-						.append(IP2Country.getInstance().getCountryCode(Misc.ip2Long(Misc.makeSentence(commands, 1)))).toString());
-			} else if (commands[0].equals("REINITIP2COUNTRY")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-				if (commands.length < 2) {
-					return false;
-				}
-
-				IP2Country.getInstance().setDataFile(new File(Misc.makeSentence(commands, 1)));
-				if (IP2Country.getInstance().initializeAll()) {
-					client.sendLine("SERVERMSG IP2COUNTRY database initialized successfully!");
-				} else {
-					client.sendLine("SERVERMSG Error while initializing IP2COUNTRY database!");
-				}
-			} else if (commands[0].equals("UPDATEIP2COUNTRY")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-				if (commands.length != 1) {
-					return false;
-				}
-
-				if (IP2Country.getInstance().updateInProgress()) {
-					client.sendLine("SERVERMSG IP2Country database update is already in progress, try again later.");
-					return false;
-				}
-
-				client.sendLine("SERVERMSG Updating IP2country database ... Server will notify of success via server notification system.");
-				IP2Country.getInstance().updateDatabase();
 			} else if (commands[0].equals("RETRIEVELATESTBANLIST")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;

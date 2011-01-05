@@ -40,6 +40,7 @@ import com.springrts.tasserver.commands.impl.GetAccountInfoCommandProcessor;
 import com.springrts.tasserver.commands.impl.GetInGameTimeCommandProcessor;
 import com.springrts.tasserver.commands.impl.GetIpCommandProcessor;
 import com.springrts.tasserver.commands.impl.GetLastIpCommandProcessor;
+import com.springrts.tasserver.commands.impl.Ip2CountryCommandProcessor;
 import com.springrts.tasserver.commands.impl.KickUserCommandProcessor;
 import com.springrts.tasserver.commands.impl.KillCommandProcessor;
 import com.springrts.tasserver.commands.impl.KillIpCommandProcessor;
@@ -47,6 +48,7 @@ import com.springrts.tasserver.commands.impl.MuteCommandProcessor;
 import com.springrts.tasserver.commands.impl.MuteListCommandProcessor;
 import com.springrts.tasserver.commands.impl.OpenBattleCommandProcessor;
 import com.springrts.tasserver.commands.impl.PingCommandProcessor;
+import com.springrts.tasserver.commands.impl.ReInitializeIp2CountryCommandProcessor;
 import com.springrts.tasserver.commands.impl.RedirectCommandProcessor;
 import com.springrts.tasserver.commands.impl.RedirectOffCommandProcessor;
 import com.springrts.tasserver.commands.impl.RegisterCommandProcessor;
@@ -55,6 +57,7 @@ import com.springrts.tasserver.commands.impl.SaveAccountsServerCommandProcessor;
 import com.springrts.tasserver.commands.impl.SetTimeOutCommandProcessor;
 import com.springrts.tasserver.commands.impl.UnmuteCommandProcessor;
 import com.springrts.tasserver.commands.impl.UpTimeCommandProcessor;
+import com.springrts.tasserver.commands.impl.UpdateIp2CountryCommandProcessor;
 import java.lang.reflect.Constructor;
 import java.util.Collection;
 import java.util.HashMap;
@@ -156,6 +159,9 @@ public class CommandProcessors implements ContextReceiver {
 		commandProcessorClasses.add(UnmuteCommandProcessor.class);
 		commandProcessorClasses.add(MuteListCommandProcessor.class);
 		commandProcessorClasses.add(ChannelMessageCommandProcessor.class);
+		commandProcessorClasses.add(Ip2CountryCommandProcessor.class);
+		commandProcessorClasses.add(ReInitializeIp2CountryCommandProcessor.class);
+		commandProcessorClasses.add(UpdateIp2CountryCommandProcessor.class);
 
 		try {
 			load(commandProcessorClasses);
