@@ -38,6 +38,7 @@ import com.springrts.tasserver.commands.impl.ForceLeaveChannelCommandProcessor;
 import com.springrts.tasserver.commands.impl.ForceStopServerCommandProcessor;
 import com.springrts.tasserver.commands.impl.ForgeMessageCommandProcessor;
 import com.springrts.tasserver.commands.impl.GarbageCollectorCommandProcessor;
+import com.springrts.tasserver.commands.impl.GenerateUserIdCommandProcessor;
 import com.springrts.tasserver.commands.impl.GetAccountAccessCommandProcessor;
 import com.springrts.tasserver.commands.impl.GetAccountCountCommandProcessor;
 import com.springrts.tasserver.commands.impl.GetAccountInfoCommandProcessor;
@@ -48,8 +49,10 @@ import com.springrts.tasserver.commands.impl.GetLastLoginTimeCommandProcessor;
 import com.springrts.tasserver.commands.impl.GetLobbyVersionCommandProcessor;
 import com.springrts.tasserver.commands.impl.GetRegistrationDateCommandProcessor;
 import com.springrts.tasserver.commands.impl.GetSendBufferSizeCommandProcessor;
+import com.springrts.tasserver.commands.impl.GetUserIdCommandProcessor;
 import com.springrts.tasserver.commands.impl.Ip2CountryCommandProcessor;
 import com.springrts.tasserver.commands.impl.KickUserCommandProcessor;
+import com.springrts.tasserver.commands.impl.KillAllCommandProcessor;
 import com.springrts.tasserver.commands.impl.KillCommandProcessor;
 import com.springrts.tasserver.commands.impl.KillIpCommandProcessor;
 import com.springrts.tasserver.commands.impl.LongTimeToDateCommandProcessor;
@@ -194,6 +197,9 @@ public class CommandProcessors implements ContextReceiver {
 		commandProcessorClasses.add(SetBotModeCommandProcessor.class);
 		commandProcessorClasses.add(GetRegistrationDateCommandProcessor.class);
 		commandProcessorClasses.add(SetLatestSpringVersionCommandProcessor.class);
+		commandProcessorClasses.add(GetUserIdCommandProcessor.class);
+		commandProcessorClasses.add(GenerateUserIdCommandProcessor.class);
+		commandProcessorClasses.add(KillAllCommandProcessor.class);
 
 		try {
 			load(commandProcessorClasses);

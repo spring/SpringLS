@@ -573,52 +573,6 @@ public class TASServer implements LiveStateListener {
 					client.sendLine(new StringBuilder("SERVERMSG Unable to load \"Update properties\" from ")
 							.append(UPDATE_PROPERTIES_FILENAME).append("!").toString());
 				}
-			} else if (commands[0].equals("GETUSERID")) {
-				if (commands.length != 2) {
-					return false;
-				}
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-
-				Account acc = context.getAccountsService().getAccount(commands[1]);
-				if (acc == null) {
-					client.sendLine(new StringBuilder("SERVERMSG User <").append(commands[1]).append("> not found!").toString());
-					return false;
-				}
-
-				client.sendLine(new StringBuilder("SERVERMSG Last user ID for <")
-						.append(commands[1]).append("> was ")
-						.append(acc.getLastUserId()).toString());
-			} else if (commands[0].equals("GENERATEUSERID")) {
-				if (commands.length != 2) {
-					return false;
-				}
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-
-				Client targetClient = context.getClients().getClient(commands[1]);
-				if (targetClient == null) {
-					client.sendLine(new StringBuilder("SERVERMSG <").append(commands[1]).append("> not found or is not currently online!").toString());
-					return false;
-				}
-				targetClient.sendLine("ACQUIREUSERID");
-
-				client.sendLine("SERVERMSG ACQUIREUSERID command was dispatched. Server will notify of response via notification system.");
-			} else if (commands[0].equals("KILLALL")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-
-				StringBuilder reason = new StringBuilder();
-				if (commands.length > 1) {
-					reason.append(" (reason: ").append(Misc.makeSentence(commands, 1)).append(")");
-				}
-
-				while (context.getClients().getClientsSize() > 0) {
-					context.getClients().killClient(context.getClients().getClient(0), (reason.length() == 0 ? "Disconnected by server" : "Disconnected by server: " + reason));
-				}
 			} else if (commands[0].equals("OUTPUTDBDRIVERSTATUS")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
