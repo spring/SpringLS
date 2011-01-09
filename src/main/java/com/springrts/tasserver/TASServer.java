@@ -353,36 +353,6 @@ public class TASServer implements LiveStateListener {
 		return true;
 	}
 
-	public void notifyClientJoinedBattle(Client client, Battle bat) {
-		// This non-object oriented function is ugly, but Client and Battle classes are made in such a way that
-		// they do not handle players notifications, which is made in TASServer class...
-
-		// do the actually joining and notifying:
-		client.setBattleStatus(0); // reset client's battle status
-		client.setBattleID(bat.getId());
-		client.setRequestedBattleID(Battle.NO_BATTLE_ID);
-		bat.addClient(client);
-	 	// notify client that he has successfully joined the battle
-		client.sendLine("JOINBATTLE " + bat.getId() + " " + bat.getHashCode());
-		context.getClients().notifyClientsOfNewClientInBattle(bat, client);
-		bat.notifyOfBattleStatuses(client);
-		bat.sendBotListToClient(client);
-		// tell host about this client's ip and UDP source port (if battle is hosted using one of the NAT traversal techniques):
-		if ((bat.getNatType() == 1) || (bat.getNatType() == 2)) {
-			// make sure that clients behind NAT get local IPs and not external ones:
-			bat.getFounder().sendLine("CLIENTIPPORT " + client.getAccount().getName() + " " + (bat.getFounder().getIp().equals(client.getIp()) ? client.getLocalIP() : client.getIp()) + " " + client.getUdpSourcePort());
-		}
-
-		client.sendLine("REQUESTBATTLESTATUS");
-		bat.sendDisabledUnitsListToClient(client);
-		bat.sendStartRectsListToClient(client);
-		bat.sendScriptTagsToClient(client);
-
-		if (bat.getType() == 1) {
-			bat.sendScriptToClient(client);
-		}
-	}
-
 	/* Note: this method is not synchronized!
 	 * Note2: this method may be called recursively! */
 	public boolean tryToExecCommand(String command, Client client) {
@@ -538,90 +508,6 @@ public class TASServer implements LiveStateListener {
 				if (response.substring(0, 12).toUpperCase().equals("SERVERMSGBOX")) {
 					context.getClients().killClient(client);
 				}
-			} else if (commands[0].equals("JOINBATTLE")) {
-				if (commands.length < 2) {
-					return false; // requires 1 or 2 arguments (password is optional)
-				}
-				if (client.getAccount().getAccess().compareTo(Account.Access.NORMAL) < 0) {
-					return false;
-				}
-
-				int battleID;
-
-				try {
-					battleID = Integer.parseInt(commands[1]);
-				} catch (NumberFormatException e) {
-					client.sendLine("JOINBATTLEFAILED No battle ID!");
-					return false;
-				}
-
-				if (client.getBattleID() != Battle.NO_BATTLE_ID) { // can't join a battle if already participating in another battle
-					client.sendLine("JOINBATTLEFAILED Cannot participate in multiple battles at the same time!");
-					return false;
-				}
-
-				Battle bat = context.getBattles().getBattleByID(battleID);
-
-				if (bat == null) {
-					client.sendLine("JOINBATTLEFAILED Invalid battle ID!");
-					return false;
-				}
-
-				if (bat.restricted()) {
-					if (commands.length < 3) {
-						client.sendLine("JOINBATTLEFAILED Password required");
-						return false;
-					}
-
-					if (!bat.getPassword().equals(commands[2])) {
-						client.sendLine("JOINBATTLEFAILED Invalid password");
-						return false;
-					}
-				}
-
-				if (bat.isLocked()) {
-					client.sendLine("JOINBATTLEFAILED You cannot join locked battles!");
-					return false;
-				}
-
-				if (commands.length > 3) {
-					client.setScriptPassword(commands[3]);
-				}
-
-				if (bat.getFounder().isHandleBattleJoinAuthorization()) {
-					client.setRequestedBattleID(battleID);
-					bat.getFounder().sendLine("JOINBATTLEREQUEST " + client.getAccount().getName() + " " + (bat.getFounder().getIp().equals(client.getIp()) ? client.getLocalIP() : client.getIp()));
-				} else {
-					notifyClientJoinedBattle(client,bat);
-				}
-
-			} else if (commands[0].equals("JOINBATTLEACCEPT")) {
-				if (commands.length != 2) {
-					return false;
-				} else if (client.getAccount().getAccess().compareTo(Account.Access.NORMAL) < 0) {
-					return false;
-				} else if (client.getBattleID() == Battle.NO_BATTLE_ID) {
-					return false;
-				}
-
-				// check battle
-				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
-				if (bat == null) {
-					return false;
-				} else if (bat.getFounder() != client) {
-					// only founder can accept battle join
-					return false;
-				}
-
-				// check client
-				Client joiningClient = context.getClients().getClient(commands[1]);
-				if (joiningClient == null) {
-					return false;
-				} else if (joiningClient.getRequestedBattleID() !=  client.getBattleID()) {
-					return false;
-				}
-
-				notifyClientJoinedBattle(joiningClient,bat);
 			} else if (commands[0].equals("JOINBATTLEDENY")) {
 				if (commands.length < 2) {
 					return false;

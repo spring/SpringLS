@@ -204,6 +204,35 @@ public class Battle implements ContextReceiver {
 				.append(client.getTeamColor()).toString());
 	}
 
+	public void notifyClientJoined(Client client) {
+
+		// do the actuall joining and notifying
+		client.setBattleStatus(0); // reset client's battle status
+		client.setBattleID(getId());
+		client.setRequestedBattleID(Battle.NO_BATTLE_ID);
+		addClient(client);
+	 	// notify client that he has successfully joined the battle
+		client.sendLine("JOINBATTLE " + getId() + " " + getHashCode());
+		context.getClients().notifyClientsOfNewClientInBattle(this, client);
+		notifyOfBattleStatuses(client);
+		sendBotListToClient(client);
+		// tell host about this client's IP and UDP source port
+		// if battle is hosted using one of the NAT traversal techniques
+		if ((getNatType() == 1) || (getNatType() == 2)) {
+			// make sure that clients behind NAT get local IPs and not external ones
+			getFounder().sendLine("CLIENTIPPORT " + client.getAccount().getName() + " " + (getFounder().getIp().equals(client.getIp()) ? client.getLocalIP() : client.getIp()) + " " + client.getUdpSourcePort());
+		}
+
+		client.sendLine("REQUESTBATTLESTATUS");
+		sendDisabledUnitsListToClient(client);
+		sendStartRectsListToClient(client);
+		sendScriptTagsToClient(client);
+
+		if (getType() == 1) {
+			sendScriptToClient(client);
+		}
+	}
+
 	/**
 	 * Sends <code>s</code> to all clients participating in this battle.
 	 */
