@@ -62,7 +62,6 @@ public class TASServer implements LiveStateListener {
 	private final int READ_BUFFER_SIZE = 256; // size of the ByteBuffer used to read data from the socket channel. This size doesn't really matter - server will work with any size (tested with READ_BUFFER_SIZE==1), but too small buffer size may impact the performance.
 	private final int SEND_BUFFER_SIZE = 8192 * 2; // socket's send buffer size
 	private final long MAIN_LOOP_SLEEP = 10L;
-	private long maxChatMessageLength = 1024; // used with basic anti-flood protection. Any chat messages (channel or private chat messages) longer than this are considered flooding. Used with following commands: SAY, SAYEX, SAYPRIVATE, SAYBATTLE, SAYBATTLEEX
 	private ServerSocketChannel sSockChan;
 	private Selector readSelector;
 	private boolean running;
@@ -539,121 +538,6 @@ public class TASServer implements LiveStateListener {
 				if (response.substring(0, 12).toUpperCase().equals("SERVERMSGBOX")) {
 					context.getClients().killClient(client);
 				}
-			} else if (commands[0].equals("SAY")) {
-				if (commands.length < 3) {
-					return false;
-				}
-				if (client.getAccount().getAccess().compareTo(Account.Access.NORMAL) < 0) {
-					return false;
-				}
-
-				Channel chan = client.getChannel(commands[1]);
-				if (chan == null) {
-					return false;
-				}
-
-				if (chan.getMuteList().isMuted(client.getAccount().getName())) {
-					client.sendLine(new StringBuilder("SERVERMSG Message dropped. You are not allowed to talk in #")
-							.append(chan.getName()).append("! Please contact one of the moderators.").toString());
-					return false;
-				} else if (chan.getMuteList().isIPMuted(client.getIp())) {
-					client.sendLine(new StringBuilder("SERVERMSG Message dropped. You are not allowed to talk in #")
-							.append(chan.getName()).append(" (muted by IP address)! If you believe this is an error, contact one of the moderators.").toString());
-					return false;
-				}
-
-
-				String s = Misc.makeSentence(commands, 2);
-				// check for flooding:
-				if ((s.length() > maxChatMessageLength) && (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0)) {
-					s_log.warn(new StringBuilder("Flooding detected from ")
-							.append(client.getIp()).append(" (")
-							.append(client.getAccount().getName()).append(") [exceeded max. chat message size]").toString());
-					client.sendLine(new StringBuilder("SERVERMSG Flooding detected - you have exceeded maximum allowed chat message size (")
-							.append(maxChatMessageLength).append(" bytes). Your message has been ignored.").toString());
-					context.getClients().sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: Flooding has been detected from ")
-							.append(client.getIp()).append(" (")
-							.append(client.getAccount().getName()).append(") - exceeded maximum chat message size. Ignoring ...").toString());
-					return false;
-				}
-				chan.sendLineToClients(new StringBuilder("SAID ").append(chan.getName()).append(" ").append(client.getAccount().getName()).append(" ").append(s).toString());
-			} else if (commands[0].equals("SAYEX")) {
-				if (commands.length < 3) {
-					return false;
-				}
-				if (client.getAccount().getAccess().compareTo(Account.Access.NORMAL) < 0) {
-					return false;
-				}
-
-				Channel chan = client.getChannel(commands[1]);
-				if (chan == null) {
-					return false;
-				}
-
-				if (chan.getMuteList().isMuted(client.getAccount().getName())) {
-					client.sendLine(new StringBuilder("SERVERMSG Message dropped. You are not allowed to talk in #")
-							.append(chan.getName())
-							.append("! Please contact one of the moderators.").toString());
-					return false;
-				} else if (chan.getMuteList().isIPMuted(client.getIp())) {
-					client.sendLine(new StringBuilder("SERVERMSG Message dropped. You are not allowed to talk in #")
-							.append(chan.getName())
-							.append(" (muted by IP address)! If you believe this is an error, contact one of the moderators.").toString());
-					return false;
-				}
-
-				String s = Misc.makeSentence(commands, 2);
-				// check for flooding:
-				if ((s.length() > maxChatMessageLength) && (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0)) {
-					s_log.warn(new StringBuilder("Flooding detected from ")
-							.append(client.getIp()).append(" (")
-							.append(client.getAccount().getName())
-							.append(") [exceeded max. chat message size]").toString());
-					client.sendLine(new StringBuilder("SERVERMSG Flooding detected - you have exceeded maximum allowed chat message size (")
-							.append(maxChatMessageLength).append(" bytes). Your message has been ignored.").toString());
-					context.getClients().sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: Flooding has been detected from ")
-							.append(client.getIp()).append(" (")
-							.append(client.getAccount().getName())
-							.append(") - exceeded maximum chat message size. Ignoring ...").toString());
-					return false;
-				}
-
-				chan.sendLineToClients(new StringBuilder("SAIDEX ")
-						.append(chan.getName()).append(" ")
-						.append(client.getAccount().getName()).append(" ")
-						.append(s).toString());
-			} else if (commands[0].equals("SAYPRIVATE")) {
-				if (commands.length < 3) {
-					return false;
-				}
-				if (client.getAccount().getAccess().compareTo(Account.Access.NORMAL) < 0) {
-					return false;
-				}
-
-				Client target = context.getClients().getClient(commands[1]);
-				if (target == null) {
-					return false;
-				}
-
-				String s = Misc.makeSentence(commands, 2);
-				// check for flooding:
-				if ((s.length() > maxChatMessageLength) && (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0)) {
-					s_log.warn(new StringBuilder("Flooding detected from ")
-							.append(client.getIp()).append(" (")
-							.append(client.getAccount().getName()).append(") [exceeded max. chat message size]").toString());
-					client.sendLine(new StringBuilder("SERVERMSG Flooding detected - you have exceeded maximum allowed chat message size (")
-							.append(maxChatMessageLength).append(" bytes). Your message has been ignored.").toString());
-					context.getClients().sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: Flooding has been detected from ")
-							.append(client.getIp()).append(" (")
-							.append(client.getAccount().getName())
-							.append(") - exceeded maximum chat message size. Ignoring ...").toString());
-					return false;
-				}
-
-				target.sendLine(new StringBuilder("SAIDPRIVATE ")
-						.append(client.getAccount().getName()).append(" ")
-						.append(s).toString());
-				client.sendLine(command); // echo the command. See protocol description!
 			} else if (commands[0].equals("JOINBATTLE")) {
 				if (commands.length < 2) {
 					return false; // requires 1 or 2 arguments (password is optional)
@@ -909,76 +793,6 @@ public class TASServer implements LiveStateListener {
 					}
 				}
 				context.getClients().notifyClientsOfNewClientStatus(client);
-			} else if (commands[0].equals("SAYBATTLE")) {
-				if (commands.length < 2) {
-					return false;
-				}
-				if (client.getAccount().getAccess().compareTo(Account.Access.NORMAL) < 0) {
-					return false;
-				}
-
-				if (client.getBattleID() == Battle.NO_BATTLE_ID) {
-					return false;
-				}
-				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
-				if (bat == null) {
-					return false;
-				}
-
-				String s = Misc.makeSentence(commands, 1);
-				// check for flooding:
-				if ((s.length() > maxChatMessageLength) && (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0)) {
-					s_log.warn(new StringBuilder("Flooding detected from ")
-							.append(client.getIp()).append(" (")
-							.append(client.getAccount().getName())
-							.append(") [exceeded max. chat message size]").toString());
-					client.sendLine(new StringBuilder("SERVERMSG Flooding detected - you have exceeded maximum allowed chat message size (")
-							.append(maxChatMessageLength).append(" bytes). Your message has been ignored.").toString());
-					context.getClients().sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: Flooding has been detected from ")
-							.append(client.getIp()).append(" (")
-							.append(client.getAccount().getName())
-							.append(") - exceeded maximum chat message size. Ignoring ...").toString());
-					return false;
-				}
-
-				bat.sendToAllClients(new StringBuilder("SAIDBATTLE ")
-						.append(client.getAccount().getName()).append(" ")
-						.append(s).toString());
-			} else if (commands[0].equals("SAYBATTLEEX")) {
-				if (commands.length < 2) {
-					return false;
-				}
-				if (client.getAccount().getAccess().compareTo(Account.Access.NORMAL) < 0) {
-					return false;
-				}
-
-				if (client.getBattleID() == Battle.NO_BATTLE_ID) {
-					return false;
-				}
-				Battle bat = context.getBattles().getBattleByID(client.getBattleID());
-				if (bat == null) {
-					return false;
-				}
-
-				String s = Misc.makeSentence(commands, 1);
-				// check for flooding:
-				if ((s.length() > maxChatMessageLength) && (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0)) {
-					s_log.warn(new StringBuilder("Flooding detected from ")
-							.append(client.getIp()).append(" (")
-							.append(client.getAccount().getName())
-							.append(") [exceeded max. chat message size]").toString());
-					client.sendLine(new StringBuilder("SERVERMSG Flooding detected - you have exceeded maximum allowed chat message size (")
-							.append(maxChatMessageLength).append(" bytes). Your message has been ignored.").toString());
-					context.getClients().sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: Flooding has been detected from ")
-							.append(client.getIp()).append(" (")
-							.append(client.getAccount().getName())
-							.append(") - exceeded maximum chat message size. Ignoring ...").toString());
-					return false;
-				}
-
-				bat.sendToAllClients(new StringBuilder("SAIDBATTLEEX ")
-						.append(client.getAccount().getName()).append(" ")
-						.append(s).toString());
 			} else if (commands[0].equals("UPDATEBATTLEINFO")) {
 				if (commands.length < 5) {
 					return false;

@@ -171,6 +171,18 @@ public class Server implements ContextReceiver {
 	}
 
 	/**
+	 * Any chat messages (channel or private chat messages) longer than this are
+	 * considered flooding.
+	 * Used with basic anti-flood protection.
+	 * Used with the following commands:
+	 * SAY, SAYEX, SAYPRIVATE, SAYBATTLE, SAYBATTLEEX
+	 * @return the maximum allowed length of a chat message in characters
+	 */
+	public int getMaxChatMessageLength() {
+		return 1024;
+	}
+
+	/**
 	 * If true, no password authentication is used.
 	 * @return the lanMode
 	 */

@@ -74,6 +74,11 @@ import com.springrts.tasserver.commands.impl.RegisterCommandProcessor;
 import com.springrts.tasserver.commands.impl.RemoveAccountCommandProcessor;
 import com.springrts.tasserver.commands.impl.RenameAccountCommandProcessor;
 import com.springrts.tasserver.commands.impl.SaveAccountsServerCommandProcessor;
+import com.springrts.tasserver.commands.impl.SayBattleCommandProcessor;
+import com.springrts.tasserver.commands.impl.SayBattleExCommandProcessor;
+import com.springrts.tasserver.commands.impl.SayCommandProcessor;
+import com.springrts.tasserver.commands.impl.SayExCommandProcessor;
+import com.springrts.tasserver.commands.impl.SayPrivateCommandProcessor;
 import com.springrts.tasserver.commands.impl.SetBotModeCommandProcessor;
 import com.springrts.tasserver.commands.impl.SetChannelKeyCommandProcessor;
 import com.springrts.tasserver.commands.impl.SetLatestSpringVersionCommandProcessor;
@@ -216,6 +221,11 @@ public class CommandProcessors implements ContextReceiver {
 		commandProcessorClasses.add(JoinCommandProcessor.class);
 		commandProcessorClasses.add(LeaveCommandProcessor.class);
 		commandProcessorClasses.add(ChannelTopicCommandProcessor.class);
+		commandProcessorClasses.add(SayCommandProcessor.class);
+		commandProcessorClasses.add(SayExCommandProcessor.class);
+		commandProcessorClasses.add(SayPrivateCommandProcessor.class);
+		commandProcessorClasses.add(SayBattleCommandProcessor.class);
+		commandProcessorClasses.add(SayBattleExCommandProcessor.class);
 
 		try {
 			load(commandProcessorClasses);
