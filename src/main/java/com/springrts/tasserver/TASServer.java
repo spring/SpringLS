@@ -12,7 +12,6 @@ import com.springrts.tasserver.commands.CommandProcessors;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -41,14 +40,8 @@ import java.util.regex.PatternSyntaxException;
  */
 public class TASServer implements LiveStateListener {
 
-	/**
-	 * Agreement which is sent to user upon first login.
-	 * User must send CONFIRMAGREEMENT command to confirm the agreement
-	 * before the server allows him to log in.
-	 * See LOGIN command implementation for more details.
-	 */
-	private String agreement = "";
-	private final String AGREEMENT_FILENAME = "agreement.rtf";
+	private Agreement agreement = new Agreement();
+
 	private final String UPDATE_PROPERTIES_FILENAME = "updates.xml";
 	/**
 	 * If true, the server will keep a log of all conversations from
@@ -104,29 +97,6 @@ public class TASServer implements LiveStateListener {
 	 * as a response, so it should contain a full server command.
 	 */
 	private Properties updateProperties = new Properties();
-
-	/** Reads agreement from disk (if file is found) */
-	private boolean readAgreement() {
-
-		boolean success = false;
-
-		String newAgreement = null;
-		try {
-			newAgreement = Misc.readTextFile(new File(AGREEMENT_FILENAME));
-			if (newAgreement.length() > 2) {
-				agreement = newAgreement;
-				success = true;
-				s_log.info("Using agreement from file '" + AGREEMENT_FILENAME + "'.");
-			} else {
-				s_log.warn("Agreement in file '" + AGREEMENT_FILENAME + "' is too short.");
-			}
-		} catch (IOException e) {
-			s_log.warn("Could not find or read from file '" + AGREEMENT_FILENAME + "'. Using no agreement.");
-			s_log.debug("... reason:", e);
-		}
-
-		return success;
-	}
 
 	private boolean readUpdateProperties(String fileName) {
 
@@ -397,16 +367,6 @@ public class TASServer implements LiveStateListener {
 			}
 		}
 		return null;
-	}
-
-	private void sendAgreementToClient(Client client) {
-		client.beginFastWrite();
-		String[] sl = agreement.split("\n");
-		for (int i = 0; i < sl.length; i++) {
-			client.sendLine(new StringBuilder("AGREEMENT ").append(sl[i]).toString());
-		}
-		client.sendLine("AGREEMENTEND");
-		client.endFastWrite();
 	}
 
 	public boolean redirectAndKill(Socket socket) {
@@ -703,8 +663,8 @@ public class TASServer implements LiveStateListener {
 						recordFailedLoginAttempt(username);
 						return false;
 					}
-					if ((!acc.isAgreementAccepted()) && (!client.getAccount().isAgreementAccepted()) && (!agreement.equals(""))) {
-						sendAgreementToClient(client);
+					if ((!acc.isAgreementAccepted()) && (!client.getAccount().isAgreementAccepted()) && agreement.isSet()) {
+						agreement.sendToClient(client);
 						return false;
 					}
 					// everything is OK so far!
@@ -2293,7 +2253,7 @@ public class TASServer implements LiveStateListener {
 		if (!context.getServer().isLanMode()) {
 			context.getAccountsService().loadAccounts();
 			context.getBanService();
-			readAgreement();
+			agreement.read();
 		} else {
 			s_log.info("LAN mode enabled");
 		}
