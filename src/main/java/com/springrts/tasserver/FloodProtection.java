@@ -144,7 +144,6 @@ public class FloodProtection {
 						&& (client.getDataOverLastTimePeriod() > getMaxBytesAlertForBot())));
 	}
 
-
 	/**
 	 * Checks if the the flood-protection time period has passed already,
 	 * and if so, resets the last-check-time.

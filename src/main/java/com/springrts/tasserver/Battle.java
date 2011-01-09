@@ -11,12 +11,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 /**
  * @author Betalord
  */
 public class Battle implements ContextReceiver {
+
+	private static final Log s_log  = LogFactory.getLog(Battle.class);
 
 	/** the id that the next battle will have */
 	private static int nextId;
@@ -413,7 +416,7 @@ public class Battle implements ContextReceiver {
 		try {
 			bot = bots.get(index);
 		} catch (IndexOutOfBoundsException e) {
-			LogFactory.getLog(TASServer.class).error("Failed fetching a bot by index", e);
+			s_log.error("Failed fetching a bot by index", e);
 			bot = null;
 		}
 
