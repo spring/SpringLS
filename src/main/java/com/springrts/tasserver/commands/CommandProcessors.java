@@ -33,8 +33,11 @@ import com.springrts.tasserver.commands.impl.ChannelMessageCommandProcessor;
 import com.springrts.tasserver.commands.impl.ChannelTopicCommandProcessor;
 import com.springrts.tasserver.commands.impl.ConfirmAgreementCommandProcessor;
 import com.springrts.tasserver.commands.impl.CreateAccountCommandProcessor;
+import com.springrts.tasserver.commands.impl.DisableUnitsCommandProcessor;
+import com.springrts.tasserver.commands.impl.EnableAllUnitsCommandProcessor;
 import com.springrts.tasserver.commands.impl.EnableLoginCommandProcessor;
 import com.springrts.tasserver.commands.impl.EnableRegisterCommandProcessor;
+import com.springrts.tasserver.commands.impl.EnableUnitsCommandProcessor;
 import com.springrts.tasserver.commands.impl.FindIpCommandProcessor;
 import com.springrts.tasserver.commands.impl.FloodLevelCommandProcessor;
 import com.springrts.tasserver.commands.impl.ForceAllyNumberCommandProcessor;
@@ -256,6 +259,9 @@ public class CommandProcessors implements ContextReceiver {
 		commandProcessorClasses.add(AddBotCommandProcessor.class);
 		commandProcessorClasses.add(RemoveBotCommandProcessor.class);
 		commandProcessorClasses.add(UpdateBotCommandProcessor.class);
+		commandProcessorClasses.add(DisableUnitsCommandProcessor.class);
+		commandProcessorClasses.add(EnableUnitsCommandProcessor.class);
+		commandProcessorClasses.add(EnableAllUnitsCommandProcessor.class);
 
 		try {
 			load(commandProcessorClasses);

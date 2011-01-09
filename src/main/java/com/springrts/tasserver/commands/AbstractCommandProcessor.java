@@ -71,6 +71,21 @@ public abstract class AbstractCommandProcessor implements CommandProcessor {
 		return this.commandName;
 	}
 
+	/**
+	 * Returns the command as it was given to the server.
+	 * @return command-name + " " + arg0 + " " + arg1 ...
+	 */
+	public String reconstructFullCommand(List<String> args) {
+
+		StringBuilder fullCommand = new StringBuilder(getCommandName());
+
+		for (String arg : args) {
+			fullCommand.append(" ").append(arg);
+		}
+
+		return fullCommand.toString();
+	}
+
 	/** Returns the minimum number of arguments supported by the command */
 	public int getArgsMin() {
 		return this.argsMin;
