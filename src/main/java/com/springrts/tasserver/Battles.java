@@ -8,10 +8,15 @@ package com.springrts.tasserver;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 /**
  * @author Betalord
  */
 public class Battles implements ContextReceiver {
+
+	private static final Log s_log  = LogFactory.getLog(Battle.class);
 
 	private List<Battle> battles;
 	private Context context = null;
@@ -28,6 +33,14 @@ public class Battles implements ContextReceiver {
 		this.context = context;
 		for (Battle battle : battles) {
 			battle.receiveContext(context);
+		}
+	}
+
+	public void verify(Battle battle) {
+
+		if (battle == null) {
+			s_log.fatal("Invalid battle ID. Server will now exit!");
+			context.getServer().closeServerAndExit();
 		}
 	}
 

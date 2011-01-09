@@ -56,11 +56,13 @@ import com.springrts.tasserver.commands.impl.GetUserIdCommandProcessor;
 import com.springrts.tasserver.commands.impl.Ip2CountryCommandProcessor;
 import com.springrts.tasserver.commands.impl.JoinBattleAcceptCommandProcessor;
 import com.springrts.tasserver.commands.impl.JoinBattleCommandProcessor;
+import com.springrts.tasserver.commands.impl.JoinBattleDenyCommandProcessor;
 import com.springrts.tasserver.commands.impl.JoinCommandProcessor;
 import com.springrts.tasserver.commands.impl.KickUserCommandProcessor;
 import com.springrts.tasserver.commands.impl.KillAllCommandProcessor;
 import com.springrts.tasserver.commands.impl.KillCommandProcessor;
 import com.springrts.tasserver.commands.impl.KillIpCommandProcessor;
+import com.springrts.tasserver.commands.impl.LeaveBattleCommandProcessor;
 import com.springrts.tasserver.commands.impl.LeaveCommandProcessor;
 import com.springrts.tasserver.commands.impl.LoginCommandProcessor;
 import com.springrts.tasserver.commands.impl.LongTimeToDateCommandProcessor;
@@ -230,6 +232,8 @@ public class CommandProcessors implements ContextReceiver {
 		commandProcessorClasses.add(SayBattleExCommandProcessor.class);
 		commandProcessorClasses.add(JoinBattleCommandProcessor.class);
 		commandProcessorClasses.add(JoinBattleAcceptCommandProcessor.class);
+		commandProcessorClasses.add(JoinBattleDenyCommandProcessor.class);
+		commandProcessorClasses.add(LeaveBattleCommandProcessor.class);
 
 		try {
 			load(commandProcessorClasses);
