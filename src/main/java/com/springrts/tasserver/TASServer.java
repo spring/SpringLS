@@ -533,49 +533,6 @@ public class TASServer implements LiveStateListener {
 				target.sendLine("FORCEQUITBATTLE");
 				// force client to leave battle:
 				tryToExecCommand("LEAVEBATTLE", target);
-			} else if (commands[0].equals("RING")) {
-				if (commands.length != 2) {
-					return false;
-				}
-				// privileged users can ring anyone, "normal" users can ring only when they are hosting
-				// and only clients who are participating in their battle
-				if (client.getAccount().getAccess().compareTo(Account.Access.NORMAL) < 0) {
-					return false;
-				}
-				if (client.getAccount().getAccess().compareTo(Account.Access.PRIVILEGED) < 0) { // normal user
-					Client target = context.getClients().getClient(commands[1]);
-					if (target == null) {
-						return false;
-					}
-
-					if (client.getBattleID() == Battle.NO_BATTLE_ID) {
-						client.sendLine("SERVERMSG RING command failed: You can only ring players participating in your own battle!");
-						return false;
-					}
-
-					Battle bat = context.getBattles().getBattleByID(client.getBattleID());
-					context.getBattles().verify(bat);
-
-					if (!bat.isClientInBattle(commands[1])) {
-						client.sendLine("SERVERMSG RING command failed: You don't have permission to ring players other than those participating in your battle!");
-						return false;
-					}
-
-					// only host can ring players participating in his own battle, unless target is host himself:
-					if ((client != bat.getFounder()) && (target != bat.getFounder())) {
-						client.sendLine("SERVERMSG RING command failed: You can ring only battle host, or if you are the battle host, only players participating in your own battle!");
-						return false;
-					}
-
-					target.sendLine(new StringBuilder("RING ").append(client.getAccount().getName()).toString());
-				} else { // privileged user
-					Client target = context.getClients().getClient(commands[1]);
-					if (target == null) {
-						return false;
-					}
-
-					target.sendLine(new StringBuilder("RING ").append(client.getAccount().getName()).toString());
-				}
 			} else if (commands[0].equals("ADDSTARTRECT")) {
 				if (commands.length != 6) {
 					return false;
