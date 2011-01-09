@@ -539,67 +539,6 @@ public class TASServer implements LiveStateListener {
 				if (response.substring(0, 12).toUpperCase().equals("SERVERMSGBOX")) {
 					context.getClients().killClient(client);
 				}
-			} else if (commands[0].equals("RENAMEACCOUNT")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.NORMAL) < 0) {
-					return false;
-				}
-
-				if (commands.length != 2) {
-					client.sendLine("SERVERMSG Bad RENAMEACCOUNT command - too many or too few parameters");
-					return false;
-				}
-
-				if (context.getServer().isLanMode()) {
-					client.sendLine("SERVERMSG RENAMEACCOUNT failed: You cannot rename your account while server is running in LAN mode since you have no account!");
-					return false;
-				}
-
-				// validate new userName:
-				String valid = Account.isOldUsernameValid(commands[1]);
-				if (valid != null) {
-					client.sendLine(new StringBuilder("SERVERMSG RENAMEACCOUNT failed: Invalid username (reason: ").append(valid).append(")").toString());
-					return false;
-				}
-
-				Account acc = context.getAccountsService().findAccountNoCase(commands[1]);
-				if (acc != null && acc != client.getAccount()) {
-					client.sendLine("SERVERMSG RENAMEACCOUNT failed: Account with same username already exists!");
-					return false;
-				}
-
-				// make sure all mutes are accordingly adjusted to new userName:
-				for (int i = 0; i < context.getChannels().getChannelsSize(); i++) {
-					context.getChannels().getChannel(i).getMuteList().rename(client.getAccount().getName(), commands[1]);
-				}
-
-				final String oldName = client.getAccount().getName();
-				Account account_new = client.getAccount().clone();
-				account_new.setName(commands[1]);
-				account_new.setLastLogin(System.currentTimeMillis());
-				account_new.setLastIP(client.getIp());
-				final boolean mergeOk = context.getAccountsService().mergeAccountChanges(account_new, client.getAccount().getName());
-				if (mergeOk) {
-					client.setAccount(account_new);
-				} else {
-					client.sendLine("SERVERMSG Your account renaming failed.");
-					return false;
-				}
-
-				client.sendLine(new StringBuilder("SERVERMSG Your account has been renamed to <")
-						.append(account_new.getName())
-						.append(">. Reconnect with new account (you will now be automatically disconnected)!").toString());
-				context.getClients().killClient(client, "Quit: renaming account");
-				context.getAccountsService().saveAccounts(false); // let's save new accounts info to disk
-				context.getClients().sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: User <")
-						.append(oldName).append("> has just renamed his account to <")
-						.append(client.getAccount().getName()).append(">").toString());
-
-				// add server notification:
-				ServerNotification sn = new ServerNotification("Account renamed");
-				sn.addLine(new StringBuilder("User <")
-						.append(oldName).append("> has renamed his account to <")
-						.append(client.getAccount().getName()).append(">").toString());
-				context.getServerNotifications().addNotification(sn);
 			} else if (commands[0].equals("CHANGEPASSWORD")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
