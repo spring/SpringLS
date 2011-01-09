@@ -539,44 +539,6 @@ public class TASServer implements LiveStateListener {
 				if (response.substring(0, 12).toUpperCase().equals("SERVERMSGBOX")) {
 					context.getClients().killClient(client);
 				}
-			} else if (commands[0].equals("CHANGEPASSWORD")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.NORMAL) < 0) {
-					return false;
-				}
-
-				if (commands.length != 3) {
-					client.sendLine("SERVERMSG Bad CHANGEPASSWORD command - too many or too few parameters");
-					return false;
-				}
-
-				if (context.getServer().isLanMode()) {
-					client.sendLine("SERVERMSG CHANGEPASSWORD failed: You cannot change your password while server is running in LAN mode!");
-					return false;
-				}
-
-				if (!(commands[1].equals(client.getAccount().getPassword()))) {
-					client.sendLine("SERVERMSG CHANGEPASSWORD failed: Old password is incorrect!");
-					return false;
-				}
-
-				// validate password:
-				String valid = Account.isPasswordValid(commands[2]);
-				if (valid != null) {
-					client.sendLine(new StringBuilder("SERVERMSG CHANGEPASSWORD failed: Invalid password (reason: ").append(valid).append(")").toString());
-					return false;
-				}
-
-				final String oldPasswd = client.getAccount().getPassword();
-				client.getAccount().setPassword(commands[2]);
-				final boolean mergeOk = context.getAccountsService().mergeAccountChanges( client.getAccount(), client.getAccount().getName());
-				if (!mergeOk) {
-					client.getAccount().setPassword(oldPasswd);
-					client.sendLine("SERVERMSG CHANGEPASSWORD failed: Failed saving to persistent storage.");
-					return false;
-				}
-
-				context.getAccountsService().saveAccounts(false); // let's save new accounts info to disk
-				client.sendLine("SERVERMSG Your password has been successfully updated!");
 			} else if (commands[0].equals("JOIN")) {
 				if (commands.length < 2) {
 					return false;
