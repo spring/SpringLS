@@ -539,36 +539,6 @@ public class TASServer implements LiveStateListener {
 				if (response.substring(0, 12).toUpperCase().equals("SERVERMSGBOX")) {
 					context.getClients().killClient(client);
 				}
-			} else if (commands[0].equals("CHANNELTOPIC")) {
-				if (commands.length < 3) {
-					return false;
-				}
-				if (client.getAccount().getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
-					return false;
-				}
-
-				Channel chan = context.getChannels().getChannel(commands[1]);
-				if (chan == null) {
-					client.sendLine(new StringBuilder("SERVERMSG Error: Channel does not exist: ").append(commands[1]).toString());
-					return false;
-				}
-
-				if (!chan.setTopic(Misc.makeSentence(commands, 2), client.getAccount().getName())) {
-					client.sendLine(new StringBuilder("SERVERMSG You've just disabled the topic for channel #").append(chan.getName()).toString());
-					chan.broadcast(new StringBuilder("<")
-							.append(client.getAccount().getName()).append("> has just disabled topic for #")
-							.append(chan.getName()).toString());
-				} else {
-					client.sendLine(new StringBuilder("SERVERMSG You've just changed the topic for channel #").append(chan.getName()).toString());
-					chan.broadcast(new StringBuilder("<")
-							.append(client.getAccount().getName()).append("> has just changed topic for #")
-							.append(chan.getName()).toString());
-					chan.sendLineToClients(new StringBuilder("CHANNELTOPIC ")
-							.append(chan.getName()).append(" ")
-							.append(chan.getTopicAuthor()).append(" ")
-							.append(chan.getTopicChangedTime()).append(" ")
-							.append(chan.getTopic()).toString());
-				}
 			} else if (commands[0].equals("SAY")) {
 				if (commands.length < 3) {
 					return false;
