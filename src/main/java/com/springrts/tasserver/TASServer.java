@@ -539,14 +539,6 @@ public class TASServer implements LiveStateListener {
 				if (response.substring(0, 12).toUpperCase().equals("SERVERMSGBOX")) {
 					context.getClients().killClient(client);
 				}
-			} else if (commands[0].equals("CONFIRMAGREEMENT")) {
-				// update client's temp account (he is not logged in yet since he needs to confirm the agreement before server will allow him to log in):
-				client.getAccount().setAgreementAccepted(true);
-				final boolean mergeOk = context.getAccountsService().mergeAccountChanges( client.getAccount(), client.getAccount().getName());
-				if (!mergeOk) {
-					s_log.debug(new StringBuilder("Failed saving 'agreement accepted' state to persistent storage for user: ").append(client.getAccount().getName()).toString());
-					return false;
-				}
 			} else if (commands[0].equals("USERID")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;
