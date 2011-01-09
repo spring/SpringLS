@@ -539,54 +539,6 @@ public class TASServer implements LiveStateListener {
 				if (response.substring(0, 12).toUpperCase().equals("SERVERMSGBOX")) {
 					context.getClients().killClient(client);
 				}
-			} else if (commands[0].equals("JOIN")) {
-				if (commands.length < 2) {
-					return false;
-				}
-				if (client.getAccount().getAccess().compareTo(Account.Access.NORMAL) < 0) {
-					return false;
-				}
-
-				// check if channel name is OK:
-				String valid = context.getChannels().isChanNameValid(commands[1]);
-				if (valid != null) {
-					client.sendLine(new StringBuilder("JOINFAILED Bad channel name (\"#")
-							.append(commands[1]).append("\"). Reason: ")
-							.append(valid).toString());
-					return false;
-				}
-
-				// check if key is correct (if channel is locked):
-				Channel chan = context.getChannels().getChannel(commands[1]);
-				if ((chan != null) && (chan.isLocked()) && (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0 /* we will allow admins to join locked channels */)) {
-					if (!Misc.makeSentence(commands, 2).equals(chan.getKey())) {
-						client.sendLine(new StringBuilder("JOINFAILED ").append(commands[1]).append(" Wrong key (this channel is locked)!").toString());
-						return false;
-					}
-				}
-
-				chan = client.joinChannel(commands[1]);
-				if (chan == null) {
-					client.sendLine(new StringBuilder("JOINFAILED ").append(commands[1]).append(" Already in the channel!").toString());
-					return false;
-				}
-				client.sendLine(new StringBuilder("JOIN ").append(commands[1]).toString());
-				context.getChannels().sendChannelInfoToClient(chan, client);
-				context.getChannels().notifyClientsOfNewClientInChannel(chan, client);
-			} else if (commands[0].equals("LEAVE")) {
-				if (commands.length < 2) {
-					return false;
-				}
-				if (client.getAccount().getAccess().compareTo(Account.Access.NORMAL) < 0) {
-					return false;
-				}
-
-				Channel chan = context.getChannels().getChannel(commands[1]);
-				if (chan == null) {
-					return false;
-				}
-
-				client.leaveChannel(chan, "");
 			} else if (commands[0].equals("CHANNELTOPIC")) {
 				if (commands.length < 3) {
 					return false;
