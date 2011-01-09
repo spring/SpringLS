@@ -36,9 +36,11 @@ import com.springrts.tasserver.commands.impl.EnableLoginCommandProcessor;
 import com.springrts.tasserver.commands.impl.EnableRegisterCommandProcessor;
 import com.springrts.tasserver.commands.impl.FindIpCommandProcessor;
 import com.springrts.tasserver.commands.impl.FloodLevelCommandProcessor;
+import com.springrts.tasserver.commands.impl.ForceAllyNumberCommandProcessor;
 import com.springrts.tasserver.commands.impl.ForceCloseBattleCommandProcessor;
 import com.springrts.tasserver.commands.impl.ForceLeaveChannelCommandProcessor;
 import com.springrts.tasserver.commands.impl.ForceStopServerCommandProcessor;
+import com.springrts.tasserver.commands.impl.ForceTeamNumberCommandProcessor;
 import com.springrts.tasserver.commands.impl.ForgeMessageCommandProcessor;
 import com.springrts.tasserver.commands.impl.GarbageCollectorCommandProcessor;
 import com.springrts.tasserver.commands.impl.GenerateUserIdCommandProcessor;
@@ -242,6 +244,8 @@ public class CommandProcessors implements ContextReceiver {
 		commandProcessorClasses.add(MyStatusCommandProcessor.class);
 		commandProcessorClasses.add(UpdateBattleInfoCommandProcessor.class);
 		commandProcessorClasses.add(HandicapCommandProcessor.class);
+		commandProcessorClasses.add(ForceTeamNumberCommandProcessor.class);
+		commandProcessorClasses.add(ForceAllyNumberCommandProcessor.class);
 
 		try {
 			load(commandProcessorClasses);
