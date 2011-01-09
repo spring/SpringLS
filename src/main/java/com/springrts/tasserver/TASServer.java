@@ -539,39 +539,6 @@ public class TASServer implements LiveStateListener {
 				if (response.substring(0, 12).toUpperCase().equals("SERVERMSGBOX")) {
 					context.getClients().killClient(client);
 				}
-			} else if (commands[0].equals("USERID")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.NORMAL) < 0) {
-					return false;
-				}
-
-				if (commands.length != 2) {
-					client.sendLine("SERVERMSG Bad USERID command - too many or too few parameters");
-					return false;
-				}
-
-				int userID = Account.NO_USER_ID;
-				try {
-					long temp = Long.parseLong(commands[1], 16);
-					userID = (int) temp; // we transform unsigned 32 bit integer to a signed one
-				} catch (NumberFormatException e) {
-					client.sendLine("SERVERMSG Bad USERID command - userID field should be an integer");
-					return false;
-				}
-
-				client.getAccount().setLastUserId(userID);
-				final boolean mergeOk = context.getAccountsService().mergeAccountChanges( client.getAccount(), client.getAccount().getName());
-				if (!mergeOk) {
-					client.sendLine("SERVERMSG Failed saving last userid to persistent storage");
-					return false;
-				}
-
-				// add server notification:
-				ServerNotification sn = new ServerNotification("User ID received");
-				sn.addLine(new StringBuilder("<")
-						.append(client.getAccount().getName()).append("> has generated a new user ID: ")
-						.append(commands[1]).append("(")
-						.append(userID).append(")").toString());
-				context.getServerNotifications().addNotification(sn);
 			} else if (commands[0].equals("RENAMEACCOUNT")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.NORMAL) < 0) {
 					return false;

@@ -79,6 +79,7 @@ import com.springrts.tasserver.commands.impl.UpTimeCommandProcessor;
 import com.springrts.tasserver.commands.impl.UpdateIp2CountryCommandProcessor;
 import com.springrts.tasserver.commands.impl.UpdateMotdCommandProcessor;
 import com.springrts.tasserver.commands.impl.UpdateStatisticsCommandProcessor;
+import com.springrts.tasserver.commands.impl.UserIdCommandProcessor;
 import java.lang.reflect.Constructor;
 import java.util.Collection;
 import java.util.HashMap;
@@ -204,6 +205,7 @@ public class CommandProcessors implements ContextReceiver {
 		commandProcessorClasses.add(KillAllCommandProcessor.class);
 		commandProcessorClasses.add(LoginCommandProcessor.class);
 		commandProcessorClasses.add(ConfirmAgreementCommandProcessor.class);
+		commandProcessorClasses.add(UserIdCommandProcessor.class);
 
 		try {
 			load(commandProcessorClasses);
