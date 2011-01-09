@@ -46,6 +46,16 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 
 	private static final Log s_log  = LogFactory.getLog(LoginCommandProcessor.class);
 
+	/**
+	 * For how long (in milli-seconds) to keep failed login attempts recorded.
+	 */
+	private static final long KEEP_FAILED_LOGIN_ATTEMPT_TIME = 30000;
+	/**
+	 * In what interval (in milli-seconds) to check for failed login attempts
+	 * for whether to purge them.
+	 */
+	private static final long PURGE_INTERVAL = 1000;
+
 	private Timer failedLoginsPurger;
 
 	/**
@@ -59,7 +69,7 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 
 		// TODO cleanup nicely at server shutdown?
 		failedLoginsPurger = new Timer("Failed Login Purger");
-		failedLoginsPurger.schedule(new PurgeFailedLogins(), 1000L, 1000L);
+		failedLoginsPurger.schedule(new PurgeFailedLogins(), PURGE_INTERVAL, PURGE_INTERVAL);
 	}
 
 	@Override
@@ -227,14 +237,14 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 		}
 		client.setLobbyVersion(lobbyVersion);
 		client.getAccount().setLastUserId(userID);
-		final boolean mergeOk = getContext().getAccountsService().mergeAccountChanges( client.getAccount(), client.getAccount().getName());
+		final boolean mergeOk = getContext().getAccountsService().mergeAccountChanges(client.getAccount(), client.getAccount().getName());
 		if (!mergeOk) {
-			s_log.info(new StringBuilder("Failed saving login info to persistent storage for user: ").append(client.getAccount().getName()).toString());
+			s_log.info("Failed saving login info to persistent storage for user: " + client.getAccount().getName());
 			return false;
 		}
 
 		// do the notifying and all:
-		client.sendLine(new StringBuilder("ACCEPTED ").append(client.getAccount().getName()).toString());
+		client.sendLine("ACCEPTED " + client.getAccount().getName());
 		getContext().getMessageOfTheDay().sendTo(client);
 		getContext().getClients().sendListOfAllUsersToClient(client);
 		getContext().getBattles().sendInfoOnBattlesToClient(client);
@@ -247,7 +257,7 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 		getContext().getClients().notifyClientsOfNewClientStatus(client);
 
 		if (s_log.isDebugEnabled()) {
-			s_log.debug(new StringBuilder("User just logged in: ").append(client.getAccount().getName()).toString());
+			s_log.debug("User just logged in: " + client.getAccount().getName());
 		}
 
 		return true;
@@ -274,21 +284,17 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 
 	private class PurgeFailedLogins extends TimerTask {
 
-		/** Time when we last purged list of failed login attempts */
-		private long lastFailedLoginsPurgeTime = System.currentTimeMillis();
-
 		@Override
 		public void run() {
 
 			// purge list of failed login attempts:
-			if (System.currentTimeMillis() - lastFailedLoginsPurgeTime > 1000) {
-				lastFailedLoginsPurgeTime = System.currentTimeMillis();
-				for (int i = 0; i < failedLoginAttempts.size(); i++) {
-					FailedLoginAttempt attempt = failedLoginAttempts.get(i);
-					if (System.currentTimeMillis() - attempt.getTimeOfLastFailedAttempt() > 30000) {
-						failedLoginAttempts.remove(i);
-						i--;
-					}
+			for (int i = 0; i < failedLoginAttempts.size(); i++) {
+				FailedLoginAttempt attempt = failedLoginAttempts.get(i);
+				if ((System.currentTimeMillis() - attempt.getTimeOfLastFailedAttempt())
+						> KEEP_FAILED_LOGIN_ATTEMPT_TIME)
+				{
+					failedLoginAttempts.remove(i);
+					i--;
 				}
 			}
 		}
