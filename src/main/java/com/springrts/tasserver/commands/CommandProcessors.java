@@ -89,6 +89,7 @@ import com.springrts.tasserver.commands.impl.RedirectOffCommandProcessor;
 import com.springrts.tasserver.commands.impl.RegisterCommandProcessor;
 import com.springrts.tasserver.commands.impl.RemoveAccountCommandProcessor;
 import com.springrts.tasserver.commands.impl.RemoveBotCommandProcessor;
+import com.springrts.tasserver.commands.impl.RemoveScriptTagsCommandProcessor;
 import com.springrts.tasserver.commands.impl.RemoveStartRectCommandProcessor;
 import com.springrts.tasserver.commands.impl.RenameAccountCommandProcessor;
 import com.springrts.tasserver.commands.impl.RingCommandProcessor;
@@ -98,9 +99,13 @@ import com.springrts.tasserver.commands.impl.SayBattleExCommandProcessor;
 import com.springrts.tasserver.commands.impl.SayCommandProcessor;
 import com.springrts.tasserver.commands.impl.SayExCommandProcessor;
 import com.springrts.tasserver.commands.impl.SayPrivateCommandProcessor;
+import com.springrts.tasserver.commands.impl.ScriptCommandProcessor;
+import com.springrts.tasserver.commands.impl.ScriptEndCommandProcessor;
+import com.springrts.tasserver.commands.impl.ScriptStartCommandProcessor;
 import com.springrts.tasserver.commands.impl.SetBotModeCommandProcessor;
 import com.springrts.tasserver.commands.impl.SetChannelKeyCommandProcessor;
 import com.springrts.tasserver.commands.impl.SetLatestSpringVersionCommandProcessor;
+import com.springrts.tasserver.commands.impl.SetScriptTagsCommandProcessor;
 import com.springrts.tasserver.commands.impl.SetTimeOutCommandProcessor;
 import com.springrts.tasserver.commands.impl.TestLoginCommandProcessor;
 import com.springrts.tasserver.commands.impl.UnmuteCommandProcessor;
@@ -268,6 +273,11 @@ public class CommandProcessors implements ContextReceiver {
 		commandProcessorClasses.add(RingCommandProcessor.class);
 		commandProcessorClasses.add(AddStartRectCommandProcessor.class);
 		commandProcessorClasses.add(RemoveStartRectCommandProcessor.class);
+		commandProcessorClasses.add(ScriptStartCommandProcessor.class);
+		commandProcessorClasses.add(ScriptCommandProcessor.class);
+		commandProcessorClasses.add(ScriptEndCommandProcessor.class);
+		commandProcessorClasses.add(SetScriptTagsCommandProcessor.class);
+		commandProcessorClasses.add(RemoveScriptTagsCommandProcessor.class);
 
 		try {
 			load(commandProcessorClasses);
