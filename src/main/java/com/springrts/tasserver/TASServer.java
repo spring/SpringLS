@@ -40,7 +40,6 @@ import java.util.regex.PatternSyntaxException;
  */
 public class TASServer implements LiveStateListener {
 
-	private final String UPDATE_PROPERTIES_FILENAME = "updates.xml";
 	/**
 	 * If true, the server will keep a log of all conversations from
 	 * the channel #main (in file "MainChanLog.log")
@@ -77,40 +76,6 @@ public class TASServer implements LiveStateListener {
 
 	private Context context = null;
 	private CommandProcessors commandProcessors = null;
-
-	/**
-	 * In 'updateProperties' we store a list of Spring versions and server responses to them.
-	 * We use it when client doesn't have the latest Spring version or the lobby program
-	 * and requests an update from us. The XML file should normally contain at least the "default" key
-	 * which contains a standard response in case no suitable response is found.
-	 * Each text field associated with a key contains a full string that will be send to the client
-	 * as a response, so it should contain a full server command.
-	 */
-	private Properties updateProperties = new Properties();
-
-	private boolean readUpdateProperties(String fileName) {
-
-		boolean success = false;
-
-		FileInputStream fStream = null;
-		try {
-			fStream = new FileInputStream(fileName);
-			updateProperties.loadFromXML(fStream);
-			success = true;
-		} catch (IOException ex) {
-			s_log.warn("Could not find or read from file '" + fileName + "'.", ex);
-		} finally {
-			if (fStream != null) {
-				try {
-					fStream.close();
-				} catch (IOException ex) {
-					s_log.debug("unimportant", ex);
-				}
-			}
-		}
-
-		return success;
-	}
 
 	@Override
 	public void starting() {
@@ -454,46 +419,12 @@ public class TASServer implements LiveStateListener {
 				}
 
 				client.sendLine("SERVERMSG Fetching ban entries is not needed anymore. Therefore, this is a no-op now.");
-			} else if (commands[0].equals("RELOADUPDATEPROPERTIES")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-
-				if (readUpdateProperties(UPDATE_PROPERTIES_FILENAME)) {
-					s_log.info("\"Update properties\" read from " + UPDATE_PROPERTIES_FILENAME);
-					client.sendLine("SERVERMSG \"Update properties\" have been successfully loaded from " + UPDATE_PROPERTIES_FILENAME);
-				} else {
-					client.sendLine(new StringBuilder("SERVERMSG Unable to load \"Update properties\" from ")
-							.append(UPDATE_PROPERTIES_FILENAME).append("!").toString());
-				}
 			} else if (commands[0].equals("OUTPUTDBDRIVERSTATUS")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
 				}
 
 				client.sendLine("SERVERMSG This command is not supported anymore, as JPA is used for DB access for bans. Therefore, this is a no-op now.");
-			} else if (commands[0].equals("REQUESTUPDATEFILE")) {
-				//***if (client.account.getAccess() > Account.Access.NONE) return false;
-				if (commands.length < 2) {
-					return false;
-				}
-
-				String version = Misc.makeSentence(commands, 1);
-				String response = updateProperties.getProperty(version);
-				if (response == null) {
-					response = updateProperties.getProperty("default"); // use general response ("default"), if it exists.
-				}				// if still no response has been found, use some default response:
-				if (response == null) {
-					response = "SERVERMSGBOX No update available. Please download the latest version of the software from official Spring web site: http://spring.clan-sy.com";
-				}
-
-				// send a response to the client:
-				client.sendLine(response);
-
-				// kill client if no update has been found for him:
-				if (response.substring(0, 12).toUpperCase().equals("SERVERMSGBOX")) {
-					context.getClients().killClient(client);
-				}
 			} else if (commands[0].equals("KICKFROMBATTLE")) {
 				if (commands.length != 2) {
 					return false;
@@ -620,8 +551,8 @@ public class TASServer implements LiveStateListener {
 		context.getMessageOfTheDay().read();
 		context.getServer().setStartTime(System.currentTimeMillis());
 
-		if (readUpdateProperties(UPDATE_PROPERTIES_FILENAME)) {
-			s_log.info(new StringBuilder("\"Update properties\" read from ").append(UPDATE_PROPERTIES_FILENAME).toString());
+		if (context.getUpdateProperties().read(UpdateProperties.DEFAULT_FILENAME)) {
+			s_log.info(new StringBuilder("\"Update properties\" read from ").append(UpdateProperties.DEFAULT_FILENAME).toString());
 		}
 
 		long tempTime = System.currentTimeMillis();
