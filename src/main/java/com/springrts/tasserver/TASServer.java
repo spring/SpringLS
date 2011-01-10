@@ -472,12 +472,6 @@ public class TASServer implements LiveStateListener {
 				}
 
 				client.sendLine("SERVERMSG This command is not supported anymore, as JPA is used for DB access for bans. Therefore, this is a no-op now.");
-			} else if (commands[0].equals("CHANNELS")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.NORMAL) < 0) {
-					return false;
-				}
-
-				context.getChannels().sendChannelListToClient(client);
 			} else if (commands[0].equals("REQUESTUPDATEFILE")) {
 				//***if (client.account.getAccess() > Account.Access.NONE) return false;
 				if (commands.length < 2) {
