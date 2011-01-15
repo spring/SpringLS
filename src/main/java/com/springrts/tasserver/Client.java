@@ -946,12 +946,10 @@ public class Client implements ContextReceiver {
 	}
 
 	/**
-	 * How many bytes did this client send over the last recvRecordPeriod
-	 * seconds. This is used with anti-flood protection.
-	 * @param dataOverLastTimePeriod the dataOverLastTimePeriod to set
+	 * Reset the amount of bytes this client sent.
 	 */
-	public void setDataOverLastTimePeriod(long dataOverLastTimePeriod) {
-		this.dataOverLastTimePeriod = dataOverLastTimePeriod;
+	public void resetDataOverLastTimePeriod() {
+		this.dataOverLastTimePeriod = 0;
 	}
 
 	/**

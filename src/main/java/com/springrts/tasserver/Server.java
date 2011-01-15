@@ -76,14 +76,6 @@ public class Server implements ContextReceiver {
  	private CharsetEncoder asciiEncoder;
 
 	private boolean loginEnabled;
-
-	/** in milli-seconds */
-	private static final int TIMEOUT_CHECK = 5000;
-	/**
-	 * Time ({@link java.lang.System#currentTimeMillis()}) when we last checked
-	 * for timeouts from clients.
-	 */
-	private long lastTimeoutCheck;
 	/**
 	 * After this time in milli-seconds of inactivity, a client is getting
 	 * killed.
@@ -106,7 +98,6 @@ public class Server implements ContextReceiver {
 		useUserDB = false;
 		loginEnabled = true;
 		timeoutLength = 50000;
-		lastTimeoutCheck = System.currentTimeMillis();
 		redirectAddress = null;
 	}
 
@@ -290,32 +281,6 @@ public class Server implements ContextReceiver {
 	 */
 	public void setTimeoutLength(int timeoutLength) {
 		this.timeoutLength = timeoutLength;
-	}
-
-	/**
-	 * Checks if the time-out check period has passed already,
-	 * and if so, resets the last-check-time.
-	 * @return true if the time-out check period has passed since
-	 *         the last successful call to this method
-	 */
-	public Collection<Client> getTimedOutClients() {
-
-		Collection<Client> timedOutClients = new LinkedList<Client>();
-
-		boolean timeOut = (System.currentTimeMillis() - lastTimeoutCheck > TIMEOUT_CHECK);
-
-		if (timeOut) {
-			lastTimeoutCheck = System.currentTimeMillis();
-			long now = System.currentTimeMillis();
-			for (int i = 0; i < context.getClients().getClientsSize(); i++) {
-				Client client = context.getClients().getClient(i);
-				if (now - client.getTimeOfLastReceive() > timeoutLength) {
-					timedOutClients.add(client);
-				}
-			}
-		}
-
-		return timedOutClients;
 	}
 
 	/**

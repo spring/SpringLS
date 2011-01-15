@@ -14,6 +14,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -21,7 +22,7 @@ import java.util.Queue;
 /**
  * @author Betalord
  */
-public class Clients implements ContextReceiver {
+public class Clients implements ContextReceiver, Updateable {
 
 	private final Log s_log  = LogFactory.getLog(Clients.class);
 
@@ -48,8 +49,20 @@ public class Clients implements ContextReceiver {
 	 */
 	private Queue<Client> sendQueue = new LinkedList<Client>();
 
+	/** in milli-seconds */
+	private static final int TIMEOUT_CHECK = 5000;
+	/**
+	 * Time ({@link java.lang.System#currentTimeMillis()}) when we last checked
+	 * for timeouts from clients.
+	 */
+	private long lastTimeoutCheck;
+
 	private Context context = null;
 
+
+	public Clients() {
+		lastTimeoutCheck = System.currentTimeMillis();
+	}
 
 	@Override
 	public void receiveContext(Context context) {
@@ -58,6 +71,70 @@ public class Clients implements ContextReceiver {
 		for (Client client : clients) {
 			client.receiveContext(context);
 		}
+	}
+	private Context getContext() {
+		return context;
+	}
+
+	@Override
+	public void update() {
+
+		flushData();
+
+		resetReceivedBytesCounts();
+
+		checkForTimeouts();
+
+		processKillList();
+	}
+
+	private void resetReceivedBytesCounts() {
+
+		if (getContext().getFloodProtection().hasFloodCheckPeriodPassed()) {
+			for (int i = 0; i < getClientsSize(); i++) {
+				getClient(i).resetDataOverLastTimePeriod();
+			}
+		}
+	}
+
+	private void checkForTimeouts() {
+
+		for (Client client : getTimedOutClients()) {
+			if (client.isHalfDead()) {
+				continue; // already scheduled for kill
+			}
+			s_log.warn(new StringBuilder("Timeout detected from ")
+					.append(client.getAccount().getName()).append(" (")
+					.append(client.getIp()).append("). Client has been scheduled for kill ...").toString());
+			getContext().getClients().killClientDelayed(client, "Quit: timeout");
+		}
+	}
+
+	/**
+	 * Checks if the time-out check period has passed already,
+	 * and if so, resets the last-check-time.
+	 * @return true if the time-out check period has passed since
+	 *         the last successful call to this method
+	 */
+	public Collection<Client> getTimedOutClients() {
+
+		Collection<Client> timedOutClients = new LinkedList<Client>();
+
+		boolean timeOut = ((System.currentTimeMillis() - lastTimeoutCheck) > TIMEOUT_CHECK);
+
+		if (timeOut) {
+			lastTimeoutCheck = System.currentTimeMillis();
+			long now = System.currentTimeMillis();
+			long timeoutLength = getContext().getServer().getTimeoutLength();
+			for (int i = 0; i < getClientsSize(); i++) {
+				Client client = getClient(i);
+				if ((now - client.getTimeOfLastReceive()) > timeoutLength) {
+					timedOutClients.add(client);
+				}
+			}
+		}
+
+		return timedOutClients;
 	}
 
 	/**
@@ -288,15 +365,16 @@ public class Clients implements ContextReceiver {
 
 	/** @see #killClient(Client client, String reason) */
 	public boolean killClient(Client client) {
-		return killClient(client, "");
+		return killClient(client, null);
 	}
 
 	/**
 	 * This method disconnects and removes a client from the clients list.
 	 * Also cleans up after him (channels, battles) and notifies other
-	 * users of his departure. "reason" is used with LEFT command to
-	 * notify other users on same channel of this client's departure
-	 * reason (it may be left blank ("") to give no reason).
+	 * users of his departure.
+	 * @param reason is used with LEFT command to notify other users on same
+	 *   channel of this client's departure reason. It may be left blank ("") or
+	 *   be set to <code>null</code> to give no reason.
 	 */
 	public boolean killClient(Client client, String reason) {
 
@@ -307,7 +385,7 @@ public class Clients implements ContextReceiver {
 		client.disconnect();
 		clients.remove(index);
 		client.setAlive(false);
-		if (reason.trim().equals("")) {
+		if ((reason == null) || reason.trim().equals("")) {
 			reason = "Quit";
 		}
 

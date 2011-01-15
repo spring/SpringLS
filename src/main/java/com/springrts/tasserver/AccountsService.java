@@ -15,7 +15,9 @@ import java.util.List;
  * @author Betalord
  * @author hoijui
  */
-public interface AccountsService extends ContextReceiver, LiveStateListener {
+public interface AccountsService extends ContextReceiver, LiveStateListener,
+		Updateable
+{
 
 	/**
 	 * Checks resources required for the service to operate.
@@ -45,7 +47,8 @@ public interface AccountsService extends ContextReceiver, LiveStateListener {
 	 * Saves accounts to permanent storage.
 	 * @param block if false, this method will spawn a new thread,
 	 *              so this method can return immediately (non-blocking mode).
-	 *              If true, it will not return until the accounts have been saved.
+	 *              If true, it will not return until the accounts have been
+	 *              saved.
 	 */
 	public void saveAccounts(boolean block);
 
@@ -56,10 +59,14 @@ public interface AccountsService extends ContextReceiver, LiveStateListener {
 	 */
 	public void saveAccountsIfNeeded();
 
-	/** WARNING: caller must check if username/password is valid etc. himself! */
+	/**
+	 * WARNING: caller must check if username/password is valid etc. himself!
+	 */
 	public void addAccount(Account acc);
 
-	/** WARNING: caller must check if usernames/passwords are valid etc. himself! */
+	/**
+	 * WARNING: caller must check if usernames/passwords are valid etc. himself!
+	 */
 	public void addAccounts(Iterable<Account> accs);
 
 	public boolean addAccountWithCheck(Account acc);

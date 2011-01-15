@@ -22,8 +22,6 @@ import com.springrts.tasserver.commands.CommandProcessingException;
 import com.springrts.tasserver.commands.CommandProcessor;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.DatagramPacket;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.ByteBuffer;
@@ -36,7 +34,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -82,17 +79,6 @@ public class ServerThread implements ContextReceiver, LiveStateListener {
 	 * "WHITELIST" -> "deprecated feature: white-listing"
 	 */
 	private static Map<String, DeprecatedCommand> DEPRECATED_COMMANDS = null;
-
-	/**
-	 * In this interval, all channel mute lists will be checked
-	 * for expirations and purged accordingly. In milliseconds.
-	 */
-	private long purgeMutesInterval = 1000 * 3;
-	/**
-	 * Time when we last purged mute lists of all channels.
-	 * @see System.currentTimeMillis()
-	 */
-	private long lastMutesPurgeTime = System.currentTimeMillis();
 
 	/**
 	 * The size of the ByteBuffer used to read data from the socket channel.
@@ -422,67 +408,20 @@ public class ServerThread implements ContextReceiver, LiveStateListener {
 			// check for incoming messages
 			readIncomingMessages();
 
-			// flush any data that is waiting to be sent
-			getContext().getClients().flushData();
-
-			// reset received bytes count every n seconds
-			if (getContext().getFloodProtection().hasFloodCheckPeriodPassed()) {
-				for (int i = 0; i < getContext().getClients().getClientsSize(); i++) {
-					getContext().getClients().getClient(i).setDataOverLastTimePeriod(0);
-				}
-			}
-
-			// check for timeouts:
-			Collection<Client> timedOutClients = getContext().getServer().getTimedOutClients();
-			for (Client client : timedOutClients) {
-				if (client.isHalfDead()) {
-					continue; // already scheduled for kill
-				}
-				s_log.warn(new StringBuilder("Timeout detected from ")
-						.append(client.getAccount().getName()).append(" (")
-						.append(client.getIp()).append("). Client has been scheduled for kill ...").toString());
-				getContext().getClients().killClientDelayed(client, "Quit: timeout");
-			}
-
-			// kill all clients scheduled to be killed:
-			getContext().getClients().processKillList();
+			getContext().getClients().update();
 
 			getContext().getStatistics().update();
 
-			// check UDP server for any new packets:
-			DatagramPacket packet;
-			while ((packet = getContext().getNatHelpServer().fetchNextPackage()) != null) {
-				InetAddress address = packet.getAddress();
-				int p = packet.getPort();
-				String data = new String(packet.getData(), packet.getOffset(), packet.getLength());
-				if (s_log.isDebugEnabled()) {
-					s_log.debug(new StringBuilder("*** UDP packet received from ")
-							.append(address.getHostAddress()).append(" from port ")
-							.append(p).toString());
-				}
-				Client client = getContext().getClients().getClient(data);
-				if (client == null) {
-					continue;
-				}
-				client.setUdpSourcePort(p);
-				client.sendLine(new StringBuilder("UDPSOURCEPORT ").append(p).toString());
-			}
+			getContext().getNatHelpServer().update();
 
-			// save accounts info to disk on regular intervals:
-			getContext().getAccountsService().saveAccountsIfNeeded();
+			getContext().getAccountsService().update();
 
-			// purge mute lists of all channels on regular intervals:
-			if (System.currentTimeMillis() - lastMutesPurgeTime > purgeMutesInterval) {
-				lastMutesPurgeTime = System.currentTimeMillis();
-				for (int i = 0; i < getContext().getChannels().getChannelsSize(); i++) {
-					getContext().getChannels().getChannel(i).getMuteList().clearExpiredOnes();
-				}
-			}
+			getContext().getChannels().update();
 
 			// sleep a bit
 			try {
 				Thread.sleep(MAIN_LOOP_SLEEP);
-			} catch (InterruptedException ie) {
+			} catch (InterruptedException iex) {
 			}
 		}
 

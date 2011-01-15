@@ -225,6 +225,7 @@ public class Context implements LiveStateListener {
 	public void setNatHelpServer(NatHelpServer natHelpServer) {
 
 		this.natHelpServer = natHelpServer;
+		addContextReceiver(natHelpServer);
 		addLiveStateListener(natHelpServer);
 	}
 

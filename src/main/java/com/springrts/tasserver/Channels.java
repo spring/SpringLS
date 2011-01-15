@@ -11,12 +11,24 @@ import java.util.List;
 /**
  * @author Betalord
  */
-public class Channels implements ContextReceiver, LiveStateListener {
+public class Channels implements ContextReceiver, LiveStateListener, Updateable
+{
 
 	private List<Channel> channels;
 	private Context context;
 	public static final String MATCH_NO_CHANNEL = "^%%%%%%%$";
 	private String channelsToLogRegex;
+
+	/**
+	 * In this interval, all channel mute lists will be checked
+	 * for expirations and purged accordingly. In milliseconds.
+	 */
+	private long purgeMutesInterval = 1000 * 3;
+	/**
+	 * Time when we last purged mute lists of all channels.
+	 * @see System.currentTimeMillis()
+	 */
+	private long lastMutesPurgeTime = System.currentTimeMillis();
 
 
 	public Channels() {
@@ -26,6 +38,24 @@ public class Channels implements ContextReceiver, LiveStateListener {
 		channelsToLogRegex = MATCH_NO_CHANNEL;
 	}
 
+
+	@Override
+	public void update() {
+		purgeMuteLists();
+	}
+
+	/**
+	 * Purges the mute-lists of all channels
+	 */
+	private void purgeMuteLists() {
+
+		if ((System.currentTimeMillis() - lastMutesPurgeTime) > purgeMutesInterval) {
+			lastMutesPurgeTime = System.currentTimeMillis();
+			for (Channel channel : channels) {
+				channel.getMuteList().clearExpiredOnes();
+			}
+		}
+	}
 
 	public String getChannelsToLogRegex() {
 		return channelsToLogRegex;

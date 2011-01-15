@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.util.Collections;
 import java.util.List;
 import java.util.LinkedList;
@@ -22,7 +23,7 @@ import java.util.LinkedList;
  *
  * @author Betalord
  */
-public class NatHelpServer implements Runnable, LiveStateListener {
+public class NatHelpServer implements Runnable, ContextReceiver, LiveStateListener, Updateable {
 
 	private static final Log s_log  = LogFactory.getLog(NatHelpServer.class);
 	private static final int RECEIVE_BUFFER_SIZE = 256;
@@ -41,6 +42,7 @@ public class NatHelpServer implements Runnable, LiveStateListener {
 	private DatagramSocket socket;
 	private Thread myThread;
 
+	private Context context;
 
 	public NatHelpServer() {
 
@@ -48,6 +50,44 @@ public class NatHelpServer implements Runnable, LiveStateListener {
 		this.msgList = Collections.synchronizedList(new LinkedList<DatagramPacket>());
 		this.socket = null;
 		this.myThread = null;
+		this.context = null;
+	}
+
+	@Override
+	public void receiveContext(Context context) {
+		this.context = context;
+	}
+	private Context getContext() {
+		return context;
+	}
+
+	@Override
+	public void update() {
+		checkForNewPackets();
+	}
+
+	/**
+	 * check UDP server for any new packets
+	 */
+	private void checkForNewPackets() {
+
+		DatagramPacket packet;
+		while ((packet = fetchNextPackage()) != null) {
+			InetAddress address = packet.getAddress();
+			int p = packet.getPort();
+			String data = new String(packet.getData(), packet.getOffset(), packet.getLength());
+			if (s_log.isDebugEnabled()) {
+				s_log.debug(new StringBuilder("*** UDP packet received from ")
+						.append(address.getHostAddress()).append(" from port ")
+						.append(p).toString());
+			}
+			Client client = getContext().getClients().getClient(data);
+			if (client == null) {
+				continue;
+			}
+			client.setUdpSourcePort(p);
+			client.sendLine(new StringBuilder("UDPSOURCEPORT ").append(p).toString());
+		}
 	}
 
 

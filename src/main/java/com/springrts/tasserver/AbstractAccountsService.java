@@ -38,6 +38,11 @@ public abstract class AbstractAccountsService implements AccountsService {
 	}
 
 	@Override
+	public void update() {
+		saveAccountsIfNeeded();
+	}
+
+	@Override
 	public void starting() {}
 	@Override
 	public void started() {
