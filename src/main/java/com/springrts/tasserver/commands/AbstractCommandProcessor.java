@@ -112,7 +112,7 @@ public abstract class AbstractCommandProcessor implements CommandProcessor {
 			throws CommandProcessingException {
 
 		if ((getAccessMin() != ACCESS_NOCHECK) &&
-				client.getAccount().getAccess().compareTo(getAccessMin()) < 0) {
+				client.getAccount().getAccess().isLessThen(getAccessMin())) {
 			throw new InsufficientAccessCommandProcessingException(
 					getCommandName(),
 					getAccessMin(),

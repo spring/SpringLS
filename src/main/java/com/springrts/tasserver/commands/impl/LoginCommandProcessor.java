@@ -94,7 +94,9 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 
 		String username = args.get(0);
 
-		if (!getContext().getServer().isLoginEnabled() && getContext().getAccountsService().getAccount(username).getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
+		if (!getContext().getServer().isLoginEnabled()
+				&& getContext().getAccountsService().getAccount(username).getAccess().isLessThen(Account.Access.PRIVILEGED))
+		{
 			client.sendLine("DENIED Sorry, logging in is currently disabled");
 			return false;
 		}
@@ -223,7 +225,8 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 		// set client's status:
 		client.setRankToStatus(client.getAccount().getRank().ordinal());
 		client.setBotModeToStatus(client.getAccount().isBot());
-		client.setAccessToStatus((((client.getAccount().getAccess().compareTo(Account.Access.PRIVILEGED) >= 0) && (!getContext().getServer().isLanMode())) ? true : false));
+		client.setAccessToStatus(((client.getAccount().getAccess().isLessThen(Account.Access.PRIVILEGED)
+				&& (!getContext().getServer().isLanMode())) ? true : false));
 
 		client.setCpu(cpu);
 		client.getAccount().setLastLogin(System.currentTimeMillis());

@@ -49,7 +49,7 @@ public class GetInGameTimeCommandProcessor extends AbstractCommandProcessor {
 			client.sendLine(new StringBuilder("SERVERMSG Your in-game time is ")
 					.append(client.getAccount().getInGameTimeInMins()).append(" minutes.").toString());
 		} else {
-			if (client.getAccount().getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
+			if (client.getAccount().getAccess().isLessThen(Account.Access.PRIVILEGED)) {
 				client.sendLine("SERVERMSG You have no access to see other player's in-game time!");
 				throw new InsufficientAccessCommandProcessingException(getCommandName(), Account.Access.PRIVILEGED, client.getAccount().getAccess());
 			}

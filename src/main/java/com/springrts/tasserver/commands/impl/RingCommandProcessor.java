@@ -51,7 +51,7 @@ public class RingCommandProcessor extends AbstractCommandProcessor {
 
 		String username = args.get(0);
 
-		if (client.getAccount().getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
+		if (client.getAccount().getAccess().isLessThen(Account.Access.PRIVILEGED)) {
 			// normal users can ring only when they are hosting
 			// and only clients who are participating in their battle
 			Client target = getContext().getClients().getClient(username);

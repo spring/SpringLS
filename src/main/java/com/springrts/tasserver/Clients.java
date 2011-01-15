@@ -144,7 +144,7 @@ public class Clients implements ContextReceiver {
 
 		for (int i = 0; i < clients.size(); i++) {
 			Client toBeNotified = clients.get(i);
-			if (toBeNotified.getAccount().getAccess().compareTo(Account.Access.NORMAL) >= 0) {
+			if (toBeNotified.getAccount().getAccess().isAtLeast(Account.Access.NORMAL)) {
 				toBeNotified.sendLine(s);
 			}
 		}
@@ -155,7 +155,7 @@ public class Clients implements ContextReceiver {
 
 		for (int i = 0; i < clients.size(); i++) {
 			Client toBeNotified = clients.get(i);
-			if ((toBeNotified.getAccount().getAccess().compareTo(Account.Access.NORMAL) >= 0)
+			if ((toBeNotified.getAccount().getAccess().isAtLeast(Account.Access.NORMAL))
 					&& (toBeNotified != client))
 			{
 				continue;
@@ -168,7 +168,7 @@ public class Clients implements ContextReceiver {
 
 		for (int i = 0; i < clients.size(); i++) {
 			Client toBeNotified = clients.get(i);
-			if (toBeNotified.getAccount().getAccess().compareTo(Account.Access.ADMIN) >= 0) {
+			if (toBeNotified.getAccount().getAccess().isAtLeast(Account.Access.ADMIN)) {
 				toBeNotified.sendLine(s);
 			}
 		}
@@ -183,7 +183,7 @@ public class Clients implements ContextReceiver {
 		client.beginFastWrite();
 		for (int i = 0; i < clients.size(); i++) {
 			Client toBeNotified = clients.get(i);
-			if ((toBeNotified.getAccount().getAccess().compareTo(Account.Access.NORMAL) >= 0)
+			if ((toBeNotified.getAccount().getAccess().isAtLeast(Account.Access.NORMAL))
 				&& toBeNotified.getStatus() != 0)
 			{
 				// only send it if not 0.
@@ -218,7 +218,7 @@ public class Clients implements ContextReceiver {
 		client.beginFastWrite();
 		for (int i = 0; i < clients.size(); i++) {
 			Client toBeNotified = clients.get(i);
-			if (toBeNotified.getAccount().getAccess().compareTo(Account.Access.NORMAL) >= 0) {
+			if (toBeNotified.getAccount().getAccess().isAtLeast(Account.Access.NORMAL)) {
 				if (client.isAcceptAccountIDs()) {
 					client.sendLine(new StringBuilder("ADDUSER ")
 							.append(toBeNotified.getAccount().getName()).append(" ")
@@ -245,7 +245,7 @@ public class Clients implements ContextReceiver {
 
 		for (int i = 0; i < clients.size(); i++) {
 			Client toBeNotified = clients.get(i);
-			if ((toBeNotified.getAccount().getAccess().compareTo(Account.Access.NORMAL) >= 0)
+			if ((toBeNotified.getAccount().getAccess().isAtLeast(Account.Access.NORMAL))
 					&& (toBeNotified != client))
 			{
 				if (toBeNotified.isAcceptAccountIDs()) {
@@ -273,7 +273,7 @@ public class Clients implements ContextReceiver {
 
 		String cmdBase = "JOINEDBATTLE " + battle.getId() + " " + client.getAccount().getName();
 		for (Client toBeNotified : clients)  {
-			if (toBeNotified.getAccount().getAccess().compareTo(Account.Access.NORMAL) >= 0) {
+			if (toBeNotified.getAccount().getAccess().isAtLeast(Account.Access.NORMAL)) {
 				StringBuilder cmd = new StringBuilder(cmdBase);
 				if ((toBeNotified.equals(battle.getFounder()) || toBeNotified.equals(client))
 						&& client.isScriptPassordSupported()

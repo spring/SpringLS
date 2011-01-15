@@ -72,7 +72,9 @@ public class SayCommandProcessor extends AbstractCommandProcessor {
 
 
 		// check for flooding:
-		if ((message.length() > getContext().getServer().getMaxChatMessageLength()) && (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0)) {
+		if ((message.length() > getContext().getServer().getMaxChatMessageLength())
+				&& client.getAccount().getAccess().isLessThen(Account.Access.ADMIN))
+		{
 			s_log.warn(new StringBuilder("Flooding detected from ")
 					.append(client.getIp()).append(" (")
 					.append(client.getAccount().getName()).append(") [exceeded max. chat message size]").toString());

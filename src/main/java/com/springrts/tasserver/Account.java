@@ -97,6 +97,14 @@ public class Account implements Serializable, Cloneable {
 		PRIVILEGED,
 		/** can change users access level */
 		ADMIN;
+
+		public boolean isAtLeast(Access otherAccess) {
+			return this.compareTo(otherAccess) >= 0;
+		}
+
+		public boolean isLessThen(Access otherAccess) {
+			return this.compareTo(otherAccess) < 0;
+		}
 	}
 
 	public static final int NO_USER_ID = 0;

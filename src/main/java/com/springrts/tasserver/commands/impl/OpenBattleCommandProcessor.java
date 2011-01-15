@@ -64,7 +64,7 @@ public class OpenBattleCommandProcessor extends AbstractCommandProcessor {
 		Clients clients = getContext().getClients();
 		for (int i = 0; i < clients.getClientsSize(); i++) {
 			Client c = clients.getClient(i);
-			if (c.getAccount().getAccess().compareTo(Account.Access.NORMAL) < 0) {
+			if (c.getAccount().getAccess().isLessThen(Account.Access.NORMAL)) {
 				continue;
 			}
 			// make sure that clients behind NAT get local IPs and not external ones:
