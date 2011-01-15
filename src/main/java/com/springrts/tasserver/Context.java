@@ -28,6 +28,7 @@ public class Context implements LiveStateListener {
 	private CommandProcessors commandProcessors = null;
 	private UpdateProperties updateProperties = null;
 	private ServerThread serverThread = null;
+	private FloodProtection floodProtection = null;
 
 
 	public Context() {
@@ -52,6 +53,7 @@ public class Context implements LiveStateListener {
 		this.commandProcessors = null;
 		this.updateProperties = null;
 		this.serverThread = null;
+		this.floodProtection = null;
 	}
 
 	public void init() {
@@ -71,6 +73,7 @@ public class Context implements LiveStateListener {
 		setCommandProcessors(new CommandProcessors());
 		setUpdateProperties(new UpdateProperties());
 		setServerThread(new ServerThread());
+		setFloodProtection(new FloodProtection());
 	}
 
 
@@ -274,5 +277,17 @@ public class Context implements LiveStateListener {
 		this.serverThread = serverThread;
 		addContextReceiver(serverThread);
 		addLiveStateListener(serverThread);
+	}
+
+	/**
+	 * Returns the flood-protection system.
+	 */
+	public FloodProtection getFloodProtection() {
+		return floodProtection;
+	}
+
+	public void setFloodProtection(FloodProtection floodProtection) {
+
+		this.floodProtection = floodProtection;
 	}
 }

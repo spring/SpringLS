@@ -20,7 +20,6 @@ package com.springrts.tasserver.commands.impl;
 
 import com.springrts.tasserver.Account;
 import com.springrts.tasserver.Client;
-import com.springrts.tasserver.Misc;
 import com.springrts.tasserver.commands.AbstractCommandProcessor;
 import com.springrts.tasserver.commands.CommandProcessingException;
 import com.springrts.tasserver.commands.SupportedCommand;
@@ -49,17 +48,17 @@ public class FloodLevelCommandProcessor extends AbstractCommandProcessor {
 
 		if (type.equals("PERIOD")) {
 			int seconds = Integer.parseInt(args.get(1));
-			getContext().getServer().getFloodProtection().setReceivedRecordPeriod(seconds);
+			getContext().getFloodProtection().setReceivedRecordPeriod(seconds);
 			client.sendLine(new StringBuilder("SERVERMSG The antiflood period is now ")
 					.append(seconds).append(" seconds.").toString());
 		} else if (type.equals("USER")) {
 			int bytes = Integer.parseInt(args.get(1));
-			getContext().getServer().getFloodProtection().setMaxBytesAlert(bytes);
+			getContext().getFloodProtection().setMaxBytesAlert(bytes);
 			client.sendLine(new StringBuilder("SERVERMSG The antiflood amount for a normal user is now ")
 					.append(bytes).append(" bytes.").toString());
 		} else if (type.equals("BOT")) {
 			int bytes = Integer.parseInt(args.get(1));
-			getContext().getServer().getFloodProtection().setMaxBytesAlertForBot(bytes);
+			getContext().getFloodProtection().setMaxBytesAlertForBot(bytes);
 			client.sendLine(new StringBuilder("SERVERMSG The antiflood amount for a bot is now ")
 					.append(bytes).append(" bytes.").toString());
 		}

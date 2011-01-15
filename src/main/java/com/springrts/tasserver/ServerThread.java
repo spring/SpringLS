@@ -244,7 +244,7 @@ public class ServerThread implements ContextReceiver, LiveStateListener {
 				client.addToDataOverLastTimePeriod(nbytes);
 
 				// basic anti-flood protection:
-				if (getContext().getServer().getFloodProtection().isFlooding(client)) {
+				if (getContext().getFloodProtection().isFlooding(client)) {
 					s_log.warn(new StringBuilder("Flooding detected from ")
 							.append(client.getIp()).append(" (")
 							.append(client.getAccount().getName()).append(")").toString());
@@ -426,7 +426,7 @@ public class ServerThread implements ContextReceiver, LiveStateListener {
 			getContext().getClients().flushData();
 
 			// reset received bytes count every n seconds
-			if (getContext().getServer().getFloodProtection().hasFloodCheckPeriodPassed()) {
+			if (getContext().getFloodProtection().hasFloodCheckPeriodPassed()) {
 				for (int i = 0; i < getContext().getClients().getClientsSize(); i++) {
 					getContext().getClients().getClient(i).setDataOverLastTimePeriod(0);
 				}

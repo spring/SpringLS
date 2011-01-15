@@ -75,8 +75,6 @@ public class Server implements ContextReceiver {
 	private CharsetDecoder asciiDecoder;
  	private CharsetEncoder asciiEncoder;
 
-	private FloodProtection floodProtection;
-
 	private boolean loginEnabled;
 
 	/** in milli-seconds */
@@ -106,7 +104,6 @@ public class Server implements ContextReceiver {
 		lanAdminPassword = Misc.encodePassword(DEFAULT_LAN_ADMIN_PASSWORD);
 		port = DEFAULT_PORT;
 		useUserDB = false;
-		floodProtection = new FloodProtection();
 		loginEnabled = true;
 		timeoutLength = 50000;
 		lastTimeoutCheck = System.currentTimeMillis();
@@ -269,13 +266,6 @@ public class Server implements ContextReceiver {
 	 */
 	public void setUseUserDB(boolean useUserDB) {
 		this.useUserDB = useUserDB;
-	}
-
-	/**
-	 * Returns the flood-protection system.
-	 */
-	public FloodProtection getFloodProtection() {
-		return floodProtection;
 	}
 
 	public boolean isLoginEnabled() {
