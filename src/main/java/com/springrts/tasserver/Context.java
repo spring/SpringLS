@@ -23,6 +23,7 @@ public class Context implements LiveStateListener {
 	private Statistics statistics = null;
 	private NatHelpServer natHelpServer = null;
 	private MessageOfTheDay messageOfTheDay = null;
+	private Agreement agreement = null;
 
 
 	public Context() {
@@ -42,6 +43,8 @@ public class Context implements LiveStateListener {
 		this.serverNotifications = null;
 		this.statistics = null;
 		this.natHelpServer = null;
+		this.messageOfTheDay = null;
+		this.agreement = null;
 	}
 
 	public void init() {
@@ -57,6 +60,7 @@ public class Context implements LiveStateListener {
 		setStatistics(new Statistics());
 		setNatHelpServer(new NatHelpServer());
 		setMessageOfTheDay(new MessageOfTheDay());
+		setAgreement(new Agreement());
 	}
 
 
@@ -219,5 +223,15 @@ public class Context implements LiveStateListener {
 
 		this.messageOfTheDay = messageOfTheDay;
 		addContextReceiver(messageOfTheDay);
+	}
+
+	public Agreement getAgreement() {
+		return agreement;
+	}
+
+	public void setAgreement(Agreement agreement) {
+
+		this.agreement = agreement;
+		addContextReceiver(agreement);
 	}
 }

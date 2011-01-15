@@ -55,6 +55,7 @@ import com.springrts.tasserver.commands.impl.KickUserCommandProcessor;
 import com.springrts.tasserver.commands.impl.KillAllCommandProcessor;
 import com.springrts.tasserver.commands.impl.KillCommandProcessor;
 import com.springrts.tasserver.commands.impl.KillIpCommandProcessor;
+import com.springrts.tasserver.commands.impl.LoginCommandProcessor;
 import com.springrts.tasserver.commands.impl.LongTimeToDateCommandProcessor;
 import com.springrts.tasserver.commands.impl.MemoryAvailableCommandProcessor;
 import com.springrts.tasserver.commands.impl.MuteCommandProcessor;
@@ -200,6 +201,7 @@ public class CommandProcessors implements ContextReceiver {
 		commandProcessorClasses.add(GetUserIdCommandProcessor.class);
 		commandProcessorClasses.add(GenerateUserIdCommandProcessor.class);
 		commandProcessorClasses.add(KillAllCommandProcessor.class);
+		commandProcessorClasses.add(LoginCommandProcessor.class);
 
 		try {
 			load(commandProcessorClasses);

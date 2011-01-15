@@ -30,15 +30,27 @@ import org.apache.commons.logging.LogFactory;
  * See LOGIN command implementation for more details.
  * @author hoijui
  */
-public class Agreement {
+public class Agreement implements ContextReceiver {
 
 	private static final Log s_log  = LogFactory.getLog(Agreement.class);
+
+	private Context context;
 
 	private String content;
 	private static final String DEFAULT_FILE_NAME = "agreement.rtf";
 
 	public Agreement() {
+
 		content = null;
+	}
+
+	@Override
+	public void receiveContext(Context context) {
+
+		this.context = context;
+	}
+	protected Context getContext() {
+		return context;
 	}
 
 	/** Reads agreement from disk (if file is found) */

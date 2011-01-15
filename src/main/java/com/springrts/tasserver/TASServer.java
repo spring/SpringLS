@@ -40,8 +40,6 @@ import java.util.regex.PatternSyntaxException;
  */
 public class TASServer implements LiveStateListener {
 
-	private Agreement agreement = new Agreement();
-
 	private final String UPDATE_PROPERTIES_FILENAME = "updates.xml";
 	/**
 	 * If true, the server will keep a log of all conversations from
@@ -59,13 +57,6 @@ public class TASServer implements LiveStateListener {
 	 * @see System.currentTimeMillis()
 	 */
 	private long lastMutesPurgeTime = System.currentTimeMillis();
-	/**
-	 * Here we store information on latest failed login attempts.
-	 * We use it to block users from brute-forcing other accounts.
-	 */
-	private List<FailedLoginAttempt> failedLoginAttempts = new ArrayList<FailedLoginAttempt>();
-	/** Time when we last purged list of failed login attempts */
-	private long lastFailedLoginsPurgeTime = System.currentTimeMillis();
 	private static final Log s_log  = LogFactory.getLog(TASServer.class);
 
 	private final int READ_BUFFER_SIZE = 256; // size of the ByteBuffer used to read data from the socket channel. This size doesn't really matter - server will work with any size (tested with READ_BUFFER_SIZE==1), but too small buffer size may impact the performance.
@@ -350,25 +341,6 @@ public class TASServer implements LiveStateListener {
 		}
 	}
 
-	private void recordFailedLoginAttempt(String username) {
-		FailedLoginAttempt attempt = findFailedLoginAttempt(username);
-		if (attempt == null) {
-			attempt = new FailedLoginAttempt(username, 0, 0);
-			failedLoginAttempts.add(attempt);
-		}
-		attempt.addFailedAttempt();
-	}
-
-	/** @return 'null' if no record found */
-	private FailedLoginAttempt findFailedLoginAttempt(String username) {
-		for (int i = 0; i < failedLoginAttempts.size(); i++) {
-			if (failedLoginAttempts.get(i).getUserName().equals(username)) {
-				return failedLoginAttempts.get(i);
-			}
-		}
-		return null;
-	}
-
 	public boolean redirectAndKill(Socket socket) {
 		if (!context.getServer().isRedirectActive()) {
 			return false;
@@ -566,180 +538,6 @@ public class TASServer implements LiveStateListener {
 				// kill client if no update has been found for him:
 				if (response.substring(0, 12).toUpperCase().equals("SERVERMSGBOX")) {
 					context.getClients().killClient(client);
-				}
-			} else if (commands[0].equals("LOGIN")) {
-				if (client.getAccount().getAccess() != Account.Access.NONE) {
-					client.sendLine("DENIED Already logged in");
-					return false; // user with accessLevel > 0 cannot re-login
-				}
-
-				if (!context.getServer().isLoginEnabled() && context.getAccountsService().getAccount(commands[1]).getAccess().compareTo(Account.Access.PRIVILEGED) < 0) {
-					client.sendLine("DENIED Sorry, logging in is currently disabled");
-					return false;
-				}
-
-				if (commands.length < 6) {
-					client.sendLine("DENIED Bad command arguments");
-					return false;
-				}
-
-				String[] args2 = Misc.makeSentence(commands, 5).split("\t");
-				String lobbyVersion = args2[0];
-				int userID = Account.NO_USER_ID;
-				if (args2.length > 1) {
-					try {
-						long temp = Long.parseLong(args2[1], 16);
-						userID = (int) temp; // we transform unsigned 32 bit integer to a signed one
-					} catch (NumberFormatException e) {
-						client.sendLine("DENIED <userID> field should be an integer");
-						return false;
-					}
-				}
-				if (args2.length > 2) {
-					// prepare the compatibility flags (space separated)
-					String compatFlags_str = Misc.makeSentence(args2, 2);
-					String[] compatFlags_split = compatFlags_str.split(" ");
-					ArrayList<String> compatFlags = new ArrayList<String>(compatFlags_split.length + 1);
-					compatFlags.addAll(Arrays.asList(compatFlags_split));
-					// split old flags for backwards compatibility,
-					// as there were no spaces in the past
-					if (compatFlags.remove("ab") || compatFlags.remove("ba")) {
-						compatFlags.add("a");
-						compatFlags.add("b");
-					}
-
-					// handle flags ...
-					client.setAcceptAccountIDs(compatFlags.contains("a"));
-					client.setHandleBattleJoinAuthorization(compatFlags.contains("b"));
-					client.setScriptPassordSupported(compatFlags.contains("sp"));
-				}
-
-				int cpu;
-				try {
-					cpu = Integer.parseInt(commands[3]);
-				} catch (NumberFormatException e) {
-					client.sendLine("DENIED <cpu> field should be an integer");
-					return false;
-				}
-
-				if (!context.getServer().isLanMode()) { // "normal", non-LAN mode
-					String username = commands[1];
-					String password = commands[2];
-
-					// protection from brute-forcing the account:
-					FailedLoginAttempt attempt = findFailedLoginAttempt(username);
-					if ((attempt != null) && (attempt.getFailedAttempts() >= 3)) {
-						client.sendLine("DENIED Too many failed login attempts. Wait for 30 seconds before trying again!");
-						recordFailedLoginAttempt(username);
-						if (!attempt.isLogged()) {
-							attempt.setLogged(true);
-							context.getClients().sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: Too many failed login attempts for <")
-									.append(username).append("> from ")
-									.append(client.getIp()).append(". Blocking for 30 seconds. Will not notify any longer.").toString());
-							// add server notification:
-							ServerNotification sn = new ServerNotification("Excessive failed login attempts");
-							sn.addLine(new StringBuilder("Too many failed login attempts for <")
-									.append(username).append("> from ")
-									.append(client.getIp()).append(". Blocking for 30 seconds.").toString());
-							context.getServerNotifications().addNotification(sn);
-						}
-						return false;
-					}
-
-					Account acc = context.getAccountsService().verifyLogin(username, password);
-					if (acc == null) {
-						client.sendLine("DENIED Bad username/password");
-						recordFailedLoginAttempt(username);
-						return false;
-					}
-					if (context.getClients().isUserLoggedIn(acc)) {
-						client.sendLine("DENIED Already logged in");
-						return false;
-					}
-					BanEntry ban = context.getBanService().getBanEntry(username, Misc.ip2Long(client.getIp()), userID);
-					if (ban != null && ban.isActive()) {
-						client.sendLine(new StringBuilder("DENIED You are banned from this server! (Reason: ")
-								.append(ban.getPublicReason()).append("). Please contact server administrator.").toString());
-						recordFailedLoginAttempt(username);
-						return false;
-					}
-					if ((!acc.isAgreementAccepted()) && (!client.getAccount().isAgreementAccepted()) && agreement.isSet()) {
-						agreement.sendToClient(client);
-						return false;
-					}
-					// everything is OK so far!
-					if (!acc.isAgreementAccepted()) {
-						// user has obviously accepted the agreement... Let's update it
-						acc.setAgreementAccepted(true);
-						final boolean mergeOk = context.getAccountsService().mergeAccountChanges(acc, acc.getName());
-						if (!mergeOk) {
-							acc.setAgreementAccepted(false);
-							client.sendLine("DENIED Failed saving 'agreement accepted' to persistent storage.");
-							return false;
-						}
-						context.getAccountsService().saveAccounts(false);
-					}
-					if (acc.getLastLogin() + 5000 > System.currentTimeMillis()) {
-						client.sendLine("DENIED This account has already connected in the last 5 seconds");
-						return false;
-					}
-					client.setAccount(acc);
-				} else { // lanMode == true
-					if (commands[1].equals("")) {
-						client.sendLine("DENIED Cannot login with null username");
-					}
-					Account acc = context.getAccountsService().getAccount(commands[1]);
-					if (acc != null) {
-						client.sendLine("DENIED Player with same name already logged in");
-						return false;
-					}
-					Account.Access accessLvl = Account.Access.NORMAL;
-					if ((commands[1].equals(context.getServer().getLanAdminUsername())) && (commands[2].equals(context.getServer().getLanAdminPassword()))) {
-						accessLvl = Account.Access.ADMIN;
-					}
-					acc = new Account(commands[1], commands[2], "?", "XX");
-					acc.setAccess(accessLvl);
-					context.getAccountsService().addAccount(acc);
-					client.setAccount(acc);
-				}
-
-				// set client's status:
-				client.setRankToStatus(client.getAccount().getRank().ordinal());
-				client.setBotModeToStatus(client.getAccount().isBot());
-				client.setAccessToStatus((((client.getAccount().getAccess().compareTo(Account.Access.PRIVILEGED) >= 0) && (!context.getServer().isLanMode())) ? true : false));
-
-				client.setCpu(cpu);
-				client.getAccount().setLastLogin(System.currentTimeMillis());
-				client.getAccount().setLastCountry(client.getCountry());
-				client.getAccount().setLastIP(client.getIp());
-				if (commands[4].equals("*")) {
-					client.setLocalIP(client.getIp());
-				} else {
-					client.setLocalIP(commands[4]);
-				}
-				client.setLobbyVersion(lobbyVersion);
-				client.getAccount().setLastUserId(userID);
-				final boolean mergeOk = context.getAccountsService().mergeAccountChanges( client.getAccount(), client.getAccount().getName());
-				if (!mergeOk) {
-					s_log.info(new StringBuilder("Failed saving login info to persistent storage for user: ").append(client.getAccount().getName()).toString());
-					return false;
-				}
-
-				// do the notifying and all:
-				client.sendLine(new StringBuilder("ACCEPTED ").append(client.getAccount().getName()).toString());
-				context.getMessageOfTheDay().sendTo(client);
-				context.getClients().sendListOfAllUsersToClient(client);
-				context.getBattles().sendInfoOnBattlesToClient(client);
-				context.getClients().sendInfoOnStatusesToClient(client);
-				// notify client that we've finished sending login info:
-				client.sendLine("LOGININFOEND");
-
-				// notify everyone about new client:
-				context.getClients().notifyClientsOfNewClientOnServer(client);
-				context.getClients().notifyClientsOfNewClientStatus(client);
-
-				if (s_log.isDebugEnabled()) {
-					s_log.debug(new StringBuilder("User just logged in: ").append(client.getAccount().getName()).toString());
 				}
 			} else if (commands[0].equals("CONFIRMAGREEMENT")) {
 				// update client's temp account (he is not logged in yet since he needs to confirm the agreement before server will allow him to log in):
@@ -2253,7 +2051,7 @@ public class TASServer implements LiveStateListener {
 		if (!context.getServer().isLanMode()) {
 			context.getAccountsService().loadAccounts();
 			context.getBanService();
-			agreement.read();
+			context.getAgreement().read();
 		} else {
 			s_log.info("LAN mode enabled");
 		}
@@ -2351,18 +2149,6 @@ public class TASServer implements LiveStateListener {
 				lastMutesPurgeTime = System.currentTimeMillis();
 				for (int i = 0; i < context.getChannels().getChannelsSize(); i++) {
 					context.getChannels().getChannel(i).getMuteList().clearExpiredOnes();
-				}
-			}
-
-			// purge list of failed login attempts:
-			if (System.currentTimeMillis() - lastFailedLoginsPurgeTime > 1000) {
-				lastFailedLoginsPurgeTime = System.currentTimeMillis();
-				for (int i = 0; i < failedLoginAttempts.size(); i++) {
-					FailedLoginAttempt attempt = failedLoginAttempts.get(i);
-					if (System.currentTimeMillis() - attempt.getTimeOfLastFailedAttempt() > 30000) {
-						failedLoginAttempts.remove(i);
-						i--;
-					}
 				}
 			}
 
