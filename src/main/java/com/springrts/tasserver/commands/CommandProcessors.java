@@ -50,6 +50,7 @@ import com.springrts.tasserver.commands.impl.ForceStopServerCommandProcessor;
 import com.springrts.tasserver.commands.impl.ForceTeamColorCommandProcessor;
 import com.springrts.tasserver.commands.impl.ForceTeamNumberCommandProcessor;
 import com.springrts.tasserver.commands.impl.ForgeMessageCommandProcessor;
+import com.springrts.tasserver.commands.impl.ForgeReverseMessageCommandProcessor;
 import com.springrts.tasserver.commands.impl.GarbageCollectorCommandProcessor;
 import com.springrts.tasserver.commands.impl.GenerateUserIdCommandProcessor;
 import com.springrts.tasserver.commands.impl.GetAccountAccessCommandProcessor;
@@ -69,6 +70,7 @@ import com.springrts.tasserver.commands.impl.JoinBattleAcceptCommandProcessor;
 import com.springrts.tasserver.commands.impl.JoinBattleCommandProcessor;
 import com.springrts.tasserver.commands.impl.JoinBattleDenyCommandProcessor;
 import com.springrts.tasserver.commands.impl.JoinCommandProcessor;
+import com.springrts.tasserver.commands.impl.KickFromBattleCommandProcessor;
 import com.springrts.tasserver.commands.impl.KickUserCommandProcessor;
 import com.springrts.tasserver.commands.impl.KillAllCommandProcessor;
 import com.springrts.tasserver.commands.impl.KillCommandProcessor;
@@ -282,14 +284,16 @@ public class CommandProcessors implements ContextReceiver {
 		commandProcessorClasses.add(SetScriptTagsCommandProcessor.class);
 		commandProcessorClasses.add(RemoveScriptTagsCommandProcessor.class);
 		commandProcessorClasses.add(ChannelsCommandProcessor.class);
+		commandProcessorClasses.add(ForgeReverseMessageCommandProcessor.class);
 		commandProcessorClasses.add(ReloadUpdatePropertiesCommandProcessor.class);
 		commandProcessorClasses.add(RequestUpdateFileCommandProcessor.class);
+		commandProcessorClasses.add(KickFromBattleCommandProcessor.class);
 
 		try {
 			load(commandProcessorClasses);
 		} catch (Exception ex) {
 			log.fatal("Failed to load Command Processors", ex);
-			context.getServer().closeServerAndExit();
+			context.getServerThread().closeServerAndExit();
 		}
 	}
 

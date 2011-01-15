@@ -318,7 +318,7 @@ public class Clients implements ContextReceiver {
 			Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 			if (bat == null) {
 				s_log.fatal("Invalid battle ID. Server will now exit!");
-				context.getServer().closeServerAndExit();
+				context.getServerThread().closeServerAndExit();
 			}
 			context.getBattles().leaveBattle(client, bat); // automatically checks if client is founder and closes the battle
 		}

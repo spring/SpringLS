@@ -1,6 +1,7 @@
 package com.springrts.tasserver;
 
 
+import com.springrts.tasserver.commands.CommandProcessors;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -24,7 +25,9 @@ public class Context implements LiveStateListener {
 	private NatHelpServer natHelpServer = null;
 	private MessageOfTheDay messageOfTheDay = null;
 	private Agreement agreement = null;
+	private CommandProcessors commandProcessors = null;
 	private UpdateProperties updateProperties = null;
+	private ServerThread serverThread = null;
 
 
 	public Context() {
@@ -46,7 +49,9 @@ public class Context implements LiveStateListener {
 		this.natHelpServer = null;
 		this.messageOfTheDay = null;
 		this.agreement = null;
+		this.commandProcessors = null;
 		this.updateProperties = null;
+		this.serverThread = null;
 	}
 
 	public void init() {
@@ -63,7 +68,9 @@ public class Context implements LiveStateListener {
 		setNatHelpServer(new NatHelpServer());
 		setMessageOfTheDay(new MessageOfTheDay());
 		setAgreement(new Agreement());
+		setCommandProcessors(new CommandProcessors());
 		setUpdateProperties(new UpdateProperties());
+		setServerThread(new ServerThread());
 	}
 
 
@@ -238,6 +245,16 @@ public class Context implements LiveStateListener {
 		addContextReceiver(agreement);
 	}
 
+	public CommandProcessors getCommandProcessors() {
+		return commandProcessors;
+	}
+
+	public void setCommandProcessors(CommandProcessors commandProcessors) {
+
+		this.commandProcessors = commandProcessors;
+		addContextReceiver(commandProcessors);
+	}
+
 	public UpdateProperties getUpdateProperties() {
 		return updateProperties;
 	}
@@ -246,5 +263,16 @@ public class Context implements LiveStateListener {
 
 		this.updateProperties = updateProperties;
 		addContextReceiver(updateProperties);
+	}
+
+	public ServerThread getServerThread() {
+		return serverThread;
+	}
+
+	public void setServerThread(ServerThread serverThread) {
+
+		this.serverThread = serverThread;
+		addContextReceiver(serverThread);
+		addLiveStateListener(serverThread);
 	}
 }

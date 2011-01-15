@@ -40,7 +40,7 @@ public class Battles implements ContextReceiver {
 
 		if (battle == null) {
 			s_log.fatal("Invalid battle ID. Server will now exit!");
-			context.getServer().closeServerAndExit();
+			context.getServerThread().closeServerAndExit();
 		}
 	}
 

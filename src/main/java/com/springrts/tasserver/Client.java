@@ -491,7 +491,7 @@ public class Client implements ContextReceiver {
 
 		if (fastWrite != null) {
 			s_log.fatal("Invalid use of beginFastWrite(). Check your code! Shutting down the server ...");
-			context.getServer().closeServerAndExit();
+			context.getServerThread().closeServerAndExit();
 		}
 
 		fastWrite = new StringBuilder();
@@ -501,7 +501,7 @@ public class Client implements ContextReceiver {
 
 		if (fastWrite == null) {
 			s_log.fatal("Invalid use of endFastWrite(). Check your code! Shutting down the server ...");
-			context.getServer().closeServerAndExit();
+			context.getServerThread().closeServerAndExit();
 		}
 
 		String data = fastWrite.toString();

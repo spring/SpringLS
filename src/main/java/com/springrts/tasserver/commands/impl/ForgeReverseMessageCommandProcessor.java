@@ -20,19 +20,23 @@ package com.springrts.tasserver.commands.impl;
 
 import com.springrts.tasserver.Account;
 import com.springrts.tasserver.Client;
+import com.springrts.tasserver.Misc;
 import com.springrts.tasserver.commands.AbstractCommandProcessor;
 import com.springrts.tasserver.commands.CommandProcessingException;
 import com.springrts.tasserver.commands.SupportedCommand;
 import java.util.List;
 
 /**
+ * This command is used only for debugging purposes. It sends the string
+ * to the client specified as first argument as if it were sent by the user
+ * specified in this command.
  * @author hoijui
  */
-@SupportedCommand("FORCESTOPSERVER")
-public class ForceStopServerCommandProcessor extends AbstractCommandProcessor {
+@SupportedCommand("FORGEREVERSEMSG")
+public class ForgeReverseMessageCommandProcessor extends AbstractCommandProcessor {
 
-	public ForceStopServerCommandProcessor() {
-		super(Account.Access.ADMIN);
+	public ForgeReverseMessageCommandProcessor() {
+		super(2, ARGS_MAX_NOCHECK, Account.Access.ADMIN);
 	}
 
 	@Override
@@ -44,7 +48,15 @@ public class ForceStopServerCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		getContext().getServerThread().closeServerAndExit();
+		String username = args.get(0);
+		String message = Misc.makeSentence(args, 1);
+
+		Client targetClient = getContext().getClients().getClient(username);
+		if (targetClient == null) {
+			return false;
+		}
+
+		getContext().getServerThread().executeCommand(message, targetClient);
 
 		return true;
 	}

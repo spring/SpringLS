@@ -10,15 +10,18 @@ import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.Collection;
 import java.util.LinkedList;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 /**
  * Contains settings specific for one version of the engine.
+ * @author hoijui
  */
 public class Server implements ContextReceiver {
 
 	private static final Log s_log  = LogFactory.getLog(Server.class);
+
 
 	private Context context = null;
 
@@ -152,22 +155,6 @@ public class Server implements ContextReceiver {
 
 	public CharsetEncoder getAsciiEncoder() {
 		return asciiEncoder;
-	}
-
-	public void closeServerAndExit() {
-
-		s_log.info("Server stopping ...");
-
-		context.stopping();
-
-		// add server notification:
-		ServerNotification sn = new ServerNotification("Server stopped");
-		sn.addLine("Server has just been stopped. See server log for more info.");
-		context.getServerNotifications().addNotification(sn);
-
-		context.stopped();
-		s_log.info("Server stopped.");
-		System.exit(0);
 	}
 
 	/**
