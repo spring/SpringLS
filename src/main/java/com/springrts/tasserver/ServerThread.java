@@ -78,7 +78,8 @@ public class ServerThread implements ContextReceiver, LiveStateListener {
 	private Context context;
 
 	/**
-	 * Contains a list of deprecated commands, for example: "WHITELIST" -> "deprecated feature: white-listing"
+	 * Contains a list of deprecated commands, for example:
+	 * "WHITELIST" -> "deprecated feature: white-listing"
 	 */
 	private static Map<String, DeprecatedCommand> DEPRECATED_COMMANDS = null;
 
@@ -93,9 +94,18 @@ public class ServerThread implements ContextReceiver, LiveStateListener {
 	 */
 	private long lastMutesPurgeTime = System.currentTimeMillis();
 
-	private final int READ_BUFFER_SIZE = 256; // size of the ByteBuffer used to read data from the socket channel. This size doesn't really matter - server will work with any size (tested with READ_BUFFER_SIZE==1), but too small buffer size may impact the performance.
-	private final int SEND_BUFFER_SIZE = 8192 * 2; // socket's send buffer size
-	private final long MAIN_LOOP_SLEEP = 10L;
+	/**
+	 * The size of the ByteBuffer used to read data from the socket channel.
+	 * This size does not really matter, as the server will work with any size
+	 * (tested with READ_BUFFER_SIZE==1), but too small buffer size may impact
+	 * the performance.
+	 */
+	private static final int READ_BUFFER_SIZE = 256;
+	/**
+	 * The socket's send buffer size.
+	 */
+	private static final int SEND_BUFFER_SIZE = 8192 * 2;
+	private static final long MAIN_LOOP_SLEEP = 10L;
 	private ServerSocketChannel sSockChan;
 	private Selector readSelector;
 	private boolean running;
@@ -116,18 +126,32 @@ public class ServerThread implements ContextReceiver, LiveStateListener {
 		initDeprecatedCommands();
 	}
 
-	private static void add(Map<String, DeprecatedCommand> deprecatedCommands, DeprecatedCommand command) {
+	private static void add(Map<String, DeprecatedCommand> deprecatedCommands,
+			DeprecatedCommand command)
+	{
 		deprecatedCommands.put(command.getName(), command);
 	}
 	private void initDeprecatedCommands() {
 
 		if (DEPRECATED_COMMANDS == null) {
-			Map<String, DeprecatedCommand> deprecatedCommands = new HashMap<String, DeprecatedCommand>();
+			Map<String, DeprecatedCommand> deprecatedCommands
+					= new HashMap<String, DeprecatedCommand>();
 
-			add(deprecatedCommands, new DeprecatedCommand("WHITELIST", "IP white-listing is disabled"));
-			add(deprecatedCommands, new DeprecatedCommand("UNWHITELIST", "IP white-listing is disabled"));
-			add(deprecatedCommands, new DeprecatedCommand("RETRIEVELATESTBANLIST", "Fetching ban entries is not needed anymore. Therefore, this is a no-op now."));
-			add(deprecatedCommands, new DeprecatedCommand("OUTPUTDBDRIVERSTATUS", "This command is not supported anymore, as JPA is used for DB access for bans. Therefore, this is a no-op now."));
+			add(deprecatedCommands, new DeprecatedCommand(
+					"WHITELIST",
+					"IP white-listing is disabled"));
+			add(deprecatedCommands, new DeprecatedCommand(
+					"UNWHITELIST",
+					"IP white-listing is disabled"));
+			add(deprecatedCommands, new DeprecatedCommand(
+					"RETRIEVELATESTBANLIST",
+					"Fetching ban entries is not needed anymore."
+					+ " Therefore, this is a no-op now."));
+			add(deprecatedCommands, new DeprecatedCommand(
+					"OUTPUTDBDRIVERSTATUS",
+					"This command is not supported anymore,"
+					+ " as JPA is used for DB access for bans."
+					+ " Therefore, this is a no-op now."));
 
 			DEPRECATED_COMMANDS = deprecatedCommands;
 		}
@@ -164,7 +188,8 @@ public class ServerThread implements ContextReceiver, LiveStateListener {
 					continue;
 				}
 
-				// from this point on, we know that client has been successfully connected
+				// from this point on, we know that client
+				// has been successfully connected
 				client.sendWelcomeMessage();
 
 				if (s_log.isDebugEnabled()) {
@@ -503,7 +528,7 @@ public class ServerThread implements ContextReceiver, LiveStateListener {
 			readSelector = Selector.open();
 
 		} catch (IOException e) {
-			s_log.error(new StringBuilder("Could not listen on port: ").append(port).toString(), e);
+			s_log.error("Could not listen on port: " + port, e);
 			return false;
 		}
 
@@ -564,7 +589,9 @@ public class ServerThread implements ContextReceiver, LiveStateListener {
 			if (accountsService.getAccountsSize() == 0) {
 				String username = "admin";
 				String password = "admin";
-				s_log.info("As there are no accounts yet, we are creating an admin account: username=\"" + username + "\", password=\"" + password + "\"");
+				s_log.info("As there are no accounts yet, we are creating an "
+						+ "admin account: username=\"" + username
+						+ "\", password=\"" + password + "\"");
 				Account admin = createAdmin(username, password);
 				accountsService.addAccount(admin);
 				accountsService.saveAccountsIfNeeded();
@@ -577,7 +604,11 @@ public class ServerThread implements ContextReceiver, LiveStateListener {
 	 */
 	private static Account createAdmin(String username, String password) {
 
-		Account admin = new Account(username, Misc.encodePassword(password), Account.NO_ACCOUNT_LAST_IP, Account.NO_ACCOUNT_LAST_COUNTRY);
+		Account admin = new Account(
+				username,
+				Misc.encodePassword(password),
+				Account.NO_ACCOUNT_LAST_IP,
+				Account.NO_ACCOUNT_LAST_COUNTRY);
 		admin.setAccess(Account.Access.ADMIN);
 		return admin;
 	}
