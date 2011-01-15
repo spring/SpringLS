@@ -112,6 +112,7 @@ import com.springrts.tasserver.commands.impl.SetChannelKeyCommandProcessor;
 import com.springrts.tasserver.commands.impl.SetLatestSpringVersionCommandProcessor;
 import com.springrts.tasserver.commands.impl.SetScriptTagsCommandProcessor;
 import com.springrts.tasserver.commands.impl.SetTimeOutCommandProcessor;
+import com.springrts.tasserver.commands.impl.StopServerCommandProcessor;
 import com.springrts.tasserver.commands.impl.TestLoginCommandProcessor;
 import com.springrts.tasserver.commands.impl.UnmuteCommandProcessor;
 import com.springrts.tasserver.commands.impl.UpTimeCommandProcessor;
@@ -288,6 +289,7 @@ public class CommandProcessors implements ContextReceiver {
 		commandProcessorClasses.add(ReloadUpdatePropertiesCommandProcessor.class);
 		commandProcessorClasses.add(RequestUpdateFileCommandProcessor.class);
 		commandProcessorClasses.add(KickFromBattleCommandProcessor.class);
+		commandProcessorClasses.add(StopServerCommandProcessor.class);
 
 		try {
 			load(commandProcessorClasses);

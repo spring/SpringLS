@@ -344,13 +344,6 @@ public class ServerThread implements ContextReceiver, LiveStateListener {
 //					client.sendLine("SERVERMSG Bad command- UNWHITELIST IP");
 //				}
 				client.sendLine("SERVERMSG IP white-listing is disabled");
-			} else if (commands[0].equals("STOPSERVER")) {
-				// stop server gracefully:
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-
-				running = false;
 			} else if (commands[0].equals("RETRIEVELATESTBANLIST")) {
 				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
 					return false;
