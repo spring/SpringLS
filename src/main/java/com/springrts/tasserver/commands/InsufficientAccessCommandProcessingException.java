@@ -21,7 +21,7 @@ package com.springrts.tasserver.commands;
 import com.springrts.tasserver.Account;
 
 /**
- * @see CommandProcessor.process()
+ * @see CommandProcessor#process(com.springrts.tasserver.Client, java.util.List)
  * @author hoijui
  */
 public class InsufficientAccessCommandProcessingException extends CommandProcessingException {

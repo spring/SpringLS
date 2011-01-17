@@ -19,7 +19,7 @@ package com.springrts.tasserver.commands;
 
 
 /**
- * @see CommandProcessor.process()
+ * @see CommandProcessor#process(com.springrts.tasserver.Client, java.util.List)
  * @author hoijui
  */
 public class InvalidNumberOfArgumentsCommandProcessingException extends CommandProcessingException {

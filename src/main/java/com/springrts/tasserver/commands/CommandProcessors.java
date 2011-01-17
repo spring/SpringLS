@@ -133,7 +133,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Manages all the command processors for a server instance.
- * @see CommandProcessor}
+ * @see CommandProcessor
  * @author hoijui
  */
 public class CommandProcessors implements ContextReceiver {

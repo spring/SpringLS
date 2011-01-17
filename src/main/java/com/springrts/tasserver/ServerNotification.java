@@ -15,7 +15,7 @@ package com.springrts.tasserver;
 public class ServerNotification {
 
 	/**
-	 * Miliseconds passed since 1st Jan 1970
+	 * Milliseconds passed since 1st Jan 1970
 	 * @see System.currentTimeMillis()
 	 */
 	private long time = 0;
