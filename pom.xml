@@ -157,6 +157,7 @@
 				<configuration>
 					<linkXref>true</linkXref>
 					<sourceEncoding>${project.build.sourceEncoding}</sourceEncoding>
+					<targetJdk>1.5</targetJdk>
 				</configuration>
 			</plugin>
 
