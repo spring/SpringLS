@@ -298,7 +298,7 @@ public class Battle implements ContextReceiver {
 	}
 
 	public boolean inGame() {
-		return getFounder().getInGameFromStatus();
+		return getFounder().isInGame();
 	}
 
 	/**

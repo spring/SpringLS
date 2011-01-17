@@ -78,7 +78,7 @@ public class ChangeAccountAccessCommandProcessor extends AbstractCommandProcesso
 		getContext().getAccountsService().saveAccounts(false); // save changes
 		// just in case if rank got changed: FIXME?
 		//Client target=context.getClients().getClient(commands[1]);
-		//target.setRankToStatus(client.account.getRank().ordinal());
+		//target.setRank(client.account.getRank().ordinal());
 		//if(target.alive)
 		//	context.getClients().notifyClientsOfNewClientStatus(target);
 

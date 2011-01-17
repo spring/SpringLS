@@ -138,9 +138,9 @@ public class FloodProtection {
 	public boolean isFlooding(Client client) {
 
 		return client.getAccount().getAccess().isAtLeast(Account.Access.ADMIN)
-				&& (((client.getBotModeFromStatus() == false)
+				&& (((client.isBot() == false)
 						&& (client.getDataOverLastTimePeriod() > getMaxBytesAlert()))
-					|| ((client.getBotModeFromStatus() == true)
+					|| ((client.isBot() == true)
 						&& (client.getDataOverLastTimePeriod() > getMaxBytesAlertForBot())));
 	}
 

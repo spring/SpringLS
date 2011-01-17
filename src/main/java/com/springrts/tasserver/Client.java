@@ -517,51 +517,51 @@ public class Client implements ContextReceiver {
 	}
 
 
-	/* various methods dealing with client status: */
+	// various methods dealing with client status
 
-	public boolean getInGameFromStatus() {
+	public boolean isInGame() {
 		return (status & 0x1) == 1;
 	}
 
-	public boolean getAwayBitFromStatus() {
+	public boolean isAway() {
 		return ((status & 0x2) >> 1) == 1;
 	}
 
-	public int getRankFromStatus() {
+	public int getRank() {
 		return (status & 0x1C) >> 2;
 	}
 
-	public boolean getAccessFromStatus() {
+	public boolean isAccess() {
 		return ((status & 0x20) >> 5) == 1;
 	}
 
-	public boolean getBotModeFromStatus() {
+	public boolean isBot() {
 		return ((status & 0x40) >> 6) == 1;
 	}
 
-	public void setInGameToStatus(boolean inGame) {
+	public void setInGame(boolean inGame) {
 
 		int newBitValue = (inGame ? 1 : 0);
 		status = (status & 0xFFFFFFFE) | newBitValue;
 	}
 
-	public void setAwayBitToStatus(boolean away) {
+	public void setAway(boolean away) {
 
 		int newBitValue = ((away ? 1 : 0) << 1);
 		status = (status & 0xFFFFFFFD) | newBitValue;
 	}
 
-	public void setRankToStatus(int rank) {
+	public void setRank(int rank) {
 		status = (status & 0xFFFFFFE3) | (rank << 2);
 	}
 
-	public void setAccessToStatus(boolean access) {
+	public void setAccess(boolean access) {
 
 		int newBitValue = ((access ? 1 : 0) << 5);
 		status = (status & 0xFFFFFFDF) | newBitValue;
 	}
 
-	public void setBotModeToStatus(boolean isBot) {
+	public void setBot(boolean isBot) {
 
 		int newBitValue = ((isBot ? 1 : 0) << 6);
 		status = (status & 0xFFFFFFBF) | newBitValue;

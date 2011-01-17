@@ -63,20 +63,20 @@ public class MyStatusCommandProcessor extends AbstractCommandProcessor {
 		}
 
 		// we must preserve rank bits, access bit and bot mode bit (client is not allowed to change them himself):
-		int tmp = client.getRankFromStatus();
-		boolean tmp2 = client.getInGameFromStatus();
-		boolean tmp3 = client.getAccessFromStatus();
-		boolean tmp4 = client.getBotModeFromStatus();
+		int rank = client.getRank();
+		boolean inGame = client.isInGame();
+		boolean access = client.isAccess();
+		boolean bot = client.isBot();
 
 		client.setStatus(newStatus);
 
-		client.setRankToStatus(tmp);
-		client.setAccessToStatus(tmp3);
-		client.setBotModeToStatus(tmp4);
+		client.setRank(rank);
+		client.setAccess(access);
+		client.setBot(bot);
 
-		if (client.getInGameFromStatus() != tmp2) {
+		if (client.isInGame() != inGame) {
 			// user changed his in-game status.
-			if (tmp2 == false) { // client just entered game
+			if (inGame == false) { // client just entered game
 				Battle bat = getContext().getBattles().getBattleByID(client.getBattleID());
 				if ((bat != null) && (bat.getClientsSize() > 0)) {
 					client.setInGameTime(System.currentTimeMillis());
@@ -97,7 +97,7 @@ public class MyStatusCommandProcessor extends AbstractCommandProcessor {
 					long diffMins = (System.currentTimeMillis() - client.getInGameTime()) / 60000;
 					boolean rankChanged = client.getAccount().addMinsToInGameTime(diffMins);
 					if (rankChanged) {
-						client.setRankToStatus(client.getAccount().getRank().ordinal());
+						client.setRank(client.getAccount().getRank().ordinal());
 					}
 					final boolean mergeOk = getContext().getAccountsService().mergeAccountChanges( client.getAccount(), client.getAccount().getName());
 					if (!mergeOk) {

@@ -223,9 +223,9 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 		}
 
 		// set client's status:
-		client.setRankToStatus(client.getAccount().getRank().ordinal());
-		client.setBotModeToStatus(client.getAccount().isBot());
-		client.setAccessToStatus(((client.getAccount().getAccess().isLessThen(Account.Access.PRIVILEGED)
+		client.setRank(client.getAccount().getRank().ordinal());
+		client.setBot(client.getAccount().isBot());
+		client.setAccess(((client.getAccount().getAccess().isLessThen(Account.Access.PRIVILEGED)
 				&& (!getContext().getServer().isLanMode())) ? true : false));
 
 		client.setCpu(cpu);
