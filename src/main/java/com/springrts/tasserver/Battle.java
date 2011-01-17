@@ -328,38 +328,15 @@ public class Battle implements ContextReceiver {
 	}
 
 	public boolean isClientInBattle(Client client) {
-
-		// TODO: possible simplification if equals and hashCode method of Client are good
-		for (int i = 0; i < clients.size(); i++) {
-			if (clients.get(i) == client) {
-				return true;
-			}
-		}
-		if (getFounder() == client) {
-			return true;
-		}
-
-		return false;
+		return (client.equals(getFounder()) || clients.contains(client));
 	}
 
 	public boolean isClientInBattle(String username) {
-
-		// TODO: possible simplification if equals and hashCode method of Client are good
-		for (int i = 0; i < clients.size(); i++) {
-			if (clients.get(i).getAccount().getName().equals(username)) {
-				return true;
-			}
-		}
-		if (getFounder().getAccount().getName().equals(username)) {
-			return true;
-		}
-
-		return false;
+		return (getClient(username) != null);
 	}
 
 	public Client getClient(String username) {
 
-		// TODO: possible simplification if equals and hashCode method of Client are good
 		for (int i = 0; i < clients.size(); i++) {
 			if (clients.get(i).getAccount().getName().equals(username)) {
 				return clients.get(i);
