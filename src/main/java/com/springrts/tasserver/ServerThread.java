@@ -425,6 +425,8 @@ public class ServerThread implements ContextReceiver, LiveStateListener {
 			}
 		}
 
+		getContext().stopping();
+
 		// close everything:
 		if (!getContext().getServer().isLanMode()) {
 			getContext().getAccountsService().saveAccounts(true);
@@ -439,10 +441,8 @@ public class ServerThread implements ContextReceiver, LiveStateListener {
 		getContext().getServerNotifications().addNotification(sn);
 
 		s_log.info("Server closed gracefully!");
-	}
 
-	public void stop() {
-		running = false;
+		getContext().stopped();
 	}
 
 	public boolean startServer() {
@@ -480,21 +480,31 @@ public class ServerThread implements ContextReceiver, LiveStateListener {
 		return true;
 	}
 
+	/**
+	 * Shuts down the server gracefully.
+	 */
+	public void stop() {
+		running = false;
+	}
+
+	/**
+	 * Shuts down the server forcefully.
+	 */
 	public void closeServerAndExit() {
 
 		// FIXME these things do not get called on normal exit yet!
 		//       see (end of) method run()
-		s_log.info("Server stopping ...");
 
-		getContext().stopping();
+		//getContext().stopping();
 
 		// add server notification:
 		ServerNotification sn = new ServerNotification("Server stopped");
 		sn.addLine("Server has just been stopped. See server log for more info.");
 		getContext().getServerNotifications().addNotification(sn);
 
-		getContext().stopped();
-		s_log.info("Server stopped.");
+		//getContext().stopped();
+		s_log.warn("Server stopped forcefully");
+
 		System.exit(0);
 	}
 
@@ -513,6 +523,16 @@ public class ServerThread implements ContextReceiver, LiveStateListener {
 		s_log.info(new StringBuilder("TASServer ")
 				.append(Misc.getAppVersion()).append(" started on ")
 				.append(dateTimeFormat.format(new Date())).toString());
+
+		// add server notification
+		ServerNotification sn = new ServerNotification("Server started");
+		sn.addLine(String.format(
+				"Server has been started on port %d."
+				+ " There are %d accounts. "
+				+ "See server log for more info.",
+				context.getServer().getPort(),
+				context.getAccountsService().getAccountsSize()));
+		context.getServerNotifications().addNotification(sn);
 
 		createAdminIfNoUsers();
 	}
@@ -554,7 +574,7 @@ public class ServerThread implements ContextReceiver, LiveStateListener {
 
 	@Override
 	public void stopping() {
-		s_log.info("stopping...");
+		s_log.info("Server stopping ...");
 	}
 	@Override
 	public void stopped() {
@@ -564,6 +584,6 @@ public class ServerThread implements ContextReceiver, LiveStateListener {
 		DateFormat dateTimeFormat = new SimpleDateFormat("yyyy.MM.dd 'at' hh:mm:ss z");
 
 		running = false;
-		s_log.info("stopped on " + dateTimeFormat.format(new Date()));
+		s_log.info("Server stopped on " + dateTimeFormat.format(new Date()));
 	}
 }

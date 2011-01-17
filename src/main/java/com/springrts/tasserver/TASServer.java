@@ -25,26 +25,9 @@ public class TASServer {
 
 	public TASServer(Context context) {
 
-		AccountsService accountsService = null;
-		if (!context.getServer().isLanMode() && context.getServer().isUseUserDB()) {
-			accountsService = new JPAAccountsService();
-		} else {
-			accountsService = new FSAccountsService();
-		}
-		context.setAccountsService(accountsService);
+		context.setAccountsService(createAccountsService(context));
 
-		BanService banService = null;
-		if (!context.getServer().isLanMode()) {
-			try {
-				banService = new JPABanService();
-			} catch (Exception pex) {
-				banService = new DummyBanService();
-				s_log.warn("Failed to access database for ban entries, bans are not supported!", pex);
-			}
-		} else {
-			banService = new DummyBanService();
-		}
-		context.setBanService(banService);
+		context.setBanService(createBanService(context));
 
 		context.push();
 
@@ -70,7 +53,7 @@ public class TASServer {
 		context.getServer().setStartTime(System.currentTimeMillis());
 
 		if (context.getUpdateProperties().read(UpdateProperties.DEFAULT_FILENAME)) {
-			s_log.info(new StringBuilder("\"Update properties\" read from ").append(UpdateProperties.DEFAULT_FILENAME).toString());
+			s_log.info("\"Update properties\" read from " + UpdateProperties.DEFAULT_FILENAME);
 		}
 
 		long tempTime = System.currentTimeMillis();
@@ -88,14 +71,37 @@ public class TASServer {
 			context.getServerThread().closeServerAndExit();
 		}
 
-		// add server notification:
-		ServerNotification sn = new ServerNotification("Server started");
-		sn.addLine(new StringBuilder("Server has been started on port ")
-				.append(context.getServer().getPort()).append(". There are ")
-				.append(context.getAccountsService().getAccountsSize())
-				.append(" accounts currently loaded. See server log for more info.").toString());
-		context.getServerNotifications().addNotification(sn);
-
 		context.getServerThread().run();
+	}
+
+	private AccountsService createAccountsService(Context context) {
+
+		AccountsService accountsService = null;
+
+		if (!context.getServer().isLanMode() && context.getServer().isUseUserDB()) {
+			accountsService = new JPAAccountsService();
+		} else {
+			accountsService = new FSAccountsService();
+		}
+
+		return accountsService;
+	}
+
+	private BanService createBanService(Context context) {
+
+		BanService banService = null;
+
+		if (!context.getServer().isLanMode()) {
+			try {
+				banService = new JPABanService();
+			} catch (Exception pex) {
+				banService = new DummyBanService();
+				s_log.warn("Failed to access database for ban entries, bans are not supported!", pex);
+			}
+		} else {
+			banService = new DummyBanService();
+		}
+
+		return banService;
 	}
 }
