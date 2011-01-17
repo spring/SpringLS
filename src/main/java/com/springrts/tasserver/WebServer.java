@@ -441,7 +441,7 @@ class Worker extends WebServer implements Runnable {
 }
 
 final class HttpConstants {
-	
+
 	private HttpConstants() {}
 
 	/** 2XX: generally "OK" */

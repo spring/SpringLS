@@ -63,12 +63,11 @@ public class JoinCommandProcessor extends AbstractCommandProcessor {
 		Channel chan = getContext().getChannels().getChannel(channelName);
 		if ((chan != null) && (chan.isLocked())
 				// we allow admins to join locked channels
-				&& client.getAccount().getAccess().isLessThen(Account.Access.ADMIN))
+				&& client.getAccount().getAccess().isLessThen(Account.Access.ADMIN)
+				&& !channelKey.equals(chan.getKey()))
 		{
-			if (!channelKey.equals(chan.getKey())) {
-				client.sendLine(new StringBuilder("JOINFAILED ").append(channelName).append(" Wrong key (this channel is locked)!").toString());
-				return false;
-			}
+			client.sendLine(new StringBuilder("JOINFAILED ").append(channelName).append(" Wrong key (this channel is locked)!").toString());
+			return false;
 		}
 
 		chan = client.joinChannel(channelName);

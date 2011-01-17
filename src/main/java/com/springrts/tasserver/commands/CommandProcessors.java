@@ -154,17 +154,17 @@ public class CommandProcessors implements ContextReceiver {
 
 		SupportedCommand supCmd = cmdProcCls.getAnnotation(SupportedCommand.class);
 		if (supCmd == null) {
-			throw new IllegalArgumentException(cmdProcCls.getCanonicalName() +
-					" is not a valid " +
-					CommandProcessor.class.getCanonicalName() + "; " +
-					"@" + SupportedCommand.class.getCanonicalName() +
-					" annotation is missing.");
+			throw new IllegalArgumentException(cmdProcCls.getCanonicalName()
+					+ " is not a valid "
+					+ CommandProcessor.class.getCanonicalName()
+					+ "; @" + SupportedCommand.class.getCanonicalName()
+					+ " annotation is missing.");
 		}
 		if (!supCmd.value().equals(supCmd.value().toUpperCase())) {
-			throw new IllegalArgumentException(cmdProcCls.getCanonicalName() +
-					" is not a valid " +
-					CommandProcessor.class.getCanonicalName() + "; " +
-					"The command name has to be upper-case only.");
+			throw new IllegalArgumentException(cmdProcCls.getCanonicalName()
+					+ " is not a valid "
+					+ CommandProcessor.class.getCanonicalName()
+					+ "; The command name has to be upper-case only.");
 		}
 		name = supCmd.value();
 
@@ -333,15 +333,15 @@ public class CommandProcessors implements ContextReceiver {
 		try {
 			noArgsCtor = cpc.getConstructor();
 		} catch (NoSuchMethodException ex) {
-			throw new RuntimeException(cpc.getCanonicalName() +
-				" is not a valid CommandProcessor; " +
-				"No-args constructor is missing.", ex);
+			throw new RuntimeException(cpc.getCanonicalName()
+				+ " is not a valid CommandProcessor; "
+				+ "No-args constructor is missing.", ex);
 		}
 		try {
 			cp = noArgsCtor.newInstance();
 		} catch (Exception ex) {
-			throw new RuntimeException("Failed to instantiate " +
-					cpc.getCanonicalName(), ex);
+			throw new RuntimeException("Failed to instantiate "
+					+ cpc.getCanonicalName(), ex);
 		}
 
 		return cp;
@@ -355,8 +355,8 @@ public class CommandProcessors implements ContextReceiver {
 	 *                   for whatever reason
 	 */
 	private void load(Collection<Class<? extends CommandProcessor>> cpcs)
-			throws Exception {
-
+			throws Exception
+	{
 		for (Class<? extends CommandProcessor> cpc : cpcs) {
 			add(load(cpc));
 		}

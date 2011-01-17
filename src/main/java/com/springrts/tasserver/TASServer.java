@@ -32,11 +32,11 @@ public class TASServer {
 		context.getCommandProcessors().init();
 
 		// switch to LAN mode if user accounts information is not present:
-		if (!context.getServer().isLanMode()) {
-			if (!context.getAccountsService().isReadyToOperate()) {
-				s_log.warn("Accounts service not ready, switching to \"LAN mode\" ...");
-				context.getServer().setLanMode(true);
-			}
+		if (!context.getServer().isLanMode()
+				&& !context.getAccountsService().isReadyToOperate())
+		{
+			s_log.warn("Accounts service not ready, switching to \"LAN mode\" ...");
+			context.getServer().setLanMode(true);
 		}
 
 		if (!context.getServer().isLanMode()) {

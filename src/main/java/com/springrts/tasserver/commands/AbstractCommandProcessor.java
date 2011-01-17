@@ -109,25 +109,25 @@ public abstract class AbstractCommandProcessor implements CommandProcessor {
 	 */
 	@Override
 	public boolean process(Client client, List<String> args)
-			throws CommandProcessingException {
+			throws CommandProcessingException
+	{
 
-		if ((getAccessMin() != ACCESS_NOCHECK) &&
-				client.getAccount().getAccess().isLessThen(getAccessMin())) {
+		if ((getAccessMin() != ACCESS_NOCHECK)
+				&& client.getAccount().getAccess().isLessThen(getAccessMin()))
+		{
 			throw new InsufficientAccessCommandProcessingException(
 					getCommandName(),
 					getAccessMin(),
 					client.getAccount().getAccess());
 		}
 
-		if ((getArgsMin() != ARGS_MIN_NOCHECK) &&
-				(args.size() < getArgsMin())) {
+		if ((getArgsMin() != ARGS_MIN_NOCHECK) && (args.size() < getArgsMin())) {
 			throw new TooFewArgumentsCommandProcessingException(
 					getCommandName(),
 					getArgsMin(),
 					args.size());
 		}
-		if ((getArgsMax() != ARGS_MAX_NOCHECK) &&
-				(args.size() > getArgsMax())) {
+		if ((getArgsMax() != ARGS_MAX_NOCHECK) && (args.size() > getArgsMax())) {
 			throw new TooManyArgumentsCommandProcessingException(
 					getCommandName(),
 					getArgsMax(),

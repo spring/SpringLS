@@ -78,7 +78,7 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 	 * Contains a list of deprecated commands, for example:
 	 * "WHITELIST" -> "deprecated feature: white-listing"
 	 */
-	private static Map<String, DeprecatedCommand> DEPRECATED_COMMANDS = null;
+	private static Map<String, DeprecatedCommand> deprecatedCommands = null;
 
 	/**
 	 * The size of the ByteBuffer used to read data from the socket channel.
@@ -119,27 +119,27 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 	}
 	private void initDeprecatedCommands() {
 
-		if (DEPRECATED_COMMANDS == null) {
-			Map<String, DeprecatedCommand> deprecatedCommands
+		if (deprecatedCommands == null) {
+			Map<String, DeprecatedCommand> tmpDeprecatedCommands
 					= new HashMap<String, DeprecatedCommand>();
 
-			add(deprecatedCommands, new DeprecatedCommand(
+			add(tmpDeprecatedCommands, new DeprecatedCommand(
 					"WHITELIST",
 					"IP white-listing is disabled"));
-			add(deprecatedCommands, new DeprecatedCommand(
+			add(tmpDeprecatedCommands, new DeprecatedCommand(
 					"UNWHITELIST",
 					"IP white-listing is disabled"));
-			add(deprecatedCommands, new DeprecatedCommand(
+			add(tmpDeprecatedCommands, new DeprecatedCommand(
 					"RETRIEVELATESTBANLIST",
 					"Fetching ban entries is not needed anymore."
 					+ " Therefore, this is a no-op now."));
-			add(deprecatedCommands, new DeprecatedCommand(
+			add(tmpDeprecatedCommands, new DeprecatedCommand(
 					"OUTPUTDBDRIVERSTATUS",
 					"This command is not supported anymore,"
 					+ " as JPA is used for DB access for bans."
 					+ " Therefore, this is a no-op now."));
 
-			DEPRECATED_COMMANDS = deprecatedCommands;
+			deprecatedCommands = tmpDeprecatedCommands;
 		}
 	}
 
@@ -365,13 +365,13 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 						return false;
 					}
 				} catch (CommandProcessingException ex) {
-					s_log.debug(cp.getClass().getCanonicalName() +
-							" failed to handle command from client: \"" +
-							Misc.makeSentence(commands) + "\"", ex);
+					s_log.debug(cp.getClass().getCanonicalName()
+							+ " failed to handle command from client: \""
+							+ Misc.makeSentence(commands) + "\"", ex);
 					return false;
 				}
-			} else if (DEPRECATED_COMMANDS.containsKey(commands[0])) {
-				DeprecatedCommand deprecatedCommand = DEPRECATED_COMMANDS.get(commands[0]);
+			} else if (deprecatedCommands.containsKey(commands[0])) {
+				DeprecatedCommand deprecatedCommand = deprecatedCommands.get(commands[0]);
 				client.sendLine(String.format(
 						"SERVERMSG Command %s is deprecated: %s",
 						deprecatedCommand.getName(),

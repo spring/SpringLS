@@ -20,7 +20,6 @@ package com.springrts.tasserver.commands.impl;
 
 import com.springrts.tasserver.Account;
 import com.springrts.tasserver.Client;
-import com.springrts.tasserver.Misc;
 import com.springrts.tasserver.commands.AbstractCommandProcessor;
 import com.springrts.tasserver.commands.CommandProcessingException;
 import com.springrts.tasserver.commands.SupportedCommand;

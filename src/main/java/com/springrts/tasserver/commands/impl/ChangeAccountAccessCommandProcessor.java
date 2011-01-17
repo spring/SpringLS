@@ -61,14 +61,14 @@ public class ChangeAccountAccessCommandProcessor extends AbstractCommandProcesso
 		}
 
 		int oldAccessBitField = acc.getAccessBitField();
-		Account account_new = acc.clone();
-		account_new.setAccess(Account.extractAccess(newAccessBifField));
-		account_new.setBot(Account.extractBot(newAccessBifField));
-		account_new.setInGameTime(Account.extractInGameTime(newAccessBifField));
-		account_new.setAgreementAccepted(Account.extractAgreementAccepted(newAccessBifField));
-		final boolean mergeOk = getContext().getAccountsService().mergeAccountChanges(account_new, account_new.getName());
+		Account accountNew = acc.clone();
+		accountNew.setAccess(Account.extractAccess(newAccessBifField));
+		accountNew.setBot(Account.extractBot(newAccessBifField));
+		accountNew.setInGameTime(Account.extractInGameTime(newAccessBifField));
+		accountNew.setAgreementAccepted(Account.extractAgreementAccepted(newAccessBifField));
+		final boolean mergeOk = getContext().getAccountsService().mergeAccountChanges(accountNew, accountNew.getName());
 		if (mergeOk) {
-			acc = account_new;
+			acc = accountNew;
 		} else {
 			client.sendLine(new StringBuilder("SERVERMSG Changing ACCESS for account <")
 					.append(acc.getName()).append("> failed.").toString());

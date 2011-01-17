@@ -325,7 +325,7 @@ public class Misc {
 
 	/**
 	 * Will decompress ZIP archive to current folder.
-	 * Code copied from 
+	 * Code copied from
 	 * <a href="http://www.rgagnon.com/javadetails/java-0067.html">here</a>,
 	 * and slightly modified.
 	 */
@@ -502,22 +502,27 @@ public class Misc {
 	}
 
 	// BEGIN: various methods dealing with battleStatus
+	/// FIXME refracture, so we have Battle#getReadyStatus()
 	public static int getReadyStatusFromBattleStatus(int battleStatus) {
 		return (battleStatus & 0x2) >> 1;
 	}
 
+	/// FIXME refracture, so we have Battle#getTeam()
 	public static int getTeamNoFromBattleStatus(int battleStatus) {
 		return (battleStatus & 0x3C) >> 2;
 	}
 
+	/// FIXME refracture, so we have Battle#getAllyNo()
 	public static int getAllyNoFromBattleStatus(int battleStatus) {
 		return (battleStatus & 0x3C0) >> 6;
 	}
 
+	/// FIXME refracture, so we have Battle#getMode()
 	public static int getModeFromBattleStatus(int battleStatus) {
 		return (battleStatus & 0x400) >> 10;
 	}
 
+	/// FIXME refracture, so we have Battle#getHandicap()
 	public static int getHandicapFromBattleStatus(int battleStatus) {
 		return (battleStatus & 0x3F800) >> 11;
 	}

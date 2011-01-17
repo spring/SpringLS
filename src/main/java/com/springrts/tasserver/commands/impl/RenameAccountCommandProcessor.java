@@ -80,20 +80,20 @@ public class RenameAccountCommandProcessor extends AbstractCommandProcessor {
 		}
 
 		final String oldName = client.getAccount().getName();
-		Account account_new = client.getAccount().clone();
-		account_new.setName(newUsername);
-		account_new.setLastLogin(System.currentTimeMillis());
-		account_new.setLastIP(client.getIp());
-		final boolean mergeOk = getContext().getAccountsService().mergeAccountChanges(account_new, client.getAccount().getName());
+		Account accountNew = client.getAccount().clone();
+		accountNew.setName(newUsername);
+		accountNew.setLastLogin(System.currentTimeMillis());
+		accountNew.setLastIP(client.getIp());
+		final boolean mergeOk = getContext().getAccountsService().mergeAccountChanges(accountNew, client.getAccount().getName());
 		if (mergeOk) {
-			client.setAccount(account_new);
+			client.setAccount(accountNew);
 		} else {
 			client.sendLine("SERVERMSG Your account renaming failed.");
 			return false;
 		}
 
 		client.sendLine(new StringBuilder("SERVERMSG Your account has been renamed to <")
-				.append(account_new.getName())
+				.append(accountNew.getName())
 				.append(">. Reconnect with new account (you will now be automatically disconnected)!").toString());
 		getContext().getClients().killClient(client, "Quit: renaming account");
 		getContext().getAccountsService().saveAccounts(false); // let's save new accounts info to disk

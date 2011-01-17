@@ -76,7 +76,7 @@ public class MyStatusCommandProcessor extends AbstractCommandProcessor {
 
 		if (client.isInGame() != inGame) {
 			// user changed his in-game status.
-			if (inGame == false) { // client just entered game
+			if (!inGame) { // client just entered game
 				Battle bat = getContext().getBattles().getBattleByID(client.getBattleID());
 				if ((bat != null) && (bat.getClientsSize() > 0)) {
 					client.setInGameTime(System.currentTimeMillis());
