@@ -5,9 +5,6 @@
 package com.springrts.tasserver;
 
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
@@ -19,12 +16,15 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * @author Betalord
  */
 public class Clients implements ContextReceiver, Updateable {
 
-	private final Log s_log  = LogFactory.getLog(Clients.class);
+	private static final Logger s_log  = LoggerFactory.getLogger(Clients.class);
 
 	private List<Client> clients = new ArrayList<Client>();
 	/** A list of clients waiting to be killed (disconnected) */
@@ -103,9 +103,10 @@ public class Clients implements ContextReceiver, Updateable {
 			if (client.isHalfDead()) {
 				continue; // already scheduled for kill
 			}
-			s_log.warn(new StringBuilder("Timeout detected from ")
-					.append(client.getAccount().getName()).append(" (")
-					.append(client.getIp()).append("). Client has been scheduled for kill ...").toString());
+			s_log.warn("Timeout detected from {} ({}). "
+					+ "Client has been scheduled for kill ...",
+					client.getAccount().getName(),
+					client.getIp());
 			getContext().getClients().killClientDelayed(client, "Quit: timeout");
 		}
 	}
@@ -395,7 +396,7 @@ public class Clients implements ContextReceiver, Updateable {
 		if (client.getBattleID() != Battle.NO_BATTLE_ID) {
 			Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 			if (bat == null) {
-				s_log.fatal("Invalid battle ID. Server will now exit!");
+				s_log.error("Invalid battle ID. Server will now exit!");
 				context.getServerThread().closeServerAndExit();
 			}
 			context.getBattles().leaveBattle(client, bat); // automatically checks if client is founder and closes the battle
@@ -403,13 +404,9 @@ public class Clients implements ContextReceiver, Updateable {
 
 		if (client.getAccount().getAccess() != Account.Access.NONE) {
 			sendToAllRegisteredUsers("REMOVEUSER " + client.getAccount().getName());
-			if (s_log.isDebugEnabled()) {
-				s_log.debug("Registered user killed: " + client.getAccount().getName());
-			}
+			s_log.debug("Registered user killed: {}", client.getAccount().getName());
 		} else {
-			if (s_log.isDebugEnabled()) {
-				s_log.debug("Unregistered user killed");
-			}
+			s_log.debug("Unregistered user killed");
 		}
 
 		if (context.getServer().isLanMode()) {

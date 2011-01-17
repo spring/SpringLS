@@ -26,8 +26,8 @@ import com.springrts.tasserver.commands.CommandProcessingException;
 import com.springrts.tasserver.commands.SupportedCommand;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Reloads the locally stored list of Spring versions and server responses to
@@ -38,7 +38,7 @@ import org.apache.commons.logging.LogFactory;
 @SupportedCommand("RELOADUPDATEPROPERTIES")
 public class ReloadUpdatePropertiesCommandProcessor extends AbstractCommandProcessor {
 
-	private static final Log s_log  = LogFactory.getLog(ReloadUpdatePropertiesCommandProcessor.class);
+	private static final Logger s_log  = LoggerFactory.getLogger(ReloadUpdatePropertiesCommandProcessor.class);
 
 	public ReloadUpdatePropertiesCommandProcessor() {
 		super(Account.Access.ADMIN);
@@ -54,7 +54,7 @@ public class ReloadUpdatePropertiesCommandProcessor extends AbstractCommandProce
 		}
 
 		if (getContext().getUpdateProperties().read(UpdateProperties.DEFAULT_FILENAME)) {
-			s_log.info("\"Update properties\" read from " + UpdateProperties.DEFAULT_FILENAME);
+			s_log.info("\"Update properties\" read from {}", UpdateProperties.DEFAULT_FILENAME);
 			client.sendLine("SERVERMSG \"Update properties\" have been successfully loaded from " + UpdateProperties.DEFAULT_FILENAME);
 		} else {
 			client.sendLine(new StringBuilder("SERVERMSG Unable to load \"Update properties\" from ")

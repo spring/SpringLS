@@ -8,11 +8,9 @@ import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.UnsupportedCharsetException;
-import java.util.Collection;
-import java.util.LinkedList;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Contains settings specific for one version of the engine.
@@ -20,7 +18,7 @@ import org.apache.commons.logging.LogFactory;
  */
 public class Server implements ContextReceiver {
 
-	private static final Log s_log  = LogFactory.getLog(Server.class);
+	private static final Logger s_log  = LoggerFactory.getLogger(Server.class);
 
 
 	private Context context = null;

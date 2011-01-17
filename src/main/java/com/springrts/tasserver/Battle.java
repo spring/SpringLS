@@ -11,15 +11,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Betalord
  */
 public class Battle implements ContextReceiver {
 
-	private static final Log s_log  = LogFactory.getLog(Battle.class);
+	private static final Logger s_log  = LoggerFactory.getLogger(Battle.class);
 
 	/** the id that the next battle will have */
 	private static int nextId;
@@ -415,8 +415,8 @@ public class Battle implements ContextReceiver {
 
 		try {
 			bot = bots.get(index);
-		} catch (IndexOutOfBoundsException e) {
-			s_log.error("Failed fetching a bot by index", e);
+		} catch (IndexOutOfBoundsException ex) {
+			s_log.error("Failed fetching a bot by index", ex);
 			bot = null;
 		}
 

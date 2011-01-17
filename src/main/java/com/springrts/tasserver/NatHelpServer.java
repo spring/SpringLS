@@ -5,9 +5,6 @@
 package com.springrts.tasserver;
 
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.DatagramPacket;
@@ -17,6 +14,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.LinkedList;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * This is a simple UDP server that helps detecting source ports with some
  * NAT traversal techniques (e.g. "hole punching").
@@ -25,7 +25,7 @@ import java.util.LinkedList;
  */
 public class NatHelpServer implements Runnable, ContextReceiver, LiveStateListener, Updateable {
 
-	private static final Log s_log  = LogFactory.getLog(NatHelpServer.class);
+	private static final Logger s_log  = LoggerFactory.getLogger(NatHelpServer.class);
 	private static final int RECEIVE_BUFFER_SIZE = 256;
 
 	/**
@@ -76,11 +76,8 @@ public class NatHelpServer implements Runnable, ContextReceiver, LiveStateListen
 			InetAddress address = packet.getAddress();
 			int p = packet.getPort();
 			String data = new String(packet.getData(), packet.getOffset(), packet.getLength());
-			if (s_log.isDebugEnabled()) {
-				s_log.debug(new StringBuilder("*** UDP packet received from ")
-						.append(address.getHostAddress()).append(" from port ")
-						.append(p).toString());
-			}
+			s_log.debug("*** UDP packet received from {} from port {}",
+					address.getHostAddress(), p);
 			Client client = getContext().getClients().getClient(data);
 			if (client == null) {
 				continue;
@@ -127,14 +124,12 @@ public class NatHelpServer implements Runnable, ContextReceiver, LiveStateListen
 
 		try {
 			socket = new DatagramSocket(port);
-		} catch (Exception e) {
-			s_log.warn("Unable to start UDP server on port " + port + ". Ignoring ...", e);
+		} catch (Exception ex) {
+			s_log.warn("Unable to start UDP server on port " + port + ". Ignoring ...", ex);
 			return;
 		}
 
-		s_log.info(new StringBuilder("Listening for connections on UDP port ")
-				.append(port)
-				.append(" ...").toString());
+		s_log.info("Listening for connections on UDP port {} ...", port);
 
 		byte[] buffer = new byte[RECEIVE_BUFFER_SIZE];
 		while (true) {
@@ -149,11 +144,11 @@ public class NatHelpServer implements Runnable, ContextReceiver, LiveStateListen
 				msgList.add(packet);
 			} catch (InterruptedIOException e) {
 				break;
-			} catch (IOException e) {
-				if (e.getMessage().equalsIgnoreCase("socket closed")) {
+			} catch (IOException ex) {
+				if (ex.getMessage().equalsIgnoreCase("socket closed")) {
 					// server stopped gracefully!
 				} else {
-					s_log.error("Error in UDP server", e);
+					s_log.error("Error in UDP server", ex);
 				}
 			}
 		}

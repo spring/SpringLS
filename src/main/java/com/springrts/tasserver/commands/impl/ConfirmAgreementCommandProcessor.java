@@ -24,8 +24,8 @@ import com.springrts.tasserver.commands.CommandProcessingException;
 import com.springrts.tasserver.commands.SupportedCommand;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Allows a user to "activate" his account after registration.
@@ -37,7 +37,7 @@ import org.apache.commons.logging.LogFactory;
 @SupportedCommand("CONFIRMAGREEMENT")
 public class ConfirmAgreementCommandProcessor extends AbstractCommandProcessor {
 
-	private static final Log s_log  = LogFactory.getLog(ConfirmAgreementCommandProcessor.class);
+	private static final Logger s_log  = LoggerFactory.getLogger(ConfirmAgreementCommandProcessor.class);
 
 	public ConfirmAgreementCommandProcessor() {
 		super();
@@ -55,8 +55,8 @@ public class ConfirmAgreementCommandProcessor extends AbstractCommandProcessor {
 		client.getAccount().setAgreementAccepted(true);
 		final boolean mergeOk = getContext().getAccountsService().mergeAccountChanges(client.getAccount(), client.getAccount().getName());
 		if (!mergeOk) {
-			s_log.debug("Failed saving 'agreement accepted' state to persistent storage for user: "
-					+ client.getAccount().getName());
+			s_log.debug("Failed saving 'agreement accepted' state to persistent storage for user: {}",
+					client.getAccount().getName());
 			return false;
 		}
 

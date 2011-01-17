@@ -5,15 +5,15 @@
 package com.springrts.tasserver;
 
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Note that it is vital that everything here is synchronized with main server thread.
@@ -32,7 +32,7 @@ import java.util.List;
  */
 public class FSSaveAccountsThread extends Thread implements ContextReceiver {
 
-	private static final Log s_log  = LogFactory.getLog(FSSaveAccountsThread.class);
+	private static final Logger s_log  = LoggerFactory.getLogger(FSSaveAccountsThread.class);
 
 	private Context context = null;
 
@@ -74,18 +74,23 @@ public class FSSaveAccountsThread extends Thread implements ContextReceiver {
 			}
 
 			out.close();
-		} catch (IOException e) {
-			s_log.error("Failed writing accounts info to " + saveFile.getAbsolutePath() + "!", e);
+		} catch (IOException ex) {
+			s_log.error("Failed writing accounts info to " + saveFile.getAbsolutePath() + "!", ex);
 
 			// add server notification:
 			ServerNotification sn = new ServerNotification("Error saving accounts");
-			sn.addLine("Serious error: accounts info could not be saved to disk. Exception trace:" + Misc.exceptionToFullString(e));
+			sn.addLine("Serious error: accounts info could not be saved to disk. Exception trace:" + Misc.exceptionToFullString(ex));
 			context.getServerNotifications().addNotification(sn);
 
 			return;
 		}
 
-		s_log.info(dupAccounts.size() + " accounts information written to " + saveFile.getAbsolutePath() + " successfully (" + (System.currentTimeMillis() - time) + " ms).");
+		s_log.info("{} accounts information written to {} successfully ({} ms).",
+				new Object[] {
+					dupAccounts.size(),
+					saveFile.getAbsolutePath(),
+					(System.currentTimeMillis() - time)
+				});
 
 		// let garbage collector free the duplicate accounts list:
 		dupAccounts = null;

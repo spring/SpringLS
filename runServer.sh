@@ -16,11 +16,10 @@
 #   press [Ctrl]+[C]
 #
 # * configure logging:
-#   > cp src/main/resources/log4j.properties conf
-#   > ${EDITOR} conf/log4j.properties
-#   For documentation about log4j configuration,
-#   see the 'Configuration' section on this site:
-#   http://logging.apache.org/log4j/1.2/manual.html
+#   > cp src/main/resources/logback.xml conf
+#   > ${EDITOR} conf/logback.xml
+#   For documentation about logback configuration, see:
+#   http://logback.qos.ch/manual/configuration.html
 #
 # * configure the DB:
 #   > cp conf/META-INF/persistence.xml.template conf/META-INF/persistence.xml

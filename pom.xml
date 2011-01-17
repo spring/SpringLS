@@ -244,7 +244,7 @@
 						</goals>
 						<configuration>
 							<outputDirectory>${project.build.directory}/dependency</outputDirectory>
-							<excludeArtifactIds>commons-logging,log4j,persistence-api</excludeArtifactIds>
+							<excludeArtifactIds>slf4j-api,logback-classic,persistence-api</excludeArtifactIds>
 						</configuration>
 					</execution>
 				</executions>
@@ -274,8 +274,8 @@
 									when executing the server.
 								-->
 								<includes>
-									<include>commons-logging:commons-logging</include>
-									<include>log4j:log4j</include>
+									<include>org.slf4j:slf4j-api</include>
+									<include>ch.qos.logback:logback-classic</include>
 									<include>javax.persistence:persistence-api</include>
 									<include>net.iharder:base64</include>
 								</includes>
@@ -293,43 +293,19 @@
 			http://www.mvnrepository.com/search.html
 		-->
 
+		<!-- Logging -->
 		<dependency>
-			<groupId>commons-logging</groupId>
-			<artifactId>commons-logging</artifactId>
-			<version>1.1.1</version>
-			<scope>compile</scope>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.6.1</version>
 		</dependency>
 		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>1.2.15</version>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>0.9.24</version>
 			<scope>runtime</scope>
-			<optional>true</optional>
-			<!--
-				Exclude these as they are not needed
-				except for special scenarios,
-				and because Maven can not auto-fetch them,
-				due to copyright restrictions.
-			-->
-			<exclusions>
-				<exclusion>
-					<groupId>javax.mail</groupId>
-					<artifactId>mail</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.sun.jdmk</groupId>
-					<artifactId>jmxtools</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.sun.jmx</groupId>
-					<artifactId>jmxri</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>javax.jms</groupId>
-					<artifactId>jms</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
+
 		<!-- Used for password encoding (JDK implementation independent) -->
 		<dependency>
 			<groupId>net.iharder</groupId>

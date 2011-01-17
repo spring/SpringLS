@@ -5,9 +5,6 @@
 package com.springrts.tasserver;
 
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -16,12 +13,15 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * @author Betalord
  */
 public class ServerNotifications implements ContextReceiver {
 
-	private final Log s_log  = LogFactory.getLog(ServerNotifications.class);
+	private static final Logger s_log  = LoggerFactory.getLogger(ServerNotifications.class);
 	/**
 	 * This will also get saved with notifications, just in case the format
 	 * of notification files changes in the future.
@@ -51,9 +51,9 @@ public class ServerNotifications implements ContextReceiver {
 			if (!notificationsDir.exists()) {
 				boolean success = notificationsDir.mkdir();
 				if (!success) {
-					s_log.error("Unable to create folder: " + notificationsDir);
+					s_log.error("Unable to create folder: {}", notificationsDir);
 				} else {
-					s_log.info("Created missing folder: " + notificationsDir);
+					s_log.info("Created missing folder: {}", notificationsDir);
 				}
 			}
 		}
@@ -113,7 +113,7 @@ public class ServerNotifications implements ContextReceiver {
 			out.write(sn.toString());
 			out.close();
 		} catch (IOException ex) {
-			s_log.error("Unable to write file <" + notifFile + ">. Server notification will not be saved!");
+			s_log.error("Unable to write file <" + notifFile + ">. Server notification will not be saved!", ex);
 			context.getClients().sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Serious problem: Unable to save server notification (notification dropped).");
 			return false;
 		} finally {

@@ -5,9 +5,6 @@
 package com.springrts.tasserver;
 
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -17,12 +14,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.TreeMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * @author Betalord
  */
 public class FSAccountsService extends AbstractAccountsService implements AccountsService {
 
-	private static final Log s_log  = LogFactory.getLog(FSAccountsService.class);
+	private static final Logger s_log  = LoggerFactory.getLogger(FSAccountsService.class);
 
 	/** in milliseconds */
 	private static final long SAVE_ACCOUNT_INFO_INTERVAL = 1000 * 60 * 60;
@@ -170,13 +170,19 @@ public class FSAccountsService extends AbstractAccountsService implements Accoun
 
 			in.close();
 
-		} catch (IOException e) {
+		} catch (IOException ex) {
 			// catch possible io errors from readLine()
-			s_log.error("Failed updating accounts info from " + ACCOUNTS_INFO_FILEPATH + "! Skipping ...", e);
+			s_log.error("Failed updating accounts info from "
+					+ ACCOUNTS_INFO_FILEPATH + "! Skipping ...", ex);
 			return false;
 		}
 
-		s_log.info(accounts.size() + " accounts information read from " + ACCOUNTS_INFO_FILEPATH + " (" + (System.currentTimeMillis() - time) + " ms)");
+		s_log.info("{} accounts information read from {} ({} ms)",
+				new Object[] {
+					accounts.size(),
+					ACCOUNTS_INFO_FILEPATH,
+					(System.currentTimeMillis() - time)
+				});
 
 		return true;
 	}

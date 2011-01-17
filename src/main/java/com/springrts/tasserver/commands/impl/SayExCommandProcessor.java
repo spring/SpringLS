@@ -27,8 +27,8 @@ import com.springrts.tasserver.commands.CommandProcessingException;
 import com.springrts.tasserver.commands.SupportedCommand;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Sent by any client when he is trying to say something in "/me" IRC style.
@@ -37,7 +37,7 @@ import org.apache.commons.logging.LogFactory;
 @SupportedCommand("SAYEX")
 public class SayExCommandProcessor extends AbstractCommandProcessor {
 
-	private static final Log s_log  = LogFactory.getLog(SayExCommandProcessor.class);
+	private static final Logger s_log  = LoggerFactory.getLogger(SayExCommandProcessor.class);
 
 	public SayExCommandProcessor() {
 		super(2, ARGS_MAX_NOCHECK, Account.Access.ADMIN);
@@ -76,10 +76,9 @@ public class SayExCommandProcessor extends AbstractCommandProcessor {
 		if ((message.length() > getContext().getServer().getMaxChatMessageLength())
 				&& client.getAccount().getAccess().isLessThen(Account.Access.ADMIN))
 		{
-			s_log.warn(new StringBuilder("Flooding detected from ")
-					.append(client.getIp()).append(" (")
-					.append(client.getAccount().getName())
-					.append(") [exceeded max. chat message size]").toString());
+			s_log.warn("Flooding detected from {} ({}) [exceeded max. chat message size]",
+					client.getIp(),
+					client.getAccount().getName());
 			client.sendLine(new StringBuilder("SERVERMSG Flooding detected - you have exceeded maximum allowed chat message size (")
 					.append(getContext().getServer().getMaxChatMessageLength()).append(" bytes). Your message has been ignored.").toString());
 			getContext().getClients().sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: Flooding has been detected from ")

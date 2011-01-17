@@ -34,8 +34,8 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Used to login to the lobby.
@@ -44,7 +44,7 @@ import org.apache.commons.logging.LogFactory;
 @SupportedCommand("LOGIN")
 public class LoginCommandProcessor extends AbstractCommandProcessor {
 
-	private static final Log s_log  = LogFactory.getLog(LoginCommandProcessor.class);
+	private static final Logger s_log  = LoggerFactory.getLogger(LoginCommandProcessor.class);
 
 	/**
 	 * For how long (in milli-seconds) to keep failed login attempts recorded.
@@ -242,7 +242,7 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 		client.getAccount().setLastUserId(userID);
 		final boolean mergeOk = getContext().getAccountsService().mergeAccountChanges(client.getAccount(), client.getAccount().getName());
 		if (!mergeOk) {
-			s_log.info("Failed saving login info to persistent storage for user: " + client.getAccount().getName());
+			s_log.info("Failed saving login info to persistent storage for user: {}", client.getAccount().getName());
 			return false;
 		}
 
@@ -259,9 +259,7 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 		getContext().getClients().notifyClientsOfNewClientOnServer(client);
 		getContext().getClients().notifyClientsOfNewClientStatus(client);
 
-		if (s_log.isDebugEnabled()) {
-			s_log.debug("User just logged in: " + client.getAccount().getName());
-		}
+		s_log.debug("User just logged in: {}", client.getAccount().getName());
 
 		return true;
 	}

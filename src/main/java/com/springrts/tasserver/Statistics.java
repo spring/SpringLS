@@ -5,9 +5,6 @@
 package com.springrts.tasserver;
 
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -19,6 +16,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Statistics file format:
@@ -38,7 +38,7 @@ import java.util.List;
  */
 public class Statistics implements ContextReceiver {
 
-	private final Log s_log  = LogFactory.getLog(Statistics.class);
+	private static final Logger s_log  = LoggerFactory.getLogger(Statistics.class);
 
 	/** in milliseconds */
 	private final long saveStatisticsInterval = 1000 * 60 * 20;
@@ -93,9 +93,9 @@ public class Statistics implements ContextReceiver {
 		if (!file.exists()) {
 			boolean success = (file.mkdir());
 			if (!success) {
-				s_log.error(new StringBuilder("Unable to create folder: ").append(STATISTICS_FOLDER).toString());
+				s_log.error("Unable to create folder: {}", STATISTICS_FOLDER);
 			} else {
-				s_log.info(new StringBuilder("Created missing folder: ").append(STATISTICS_FOLDER).toString());
+				s_log.info("Created missing folder: {}", STATISTICS_FOLDER);
 			}
 		}
 	}
@@ -117,7 +117,8 @@ public class Statistics implements ContextReceiver {
 			if (taken != -1) {
 				createAggregateFile(); // to simplify parsing
 				generatePloticusImages();
-				s_log.info("*** Statistics saved to disk. Time taken: " + taken + " ms.");
+				s_log.info("*** Statistics saved to disk. Time taken: {} ms.",
+						taken);
 			}
 		} catch (Exception ex) {
 			s_log.error("*** Failed saving statistics... Stack trace:", ex);
@@ -157,8 +158,8 @@ public class Statistics implements ContextReceiver {
 					.append(context.getAccountsService().getAccountsSize()).append(" ")
 					.append(context.getAccountsService().getActiveAccountsSize()).append(" ")
 					.append(topMods).append("\r\n").toString());
-		} catch (IOException e) {
-			s_log.error("Unable to access file <" + fname + ">. Skipping ...", e);
+		} catch (IOException ex) {
+			s_log.error("Unable to access file <" + fname + ">. Skipping ...", ex);
 			return -1;
 		} finally {
 			if (out != null) {
@@ -210,8 +211,8 @@ public class Statistics implements ContextReceiver {
 			}
 
 			out.close();
-		} catch (Exception e) {
-			s_log.error("Unable to access file <" + fname + ">. Skipping ...", e);
+		} catch (Exception ex) {
+			s_log.error("Unable to access file <" + fname + ">. Skipping ...", ex);
 			return false;
 		}
 
@@ -396,8 +397,8 @@ public class Statistics implements ContextReceiver {
 					}
 				}
 			}
-		} catch (Exception e) {
-			s_log.error("*** Error in getPopularModsList(). Skipping ...", e);
+		} catch (Exception ex) {
+			s_log.error("*** Error in getPopularModsList(). Skipping ...", ex);
 			return "0";
 		} finally {
 			if (in != null) {

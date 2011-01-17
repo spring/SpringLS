@@ -16,8 +16,8 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * ---- NOTES ----
@@ -40,7 +40,7 @@ import org.apache.commons.logging.LogFactory;
 })
 public class Account implements Serializable, Cloneable {
 
-	private static final Log s_log  = LogFactory.getLog(Account.class);
+	private static final Logger s_log  = LoggerFactory.getLogger(Account.class);
 
 	/**
 	 * Accounts with these names can not be registered,
@@ -380,7 +380,7 @@ public class Account implements Serializable, Cloneable {
 		try {
 			return (Account) super.clone();
 		} catch (CloneNotSupportedException ex) {
-			s_log.fatal("Failed cloning an Account", ex);
+			s_log.error("Failed cloning an Account", ex);
 			return null;
 		}
 	}

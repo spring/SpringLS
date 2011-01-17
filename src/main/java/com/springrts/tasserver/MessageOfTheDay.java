@@ -21,8 +21,8 @@ package com.springrts.tasserver;
 import java.io.File;
 import java.io.IOException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Stores and processes the "message of the day" (MOTD).
@@ -31,7 +31,7 @@ import org.apache.commons.logging.LogFactory;
  */
 public class MessageOfTheDay implements ContextReceiver {
 
-	private static final Log s_log  = LogFactory.getLog(TASServer.class);
+	private static final Logger s_log  = LoggerFactory.getLogger(MessageOfTheDay.class);
 
 	private static final String DEFAULT_TEXT = "Enjoy your stay :-)";
 	private static final String DEFAULT_FILENAME = "motd.txt";
@@ -71,9 +71,9 @@ public class MessageOfTheDay implements ContextReceiver {
 		try {
 			message = Misc.readTextFile(new File(fileName));
 			success = true;
-			s_log.info("Using MOTD from file '" + fileName + "'.");
+			s_log.info("Using MOTD from file '{}'.", fileName);
 		} catch (IOException ex) {
-			s_log.warn("Could not find or read from file '" + fileName + "'. Using default MOTD.");
+			s_log.warn("Could not find or read from file '{}'. Using default MOTD.", fileName);
 			s_log.debug("... reason:", ex);
 			success = false;
 		}

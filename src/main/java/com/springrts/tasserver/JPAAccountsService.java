@@ -12,8 +12,9 @@ import javax.persistence.NoResultException;
 import javax.persistence.Persistence;
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * JPA implementation of an accounts service.
@@ -24,7 +25,7 @@ import org.apache.commons.logging.LogFactory;
  */
 public class JPAAccountsService extends AbstractAccountsService implements AccountsService {
 
-	private static final Log s_log  = LogFactory.getLog(JPAAccountsService.class);
+	private static final Logger s_log  = LoggerFactory.getLogger(JPAAccountsService.class);
 
 	private EntityManagerFactory emf = null;
 

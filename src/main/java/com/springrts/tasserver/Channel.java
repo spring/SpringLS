@@ -11,19 +11,19 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Betalord
  */
 public class Channel implements ContextReceiver, LiveStateListener {
 
-	private static final Log s_log  = LogFactory.getLog(Channel.class);
+	private static final Logger s_log  = LoggerFactory.getLogger(Channel.class);
 
 	private static final String LOG_FILES_DIR  = "./";
 
@@ -105,7 +105,7 @@ public class Channel implements ContextReceiver, LiveStateListener {
 		topicAuthor = author;
 		topicChangedTime = System.currentTimeMillis();
 		if (s_log.isDebugEnabled()) {
-			s_log.debug("* Topic for #" + name + " changed to '" + topic + "' (set by <" + author + ">)");
+			s_log.debug("* Topic for #{} changed to '{}' (set by <{}>)", new Object[] {name, topic, author});
 		}
 		return true;
 	}
@@ -220,13 +220,13 @@ public class Channel implements ContextReceiver, LiveStateListener {
 					fileLog.print("Log started on ");
 					fileLog.println(new SimpleDateFormat("dd/MM/yy").format(new Date()));
 					logging = true;
-				} catch (Exception e) {
+				} catch (Exception ex) {
 					if (fileLog != null) {
 						fileLog.close();
 					}
 					fileLog = null;
 					s_log.error("Unable to open channel log file for channel "
-							+ name + ": " + logFile.getAbsolutePath(), e);
+							+ name + ": " + logFile.getAbsolutePath(), ex);
 					logFile = null;
 				}
 			} else {

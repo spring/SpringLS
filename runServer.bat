@@ -17,11 +17,10 @@ REM * stop server:
 REM   press [Ctrl]+[C]
 REM
 REM * configure logging:
-REM   > copy src\main\resources\log4j.properties conf
-REM   > edit conf\log4j.properties
-REM   For documentation about log4j configuration,
-REM   see the 'Configuration' section on this site:
-REM   http://logging.apache.org/log4j/1.2/manual.html
+REM   > copy src\main\resources\logback.xml conf
+REM   > edit conf\logback.xml
+REM   For documentation about logback configuration, see:
+REM   http://logback.qos.ch/manual/configuration.html
 REM
 REM * configure the DB:
 REM * > copy conf\META-INF\persistence.xml.template conf\META-INF\persistence.xml

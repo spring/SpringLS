@@ -28,8 +28,8 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author hoijui
@@ -37,7 +37,7 @@ import org.apache.commons.logging.LogFactory;
 @SupportedCommand("REDIRECT")
 public class RedirectCommandProcessor extends AbstractCommandProcessor {
 
-	private static final Log log  = LogFactory.getLog(RedirectCommandProcessor.class);
+	private static final Logger s_log  = LoggerFactory.getLogger(RedirectCommandProcessor.class);
 
 	public RedirectCommandProcessor() {
 		super(1, 1, Account.Access.ADMIN);
@@ -56,7 +56,7 @@ public class RedirectCommandProcessor extends AbstractCommandProcessor {
 		try {
 			getContext().getServer().setRedirectAddress(InetAddress.getByName(redirectIpStr));
 		} catch (UnknownHostException ex) {
-			log.debug("Invalid redirect IP supplied", ex);
+			s_log.debug("Invalid redirect IP supplied", ex);
 			return false;
 		}
 		getContext().getClients().sendToAllRegisteredUsers("BROADCAST Server has entered redirection mode");

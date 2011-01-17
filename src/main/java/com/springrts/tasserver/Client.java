@@ -5,9 +5,6 @@
 package com.springrts.tasserver;
 
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
@@ -21,6 +18,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * A Client instance can be seen as a session of a user, which has logged into
  * the Lobby using his <code>Account</code> info.
@@ -30,7 +30,7 @@ import java.util.Queue;
  */
 public class Client implements ContextReceiver {
 
-	private static final Log s_log  = LogFactory.getLog(Client.class);
+	private static final Logger s_log  = LoggerFactory.getLogger(Client.class);
 	/**
 	 * Indicates a message is not using an ID
 	 * (see protocol description on message/command IDs)
@@ -192,7 +192,8 @@ public class Client implements ContextReceiver {
 			if (newIP != null) {
 				ip = newIP;
 			} else {
-				s_log.warn("Could not resolve local IP address. User may have problems \n"
+				s_log.warn("Could not resolve local IP address."
+						+ " User may have problems \n"
 						+ "with hosting battles.");
 			}
 		}
@@ -287,11 +288,11 @@ public class Client implements ContextReceiver {
 		}
 
 		if (s_log.isDebugEnabled()) {
-			if (account.getAccess() != Account.Access.NONE) {
-				s_log.debug("[->" + account.getName() + "]" + " \"" + text + "\"");
-			} else {
-				s_log.debug("[->" + ip + "]" + " \"" + text + "\"");
-			}
+			s_log.debug("[->{}] \"{}\"",
+					((account.getAccess() != Account.Access.NONE)
+						? account.getName()
+						: ip),
+					text);
 		}
 
 		try {
@@ -300,7 +301,8 @@ public class Client implements ContextReceiver {
 			String data = text + Misc.EOL;
 
 			if ((sockChan == null) || (!sockChan.isConnected())) {
-				s_log.warn("SocketChannel is not ready to be written to. Killing the client next loop ...");
+				s_log.warn("SocketChannel is not ready to be written to."
+						+ " Killing the client next loop ...");
 				context.getClients().killClientDelayed(this, "Quit: undefined connection error");
 				return false;
 			}
@@ -308,8 +310,8 @@ public class Client implements ContextReceiver {
 			ByteBuffer buf;
 			try{
 				buf = context.getServer().getAsciiEncoder().encode(CharBuffer.wrap(data));
-			} catch (CharacterCodingException e) {
-				s_log.warn("Unable to encode message. Killing the client next loop ...", e);
+			} catch (CharacterCodingException ex) {
+				s_log.warn("Unable to encode message. Killing the client next loop ...", ex);
 				context.getClients().killClientDelayed(this, "Quit: undefined encoder error");
 				return false;
 			}
@@ -323,8 +325,8 @@ public class Client implements ContextReceiver {
 					context.getClients().enqueueDelayedData(this);
 				}
 			}
-		} catch (Exception e) {
-			s_log.error("Failed sending data (undefined). Killing the client next loop ...", e);
+		} catch (Exception ex) {
+			s_log.error("Failed sending data (undefined). Killing the client next loop ...", ex);
 			context.getClients().killClientDelayed(this, "Quit: undefined connection error");
 			return false;
 		}
@@ -348,8 +350,8 @@ public class Client implements ContextReceiver {
 
 		try {
 			sockChan.close();
-		} catch (Exception e) {
-			s_log.error("Failed disconnecting socket!");
+		} catch (Exception ex) {
+			s_log.error("Failed disconnecting socket!", ex);
 		}
 
 		sockChan = null;
@@ -360,10 +362,10 @@ public class Client implements ContextReceiver {
 	 * joins client to <chanName> channel. If channel with that name
 	 * does not exist, it is created. Method returns channel object as a result.
 	 * If client is already in the channel, it returns null as a result.
-	 * This method does not check for a correct key in case the channel is locked,
-	 * caller of this method should do that before calling it.
-	 * This method also doesn't do any notificating of other clients in the channel,
-	 * caller must do all that
+	 * This method does not check for a correct key in case the channel is
+	 * locked, caller of this method should do that before calling it.
+	 * This method also does not do any notifying of other clients in the
+	 * channel, the caller must do all that.
 	 */
 	public Channel joinChannel(String chanName) {
 
@@ -490,7 +492,8 @@ public class Client implements ContextReceiver {
 	public void beginFastWrite() {
 
 		if (fastWrite != null) {
-			s_log.fatal("Invalid use of beginFastWrite(). Check your code! Shutting down the server ...");
+			s_log.error("Invalid use of beginFastWrite()."
+					+ " Check your code! Shutting down the server ...");
 			context.getServerThread().closeServerAndExit();
 		}
 
@@ -500,7 +503,8 @@ public class Client implements ContextReceiver {
 	public void endFastWrite() {
 
 		if (fastWrite == null) {
-			s_log.fatal("Invalid use of endFastWrite(). Check your code! Shutting down the server ...");
+			s_log.error("Invalid use of endFastWrite()."
+					+ " Check your code! Shutting down the server ...");
 			context.getServerThread().closeServerAndExit();
 		}
 

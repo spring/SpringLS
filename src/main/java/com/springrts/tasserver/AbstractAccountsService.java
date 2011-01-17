@@ -5,8 +5,8 @@
 package com.springrts.tasserver;
 
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Betalord
@@ -14,7 +14,7 @@ import org.apache.commons.logging.LogFactory;
  */
 public abstract class AbstractAccountsService implements AccountsService {
 
-	private static final Log s_log  = LogFactory.getLog(AbstractAccountsService.class);
+	private static final Logger s_log  = LoggerFactory.getLogger(AbstractAccountsService.class);
 
 	private Context context;
 	private boolean started;

@@ -18,12 +18,12 @@
 package com.springrts.tasserver;
 
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class handles everything concerning starting this server as a normal
@@ -33,7 +33,7 @@ import java.io.IOException;
  */
 public class Main {
 
-	private static final Log s_log  = LogFactory.getLog(TASServer.class);
+	private static final Logger s_log  = LoggerFactory.getLogger(Main.class);
 
 	private Main() {}
 
@@ -92,10 +92,10 @@ public class Main {
 						while ((line = in.readLine()) != null) {
 							try {
 								processCommandLineArguments(context, line.split(" "));
-							} catch (Exception e) {
-								s_log.error(new StringBuilder("Error in reading ")
-										.append(args[i + 1]).append(" (invalid line)").toString(), e);
-								throw e;
+							} catch (Exception ex) {
+								s_log.error("Error in reading "+ (args[i + 1])
+										+ " (invalid line)", ex);
+								throw ex;
 							}
 						}
 					} finally {

@@ -2,6 +2,6 @@
 /accounts.txt
 /motd.txt
 /conf/META-INF/persistence.xml
-/conf/log4j.properties
+/conf/logback.xml
 /notifs
 /log

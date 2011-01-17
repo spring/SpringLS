@@ -127,8 +127,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Manages all the command processors for a server instance.
@@ -137,7 +138,7 @@ import org.apache.commons.logging.LogFactory;
  */
 public class CommandProcessors implements ContextReceiver {
 
-	private final Log log  = LogFactory.getLog(CommandProcessors.class);
+	private final Logger log  = LoggerFactory.getLogger(CommandProcessors.class);
 
 	private Map<String, CommandProcessor> cmdName_processor;
 	private Context context = null;
@@ -294,7 +295,7 @@ public class CommandProcessors implements ContextReceiver {
 		try {
 			load(commandProcessorClasses);
 		} catch (Exception ex) {
-			log.fatal("Failed to load Command Processors", ex);
+			log.error("Failed to load Command Processors", ex);
 			context.getServerThread().closeServerAndExit();
 		}
 	}

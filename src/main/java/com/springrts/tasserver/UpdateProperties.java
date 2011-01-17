@@ -21,8 +21,9 @@ package com.springrts.tasserver;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Stores a list of Spring versions and server responses to them.
@@ -42,7 +43,7 @@ public class UpdateProperties implements ContextReceiver {
 			+ "Please download the latest version of the software from official "
 			+ "Spring web site: http://spring.clan-sy.com"; // FIXME wrong URL
 
-	private static final Log s_log  = LogFactory.getLog(UpdateProperties.class);
+	private static final Logger s_log  = LoggerFactory.getLogger(UpdateProperties.class);
 
 	private Context context;
 

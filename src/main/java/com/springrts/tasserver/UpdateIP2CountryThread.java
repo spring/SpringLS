@@ -18,8 +18,9 @@ import java.util.List;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This thread will download IP2Country database (CSV) files from two different
@@ -41,7 +42,7 @@ import org.apache.commons.logging.LogFactory;
  */
 public class UpdateIP2CountryThread implements Runnable, ContextReceiver {
 
-	private final Log s_log  = LogFactory.getLog(UpdateIP2CountryThread.class);
+	private static final Logger s_log  = LoggerFactory.getLogger(UpdateIP2CountryThread.class);
 
 	/** true if updating is already in progress */
 	private AtomicBoolean inProgress;

@@ -6,8 +6,6 @@ package com.springrts.tasserver;
 
 
 import net.iharder.Base64;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -34,6 +32,9 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.Semaphore;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * @author Betalord
  */
@@ -41,7 +42,7 @@ public class Misc {
 
 	private Misc() {}
 
-	private static final Log s_log  = LogFactory.getLog(Misc.class);
+	private static final Logger s_log  = LoggerFactory.getLogger(Misc.class);
 
 	public static final String EOL = "\n";
 

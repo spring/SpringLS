@@ -20,8 +20,9 @@ package com.springrts.tasserver;
 
 import java.io.File;
 import java.io.IOException;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Agreement which is sent to user upon first login.
@@ -32,7 +33,7 @@ import org.apache.commons.logging.LogFactory;
  */
 public class Agreement implements ContextReceiver {
 
-	private static final Log s_log  = LogFactory.getLog(Agreement.class);
+	private static final Logger s_log  = LoggerFactory.getLogger(Agreement.class);
 
 	private Context context;
 
@@ -64,12 +65,12 @@ public class Agreement implements ContextReceiver {
 			if (newAgreement.length() > 2) {
 				content = newAgreement;
 				success = true;
-				s_log.info("Using agreement from file '" + DEFAULT_FILE_NAME + "'.");
+				s_log.info("Using agreement from file '{}'.", DEFAULT_FILE_NAME);
 			} else {
-				s_log.warn("Agreement in file '" + DEFAULT_FILE_NAME + "' is too short.");
+				s_log.warn("Agreement in file '{}' is too short.", DEFAULT_FILE_NAME);
 			}
 		} catch (IOException ex) {
-			s_log.warn("Could not find or read from file '" + DEFAULT_FILE_NAME + "'. Using no agreement.");
+			s_log.warn("Could not find or read from file '{}'. Using no agreement.", DEFAULT_FILE_NAME);
 			s_log.debug("... reason:", ex);
 		}
 
