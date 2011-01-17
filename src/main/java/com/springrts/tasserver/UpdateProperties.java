@@ -41,7 +41,7 @@ public class UpdateProperties implements ContextReceiver {
 	private static final String DEFAULT_RESPONSE =
 			"SERVERMSGBOX No update available. "
 			+ "Please download the latest version of the software from official "
-			+ "Spring web site: http://spring.clan-sy.com"; // FIXME wrong URL
+			+ "Spring web site: http://springrts.com";
 
 	private static final Logger LOG  = LoggerFactory.getLogger(UpdateProperties.class);
 
