@@ -140,7 +140,7 @@ public class CommandProcessors implements ContextReceiver {
 
 	private final Logger log  = LoggerFactory.getLogger(CommandProcessors.class);
 
-	private Map<String, CommandProcessor> cmdName_processor;
+	private Map<String, CommandProcessor> cmdNameToProcessor;
 	private Context context = null;
 
 
@@ -173,7 +173,7 @@ public class CommandProcessors implements ContextReceiver {
 
 
 	public CommandProcessors() {
-		cmdName_processor = new HashMap<String, CommandProcessor>();
+		cmdNameToProcessor = new HashMap<String, CommandProcessor>();
 	}
 
 
@@ -316,7 +316,7 @@ public class CommandProcessors implements ContextReceiver {
 
 		cp.receiveContext(context);
 
-		cmdName_processor.put(cmdName, cp);
+		cmdNameToProcessor.put(cmdName, cp);
 	}
 
 	/**
@@ -369,6 +369,6 @@ public class CommandProcessors implements ContextReceiver {
 	 *         or <code>null</code>, if no suitable one was found
 	 */
 	public CommandProcessor get(String commandName) {
-		return cmdName_processor.get(commandName);
+		return cmdNameToProcessor.get(commandName);
 	}
 }

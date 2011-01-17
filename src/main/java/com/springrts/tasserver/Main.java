@@ -35,6 +35,7 @@ public class Main {
 
 	private static final Logger LOG  = LoggerFactory.getLogger(Main.class);
 
+	/** Make clear that this is an utility class */
 	private Main() {}
 
 
@@ -42,7 +43,7 @@ public class Main {
 	 * Processes all command line arguments in 'args'.
 	 * Raises an exception in case of errors.
 	 */
-	public static void processCommandLineArguments(Context context, String[] args) throws IOException, Exception {
+	public static void processCommandLineArguments(Context context, String[] args) throws Exception {
 
 		// process command line arguments:
 		String s;
@@ -70,18 +71,19 @@ public class Main {
 				} else if (s.equals("LOGMAIN")) {
 					context.getChannels().setChannelsToLogRegex("^main$");
 				} else if (s.equals("LANADMIN")) {
-					String lanAdmin_username = args[i + 1];
-					String lanAdmin_password = Misc.encodePassword(args[i + 2]);
+					String lanAdminUsername = args[i + 1];
+					String lanAdminPassword = Misc.encodePassword(args[i + 2]);
 
-					String error;
-					if ((error = Account.isOldUsernameValid(lanAdmin_username)) != null) {
+					String error = Account.isOldUsernameValid(lanAdminUsername);
+					if (error != null) {
 						throw new IllegalArgumentException("LAN admin username is not valid: " + error);
 					}
-					if ((error = Account.isPasswordValid(lanAdmin_password)) != null) {
+					error = Account.isPasswordValid(lanAdminPassword);
+					if (error != null) {
 						throw new IllegalArgumentException("LAN admin password is not valid: " + error);
 					}
-					context.getServer().setLanAdminUsername(lanAdmin_username);
-					context.getServer().setLanAdminPassword(lanAdmin_password);
+					context.getServer().setLanAdminUsername(lanAdminUsername);
+					context.getServer().setLanAdminPassword(lanAdminPassword);
 
 					i += 2; // we must skip userName and password parameters in next iteration
 				} else if (s.equals("LOADARGS")) {

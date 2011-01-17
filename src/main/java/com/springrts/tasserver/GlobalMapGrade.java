@@ -8,12 +8,13 @@ package com.springrts.tasserver;
 /**
  * This class is currently unused.
  * @author Betalord
+ * @deprecated
  */
 public class GlobalMapGrade {
 
-	public String mapHash;
-	public float avGrade = 0;
-	public int noVotes = 0;
+	private String mapHash;
+	private float avGrade = 0;
+	private int noVotes = 0;
 
 	public GlobalMapGrade(String mapHash) {
 		this.mapHash = mapHash;

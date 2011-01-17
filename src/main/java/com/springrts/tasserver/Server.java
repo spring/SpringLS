@@ -6,8 +6,6 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CodingErrorAction;
-import java.nio.charset.IllegalCharsetNameException;
-import java.nio.charset.UnsupportedCharsetException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -111,9 +109,8 @@ public class Server implements ContextReceiver {
 	/**
 	 * Initializes the ASCII-Decoder and ASCII-Encoder.
 	 */
-	public boolean setCharset(String newCharset)
-			throws IllegalCharsetNameException, UnsupportedCharsetException
-	{
+	public boolean setCharset(String newCharset) {
+
 		CharsetDecoder dec;
 		CharsetEncoder enc;
 

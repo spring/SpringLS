@@ -5,16 +5,11 @@
 package com.springrts.tasserver;
 
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * @author Betalord
  * @author hoijui
  */
 public abstract class AbstractAccountsService implements AccountsService {
-
-	private static final Logger LOG  = LoggerFactory.getLogger(AbstractAccountsService.class);
 
 	private Context context;
 	private boolean started;

@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
-import java.net.MalformedURLException;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.URL;
@@ -40,6 +39,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Misc {
 
+	/** Make clear that this is an utility class */
 	private Misc() {}
 
 	private static final Logger LOG  = LoggerFactory.getLogger(Misc.class);
@@ -393,7 +393,8 @@ public class Misc {
 	 * <a href="http://schmidt.devlib.org/java/file-download.html#source">here
 	 * </a>
 	 */
-	public static long download(String address, String localFileName, int downloadLimit) throws MalformedURLException, IOException {
+	public static long download(String address, String localFileName, int downloadLimit) throws IOException {
+
 		long numWritten = 0;
 		OutputStream out = null;
 		URLConnection conn = null;
@@ -473,7 +474,7 @@ public class Misc {
 	/**
 	 * @see #download(String, String, int)
 	 */
-	public static long download(String address, String localFileName) throws MalformedURLException, IOException {
+	public static long download(String address, String localFileName) throws IOException {
 		return download(address, localFileName, 0);
 	}
 

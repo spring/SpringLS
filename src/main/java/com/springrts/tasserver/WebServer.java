@@ -47,11 +47,11 @@ class WebServer {
 			log.flush();
 		}
 	}
-	static PrintStream log = null;
+	private static PrintStream log = null;
 	/* our server's configuration information is stored
 	 * in these properties
 	 */
-	protected static Properties props = new Properties();
+	private static Properties props = new Properties();
 
 	/* Where worker threads stand idle */
 	protected static List<Worker> threads = Collections.synchronizedList(new LinkedList<Worker>());
@@ -160,11 +160,11 @@ class WebServer {
 
 class Worker extends WebServer implements Runnable {
 
-	final static int BUF_SIZE = 2048;
-	static final byte[] EOL = {(byte) '\r', (byte) '\n'};
+	private static final int BUF_SIZE = 2048;
+	private static final byte[] EOL = {(byte) '\r', (byte) '\n'};
 
 	/* buffer to use for requests */
-	byte[] buf;
+	private byte[] buf;
 	/* Socket to client we're handling */
 	private Socket s;
 
@@ -343,7 +343,7 @@ class Worker extends WebServer implements Runnable {
 				int ind = name.lastIndexOf('.');
 				String ct = null;
 				if (ind > 0) {
-					ct = ext_type.get(name.substring(ind));
+					ct = extToType.get(name.substring(ind));
 				}
 				if (ct == null) {
 					ct = "unknown/unknown";
@@ -386,7 +386,7 @@ class Worker extends WebServer implements Runnable {
 	}
 
 	/** mapping of file extensions to content-types */
-	private static Map<String, String> ext_type = new HashMap<String, String>();
+	private static Map<String, String> extToType = new HashMap<String, String>();
 
 
 	static {
@@ -394,7 +394,7 @@ class Worker extends WebServer implements Runnable {
 	}
 
 	static void setSuffix(String k, String v) {
-		ext_type.put(k, v);
+		extToType.put(k, v);
 	}
 
 	static void fillMap() {
