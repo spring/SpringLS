@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
 @SupportedCommand("SAYEX")
 public class SayExCommandProcessor extends AbstractCommandProcessor {
 
-	private static final Logger s_log  = LoggerFactory.getLogger(SayExCommandProcessor.class);
+	private static final Logger LOG  = LoggerFactory.getLogger(SayExCommandProcessor.class);
 
 	public SayExCommandProcessor() {
 		super(2, ARGS_MAX_NOCHECK, Account.Access.ADMIN);
@@ -76,7 +76,7 @@ public class SayExCommandProcessor extends AbstractCommandProcessor {
 		if ((message.length() > getContext().getServer().getMaxChatMessageLength())
 				&& client.getAccount().getAccess().isLessThen(Account.Access.ADMIN))
 		{
-			s_log.warn("Flooding detected from {} ({}) [exceeded max. chat message size]",
+			LOG.warn("Flooding detected from {} ({}) [exceeded max. chat message size]",
 					client.getIp(),
 					client.getAccount().getName());
 			client.sendLine(new StringBuilder("SERVERMSG Flooding detected - you have exceeded maximum allowed chat message size (")

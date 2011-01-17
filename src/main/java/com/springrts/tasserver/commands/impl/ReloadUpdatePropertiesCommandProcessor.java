@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
 @SupportedCommand("RELOADUPDATEPROPERTIES")
 public class ReloadUpdatePropertiesCommandProcessor extends AbstractCommandProcessor {
 
-	private static final Logger s_log  = LoggerFactory.getLogger(ReloadUpdatePropertiesCommandProcessor.class);
+	private static final Logger LOG  = LoggerFactory.getLogger(ReloadUpdatePropertiesCommandProcessor.class);
 
 	public ReloadUpdatePropertiesCommandProcessor() {
 		super(Account.Access.ADMIN);
@@ -54,7 +54,7 @@ public class ReloadUpdatePropertiesCommandProcessor extends AbstractCommandProce
 		}
 
 		if (getContext().getUpdateProperties().read(UpdateProperties.DEFAULT_FILENAME)) {
-			s_log.info("\"Update properties\" read from {}", UpdateProperties.DEFAULT_FILENAME);
+			LOG.info("\"Update properties\" read from {}", UpdateProperties.DEFAULT_FILENAME);
 			client.sendLine("SERVERMSG \"Update properties\" have been successfully loaded from " + UpdateProperties.DEFAULT_FILENAME);
 		} else {
 			client.sendLine(new StringBuilder("SERVERMSG Unable to load \"Update properties\" from ")

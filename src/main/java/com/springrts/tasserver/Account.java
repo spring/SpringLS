@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
 })
 public class Account implements Serializable, Cloneable {
 
-	private static final Logger s_log  = LoggerFactory.getLogger(Account.class);
+	private static final Logger LOG  = LoggerFactory.getLogger(Account.class);
 
 	/**
 	 * Accounts with these names can not be registered,
@@ -380,7 +380,7 @@ public class Account implements Serializable, Cloneable {
 		try {
 			return (Account) super.clone();
 		} catch (CloneNotSupportedException ex) {
-			s_log.error("Failed cloning an Account", ex);
+			LOG.error("Failed cloning an Account", ex);
 			return null;
 		}
 	}

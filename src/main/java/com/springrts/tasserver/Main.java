@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Main {
 
-	private static final Logger s_log  = LoggerFactory.getLogger(Main.class);
+	private static final Logger LOG  = LoggerFactory.getLogger(Main.class);
 
 	private Main() {}
 
@@ -93,7 +93,7 @@ public class Main {
 							try {
 								processCommandLineArguments(context, line.split(" "));
 							} catch (Exception ex) {
-								s_log.error("Error in reading "+ (args[i + 1])
+								LOG.error("Error in reading "+ (args[i + 1])
 										+ " (invalid line)", ex);
 								throw ex;
 							}
@@ -111,11 +111,11 @@ public class Main {
 				} else if (s.equals("USERDB")) {
 					context.getServer().setUseUserDB(true);
 				} else {
-					s_log.error("Invalid commandline argument");
+					LOG.error("Invalid commandline argument");
 					throw new IOException();
 				}
 			} else {
-				s_log.error("Commandline argument does not start with a hyphen");
+				LOG.error("Commandline argument does not start with a hyphen");
 				throw new IOException();
 			}
 		}
@@ -181,7 +181,7 @@ public class Main {
 		try {
 			processCommandLineArguments(context, args);
 		} catch (Exception ex) {
-			s_log.warn("Bad command line arguments", ex);
+			LOG.warn("Bad command line arguments", ex);
 			System.out.println("Bad command line arguments.");
 			System.out.println("");
 			printCommandLineArgumentsHelp();

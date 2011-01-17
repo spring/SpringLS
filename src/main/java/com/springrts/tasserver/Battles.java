@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Battles implements ContextReceiver {
 
-	private static final Logger s_log  = LoggerFactory.getLogger(Battle.class);
+	private static final Logger LOG  = LoggerFactory.getLogger(Battle.class);
 
 	private List<Battle> battles;
 	private Context context = null;
@@ -39,7 +39,7 @@ public class Battles implements ContextReceiver {
 	public void verify(Battle battle) {
 
 		if (battle == null) {
-			s_log.error("Invalid battle ID. Server will now exit!");
+			LOG.error("Invalid battle ID. Server will now exit!");
 			context.getServerThread().closeServerAndExit();
 		}
 	}

@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Battle implements ContextReceiver {
 
-	private static final Logger s_log  = LoggerFactory.getLogger(Battle.class);
+	private static final Logger LOG  = LoggerFactory.getLogger(Battle.class);
 
 	/** the id that the next battle will have */
 	private static int nextId;
@@ -393,7 +393,7 @@ public class Battle implements ContextReceiver {
 		try {
 			bot = bots.get(index);
 		} catch (IndexOutOfBoundsException ex) {
-			s_log.error("Failed fetching a bot by index", ex);
+			LOG.error("Failed fetching a bot by index", ex);
 			bot = null;
 		}
 

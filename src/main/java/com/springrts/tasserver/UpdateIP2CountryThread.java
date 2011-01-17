@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
  */
 public class UpdateIP2CountryThread implements Runnable, ContextReceiver {
 
-	private static final Logger s_log  = LoggerFactory.getLogger(UpdateIP2CountryThread.class);
+	private static final Logger LOG  = LoggerFactory.getLogger(UpdateIP2CountryThread.class);
 
 	/** true if updating is already in progress */
 	private AtomicBoolean inProgress;
@@ -194,7 +194,7 @@ public class UpdateIP2CountryThread implements Runnable, ContextReceiver {
 			sn.addLine(countries.size() + " countries mentioned in merged IP2Country database");
 			context.getServerNotifications().addNotification(sn);
 
-			s_log.info("IP2Country has just been successfully updated.");
+			LOG.info("IP2Country has just been successfully updated.");
 		} catch (Exception e) {
 			ServerNotification sn = new ServerNotification("Unable to update IP2Country database");
 			sn.addLine("Attempt to update from online IP2Country database failed. Stack trace: ");
@@ -210,7 +210,7 @@ public class UpdateIP2CountryThread implements Runnable, ContextReceiver {
 				try {
 					combinedDataFileOut.close();
 				} catch (IOException ex) {
-					s_log.warn("Failed to delete temporary IP2Country data file " + combinedData.getAbsolutePath(), ex);
+					LOG.warn("Failed to delete temporary IP2Country data file " + combinedData.getAbsolutePath(), ex);
 				}
 			}
 			if ((combinedData != null) && combinedData.exists()) {

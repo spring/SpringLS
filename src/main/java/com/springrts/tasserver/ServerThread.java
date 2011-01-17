@@ -50,7 +50,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ServerThread implements ContextReceiver, LiveStateListener, Updateable {
 
-	private static final Logger s_log  = LoggerFactory.getLogger(ServerThread.class);
+	private static final Logger LOG  = LoggerFactory.getLogger(ServerThread.class);
 
 	private static class DeprecatedCommand {
 
@@ -161,7 +161,7 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 			// regardless of whether there is a connection available
 			while ((clientChannel = sSockChan.accept()) != null) {
 				if (getContext().getServer().isRedirectActive()) {
-					s_log.debug("Client redirected to {}: {}",
+					LOG.debug("Client redirected to {}: {}",
 							getContext().getServer().getRedirectAddress().getHostAddress(),
 							clientChannel.socket().getInetAddress().getHostAddress());
 					redirectAndKill(clientChannel.socket());
@@ -177,10 +177,10 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 				// has been successfully connected
 				client.sendWelcomeMessage();
 
-				s_log.debug("New client connected: {}", client.getIp());
+				LOG.debug("New client connected: {}", client.getIp());
 			}
 		} catch (Exception ex) {
-			s_log.error("Exception in acceptNewConnections(): " + ex.getMessage(), ex);
+			LOG.error("Exception in acceptNewConnections(): " + ex.getMessage(), ex);
 		}
 	}
 
@@ -227,7 +227,7 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 
 				// basic anti-flood protection:
 				if (getContext().getFloodProtection().isFlooding(client)) {
-					s_log.warn("Flooding detected from {} ({})",
+					LOG.warn("Flooding detected from {} ({})",
 							client.getIp(),
 							client.getAccount().getName());
 					getContext().getClients().sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: Flooding has been detected from ")
@@ -248,7 +248,7 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 
 				// check for end-of-stream
 				if (nbytes == -1) {
-					s_log.debug("Socket disconnected - killing client");
+					LOG.debug("Socket disconnected - killing client");
 					channel.close();
 					getContext().getClients().killClient(client); // will also close the socket channel
 				} else {
@@ -291,7 +291,7 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 				}
 			}
 		} catch (IOException ioex) {
-			s_log.info("exception during select(): possibly due to force disconnect. Killing the client ...");
+			LOG.info("exception during select(): possibly due to force disconnect. Killing the client ...");
 			try {
 				if (client != null) {
 					getContext().getClients().killClient(client, "Quit: connection lost");
@@ -299,9 +299,9 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 			} catch (Exception ex) {
 				// do nothing
 			}
-			s_log.debug("... the exception was:", ioex);
+			LOG.debug("... the exception was:", ioex);
 		} catch (Exception ex) {
-			s_log.info("exception in readIncomingMessages(): killing the client ... ", ex);
+			LOG.info("exception in readIncomingMessages(): killing the client ... ", ex);
 			try {
 				if (client != null) {
 					getContext().getClients().killClient(client, "Quit: connection lost");
@@ -309,7 +309,7 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 			} catch (Exception ex2) {
 				// do nothing
 			}
-			s_log.debug("... the exception was:", ex);
+			LOG.debug("... the exception was:", ex);
 		}
 	}
 
@@ -324,8 +324,8 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 			return false;
 		}
 
-		if (s_log.isDebugEnabled()) {
-			s_log.debug("[<-{}] \"{}\"",
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("[<-{}] \"{}\"",
 					(client.getAccount().getAccess() != Account.Access.NONE)
 						? client.getAccount().getName()
 						: client.getIp(),
@@ -365,7 +365,7 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 						return false;
 					}
 				} catch (CommandProcessingException ex) {
-					s_log.debug(cp.getClass().getCanonicalName()
+					LOG.debug(cp.getClass().getCanonicalName()
 							+ " failed to handle command from client: \""
 							+ Misc.makeSentence(commands) + "\"", ex);
 					return false;
@@ -435,7 +435,7 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 		sn.addLine("Server has just been stopped gracefully. See server log for more info.");
 		getContext().getServerNotifications().addNotification(sn);
 
-		s_log.info("Server closed gracefully!");
+		LOG.info("Server closed gracefully!");
 
 		getContext().stopped();
 	}
@@ -462,11 +462,11 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 			readSelector = Selector.open();
 
 		} catch (IOException ex) {
-			s_log.error("Could not listen on port: " + port, ex);
+			LOG.error("Could not listen on port: " + port, ex);
 			return false;
 		}
 
-		s_log.info("Listening for connections on TCP port {} ...", port);
+		LOG.info("Listening for connections on TCP port {} ...", port);
 
 		context.started();
 
@@ -496,7 +496,7 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 		getContext().getServerNotifications().addNotification(sn);
 
 		//getContext().stopped();
-		s_log.warn("Server stopped forcefully");
+		LOG.warn("Server stopped forcefully");
 
 		System.exit(0);
 	}
@@ -504,7 +504,7 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 
 	@Override
 	public void starting() {
-		s_log.info("starting...");
+		LOG.info("starting...");
 	}
 	@Override
 	public void started() {
@@ -513,7 +513,7 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 		// we always create a new one.
 		DateFormat dateTimeFormat = new SimpleDateFormat("yyyy.MM.dd 'at' hh:mm:ss z");
 
-		s_log.info("{} {} started on {}",
+		LOG.info("{} {} started on {}",
 				new Object[] {
 					Server.getApplicationName(),
 					Misc.getAppVersion(),
@@ -544,7 +544,7 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 			if (accountsService.getAccountsSize() == 0) {
 				String username = "admin";
 				String password = "admin";
-				s_log.info("As there are no accounts yet, we are creating an"
+				LOG.info("As there are no accounts yet, we are creating an"
 						+ " admin account: username=\"{}\", password=\"{}\"",
 						username, password);
 				Account admin = createAdmin(username, password);
@@ -570,7 +570,7 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 
 	@Override
 	public void stopping() {
-		s_log.info("Server stopping ...");
+		LOG.info("Server stopping ...");
 	}
 	@Override
 	public void stopped() {
@@ -580,6 +580,6 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 		DateFormat dateTimeFormat = new SimpleDateFormat("yyyy.MM.dd 'at' hh:mm:ss z");
 
 		running = false;
-		s_log.info("Server stopped on {}", dateTimeFormat.format(new Date()));
+		LOG.info("Server stopped on {}", dateTimeFormat.format(new Date()));
 	}
 }

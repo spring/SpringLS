@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
  */
 public class NatHelpServer implements Runnable, ContextReceiver, LiveStateListener, Updateable {
 
-	private static final Logger s_log  = LoggerFactory.getLogger(NatHelpServer.class);
+	private static final Logger LOG  = LoggerFactory.getLogger(NatHelpServer.class);
 	private static final int RECEIVE_BUFFER_SIZE = 256;
 
 	/**
@@ -76,7 +76,7 @@ public class NatHelpServer implements Runnable, ContextReceiver, LiveStateListen
 			InetAddress address = packet.getAddress();
 			int p = packet.getPort();
 			String data = new String(packet.getData(), packet.getOffset(), packet.getLength());
-			s_log.debug("*** UDP packet received from {} from port {}",
+			LOG.debug("*** UDP packet received from {} from port {}",
 					address.getHostAddress(), p);
 			Client client = getContext().getClients().getClient(data);
 			if (client == null) {
@@ -125,11 +125,11 @@ public class NatHelpServer implements Runnable, ContextReceiver, LiveStateListen
 		try {
 			socket = new DatagramSocket(port);
 		} catch (Exception ex) {
-			s_log.warn("Unable to start UDP server on port " + port + ". Ignoring ...", ex);
+			LOG.warn("Unable to start UDP server on port " + port + ". Ignoring ...", ex);
 			return;
 		}
 
-		s_log.info("Listening for connections on UDP port {} ...", port);
+		LOG.info("Listening for connections on UDP port {} ...", port);
 
 		byte[] buffer = new byte[RECEIVE_BUFFER_SIZE];
 		while (true) {
@@ -148,13 +148,13 @@ public class NatHelpServer implements Runnable, ContextReceiver, LiveStateListen
 				if (ex.getMessage().equalsIgnoreCase("socket closed")) {
 					// server stopped gracefully!
 				} else {
-					s_log.error("Error in UDP server", ex);
+					LOG.error("Error in UDP server", ex);
 				}
 			}
 		}
 
 		socket.close();
-		s_log.info("UDP NAT server closed.");
+		LOG.info("UDP NAT server closed.");
 	}
 
 	public void startServer() {
@@ -163,7 +163,7 @@ public class NatHelpServer implements Runnable, ContextReceiver, LiveStateListen
 			myThread = new Thread(this);
 			myThread.start();
 		} else {
-			s_log.warn("NAT help server is already running");
+			LOG.warn("NAT help server is already running");
 		}
 	}
 
@@ -174,7 +174,7 @@ public class NatHelpServer implements Runnable, ContextReceiver, LiveStateListen
 	public void stopServer() {
 
 		if (myThread == null) {
-			s_log.warn("NAT help server is not running");
+			LOG.warn("NAT help server is not running");
 			return;
 		}
 
@@ -188,7 +188,7 @@ public class NatHelpServer implements Runnable, ContextReceiver, LiveStateListen
 			myThread.join(1000);
 			myThread = null;
 		} catch (InterruptedException ex) {
-			s_log.error("NAT help server interrupted while shutting down", ex);
+			LOG.error("NAT help server interrupted while shutting down", ex);
 		}
 		socket.close();
 	}

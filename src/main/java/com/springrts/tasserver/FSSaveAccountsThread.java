@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
  */
 public class FSSaveAccountsThread extends Thread implements ContextReceiver {
 
-	private static final Logger s_log  = LoggerFactory.getLogger(FSSaveAccountsThread.class);
+	private static final Logger LOG  = LoggerFactory.getLogger(FSSaveAccountsThread.class);
 
 	private Context context = null;
 
@@ -63,7 +63,7 @@ public class FSSaveAccountsThread extends Thread implements ContextReceiver {
 	@Override
 	public void run() {
 
-		s_log.info("Dumping accounts to disk in a separate thread ...");
+		LOG.info("Dumping accounts to disk in a separate thread ...");
 		long time = System.currentTimeMillis();
 
 		try {
@@ -75,7 +75,7 @@ public class FSSaveAccountsThread extends Thread implements ContextReceiver {
 
 			out.close();
 		} catch (IOException ex) {
-			s_log.error("Failed writing accounts info to " + saveFile.getAbsolutePath() + "!", ex);
+			LOG.error("Failed writing accounts info to " + saveFile.getAbsolutePath() + "!", ex);
 
 			// add server notification:
 			ServerNotification sn = new ServerNotification("Error saving accounts");
@@ -85,7 +85,7 @@ public class FSSaveAccountsThread extends Thread implements ContextReceiver {
 			return;
 		}
 
-		s_log.info("{} accounts information written to {} successfully ({} ms).",
+		LOG.info("{} accounts information written to {} successfully ({} ms).",
 				new Object[] {
 					dupAccounts.size(),
 					saveFile.getAbsolutePath(),

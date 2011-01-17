@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
  */
 public class IP2Country {
 
-	private static final Logger s_log  = LoggerFactory.getLogger(IP2Country.class);
+	private static final Logger LOG  = LoggerFactory.getLogger(IP2Country.class);
 
 	private TreeSet<String> countries = new TreeSet<String>();
 	private TreeMap<IPRange, IPRange> resolveTable = new TreeMap<IPRange, IPRange>();
@@ -63,10 +63,10 @@ public class IP2Country {
 
 		try {
 			buildDatabase(dataFile, resolveTable, countries);
-			s_log.info("Using IP2Country info from file '{}'.", dataFile.getAbsolutePath());
+			LOG.info("Using IP2Country info from file '{}'.", dataFile.getAbsolutePath());
 		} catch (IOException ex) {
-			s_log.warn("Could not find or read from file '{}'. Not using any IP2Country info.", dataFile.getAbsolutePath());
-			s_log.debug("... reason:", ex);
+			LOG.warn("Could not find or read from file '{}'. Not using any IP2Country info.", dataFile.getAbsolutePath());
+			LOG.debug("... reason:", ex);
 			return false;
 		}
 

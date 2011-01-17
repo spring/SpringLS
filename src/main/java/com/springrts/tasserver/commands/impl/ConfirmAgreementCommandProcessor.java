@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
 @SupportedCommand("CONFIRMAGREEMENT")
 public class ConfirmAgreementCommandProcessor extends AbstractCommandProcessor {
 
-	private static final Logger s_log  = LoggerFactory.getLogger(ConfirmAgreementCommandProcessor.class);
+	private static final Logger LOG  = LoggerFactory.getLogger(ConfirmAgreementCommandProcessor.class);
 
 	public ConfirmAgreementCommandProcessor() {
 		super();
@@ -55,7 +55,7 @@ public class ConfirmAgreementCommandProcessor extends AbstractCommandProcessor {
 		client.getAccount().setAgreementAccepted(true);
 		final boolean mergeOk = getContext().getAccountsService().mergeAccountChanges(client.getAccount(), client.getAccount().getName());
 		if (!mergeOk) {
-			s_log.debug("Failed saving 'agreement accepted' state to persistent storage for user: {}",
+			LOG.debug("Failed saving 'agreement accepted' state to persistent storage for user: {}",
 					client.getAccount().getName());
 			return false;
 		}

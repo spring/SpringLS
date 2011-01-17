@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Client implements ContextReceiver {
 
-	private static final Logger s_log  = LoggerFactory.getLogger(Client.class);
+	private static final Logger LOG  = LoggerFactory.getLogger(Client.class);
 	/**
 	 * Indicates a message is not using an ID
 	 * (see protocol description on message/command IDs)
@@ -192,7 +192,7 @@ public class Client implements ContextReceiver {
 			if (newIP != null) {
 				ip = newIP;
 			} else {
-				s_log.warn("Could not resolve local IP address."
+				LOG.warn("Could not resolve local IP address."
 						+ " User may have problems \n"
 						+ "with hosting battles.");
 			}
@@ -287,8 +287,8 @@ public class Client implements ContextReceiver {
 			return true;
 		}
 
-		if (s_log.isDebugEnabled()) {
-			s_log.debug("[->{}] \"{}\"",
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("[->{}] \"{}\"",
 					((account.getAccess() != Account.Access.NONE)
 						? account.getName()
 						: ip),
@@ -301,7 +301,7 @@ public class Client implements ContextReceiver {
 			String data = text + Misc.EOL;
 
 			if ((sockChan == null) || (!sockChan.isConnected())) {
-				s_log.warn("SocketChannel is not ready to be written to."
+				LOG.warn("SocketChannel is not ready to be written to."
 						+ " Killing the client next loop ...");
 				context.getClients().killClientDelayed(this, "Quit: undefined connection error");
 				return false;
@@ -311,7 +311,7 @@ public class Client implements ContextReceiver {
 			try{
 				buf = context.getServer().getAsciiEncoder().encode(CharBuffer.wrap(data));
 			} catch (CharacterCodingException ex) {
-				s_log.warn("Unable to encode message. Killing the client next loop ...", ex);
+				LOG.warn("Unable to encode message. Killing the client next loop ...", ex);
 				context.getClients().killClientDelayed(this, "Quit: undefined encoder error");
 				return false;
 			}
@@ -326,7 +326,7 @@ public class Client implements ContextReceiver {
 				}
 			}
 		} catch (Exception ex) {
-			s_log.error("Failed sending data (undefined). Killing the client next loop ...", ex);
+			LOG.error("Failed sending data (undefined). Killing the client next loop ...", ex);
 			context.getClients().killClientDelayed(this, "Quit: undefined connection error");
 			return false;
 		}
@@ -344,14 +344,14 @@ public class Client implements ContextReceiver {
 	/** Should only be called by Clients.killClient() method! */
 	public void disconnect() {
 		if (!alive) {
-			s_log.error("PROBLEM DETECTED: disconnecting dead client. Skipping ...");
+			LOG.error("PROBLEM DETECTED: disconnecting dead client. Skipping ...");
 			return;
 		}
 
 		try {
 			sockChan.close();
 		} catch (Exception ex) {
-			s_log.error("Failed disconnecting socket!", ex);
+			LOG.error("Failed disconnecting socket!", ex);
 		}
 
 		sockChan = null;
@@ -492,7 +492,7 @@ public class Client implements ContextReceiver {
 	public void beginFastWrite() {
 
 		if (fastWrite != null) {
-			s_log.error("Invalid use of beginFastWrite()."
+			LOG.error("Invalid use of beginFastWrite()."
 					+ " Check your code! Shutting down the server ...");
 			context.getServerThread().closeServerAndExit();
 		}
@@ -503,7 +503,7 @@ public class Client implements ContextReceiver {
 	public void endFastWrite() {
 
 		if (fastWrite == null) {
-			s_log.error("Invalid use of endFastWrite()."
+			LOG.error("Invalid use of endFastWrite()."
 					+ " Check your code! Shutting down the server ...");
 			context.getServerThread().closeServerAndExit();
 		}

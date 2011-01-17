@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Server implements ContextReceiver {
 
-	private static final Logger s_log  = LoggerFactory.getLogger(Server.class);
+	private static final Logger LOG  = LoggerFactory.getLogger(Server.class);
 
 
 	private Context context = null;

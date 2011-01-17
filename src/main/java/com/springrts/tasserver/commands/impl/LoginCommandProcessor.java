@@ -44,7 +44,7 @@ import org.slf4j.LoggerFactory;
 @SupportedCommand("LOGIN")
 public class LoginCommandProcessor extends AbstractCommandProcessor {
 
-	private static final Logger s_log  = LoggerFactory.getLogger(LoginCommandProcessor.class);
+	private static final Logger LOG  = LoggerFactory.getLogger(LoginCommandProcessor.class);
 
 	/**
 	 * For how long (in milli-seconds) to keep failed login attempts recorded.
@@ -187,7 +187,7 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 		client.getAccount().setLastUserId(userId);
 		final boolean mergeOk = getContext().getAccountsService().mergeAccountChanges(client.getAccount(), client.getAccount().getName());
 		if (!mergeOk) {
-			s_log.info("Failed saving login info to persistent storage for user: {}", client.getAccount().getName());
+			LOG.info("Failed saving login info to persistent storage for user: {}", client.getAccount().getName());
 			return false;
 		}
 
@@ -204,7 +204,7 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 		getContext().getClients().notifyClientsOfNewClientOnServer(client);
 		getContext().getClients().notifyClientsOfNewClientStatus(client);
 
-		s_log.debug("User just logged in: {}", client.getAccount().getName());
+		LOG.debug("User just logged in: {}", client.getAccount().getName());
 
 		return true;
 	}

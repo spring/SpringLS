@@ -42,7 +42,7 @@ public class Misc {
 
 	private Misc() {}
 
-	private static final Logger s_log  = LoggerFactory.getLogger(Misc.class);
+	private static final Logger LOG  = LoggerFactory.getLogger(Misc.class);
 
 	public static final String EOL = "\n";
 
@@ -316,7 +316,7 @@ public class Misc {
 		try {
 			md5Digest = getMD5(plainPassword);
 		} catch (NoSuchAlgorithmException ex) {
-			s_log.error("Failed to encode password", ex);
+			LOG.error("Failed to encode password", ex);
 		}
 		encodedPassword = Base64.encodeBytes(md5Digest);
 
@@ -600,13 +600,13 @@ public class Misc {
 			tmpProps.load(propFileIn);
 			mavenProps = tmpProps;
 		} catch (Exception ex) {
-			s_log.warn("Failed reading the Maven properties file", ex);
+			LOG.warn("Failed reading the Maven properties file", ex);
 		} finally {
 			if (propFileIn != null) {
 				try {
 					propFileIn.close();
 				} catch (IOException ioex) {
-					s_log.warn("Failed closing stream to Maven properties file", ioex);
+					LOG.warn("Failed closing stream to Maven properties file", ioex);
 				}
 			}
 		}
@@ -652,7 +652,7 @@ public class Misc {
 		}
 
 		if (appVersion == null) {
-			s_log.warn("Failed getting the Applications version from the Maven properties file");
+			LOG.warn("Failed getting the Applications version from the Maven properties file");
 		}
 
 		return appVersion;

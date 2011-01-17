@@ -19,7 +19,7 @@ public class TASServer {
 	 */
 	//boolean logMainChannel = false;
 	//private List<String> whiteList = new LinkedList<String>();
-	private static final Logger s_log  = LoggerFactory.getLogger(TASServer.class);
+	private static final Logger LOG  = LoggerFactory.getLogger(TASServer.class);
 
 	public TASServer(Context context) {
 
@@ -35,7 +35,7 @@ public class TASServer {
 		if (!context.getServer().isLanMode()
 				&& !context.getAccountsService().isReadyToOperate())
 		{
-			s_log.warn("Accounts service not ready, switching to \"LAN mode\" ...");
+			LOG.warn("Accounts service not ready, switching to \"LAN mode\" ...");
 			context.getServer().setLanMode(true);
 		}
 
@@ -44,20 +44,20 @@ public class TASServer {
 			context.getBanService();
 			context.getAgreement().read();
 		} else {
-			s_log.info("LAN mode enabled");
+			LOG.info("LAN mode enabled");
 		}
 
 		context.getMessageOfTheDay().read();
 		context.getServer().setStartTime(System.currentTimeMillis());
 
 		if (context.getUpdateProperties().read(UpdateProperties.DEFAULT_FILENAME)) {
-			s_log.info("\"Update properties\" read from {}", UpdateProperties.DEFAULT_FILENAME);
+			LOG.info("\"Update properties\" read from {}", UpdateProperties.DEFAULT_FILENAME);
 		}
 
 		long tempTime = System.currentTimeMillis();
 		if (IP2Country.getInstance().initializeAll()) {
 			tempTime = System.currentTimeMillis() - tempTime;
-			s_log.info("<IP2Country> loaded in {} ms.", tempTime);
+			LOG.info("<IP2Country> loaded in {} ms.", tempTime);
 		}
 
 		// start "help UDP" server:
@@ -93,7 +93,7 @@ public class TASServer {
 				banService = new JPABanService();
 			} catch (Exception pex) {
 				banService = new DummyBanService();
-				s_log.warn("Failed to access database for ban entries, bans are not supported!", pex);
+				LOG.warn("Failed to access database for ban entries, bans are not supported!", pex);
 			}
 		} else {
 			banService = new DummyBanService();

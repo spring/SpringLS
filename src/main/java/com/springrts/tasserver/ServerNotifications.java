@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ServerNotifications implements ContextReceiver {
 
-	private static final Logger s_log  = LoggerFactory.getLogger(ServerNotifications.class);
+	private static final Logger LOG  = LoggerFactory.getLogger(ServerNotifications.class);
 	/**
 	 * This will also get saved with notifications, just in case the format
 	 * of notification files changes in the future.
@@ -51,9 +51,9 @@ public class ServerNotifications implements ContextReceiver {
 			if (!notificationsDir.exists()) {
 				boolean success = notificationsDir.mkdir();
 				if (!success) {
-					s_log.error("Unable to create folder: {}", notificationsDir);
+					LOG.error("Unable to create folder: {}", notificationsDir);
 				} else {
-					s_log.info("Created missing folder: {}", notificationsDir);
+					LOG.info("Created missing folder: {}", notificationsDir);
 				}
 			}
 		}
@@ -77,7 +77,7 @@ public class ServerNotifications implements ContextReceiver {
 				throw new IOException("File already exists");
 			}
 		} catch (IOException ex) {
-			s_log.error("Failed creating notification-file: " + tmpFile, ex);
+			LOG.error("Failed creating notification-file: " + tmpFile, ex);
 		}
 
 		return notifFile;
@@ -101,7 +101,7 @@ public class ServerNotifications implements ContextReceiver {
 		File notifFile = findWriteableNotifFile(baseFileName);
 
 		if (notifFile == null) {
-			s_log.error("Unable to find/create a notification file. Server notification will not be saved!");
+			LOG.error("Unable to find/create a notification file. Server notification will not be saved!");
 			context.getClients().sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Serious problem: Unable to find/create a notification file (notification dropped).");
 			return false;
 		}
@@ -113,7 +113,7 @@ public class ServerNotifications implements ContextReceiver {
 			out.write(sn.toString());
 			out.close();
 		} catch (IOException ex) {
-			s_log.error("Unable to write file <" + notifFile + ">. Server notification will not be saved!", ex);
+			LOG.error("Unable to write file <" + notifFile + ">. Server notification will not be saved!", ex);
 			context.getClients().sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Serious problem: Unable to save server notification (notification dropped).");
 			return false;
 		} finally {

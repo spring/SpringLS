@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Agreement implements ContextReceiver {
 
-	private static final Logger s_log  = LoggerFactory.getLogger(Agreement.class);
+	private static final Logger LOG  = LoggerFactory.getLogger(Agreement.class);
 
 	private Context context;
 
@@ -65,13 +65,13 @@ public class Agreement implements ContextReceiver {
 			if (newAgreement.length() > 2) {
 				content = newAgreement;
 				success = true;
-				s_log.info("Using agreement from file '{}'.", DEFAULT_FILE_NAME);
+				LOG.info("Using agreement from file '{}'.", DEFAULT_FILE_NAME);
 			} else {
-				s_log.warn("Agreement in file '{}' is too short.", DEFAULT_FILE_NAME);
+				LOG.warn("Agreement in file '{}' is too short.", DEFAULT_FILE_NAME);
 			}
 		} catch (IOException ex) {
-			s_log.warn("Could not find or read from file '{}'. Using no agreement.", DEFAULT_FILE_NAME);
-			s_log.debug("... reason:", ex);
+			LOG.warn("Could not find or read from file '{}'. Using no agreement.", DEFAULT_FILE_NAME);
+			LOG.debug("... reason:", ex);
 		}
 
 		return success;

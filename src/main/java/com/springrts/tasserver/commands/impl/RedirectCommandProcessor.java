@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
 @SupportedCommand("REDIRECT")
 public class RedirectCommandProcessor extends AbstractCommandProcessor {
 
-	private static final Logger s_log  = LoggerFactory.getLogger(RedirectCommandProcessor.class);
+	private static final Logger LOG  = LoggerFactory.getLogger(RedirectCommandProcessor.class);
 
 	public RedirectCommandProcessor() {
 		super(1, 1, Account.Access.ADMIN);
@@ -56,7 +56,7 @@ public class RedirectCommandProcessor extends AbstractCommandProcessor {
 		try {
 			getContext().getServer().setRedirectAddress(InetAddress.getByName(redirectIpStr));
 		} catch (UnknownHostException ex) {
-			s_log.debug("Invalid redirect IP supplied", ex);
+			LOG.debug("Invalid redirect IP supplied", ex);
 			return false;
 		}
 		getContext().getClients().sendToAllRegisteredUsers("BROADCAST Server has entered redirection mode");

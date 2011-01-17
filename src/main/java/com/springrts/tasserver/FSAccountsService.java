@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
  */
 public class FSAccountsService extends AbstractAccountsService implements AccountsService {
 
-	private static final Logger s_log  = LoggerFactory.getLogger(FSAccountsService.class);
+	private static final Logger LOG  = LoggerFactory.getLogger(FSAccountsService.class);
 
 	/** in milliseconds */
 	private static final long SAVE_ACCOUNT_INFO_INTERVAL = 1000 * 60 * 60;
@@ -72,7 +72,7 @@ public class FSAccountsService extends AbstractAccountsService implements Accoun
 	public boolean isReadyToOperate() {
 
 		if (!(new File(ACCOUNTS_INFO_FILEPATH)).exists()) {
-			s_log.warn("Accounts info file not found");
+			LOG.warn("Accounts info file not found");
 			return false;
 		}
 
@@ -172,12 +172,12 @@ public class FSAccountsService extends AbstractAccountsService implements Accoun
 
 		} catch (IOException ex) {
 			// catch possible io errors from readLine()
-			s_log.error("Failed updating accounts info from "
+			LOG.error("Failed updating accounts info from "
 					+ ACCOUNTS_INFO_FILEPATH + "! Skipping ...", ex);
 			return false;
 		}
 
-		s_log.info("{} accounts information read from {} ({} ms)",
+		LOG.info("{} accounts information read from {} ({} ms)",
 				new Object[] {
 					accounts.size(),
 					ACCOUNTS_INFO_FILEPATH,

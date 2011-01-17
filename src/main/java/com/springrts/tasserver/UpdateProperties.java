@@ -43,7 +43,7 @@ public class UpdateProperties implements ContextReceiver {
 			+ "Please download the latest version of the software from official "
 			+ "Spring web site: http://spring.clan-sy.com"; // FIXME wrong URL
 
-	private static final Logger s_log  = LoggerFactory.getLogger(UpdateProperties.class);
+	private static final Logger LOG  = LoggerFactory.getLogger(UpdateProperties.class);
 
 	private Context context;
 
@@ -77,13 +77,13 @@ public class UpdateProperties implements ContextReceiver {
 			updateProperties.loadFromXML(fStream);
 			success = true;
 		} catch (IOException ex) {
-			s_log.warn("Could not find or read from file '" + fileName + "'.", ex);
+			LOG.warn("Could not find or read from file '" + fileName + "'.", ex);
 		} finally {
 			if (fStream != null) {
 				try {
 					fStream.close();
 				} catch (IOException ex) {
-					s_log.debug("unimportant", ex);
+					LOG.debug("unimportant", ex);
 				}
 			}
 		}

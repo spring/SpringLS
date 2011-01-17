@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Clients implements ContextReceiver, Updateable {
 
-	private static final Logger s_log  = LoggerFactory.getLogger(Clients.class);
+	private static final Logger LOG  = LoggerFactory.getLogger(Clients.class);
 
 	private List<Client> clients = new ArrayList<Client>();
 	/** A list of clients waiting to be killed (disconnected) */
@@ -103,7 +103,7 @@ public class Clients implements ContextReceiver, Updateable {
 			if (client.isHalfDead()) {
 				continue; // already scheduled for kill
 			}
-			s_log.warn("Timeout detected from {} ({}). "
+			LOG.warn("Timeout detected from {} ({}). "
 					+ "Client has been scheduled for kill ...",
 					client.getAccount().getName(),
 					client.getIp());
@@ -396,7 +396,7 @@ public class Clients implements ContextReceiver, Updateable {
 		if (client.getBattleID() != Battle.NO_BATTLE_ID) {
 			Battle bat = context.getBattles().getBattleByID(client.getBattleID());
 			if (bat == null) {
-				s_log.error("Invalid battle ID. Server will now exit!");
+				LOG.error("Invalid battle ID. Server will now exit!");
 				context.getServerThread().closeServerAndExit();
 			}
 			context.getBattles().leaveBattle(client, bat); // automatically checks if client is founder and closes the battle
@@ -404,9 +404,9 @@ public class Clients implements ContextReceiver, Updateable {
 
 		if (client.getAccount().getAccess() != Account.Access.NONE) {
 			sendToAllRegisteredUsers("REMOVEUSER " + client.getAccount().getName());
-			s_log.debug("Registered user killed: {}", client.getAccount().getName());
+			LOG.debug("Registered user killed: {}", client.getAccount().getName());
 		} else {
-			s_log.debug("Unregistered user killed");
+			LOG.debug("Unregistered user killed");
 		}
 
 		if (context.getServer().isLanMode()) {

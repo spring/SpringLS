@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractAccountsService implements AccountsService {
 
-	private static final Logger s_log  = LoggerFactory.getLogger(AbstractAccountsService.class);
+	private static final Logger LOG  = LoggerFactory.getLogger(AbstractAccountsService.class);
 
 	private Context context;
 	private boolean started;

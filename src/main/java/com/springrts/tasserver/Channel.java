@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Channel implements ContextReceiver, LiveStateListener {
 
-	private static final Logger s_log  = LoggerFactory.getLogger(Channel.class);
+	private static final Logger LOG  = LoggerFactory.getLogger(Channel.class);
 
 	private static final String LOG_FILES_DIR  = "./";
 
@@ -104,8 +104,8 @@ public class Channel implements ContextReceiver, LiveStateListener {
 		topic = newTopic.trim();
 		topicAuthor = author;
 		topicChangedTime = System.currentTimeMillis();
-		if (s_log.isDebugEnabled()) {
-			s_log.debug("* Topic for #{} changed to '{}' (set by <{}>)", new Object[] {name, topic, author});
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("* Topic for #{} changed to '{}' (set by <{}>)", new Object[] {name, topic, author});
 		}
 		return true;
 	}
@@ -225,7 +225,7 @@ public class Channel implements ContextReceiver, LiveStateListener {
 						fileLog.close();
 					}
 					fileLog = null;
-					s_log.error("Unable to open channel log file for channel "
+					LOG.error("Unable to open channel log file for channel "
 							+ name + ": " + logFile.getAbsolutePath(), ex);
 					logFile = null;
 				}

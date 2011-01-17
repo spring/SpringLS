@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
  */
 public class MessageOfTheDay implements ContextReceiver {
 
-	private static final Logger s_log  = LoggerFactory.getLogger(MessageOfTheDay.class);
+	private static final Logger LOG  = LoggerFactory.getLogger(MessageOfTheDay.class);
 
 	private static final String DEFAULT_TEXT = "Enjoy your stay :-)";
 	private static final String DEFAULT_FILENAME = "motd.txt";
@@ -71,10 +71,10 @@ public class MessageOfTheDay implements ContextReceiver {
 		try {
 			message = Misc.readTextFile(new File(fileName));
 			success = true;
-			s_log.info("Using MOTD from file '{}'.", fileName);
+			LOG.info("Using MOTD from file '{}'.", fileName);
 		} catch (IOException ex) {
-			s_log.warn("Could not find or read from file '{}'. Using default MOTD.", fileName);
-			s_log.debug("... reason:", ex);
+			LOG.warn("Could not find or read from file '{}'. Using default MOTD.", fileName);
+			LOG.debug("... reason:", ex);
 			success = false;
 		}
 

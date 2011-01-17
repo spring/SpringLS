@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
 @SupportedCommand("MYSTATUS")
 public class MyStatusCommandProcessor extends AbstractCommandProcessor {
 
-	private static final Logger s_log  = LoggerFactory.getLogger(MyStatusCommandProcessor.class);
+	private static final Logger LOG  = LoggerFactory.getLogger(MyStatusCommandProcessor.class);
 
 	public MyStatusCommandProcessor() {
 		super(1, 1, Account.Access.NORMAL);
@@ -102,7 +102,7 @@ public class MyStatusCommandProcessor extends AbstractCommandProcessor {
 					final boolean mergeOk = getContext().getAccountsService().mergeAccountChanges( client.getAccount(), client.getAccount().getName());
 					if (!mergeOk) {
 						// as this is no serious problem, only log a message
-						s_log.warn("Failed updating users in-game-time in persistent storage: {}",
+						LOG.warn("Failed updating users in-game-time in persistent storage: {}",
 								client.getAccount().getName());
 						return false;
 					}
