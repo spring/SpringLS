@@ -99,6 +99,9 @@ public class Server implements ContextReceiver {
 		redirectAddress = null;
 	}
 
+	public static String getApplicationName() {
+		return "TASServer";
+	}
 
 	@Override
 	public void receiveContext(Context context) {

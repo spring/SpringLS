@@ -334,7 +334,7 @@ public class Client implements ContextReceiver {
 	}
 
 	public void sendWelcomeMessage() {
-		sendLine(new StringBuilder("TASServer ")
+		sendLine(new StringBuilder(Server.getApplicationName()).append(" ")
 				.append(Misc.getAppVersion()).append(" ")
 				.append(context.getEngine().getVersion()).append(" ")
 				.append(context.getNatHelpServer().getPort()).append(" ")

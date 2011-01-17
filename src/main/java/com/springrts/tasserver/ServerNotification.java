@@ -27,7 +27,7 @@ public class ServerNotification {
 	private StringBuilder message;
 
 	public ServerNotification(String title) {
-		this(title, "$TASServer");
+		this(title, "$" + Server.getApplicationName());
 	}
 
 	public ServerNotification(String title, String author, String firstLine) {

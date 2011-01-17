@@ -31,7 +31,7 @@ import java.util.List;
  * Sent by client (battle host), to set script tags in script.txt.
  * The [pair] format is "key=value can have spaces".
  * Keys may not contain spaces, and are expected to use the '/' character to
- * separate tables (see example). In version 0.35 of TASServer command
+ * separate tables (see example). In version 0.35 of this software, the command
  * UPDATEBATTLEDETAILS was completely replaced by this command.
  * @author hoijui
  */

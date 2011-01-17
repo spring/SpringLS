@@ -513,9 +513,12 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 		// we always create a new one.
 		DateFormat dateTimeFormat = new SimpleDateFormat("yyyy.MM.dd 'at' hh:mm:ss z");
 
-		s_log.info("TASServer {} started on {}",
-				Misc.getAppVersion(),
-				dateTimeFormat.format(new Date()));
+		s_log.info("{} {} started on {}",
+				new Object[] {
+					Server.getApplicationName(),
+					Misc.getAppVersion(),
+					dateTimeFormat.format(new Date())
+				});
 
 		// add server notification
 		ServerNotification sn = new ServerNotification("Server started");
