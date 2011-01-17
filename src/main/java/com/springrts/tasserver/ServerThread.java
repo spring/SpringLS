@@ -447,7 +447,7 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 		int port = context.getServer().getPort();
 
 		try {
-			context.getServer().setCharset("ISO-8859-1"); // initializes asciiDecoder and asciiEncoder
+			context.getServer().setCharset("ISO-8859-1");
 
 			// open a non-blocking server socket channel
 			sSockChan = ServerSocketChannel.open();

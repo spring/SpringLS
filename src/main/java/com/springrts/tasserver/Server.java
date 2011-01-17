@@ -105,6 +105,9 @@ public class Server implements ContextReceiver {
 		this.context = context;
 	}
 
+	/**
+	 * Initializes the ASCII-Decoder and ASCII-Encoder.
+	 */
 	public boolean setCharset(String newCharset)
 			throws IllegalCharsetNameException, UnsupportedCharsetException
 	{
