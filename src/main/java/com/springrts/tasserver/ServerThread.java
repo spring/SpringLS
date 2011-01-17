@@ -48,7 +48,7 @@ import org.slf4j.LoggerFactory;
  * Runs the thread that handles connections by and messages sent from clients.
  * @author hoijui
  */
-public class ServerThread implements ContextReceiver, LiveStateListener {
+public class ServerThread implements ContextReceiver, LiveStateListener, Updateable {
 
 	private static final Logger s_log  = LoggerFactory.getLogger(ServerThread.class);
 
@@ -152,6 +152,7 @@ public class ServerThread implements ContextReceiver, LiveStateListener {
 		return context;
 	}
 
+	/** Check for new client connections */
 	private void acceptNewConnections() {
 
 		try {
@@ -196,6 +197,7 @@ public class ServerThread implements ContextReceiver, LiveStateListener {
 		return true;
 	}
 
+	/** Check for incoming messages */
 	private void readIncomingMessages() {
 		Client client = null;
 
@@ -385,16 +387,21 @@ public class ServerThread implements ContextReceiver, LiveStateListener {
 		return true;
 	}
 
+
+	@Override
+	public void update() {
+
+		acceptNewConnections();
+
+		readIncomingMessages();
+	}
+
 	public void run() {
 
 		running = true;
 		while (running) { // main loop
 
-			// check for new client connections
-			acceptNewConnections();
-
-			// check for incoming messages
-			readIncomingMessages();
+			getContext().getServerThread().update();
 
 			getContext().getClients().update();
 
