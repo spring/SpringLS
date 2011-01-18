@@ -159,7 +159,7 @@ public class UpdateIP2CountryThread implements Runnable, ContextReceiver {
 					sn.addLine("  * time taken to decompress: " + timeExtract + " ms");
 					sn.addLine("  * time taken to re-write: " + timeCombine + " ms");
 					sn.addLine("");
-				} catch (Exception ex) {
+				} catch (IOException ex) {
 					throw new RuntimeException("Failed to download & extract IP2Country data from " + url.toString(), ex);
 				} finally {
 					// clean up
@@ -195,10 +195,10 @@ public class UpdateIP2CountryThread implements Runnable, ContextReceiver {
 			context.getServerNotifications().addNotification(sn);
 
 			LOG.info("IP2Country has just been successfully updated.");
-		} catch (Exception e) {
+		} catch (Exception ex) {
 			ServerNotification sn = new ServerNotification("Unable to update IP2Country database");
 			sn.addLine("Attempt to update from online IP2Country database failed. Stack trace: ");
-			sn.addLine(Misc.exceptionToFullString(e));
+			sn.addLine(Misc.exceptionToFullString(ex));
 			context.getServerNotifications().addNotification(sn);
 		} finally {
 			inProgress.set(false);

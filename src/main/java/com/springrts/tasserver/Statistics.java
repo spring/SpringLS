@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -186,9 +187,12 @@ public class Statistics implements ContextReceiver {
 
 		String fileName = STATISTICS_FOLDER + "statistics.dat";
 
+		Writer outF = null;
+		Writer out = null;
 		try {
 			// overwrite if it exists, or create new one
-			BufferedWriter out = new BufferedWriter(new FileWriter(fileName, false));
+			outF = new FileWriter(fileName, false);
+			out = new BufferedWriter(outF);
 			String line;
 
 			SimpleDateFormat formatter = new SimpleDateFormat("ddMMyy");
@@ -203,24 +207,30 @@ public class Statistics implements ContextReceiver {
 				BufferedReader in = null;
 				try {
 					in = new BufferedReader(new FileReader(fileNameDay));
-					//***LOG.info("--- Found: <{}>", fileNameDay);
+					//LOG.info("--- Found: <{}>", fileNameDay);
 					while ((line = in.readLine()) != null) {
 						out.write(String.format("%s %s\r\n", dayStr, line));
 					}
 				} catch (IOException ex) {
 					// just skip the file ...
-					//***LOG.error("--- Skipped: <" + fileNameDay + ">", ex);
+					//LOG.error("--- Skipped: <" + fileNameDay + ">", ex);
 				} finally {
 					if (in != null) {
 						in.close();
 					}
 				}
 			}
-
-			out.close();
-		} catch (Exception ex) {
+		} catch (IOException ex) {
 			LOG.error("Unable to access file <" + fileName + ">. Skipping ...", ex);
 			return false;
+		} finally {
+			try {
+				if (out != null) {
+					out.close();
+				} else if (outF != null) {
+					outF.close();
+				}
+			} catch (IOException ex) {}
 		}
 
 		return true;

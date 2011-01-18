@@ -29,6 +29,7 @@ import com.springrts.tasserver.commands.SupportedCommand;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
 /**
@@ -89,7 +90,7 @@ public class SetScriptTagsCommandProcessor extends AbstractCommandProcessor {
 
 		// relay the valid pairs
 		if (scriptTagsClean.length() > 0) {
-			bat.sendToAllClients("SETSCRIPTTAGS " + scriptTagsClean.toString());
+			bat.sendToAllClients("SETSCRIPTTAGS " + scriptTagsClean);
 		}
 
 		return true;
@@ -160,11 +161,11 @@ public class SetScriptTagsCommandProcessor extends AbstractCommandProcessor {
 
 		StringBuilder scriptTagsClean = new StringBuilder();
 
-		for (String key : scriptTags.keySet()) {
+		for (Entry<String, String> entry : scriptTags.entrySet()) {
 			if (scriptTagsClean.length() > 0) {
 				scriptTagsClean.append("\t");
 			}
-			scriptTagsClean.append(key).append("=").append(scriptTags.get(key));
+			scriptTagsClean.append(entry.getKey()).append("=").append(entry.getValue());
 		}
 
 		return scriptTagsClean.toString();

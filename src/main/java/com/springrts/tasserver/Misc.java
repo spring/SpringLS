@@ -397,6 +397,7 @@ public class Misc {
 	public static long download(String address, String localFileName, int downloadLimit) throws IOException {
 
 		long numWritten = 0;
+		OutputStream outF = null;
 		OutputStream out = null;
 		URLConnection conn = null;
 		InputStream in = null;
@@ -415,7 +416,8 @@ public class Misc {
 
 		try {
 			URL url = new URL(address);
-			out = new BufferedOutputStream(new FileOutputStream(localFileName));
+			outF = new FileOutputStream(localFileName);
+			out = new BufferedOutputStream(outF);
 			conn = url.openConnection();
 			in = conn.getInputStream();
 			byte[] buffer = new byte[1024];
@@ -466,6 +468,8 @@ public class Misc {
 			}
 			if (out != null) {
 				out.close();
+			} else if (outF != null) {
+				outF.close();
 			}
 		}
 

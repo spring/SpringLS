@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author hoijui
  */
-public class JPAAccountsService extends AbstractAccountsService implements AccountsService {
+public class JPAAccountsService extends AbstractAccountsService {
 
 	private static final Logger LOG  = LoggerFactory.getLogger(JPAAccountsService.class);
 
