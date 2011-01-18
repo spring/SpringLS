@@ -38,7 +38,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.PatternSyntaxException;
 
@@ -53,7 +55,32 @@ public class ServerThread implements ContextReceiver, LiveStateListener {
 
 	private static final Log s_log  = LogFactory.getLog(ServerThread.class);
 
+	private static class DeprecatedCommand {
+
+		private String name;
+		private String message;
+
+		DeprecatedCommand(String name, String message) {
+
+			this.name = name;
+			this.message = message;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public String getMessage() {
+			return message;
+		}
+	}
+
 	private Context context;
+
+	/**
+	 * Contains a list of deprecated commands, for example: "WHITELIST" -> "deprecated feature: white-listing"
+	 */
+	private static Map<String, DeprecatedCommand> DEPRECATED_COMMANDS = null;
 
 	/**
 	 * In this interval, all channel mute lists will be checked
@@ -84,7 +111,26 @@ public class ServerThread implements ContextReceiver, LiveStateListener {
 
 
 	public ServerThread() {
+
 		this.context = null;
+		initDeprecatedCommands();
+	}
+
+	private static void add(Map<String, DeprecatedCommand> deprecatedCommands, DeprecatedCommand command) {
+		deprecatedCommands.put(command.getName(), command);
+	}
+	private void initDeprecatedCommands() {
+
+		if (DEPRECATED_COMMANDS == null) {
+			Map<String, DeprecatedCommand> deprecatedCommands = new HashMap<String, DeprecatedCommand>();
+
+			add(deprecatedCommands, new DeprecatedCommand("WHITELIST", "IP white-listing is disabled"));
+			add(deprecatedCommands, new DeprecatedCommand("UNWHITELIST", "IP white-listing is disabled"));
+			add(deprecatedCommands, new DeprecatedCommand("RETRIEVELATESTBANLIST", "Fetching ban entries is not needed anymore. Therefore, this is a no-op now."));
+			add(deprecatedCommands, new DeprecatedCommand("OUTPUTDBDRIVERSTATUS", "This command is not supported anymore, as JPA is used for DB access for bans. Therefore, this is a no-op now."));
+
+			DEPRECATED_COMMANDS = deprecatedCommands;
+		}
 	}
 
 	@Override
@@ -323,39 +369,12 @@ public class ServerThread implements ContextReceiver, LiveStateListener {
 							Misc.makeSentence(commands) + "\"", ex);
 					return false;
 				}
-			} else if (commands[0].equals("WHITELIST")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-//				if (commands.length == 2) {
-//					whiteList.add(commands[1]);
-//					client.sendLine("SERVERMSG IP successfully whitelisted from REGISTER constraints");
-//				} else {
-//					client.sendLine(new StringBuilder("SERVERMSG Whitelist is: ").append(whiteList.toString()).toString());
-//				}
-				client.sendLine("SERVERMSG IP white-listing is disabled");
-			} else if (commands[0].equals("UNWHITELIST")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-//				if (commands.length == 2) {
-//					client.sendLine((whiteList.remove(commands[1])) ? "SERVERMSG IP removed from whitelist" : "SERVERMSG IP not in whitelist");
-//				} else {
-//					client.sendLine("SERVERMSG Bad command- UNWHITELIST IP");
-//				}
-				client.sendLine("SERVERMSG IP white-listing is disabled");
-			} else if (commands[0].equals("RETRIEVELATESTBANLIST")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-
-				client.sendLine("SERVERMSG Fetching ban entries is not needed anymore. Therefore, this is a no-op now.");
-			} else if (commands[0].equals("OUTPUTDBDRIVERSTATUS")) {
-				if (client.getAccount().getAccess().compareTo(Account.Access.ADMIN) < 0) {
-					return false;
-				}
-
-				client.sendLine("SERVERMSG This command is not supported anymore, as JPA is used for DB access for bans. Therefore, this is a no-op now.");
+			} else if (DEPRECATED_COMMANDS.containsKey(commands[0])) {
+				DeprecatedCommand deprecatedCommand = DEPRECATED_COMMANDS.get(commands[0]);
+				client.sendLine(String.format(
+						"SERVERMSG Command %s is deprecated: %s",
+						deprecatedCommand.getName(),
+						deprecatedCommand.getMessage()));
 			} else {
 				// unknown command!
 				return false;
