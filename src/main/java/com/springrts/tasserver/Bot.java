@@ -14,7 +14,7 @@ import java.awt.Color;
  * @author Betalord
  * @author hoijui
  */
-public class Bot {
+public class Bot extends TeamController {
 
 	/**
 	 * The human readable name of this Bot.
@@ -43,22 +43,15 @@ public class Bot {
 	 * For Lua bots this is always "<not-versioned>".
 	 */
 	private String version;
-	/**
-	 * See MYBATTLESTATUS command for actual values of battleStatus.
-	 * Note: some bits of battle status are not used with Bot
-	 */
-	private int battleStatus;
-	private Color teamColor;
 
 	public Bot(String name, String ownerName, String specifier, int battleStatus, Color teamColor) {
+		super(battleStatus, teamColor);
 
 		this.name = name;
 		this.ownerName = ownerName;
 		String[] specifierParts = specifier.split("\\|");
 		this.shortName = specifierParts[0];
 		this.version = ((specifierParts.length > 1) ? specifierParts[1] : "");
-		this.battleStatus = battleStatus;
-		this.teamColor = teamColor;
 	}
 
 	public static boolean isValidName(String name) {
@@ -91,53 +84,5 @@ public class Bot {
 	 */
 	public String getOwnerName() {
 		return ownerName;
-	}
-
-	/**
-	 * See MYBATTLESTATUS command for actual values of battleStatus.
-	 * Note: some bits of battle status are not used with Bot
-	 * @return the battleStatus
-	 */
-	public int getBattleStatus() {
-		return battleStatus;
-	}
-
-	/**
-	 * See MYBATTLESTATUS command for actual values of battleStatus.
-	 * Note: some bits of battle status are not used with Bot
-	 * @param battleStatus the battleStatus to set
-	 */
-	public void setBattleStatus(int battleStatus) {
-		this.battleStatus = battleStatus;
-	}
-
-	/**
-	 * @return the teamColor
-	 */
-	public Color getTeamColor() {
-		return teamColor;
-	}
-
-	/**
-	 * @param teamColor the teamColor to set
-	 */
-	public void setTeamColor(Color teamColor) {
-		this.teamColor = teamColor;
-	}
-
-	public int getTeam() {
-		return (getBattleStatus() & 0x3C) >> 2;
-	}
-
-	public int getAllyTeam() {
-		return (getBattleStatus() & 0x3C0) >> 6;
-	}
-
-	public void setTeam(int team) {
-		battleStatus = (getBattleStatus() & 0xFFFFFFC3) | (team << 2);
-	}
-
-	public void setAllyTeam(int allyTeam) {
-		battleStatus = (getBattleStatus() & 0xFFFFFC3F) | (allyTeam << 6);
 	}
 }

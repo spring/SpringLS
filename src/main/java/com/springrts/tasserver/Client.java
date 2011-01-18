@@ -5,7 +5,6 @@
 package com.springrts.tasserver;
 
 
-import java.awt.Color;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
@@ -23,13 +22,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A Client instance can be seen as a session of a user, which has logged into
- * the Lobby using his <code>Account</code> info.
+ * A Client instance can be seen as a session of a human user, which has logged
+ * into the Lobby using his <code>Account</code> info.
  *
  * @see Account
  * @author Betalord
  */
-public class Client implements ContextReceiver {
+public class Client extends TeamController implements ContextReceiver {
 
 	private static final Logger LOG  = LoggerFactory.getLogger(Client.class);
 	/**
@@ -74,14 +73,6 @@ public class Client implements ContextReceiver {
 	 * See the 'MYSTATUS' command for valid values.
 	 */
 	private int status;
-	/**
-	 * See the 'MYBATTLESTATUS' command for valid values.
-	 */
-	private int battleStatus;
-	/**
-	 * See the 'MYBATTLESTATUS' command for valid values.
-	 */
-	private Color teamColor;
 	/**
 	 * ID of the battle in which this client is participating.
 	 * Has to be -1 if not participating in any battle.
@@ -204,8 +195,6 @@ public class Client implements ContextReceiver {
 		recvBuf = new StringBuilder();
 		status = 0;
 		country = IP2Country.getInstance().getCountryCode(Misc.ip2Long(ip));
-		battleStatus = 0;
-		teamColor = Color.BLACK;
 		inGameTime = 0;
 		battleID = Battle.NO_BATTLE_ID;
 		requestedBattleID = Battle.NO_BATTLE_ID;
@@ -689,38 +678,6 @@ public class Client implements ContextReceiver {
 	}
 
 	/**
-	 * See the 'MYBATTLESTATUS' command for valid values
-	 * @return the battleStatus
-	 */
-	public int getBattleStatus() {
-		return battleStatus;
-	}
-
-	/**
-	 * See the 'MYBATTLESTATUS' command for valid values
-	 * @param battleStatus the battleStatus to set
-	 */
-	public void setBattleStatus(int battleStatus) {
-		this.battleStatus = battleStatus;
-	}
-
-	/**
-	 * See the 'MYBATTLESTATUS' command for valid values.
-	 * @return the teamColor
-	 */
-	public Color getTeamColor() {
-		return teamColor;
-	}
-
-	/**
-	 * See the 'MYBATTLESTATUS' command for valid values.
-	 * @param teamColor the teamColor to set
-	 */
-	public void setTeamColor(Color teamColor) {
-		this.teamColor = teamColor;
-	}
-
-	/**
 	 * ID of the battle in which this client is participating.
 	 * Has to be -1 if not participating in any battle.
 	 * @return the battleID
@@ -962,67 +919,5 @@ public class Client implements ContextReceiver {
 	 */
 	public void addToDataOverLastTimePeriod(long nBytes) {
 		this.dataOverLastTimePeriod += nBytes;
-	}
-
-	public boolean isReady() {
-		return ((getBattleStatus() & 0x2) >> 1) == 1;
-	}
-
-	public int getTeam() {
-		return (getBattleStatus() & 0x3C) >> 2;
-	}
-
-	public int getAllyTeam() {
-		return (getBattleStatus() & 0x3C0) >> 6;
-	}
-
-	/**
-	 * Also called mode.
-	 */
-	public boolean isSpectator() {
-		return ((getBattleStatus() & 0x400) >> 10) == 0;
-	}
-
-	public int getHandicap() {
-		return (getBattleStatus() & 0x3F800) >> 11;
-	}
-
-	public int getSync() {
-		return (getBattleStatus() & 0xC00000) >> 22;
-	}
-
-	public int getSide() {
-		return getBattleStatus() & 0xF000000 >> 24;
-	}
-
-	public void setReady(boolean ready) {
-		battleStatus = (getBattleStatus() & 0xFFFFFFFD) | ((ready ? 1 : 0) << 1);
-	}
-
-	public void setTeam(int team) {
-		battleStatus = (getBattleStatus() & 0xFFFFFFC3) | (team << 2);
-	}
-
-	public void setAllyTeam(int allyTeam) {
-		battleStatus = (getBattleStatus() & 0xFFFFFC3F) | (allyTeam << 6);
-	}
-
-	/**
-	 * Also called mode.
-	 */
-	public void setSpectator(boolean spec) {
-		battleStatus = (getBattleStatus() & 0xFFFFFBFF) | ((spec ? 0 : 1) << 10);
-	}
-
-	public void setHandicap(int handicap) {
-		battleStatus = (getBattleStatus() & 0xFFFC07FF) | (handicap << 11);
-	}
-
-	public void setSync(int sync) {
-		battleStatus = (getBattleStatus() & 0xFF3FFFFF) | (sync << 22);
-	}
-
-	public void setSide(int side) {
-		battleStatus = (getBattleStatus() & 0xF0FFFFFF) | (side << 24);
 	}
 }
