@@ -24,10 +24,11 @@ import org.slf4j.LoggerFactory;
  * Statistics file format:
  * <time> <# of active clients> <# of active battles> <# of accounts> <# of active accounts> <list of mods>
  * where <time> is of form: "hhmmss"
- * and "active battles" are battles that are in-game and have 2 or more players in it
- * and <list of mods> is a list of first k mods (where k is 0 or greater) with frequencies
- * of active battles using these mods. Example: XTA 0.66 15. Note that delimiter in <list of mods>
- * is TAB and not SPACE! See code for more info.
+ * and "active battles" are battles that are in-game and have 2 or more players
+ * in it and <list of mods> is a list of first k mods (where k is 0 or greater)
+ * with frequencies of active battles using these mods. Example: XTA 0.66 15.
+ * Note that delimiter in <list of mods> is TAB and not SPACE! See code for more
+ * info.
  *
  * Aggregated statistics file format:
  * <date> <time> <# of active clients> <# of active battles> <# of accounts> <# of active accounts> <list of mods>
@@ -81,7 +82,7 @@ public class Statistics implements ContextReceiver {
 	 */
 	public void update() {
 
-		if (recording && (System.currentTimeMillis() - lastStatisticsUpdate > saveStatisticsInterval)) {
+		if (recording && ((System.currentTimeMillis() - lastStatisticsUpdate) > saveStatisticsInterval)) {
 			saveStatisticsToDisk();
 		}
 	}
@@ -140,7 +141,8 @@ public class Statistics implements ContextReceiver {
 
 		int activeBattlesCount = 0;
 		for (int i = 0; i < context.getBattles().getBattlesSize(); i++) {
-			if ((context.getBattles().getBattleByIndex(i).getClientsSize() >= 1 /* at least 1 client + founder == 2 players */)
+			if ((context.getBattles().getBattleByIndex(i).getClientsSize() >= 1)
+					// at least 1 client + founder == 2 players
 					&& (context.getBattles().getBattleByIndex(i).inGame()))
 			{
 				activeBattlesCount++;
@@ -178,31 +180,36 @@ public class Statistics implements ContextReceiver {
 
 	/**
 	 * This will create "statistics.dat" file which will contain all records
-	 * from the last 7 days
+	 * from the last 7 days.
 	 */
 	private boolean createAggregateFile() {
-		String fname = STATISTICS_FOLDER + "statistics.dat";
+
+		String fileName = STATISTICS_FOLDER + "statistics.dat";
 
 		try {
-			BufferedWriter out = new BufferedWriter(new FileWriter(fname, false)); // overwrite if it exists, or create new one
+			// overwrite if it exists, or create new one
+			BufferedWriter out = new BufferedWriter(new FileWriter(fileName, false));
 			String line;
 
 			SimpleDateFormat formatter = new SimpleDateFormat("ddMMyy");
 			Date today = today();
-			// get file names for last 7 days (that is today + last 6 days):
+			long msPerDay = 1000 * 60 * 60 * 24;
+			// get file names for last 7 days (that is today + previous 6 days)
 			for (int i = 7; i > 0; i--) {
-				Date temp = new Date();
-				temp.setTime(today.getTime() - (((long) i - 1) * 1000 * 60 * 60 * 24));
+				Date day = new Date();
+				day.setTime(today.getTime() - (((long) i - 1) * msPerDay));
+				String dayStr = formatter.format(day);
+				String fileNameDay = STATISTICS_FOLDER + formatter.format(dayStr) + ".dat";
 				BufferedReader in = null;
 				try {
-					in = new BufferedReader(new FileReader(STATISTICS_FOLDER + formatter.format(temp) + ".dat"));
-					//***s_log.info("--- Found: <" + TASServer.STATISTICS_FOLDER + formatter.format(temp) + ".dat>");
+					in = new BufferedReader(new FileReader(fileNameDay));
+					//***s_log.info("--- Found: <{}>", fileNameDay);
 					while ((line = in.readLine()) != null) {
-						out.write(new StringBuilder(formatter.format(temp)).append(" ").append(line).append("\r\n").toString());
+						out.write(String.format("%s %s\r\n", dayStr, line));
 					}
-				} catch (IOException e) {
+				} catch (IOException ex) {
 					// just skip the file ...
-					//***s_log.error("--- Skipped: <" + TASServer.STATISTICS_FOLDER + formatter.format(temp) + ".dat>", e);
+					//***s_log.error("--- Skipped: <" + fileNameDay + ">", ex);
 				} finally {
 					if (in != null) {
 						in.close();
@@ -212,7 +219,7 @@ public class Statistics implements ContextReceiver {
 
 			out.close();
 		} catch (Exception ex) {
-			s_log.error("Unable to access file <" + fname + ">. Skipping ...", ex);
+			s_log.error("Unable to access file <" + fileName + ">. Skipping ...", ex);
 			return false;
 		}
 
@@ -431,16 +438,17 @@ public class Statistics implements ContextReceiver {
 	/**
 	 * Usage (some examples):
 	 *
-	 * System.out.println(now("dd MMMMM yyyy"));
-	 * System.out.println(now("yyyyMMdd"));
-	 * System.out.println(now("dd.MM.yy"));
-	 * System.out.println(now("MM/dd/yy"));
-	 * System.out.println(now("yyyy.MM.dd G 'at' hh:mm:ss z"));
-	 * System.out.println(now("EEE, MMM d, ''yy"));
-	 * System.out.println(now("h:mm a"));
-	 * System.out.println(now("H:mm:ss:SSS"));
-	 * System.out.println(now("K:mm a,z"));
-	 * System.out.println(now("yyyy.MMMMM.dd GGG hh:mm aaa"));
+	 * @param format examples:
+	 *   "dd MMMMM yyyy"
+	 *   "yyyyMMdd"
+	 *   "dd.MM.yy"
+	 *   "MM/dd/yy"
+	 *   "yyyy.MM.dd G 'at' hh:mm:ss z"
+	 *   "EEE, MMM d, ''yy"
+	 *   "h:mm a"
+	 *   "H:mm:ss:SSS"
+	 *   "K:mm a,z"
+	 *   "yyyy.MMMMM.dd GGG hh:mm aaa"
 	 *
 	 * Taken from <a href="http://www.rgagnon.com/javadetails/java-0106.html">
 	 * here</a>.
@@ -466,7 +474,7 @@ public class Statistics implements ContextReceiver {
 		try {
 			today = new SimpleDateFormat(TODAY_FILTER_FORMAT).parse(now(TODAY_FILTER_FORMAT));
 		} catch (ParseException ex) {
-			// should not ever happend!
+			// should not ever happen!
 		}
 
 		return today;
