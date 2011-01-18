@@ -17,17 +17,14 @@
 
 package com.springrts.tasserver.commands;
 
+
 /**
  * @see CommandProcessor.process()
  * @author hoijui
  */
-public class CommandProcessingException extends Exception {
+public class InvalidNumberOfArgumentsCommandProcessingException extends CommandProcessingException {
 
-	public CommandProcessingException(String commandName, String message) {
-		this(commandName, message, null);
-	}
-
-	public CommandProcessingException(String commandName, String message, Throwable t) {
-		super(String.format("Failed processing command \"%s\": %s", commandName, message), t);
+	public InvalidNumberOfArgumentsCommandProcessingException(String commandName, String message) {
+		super(commandName, message);
 	}
 }

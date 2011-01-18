@@ -98,26 +98,25 @@ public abstract class AbstractCommandProcessor implements CommandProcessor {
 
 		if ((getAccessMin() != ACCESS_NOCHECK) &&
 				client.getAccount().getAccess().compareTo(getAccessMin()) < 0) {
-			throw new CommandProcessingException(
-					"Insufficient access rights to execute command \"" +
-					getCommandName() + "\"; minimum required is " +
-					getAccessMin().toString() + ", but the account has " +
-					client.getAccount().getAccess() + ".");
+			throw new InsufficientAccessCommandProcessingException(
+					getCommandName(),
+					getAccessMin(),
+					client.getAccount().getAccess());
 		}
 
 		if ((getArgsMin() != ARGS_MIN_NOCHECK) &&
 				(args.size() < getArgsMin())) {
-			throw new CommandProcessingException(
-					"Too few arguments to command \"" + getCommandName() +
-					"\"; minimum is " + getArgsMin() + ", but we recieved " +
-					args.size() + ".");
+			throw new TooFewArgumentsCommandProcessingException(
+					getCommandName(),
+					getArgsMin(),
+					args.size());
 		}
 		if ((getArgsMax() != ARGS_MAX_NOCHECK) &&
 				(args.size() > getArgsMax())) {
-			throw new CommandProcessingException(
-					"Too many arguments to command \"" + getCommandName() +
-					"\"; maximum is " + getArgsMax() + ", but we recieved " +
-					args.size() + ".");
+			throw new TooManyArgumentsCommandProcessingException(
+					getCommandName(),
+					getArgsMax(),
+					args.size());
 		}
 
 		return true;

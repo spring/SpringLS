@@ -17,17 +17,19 @@
 
 package com.springrts.tasserver.commands;
 
+
+import com.springrts.tasserver.Account;
+
 /**
  * @see CommandProcessor.process()
  * @author hoijui
  */
-public class CommandProcessingException extends Exception {
+public class InsufficientAccessCommandProcessingException extends CommandProcessingException {
 
-	public CommandProcessingException(String commandName, String message) {
-		this(commandName, message, null);
-	}
-
-	public CommandProcessingException(String commandName, String message, Throwable t) {
-		super(String.format("Failed processing command \"%s\": %s", commandName, message), t);
+	public InsufficientAccessCommandProcessingException(String commandName, Account.Access required, Account.Access present) {
+		super(commandName, String.format(
+				"Insufficient access rights; the minimum required is %s, but the account has %s.",
+				required,
+				present));
 	}
 }

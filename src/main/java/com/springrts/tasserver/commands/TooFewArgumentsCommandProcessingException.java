@@ -17,17 +17,16 @@
 
 package com.springrts.tasserver.commands;
 
+
 /**
  * @see CommandProcessor.process()
  * @author hoijui
  */
-public class CommandProcessingException extends Exception {
+public class TooFewArgumentsCommandProcessingException extends InvalidNumberOfArgumentsCommandProcessingException {
 
-	public CommandProcessingException(String commandName, String message) {
-		this(commandName, message, null);
-	}
-
-	public CommandProcessingException(String commandName, String message, Throwable t) {
-		super(String.format("Failed processing command \"%s\": %s", commandName, message), t);
+	public TooFewArgumentsCommandProcessingException(String commandName, int required, int present) {
+		super(commandName, String.format(
+				"Too few arguments given; the minimum required are %d, but the given were %d.",
+				required, present));
 	}
 }
