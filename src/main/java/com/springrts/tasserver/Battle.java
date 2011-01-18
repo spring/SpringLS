@@ -210,7 +210,7 @@ public class Battle implements ContextReceiver {
 	public void notifyClientJoined(Client client) {
 
 		// do the actuall joining and notifying
-		client.setBattleStatus(0); // reset client's battle status
+		client.setDefaultBattleStatus();
 		client.setBattleID(getId());
 		client.setRequestedBattleID(Battle.NO_BATTLE_ID);
 		addClient(client);

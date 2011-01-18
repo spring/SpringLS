@@ -25,10 +25,14 @@ import java.awt.Color;
  */
 public class TeamController {
 
-	/**
-	 * See the 'MYBATTLESTATUS' command for valid values.
-	 */
-	private int battleStatus;
+	private boolean ready;
+	private int team;
+	private int allyTeam;
+	private boolean spectator;
+	private int handicap;
+	/** 0 = unknown, 1 = synced, 2 = unsynced */
+	private int sync;
+	private int side;
 	/**
 	 * See the 'MYBATTLESTATUS' command for valid values.
 	 */
@@ -37,13 +41,13 @@ public class TeamController {
 
 	public TeamController() {
 
-		battleStatus = 0;
+		setDefaultBattleStatus();
 		teamColor = Color.BLACK;
 	}
 
 	public TeamController(int battleStatus, Color teamColor) {
 
-		this.battleStatus = battleStatus;
+		setBattleStatus(battleStatus);
 		this.teamColor = teamColor;
 	}
 
@@ -53,6 +57,17 @@ public class TeamController {
 	 * @return the battleStatus
 	 */
 	public int getBattleStatus() {
+
+		int battleStatus = 0;
+
+		battleStatus += (isReady() ? 1 : 0)     << 1;
+		battleStatus +=  getTeam()              << 2;
+		battleStatus +=  getAllyTeam()          << 6;
+		battleStatus += (isSpectator() ? 0 : 1) << 10;
+		battleStatus +=  getHandicap()          << 11;
+		battleStatus +=  getSync()              << 22;
+		battleStatus +=  getSide()              << 24;
+
 		return battleStatus;
 	}
 
@@ -61,7 +76,25 @@ public class TeamController {
 	 * @param battleStatus the battleStatus to set
 	 */
 	public void setBattleStatus(int battleStatus) {
-		this.battleStatus = battleStatus;
+
+		setReady(((battleStatus     & 0x2)       >> 1) == 1);
+		setTeam((battleStatus       & 0x3C)      >> 2);
+		setAllyTeam((battleStatus   & 0x3C0)     >> 6);
+		setSpectator(((battleStatus & 0x400)     >> 10) == 0);
+		setHandicap((battleStatus   & 0x3F800)   >> 11);
+		setSync((battleStatus       & 0xC00000)  >> 22);
+		setSide((battleStatus       & 0xF000000) >> 24);
+	}
+
+	public void setDefaultBattleStatus() {
+
+		ready = false;
+		team = 0;
+		allyTeam = 0;
+		spectator = true;
+		handicap = 0;
+		sync = 0;
+		side = 0;
 	}
 
 	/**
@@ -81,64 +114,64 @@ public class TeamController {
 	}
 
 	public boolean isReady() {
-		return ((getBattleStatus() & 0x2) >> 1) == 1;
+		return ready;
+	}
+
+	public void setReady(boolean ready) {
+		this.ready = ready;
 	}
 
 	public int getTeam() {
-		return (getBattleStatus() & 0x3C) >> 2;
+		return team;
+	}
+
+	public void setTeam(int team) {
+		this.team = team;
 	}
 
 	public int getAllyTeam() {
-		return (getBattleStatus() & 0x3C0) >> 6;
+		return allyTeam;
+	}
+
+	public void setAllyTeam(int allyTeam) {
+		this.allyTeam = allyTeam;
 	}
 
 	/**
 	 * Also called mode.
 	 */
 	public boolean isSpectator() {
-		return ((getBattleStatus() & 0x400) >> 10) == 0;
-	}
-
-	public int getHandicap() {
-		return (getBattleStatus() & 0x3F800) >> 11;
-	}
-
-	public int getSync() {
-		return (getBattleStatus() & 0xC00000) >> 22;
-	}
-
-	public int getSide() {
-		return getBattleStatus() & 0xF000000 >> 24;
-	}
-
-	public void setReady(boolean ready) {
-		battleStatus = (getBattleStatus() & 0xFFFFFFFD) | ((ready ? 1 : 0) << 1);
-	}
-
-	public void setTeam(int team) {
-		battleStatus = (getBattleStatus() & 0xFFFFFFC3) | (team << 2);
-	}
-
-	public void setAllyTeam(int allyTeam) {
-		battleStatus = (getBattleStatus() & 0xFFFFFC3F) | (allyTeam << 6);
+		return spectator;
 	}
 
 	/**
 	 * Also called mode.
 	 */
-	public void setSpectator(boolean spec) {
-		battleStatus = (getBattleStatus() & 0xFFFFFBFF) | ((spec ? 0 : 1) << 10);
+	public void setSpectator(boolean spectator) {
+		this.spectator = spectator;
+	}
+
+	public int getHandicap() {
+		return handicap;
 	}
 
 	public void setHandicap(int handicap) {
-		battleStatus = (getBattleStatus() & 0xFFFC07FF) | (handicap << 11);
+		this.handicap = handicap;
+	}
+
+	public int getSync() {
+		return sync;
 	}
 
 	public void setSync(int sync) {
-		battleStatus = (getBattleStatus() & 0xFF3FFFFF) | (sync << 22);
+		this.sync = sync;
+	}
+
+	public int getSide() {
+		return side;
 	}
 
 	public void setSide(int side) {
-		battleStatus = (getBattleStatus() & 0xF0FFFFFF) | (side << 24);
+		this.side = side;
 	}
 }

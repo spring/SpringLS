@@ -56,7 +56,7 @@ public class OpenBattleCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 		getContext().getBattles().addBattle(bat);
-		client.setBattleStatus(0); // reset client's battle status
+		client.setDefaultBattleStatus();
 		client.setBattleID(bat.getId());
 		client.setRequestedBattleID(Battle.NO_BATTLE_ID);
 
