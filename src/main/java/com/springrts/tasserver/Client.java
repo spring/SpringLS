@@ -69,10 +69,11 @@ public class Client extends TeamController implements ContextReceiver {
 	 * e.g. "hole punching".
 	 */
 	private int udpSourcePort;
-	/**
-	 * See the 'MYSTATUS' command for valid values.
-	 */
-	private int status;
+	private boolean inGame;
+	private boolean away;
+	private Account.Rank rank;
+	private boolean access;
+	private boolean bot;
 	/**
 	 * ID of the battle in which this client is participating.
 	 * Has to be -1 if not participating in any battle.
@@ -193,7 +194,11 @@ public class Client extends TeamController implements ContextReceiver {
 		udpSourcePort = 0; // yet unknown
 		selKey = null;
 		recvBuf = new StringBuilder();
-		status = 0;
+		inGame = false;
+		away = false;
+		rank = Account.Rank.Newbie;
+		access = false;
+		bot = false;
 		country = IP2Country.getInstance().getCountryCode(Misc.ip2Long(ip));
 		inGameTime = 0;
 		battleID = Battle.NO_BATTLE_ID;
@@ -510,51 +515,43 @@ public class Client extends TeamController implements ContextReceiver {
 	// various methods dealing with client status
 
 	public boolean isInGame() {
-		return (status & 0x1) == 1;
-	}
-
-	public boolean isAway() {
-		return ((status & 0x2) >> 1) == 1;
-	}
-
-	public int getRank() {
-		return (status & 0x1C) >> 2;
-	}
-
-	public boolean isAccess() {
-		return ((status & 0x20) >> 5) == 1;
-	}
-
-	public boolean isBot() {
-		return ((status & 0x40) >> 6) == 1;
+		return inGame;
 	}
 
 	public void setInGame(boolean inGame) {
+		this.inGame = inGame;
+	}
 
-		int newBitValue = (inGame ? 1 : 0);
-		status = (status & 0xFFFFFFFE) | newBitValue;
+	public boolean isAway() {
+		return away;
 	}
 
 	public void setAway(boolean away) {
-
-		int newBitValue = ((away ? 1 : 0) << 1);
-		status = (status & 0xFFFFFFFD) | newBitValue;
+		this.away = away;
 	}
 
-	public void setRank(int rank) {
-		status = (status & 0xFFFFFFE3) | (rank << 2);
+	public Account.Rank getRank() {
+		return rank;
+	}
+
+	public void setRank(Account.Rank rank) {
+		this.rank = rank;
+	}
+
+	public boolean isAccess() {
+		return access;
 	}
 
 	public void setAccess(boolean access) {
-
-		int newBitValue = ((access ? 1 : 0) << 5);
-		status = (status & 0xFFFFFFDF) | newBitValue;
+		this.access = access;
 	}
 
-	public void setBot(boolean isBot) {
+	public boolean isBot() {
+		return bot;
+	}
 
-		int newBitValue = ((isBot ? 1 : 0) << 6);
-		status = (status & 0xFFFFFFBF) | newBitValue;
+	public void setBot(boolean bot) {
+		this.bot = bot;
 	}
 
 	/**
@@ -666,6 +663,15 @@ public class Client extends TeamController implements ContextReceiver {
 	 * @return the status
 	 */
 	public int getStatus() {
+
+		int status = 0;
+
+		status +=  isInGame() ? 1 : 0;
+		status += (isAway()   ? 1 : 0) << 1;
+		status +=  getRank().ordinal() << 2;
+		status += (isAccess() ? 1 : 0) << 5;
+		status += (isBot()    ? 1 : 0) << 6;
+
 		return status;
 	}
 
@@ -674,7 +680,17 @@ public class Client extends TeamController implements ContextReceiver {
 	 * @param status the status to set
 	 */
 	public void setStatus(int status) {
-		this.status = status;
+
+		setInGame( (status & 0x1)        == 1);
+		setAway(  ((status & 0x2)  >> 1) == 1);
+		// use highest rank if a too high value was specified
+		int rankIndex = (status & 0x1C) >> 2;
+		Account.Rank newRank = (rankIndex < Account.Rank.values().length)
+				? Account.Rank.values()[rankIndex]
+				: Account.Rank.values()[Account.Rank.values().length - 1];
+		setRank(newRank);
+		setAccess(((status & 0x20) >> 5) == 1);
+		setBot(   ((status & 0x40) >> 6) == 1);
 	}
 
 	/**
