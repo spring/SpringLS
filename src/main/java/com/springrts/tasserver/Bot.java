@@ -17,7 +17,7 @@ import java.awt.Color;
 public class Bot {
 
 	/**
-	 * The human readable name fo this Bot.
+	 * The human readable name of this Bot.
 	 * This is specified by the user adding the bot,
 	 * and may be an arbitrary string.
 	 * By default it is usually something like "Bot1".
@@ -70,7 +70,7 @@ public class Bot {
 	}
 
 	/**
-	 * The human readable name fo this Bot.
+	 * The human readable name of this Bot.
 	 * This is specified by the user adding the bot,
 	 * and may be an arbitrary string.
 	 * By default it is usually something like "Bot1".
@@ -123,5 +123,21 @@ public class Bot {
 	 */
 	public void setTeamColor(Color teamColor) {
 		this.teamColor = teamColor;
+	}
+
+	public int getTeam() {
+		return (getBattleStatus() & 0x3C) >> 2;
+	}
+
+	public int getAllyTeam() {
+		return (getBattleStatus() & 0x3C0) >> 6;
+	}
+
+	public void setTeam(int team) {
+		battleStatus = (getBattleStatus() & 0xFFFFFFC3) | (team << 2);
+	}
+
+	public void setAllyTeam(int allyTeam) {
+		battleStatus = (getBattleStatus() & 0xFFFFFC3F) | (allyTeam << 6);
 	}
 }

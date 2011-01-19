@@ -963,4 +963,66 @@ public class Client implements ContextReceiver {
 	public void addToDataOverLastTimePeriod(long nBytes) {
 		this.dataOverLastTimePeriod += nBytes;
 	}
+
+	public boolean isReady() {
+		return ((getBattleStatus() & 0x2) >> 1) == 1;
+	}
+
+	public int getTeam() {
+		return (getBattleStatus() & 0x3C) >> 2;
+	}
+
+	public int getAllyTeam() {
+		return (getBattleStatus() & 0x3C0) >> 6;
+	}
+
+	/**
+	 * Also called mode.
+	 */
+	public boolean isSpectator() {
+		return ((getBattleStatus() & 0x400) >> 10) == 0;
+	}
+
+	public int getHandicap() {
+		return (getBattleStatus() & 0x3F800) >> 11;
+	}
+
+	public int getSync() {
+		return (getBattleStatus() & 0xC00000) >> 22;
+	}
+
+	public int getSide() {
+		return getBattleStatus() & 0xF000000 >> 24;
+	}
+
+	public void setReady(boolean ready) {
+		battleStatus = (getBattleStatus() & 0xFFFFFFFD) | ((ready ? 1 : 0) << 1);
+	}
+
+	public void setTeam(int team) {
+		battleStatus = (getBattleStatus() & 0xFFFFFFC3) | (team << 2);
+	}
+
+	public void setAllyTeam(int allyTeam) {
+		battleStatus = (getBattleStatus() & 0xFFFFFC3F) | (allyTeam << 6);
+	}
+
+	/**
+	 * Also called mode.
+	 */
+	public void setSpectator(boolean spec) {
+		battleStatus = (getBattleStatus() & 0xFFFFFBFF) | ((spec ? 0 : 1) << 10);
+	}
+
+	public void setHandicap(int handicap) {
+		battleStatus = (getBattleStatus() & 0xFFFC07FF) | (handicap << 11);
+	}
+
+	public void setSync(int sync) {
+		battleStatus = (getBattleStatus() & 0xFF3FFFFF) | (sync << 22);
+	}
+
+	public void setSide(int side) {
+		battleStatus = (getBattleStatus() & 0xF0FFFFFF) | (side << 24);
+	}
 }

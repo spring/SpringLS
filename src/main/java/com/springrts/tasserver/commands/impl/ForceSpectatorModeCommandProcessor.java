@@ -21,7 +21,6 @@ package com.springrts.tasserver.commands.impl;
 import com.springrts.tasserver.Account;
 import com.springrts.tasserver.Battle;
 import com.springrts.tasserver.Client;
-import com.springrts.tasserver.Misc;
 import com.springrts.tasserver.commands.AbstractCommandProcessor;
 import com.springrts.tasserver.commands.CommandProcessingException;
 import com.springrts.tasserver.commands.SupportedCommand;
@@ -70,11 +69,11 @@ public class ForceSpectatorModeCommandProcessor extends AbstractCommandProcessor
 			return false;
 		}
 
-		if (Misc.getModeFromBattleStatus(target.getBattleStatus()) == 0) {
+		if (target.isSpectator()) {
 			// no need to change it, it's already set to spectator mode!
 			return false;
 		}
-		target.setBattleStatus(Misc.setModeOfBattleStatus(target.getBattleStatus(), 0));
+		target.setSpectator(true);
 		bat.notifyClientsOfBattleStatus(target);
 
 		return true;

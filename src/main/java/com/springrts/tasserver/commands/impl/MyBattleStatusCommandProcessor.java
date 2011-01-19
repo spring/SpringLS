@@ -57,18 +57,20 @@ public class MyBattleStatusCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		String newStatusStr = args.get(0);
+		String newBattleStatusStr = args.get(0);
 		String teamColorStr = args.get(1);
 
-		int newStatus;
+		int newBattleStatus;
 		try {
-			newStatus = Integer.parseInt(newStatusStr);
+			newBattleStatus = Integer.parseInt(newBattleStatusStr);
 		} catch (NumberFormatException ex) {
 			return false;
 		}
-		// update new battle status. Note: we ignore handicap value as it can be
-		// changed only by founder with HANDICAP command!
-		client.setBattleStatus(Misc.setHandicapOfBattleStatus(newStatus, Misc.getHandicapFromBattleStatus(client.getBattleStatus())));
+		int oldHandicap = client.getHandicap();
+		client.setBattleStatus(newBattleStatus);
+		// Note: We ignore the handicap value, as it can be changed only by the
+		// founder with the HANDICAP command!
+		client.setHandicap(oldHandicap);
 
 		Color newTeamColor = Misc.colorSpringStringToJava(teamColorStr);
 		if (newTeamColor == null) {
@@ -79,31 +81,31 @@ public class MyBattleStatusCommandProcessor extends AbstractCommandProcessor {
 		// if game is full or game type is "battle replay", force player's mode
 		// to spectator:
 		if ((bat.getClientsSize() + 1 - bat.spectatorCount() > bat.getMaxPlayers()) || (bat.getType() == 1)) {
-			client.setBattleStatus(Misc.setModeOfBattleStatus(client.getBattleStatus(), 0));
+			client.setSpectator(true);
 		}
 		// if player has chosen team number which is already used by some other
 		// player/bot, force his ally number and team color to be the same as of
 		// that player/bot:
 		if ((bat.getFounder() != client)
-				&& (Misc.getTeamNoFromBattleStatus(bat.getFounder().getBattleStatus()) == Misc.getTeamNoFromBattleStatus(client.getBattleStatus()))
-				&& (Misc.getModeFromBattleStatus(bat.getFounder().getBattleStatus()) != 0))
+				&& (bat.getFounder().getTeam() == client.getTeam())
+				&& !bat.getFounder().isSpectator())
 		{
-			client.setBattleStatus(Misc.setAllyNoOfBattleStatus(client.getBattleStatus(), Misc.getAllyNoFromBattleStatus(bat.getFounder().getBattleStatus())));
+			client.setAllyTeam(bat.getFounder().getAllyTeam());
 			client.setTeamColor(bat.getFounder().getTeamColor());
 		}
 		for (int i = 0; i < bat.getClientsSize(); i++) {
 			if ((bat.getClient(i) != client)
-					&& (Misc.getTeamNoFromBattleStatus(bat.getClient(i).getBattleStatus()) == Misc.getTeamNoFromBattleStatus(client.getBattleStatus()))
-					&& (Misc.getModeFromBattleStatus(bat.getClient(i).getBattleStatus()) != 0))
+					&& (bat.getClient(i).getTeam() == client.getTeam())
+					&& !bat.getClient(i).isSpectator())
 			{
-				client.setBattleStatus(Misc.setAllyNoOfBattleStatus(client.getBattleStatus(), Misc.getAllyNoFromBattleStatus(bat.getClient(i).getBattleStatus())));
+				client.setAllyTeam(bat.getClient(i).getAllyTeam());
 				client.setTeamColor(bat.getClient(i).getTeamColor());
 				break;
 			}
 		}
 		for (int i = 0; i < bat.getBotsSize(); i++) {
-			if (Misc.getTeamNoFromBattleStatus(bat.getBot(i).getBattleStatus()) == Misc.getTeamNoFromBattleStatus(client.getBattleStatus())) {
-				client.setBattleStatus(Misc.setAllyNoOfBattleStatus(client.getBattleStatus(), Misc.getAllyNoFromBattleStatus(bat.getBot(i).getBattleStatus())));
+			if (bat.getBot(i).getTeam() == client.getTeam()) {
+				client.setAllyTeam(bat.getBot(i).getAllyTeam());
 				client.setTeamColor(bat.getBot(i).getTeamColor());
 				break;
 			}

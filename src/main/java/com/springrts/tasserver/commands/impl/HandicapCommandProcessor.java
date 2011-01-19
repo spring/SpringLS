@@ -21,7 +21,6 @@ package com.springrts.tasserver.commands.impl;
 import com.springrts.tasserver.Account;
 import com.springrts.tasserver.Battle;
 import com.springrts.tasserver.Client;
-import com.springrts.tasserver.Misc;
 import com.springrts.tasserver.commands.AbstractCommandProcessor;
 import com.springrts.tasserver.commands.CommandProcessingException;
 import com.springrts.tasserver.commands.SupportedCommand;
@@ -83,7 +82,7 @@ public class HandicapCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		target.setBattleStatus(Misc.setHandicapOfBattleStatus(target.getBattleStatus(), handicap));
+		target.setHandicap(handicap);
 		bat.notifyClientsOfBattleStatus(target);
 
 		return true;

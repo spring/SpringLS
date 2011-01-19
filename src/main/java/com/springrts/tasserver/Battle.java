@@ -312,11 +312,11 @@ public class Battle implements ContextReceiver {
 		int count = 0;
 
 		for (int i = 0; i < clients.size(); i++) {
-			if (Misc.getModeFromBattleStatus(clients.get(i).getBattleStatus()) == 0) {
+			if (clients.get(i).isSpectator()) {
 				count++;
 			}
 		}
-		if (Misc.getModeFromBattleStatus(getFounder().getBattleStatus()) == 0) {
+		if (getFounder().isSpectator()) {
 			count++;
 		}
 

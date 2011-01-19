@@ -557,69 +557,6 @@ public class Misc {
 		return springColor;
 	}
 
-	// BEGIN: various methods dealing with battleStatus
-	/// FIXME refracture, so we have Battle#getReadyStatus()
-	public static int getReadyStatusFromBattleStatus(int battleStatus) {
-		return (battleStatus & 0x2) >> 1;
-	}
-
-	/// FIXME refracture, so we have Battle#getTeam()
-	public static int getTeamNoFromBattleStatus(int battleStatus) {
-		return (battleStatus & 0x3C) >> 2;
-	}
-
-	/// FIXME refracture, so we have Battle#getAllyNo()
-	public static int getAllyNoFromBattleStatus(int battleStatus) {
-		return (battleStatus & 0x3C0) >> 6;
-	}
-
-	/// FIXME refracture, so we have Battle#getMode()
-	public static int getModeFromBattleStatus(int battleStatus) {
-		return (battleStatus & 0x400) >> 10;
-	}
-
-	/// FIXME refracture, so we have Battle#getHandicap()
-	public static int getHandicapFromBattleStatus(int battleStatus) {
-		return (battleStatus & 0x3F800) >> 11;
-	}
-
-	public static int getSyncFromBattleStatus(int battleStatus) {
-		return (battleStatus & 0xC00000) >> 22;
-	}
-
-	public static int getSideFromBattleStatus(int battleStatus) {
-		return battleStatus & 0xF000000 >> 24;
-	}
-
-	public static int setReadyStatusOfBattleStatus(int battleStatus, int ready) {
-		return (battleStatus & 0xFFFFFFFD) | (ready << 1);
-	}
-
-	public static int setTeamNoOfBattleStatus(int battleStatus, int team) {
-		return (battleStatus & 0xFFFFFFC3) | (team << 2);
-	}
-
-	public static int setAllyNoOfBattleStatus(int battleStatus, int ally) {
-		return (battleStatus & 0xFFFFFC3F) | (ally << 6);
-	}
-
-	public static int setModeOfBattleStatus(int battleStatus, int mode) {
-		return (battleStatus & 0xFFFFFBFF) | (mode << 10);
-	}
-
-	public static int setHandicapOfBattleStatus(int battleStatus, int handicap) {
-		return (battleStatus & 0xFFFC07FF) | (handicap << 11);
-	}
-
-	public static int setSyncOfBattleStatus(int battleStatus, int sync) {
-		return (battleStatus & 0xFF3FFFFF) | (sync << 22);
-	}
-
-	public static int setSideOfBattleStatus(int battleStatus, int side) {
-		return (battleStatus & 0xF0FFFFFF) | (side << 24);
-	}
-	// END: various methods dealing with battleStatus
-
 	public static  boolean isSameIP(final String[] ip1Split, final String ip2) {
 
 		String[] ip2Split = ip2.split("\\.");
