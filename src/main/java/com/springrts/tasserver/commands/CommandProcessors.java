@@ -69,6 +69,8 @@ import com.springrts.tasserver.commands.impl.LongTimeToDateCommandProcessor;
 import com.springrts.tasserver.commands.impl.MemoryAvailableCommandProcessor;
 import com.springrts.tasserver.commands.impl.MuteCommandProcessor;
 import com.springrts.tasserver.commands.impl.MuteListCommandProcessor;
+import com.springrts.tasserver.commands.impl.MyBattleStatusCommandProcessor;
+import com.springrts.tasserver.commands.impl.MyStatusCommandProcessor;
 import com.springrts.tasserver.commands.impl.OpenBattleCommandProcessor;
 import com.springrts.tasserver.commands.impl.PingCommandProcessor;
 import com.springrts.tasserver.commands.impl.ReInitializeIp2CountryCommandProcessor;
@@ -234,6 +236,8 @@ public class CommandProcessors implements ContextReceiver {
 		commandProcessorClasses.add(JoinBattleAcceptCommandProcessor.class);
 		commandProcessorClasses.add(JoinBattleDenyCommandProcessor.class);
 		commandProcessorClasses.add(LeaveBattleCommandProcessor.class);
+		commandProcessorClasses.add(MyBattleStatusCommandProcessor.class);
+		commandProcessorClasses.add(MyStatusCommandProcessor.class);
 
 		try {
 			load(commandProcessorClasses);
