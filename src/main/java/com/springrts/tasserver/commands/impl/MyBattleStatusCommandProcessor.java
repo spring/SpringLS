@@ -66,16 +66,17 @@ public class MyBattleStatusCommandProcessor extends AbstractCommandProcessor {
 		} catch (NumberFormatException ex) {
 			return false;
 		}
-		int oldHandicap = client.getHandicap();
-		client.setBattleStatus(newBattleStatus);
-		// Note: We ignore the handicap value, as it can be changed only by the
-		// founder with the HANDICAP command!
-		client.setHandicap(oldHandicap);
 
 		Color newTeamColor = Misc.colorSpringStringToJava(teamColorStr);
 		if (newTeamColor == null) {
 			return false;
 		}
+
+		int oldHandicap = client.getHandicap();
+		client.setBattleStatus(newBattleStatus);
+		// Note: We ignore the handicap value, as it can be changed only by the
+		// founder with the HANDICAP command!
+		client.setHandicap(oldHandicap);
 		client.setTeamColor(newTeamColor);
 
 		// if game is full or game type is "battle replay", force player's mode
