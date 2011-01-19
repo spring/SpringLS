@@ -59,6 +59,10 @@ public class Bot {
 		this.teamColor = teamColor;
 	}
 
+	public static boolean isValidName(String name) {
+		return name.matches("^[A-Za-z0-9_]+$");
+	}
+
 	public String getSpecifier() {
 		return (shortName + "|" + version);
 	}

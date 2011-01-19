@@ -20,6 +20,7 @@ package com.springrts.tasserver.commands;
 
 import com.springrts.tasserver.Context;
 import com.springrts.tasserver.ContextReceiver;
+import com.springrts.tasserver.commands.impl.AddBotCommandProcessor;
 import com.springrts.tasserver.commands.impl.AddNotificationCommandProcessor;
 import com.springrts.tasserver.commands.impl.AdminBroadcastCommandProcessor;
 import com.springrts.tasserver.commands.impl.BroadcastCommandProcessor;
@@ -83,6 +84,7 @@ import com.springrts.tasserver.commands.impl.RedirectCommandProcessor;
 import com.springrts.tasserver.commands.impl.RedirectOffCommandProcessor;
 import com.springrts.tasserver.commands.impl.RegisterCommandProcessor;
 import com.springrts.tasserver.commands.impl.RemoveAccountCommandProcessor;
+import com.springrts.tasserver.commands.impl.RemoveBotCommandProcessor;
 import com.springrts.tasserver.commands.impl.RenameAccountCommandProcessor;
 import com.springrts.tasserver.commands.impl.SaveAccountsServerCommandProcessor;
 import com.springrts.tasserver.commands.impl.SayBattleCommandProcessor;
@@ -98,6 +100,7 @@ import com.springrts.tasserver.commands.impl.TestLoginCommandProcessor;
 import com.springrts.tasserver.commands.impl.UnmuteCommandProcessor;
 import com.springrts.tasserver.commands.impl.UpTimeCommandProcessor;
 import com.springrts.tasserver.commands.impl.UpdateBattleInfoCommandProcessor;
+import com.springrts.tasserver.commands.impl.UpdateBotCommandProcessor;
 import com.springrts.tasserver.commands.impl.UpdateIp2CountryCommandProcessor;
 import com.springrts.tasserver.commands.impl.UpdateMotdCommandProcessor;
 import com.springrts.tasserver.commands.impl.UpdateStatisticsCommandProcessor;
@@ -250,6 +253,9 @@ public class CommandProcessors implements ContextReceiver {
 		commandProcessorClasses.add(ForceAllyNumberCommandProcessor.class);
 		commandProcessorClasses.add(ForceTeamColorCommandProcessor.class);
 		commandProcessorClasses.add(ForceSpectatorModeCommandProcessor.class);
+		commandProcessorClasses.add(AddBotCommandProcessor.class);
+		commandProcessorClasses.add(RemoveBotCommandProcessor.class);
+		commandProcessorClasses.add(UpdateBotCommandProcessor.class);
 
 		try {
 			load(commandProcessorClasses);
