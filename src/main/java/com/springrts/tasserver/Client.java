@@ -5,6 +5,7 @@
 package com.springrts.tasserver;
 
 
+import java.awt.Color;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
@@ -80,7 +81,7 @@ public class Client implements ContextReceiver {
 	/**
 	 * See the 'MYBATTLESTATUS' command for valid values.
 	 */
-	private int teamColor;
+	private Color teamColor;
 	/**
 	 * ID of the battle in which this client is participating.
 	 * Has to be -1 if not participating in any battle.
@@ -204,7 +205,7 @@ public class Client implements ContextReceiver {
 		status = 0;
 		country = IP2Country.getInstance().getCountryCode(Misc.ip2Long(ip));
 		battleStatus = 0;
-		teamColor = 0;
+		teamColor = Color.BLACK;
 		inGameTime = 0;
 		battleID = Battle.NO_BATTLE_ID;
 		requestedBattleID = Battle.NO_BATTLE_ID;
@@ -707,7 +708,7 @@ public class Client implements ContextReceiver {
 	 * See the 'MYBATTLESTATUS' command for valid values.
 	 * @return the teamColor
 	 */
-	public int getTeamColor() {
+	public Color getTeamColor() {
 		return teamColor;
 	}
 
@@ -715,7 +716,7 @@ public class Client implements ContextReceiver {
 	 * See the 'MYBATTLESTATUS' command for valid values.
 	 * @param teamColor the teamColor to set
 	 */
-	public void setTeamColor(int teamColor) {
+	public void setTeamColor(Color teamColor) {
 		this.teamColor = teamColor;
 	}
 

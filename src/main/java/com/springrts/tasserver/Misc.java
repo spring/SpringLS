@@ -5,6 +5,7 @@
 package com.springrts.tasserver;
 
 
+import java.awt.Color;
 import net.iharder.Base64;
 
 import java.io.BufferedInputStream;
@@ -500,6 +501,60 @@ public class Misc {
 		}
 
 		return res.toString();
+	}
+
+	/**
+	 * @see #colorSpringToJava(int)
+	 */
+	public static Color colorSpringStringToJava(String springColor) {
+
+		Color color = null;
+
+		try {
+			color = colorSpringToJava(Integer.parseInt(springColor));
+		} catch (NumberFormatException ex) {
+		}
+
+		return color;
+	}
+
+	/**
+	 * This can be used for converting a lobby protocol color into a java color.
+	 * See  of the myteamcolor argument of the MYBATTLESTATUS command for an
+	 * example.
+	 * Should be 32-bit signed integer in decimal form (e.g. 255 and not FF)
+	 * where each color channel should occupy 1 byte (e.g. in hexadecimal:
+	 * "00BBGGRR", B = blue, G = green, R = red).
+	 * Example: 255 stands for "000000FF".
+	 * @see #colorJavaToSpring(Color)
+	 */
+	public static Color colorSpringToJava(int springColor) {
+
+		Color color = null;
+
+		int red   = springColor       & 255;
+		int green = springColor >> 8  & 255;
+		int blue  = springColor >> 16 & 255;
+		int alpha = springColor >> 24 & 255;
+		color = new Color(red, green, blue, alpha);
+
+		return color;
+	}
+
+	/**
+	 * This can be used for converting a java color into a lobby protocol color.
+	 * @see #colorSpringToJava(int)
+	 */
+	public static int colorJavaToSpring(Color color) {
+
+		int springColor = 0;
+
+		springColor += color.getAlpha() << 24;
+		springColor += color.getBlue()  << 16;
+		springColor += color.getGreen() << 8;
+		springColor += color.getRed();
+
+		return springColor;
 	}
 
 	// BEGIN: various methods dealing with battleStatus

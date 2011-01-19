@@ -25,6 +25,7 @@ import com.springrts.tasserver.Misc;
 import com.springrts.tasserver.commands.AbstractCommandProcessor;
 import com.springrts.tasserver.commands.CommandProcessingException;
 import com.springrts.tasserver.commands.SupportedCommand;
+import java.awt.Color;
 import java.util.List;
 
 /**
@@ -69,10 +70,8 @@ public class MyBattleStatusCommandProcessor extends AbstractCommandProcessor {
 		// changed only by founder with HANDICAP command!
 		client.setBattleStatus(Misc.setHandicapOfBattleStatus(newStatus, Misc.getHandicapFromBattleStatus(client.getBattleStatus())));
 
-		int newTeamColor;
-		try {
-			newTeamColor = Integer.parseInt(teamColorStr);
-		} catch (NumberFormatException e) {
+		Color newTeamColor = Misc.colorSpringStringToJava(teamColorStr);
+		if (newTeamColor == null) {
 			return false;
 		}
 		client.setTeamColor(newTeamColor);

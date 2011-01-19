@@ -22,9 +22,11 @@ import com.springrts.tasserver.Account;
 import com.springrts.tasserver.Battle;
 import com.springrts.tasserver.Bot;
 import com.springrts.tasserver.Client;
+import com.springrts.tasserver.Misc;
 import com.springrts.tasserver.commands.AbstractCommandProcessor;
 import com.springrts.tasserver.commands.CommandProcessingException;
 import com.springrts.tasserver.commands.SupportedCommand;
+import java.awt.Color;
 import java.util.List;
 
 /**
@@ -73,10 +75,8 @@ public class UpdateBotCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		int teamColor;
-		try {
-			teamColor = Integer.parseInt(teamColorStr);
-		} catch (NumberFormatException e) {
+		Color teamColor = Misc.colorSpringStringToJava(teamColorStr);
+		if (teamColor == null) {
 			return false;
 		}
 
@@ -94,7 +94,7 @@ public class UpdateBotCommandProcessor extends AbstractCommandProcessor {
 				.append(bat.getId()).append(" ")
 				.append(bot.getName()).append(" ")
 				.append(bot.getBattleStatus()).append(" ")
-				.append(bot.getTeamColor()).toString());
+				.append(Misc.colorJavaToSpring(bot.getTeamColor())).toString());
 
 		return true;
 	}

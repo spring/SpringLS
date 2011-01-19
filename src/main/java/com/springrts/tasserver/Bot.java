@@ -5,6 +5,8 @@
 package com.springrts.tasserver;
 
 
+import java.awt.Color;
+
 /**
  * This is used for "native" Skirmish AIs and also for Lua AIs,
  * while the "native" ones can be of any language, as of spring 0.79,
@@ -46,9 +48,9 @@ public class Bot {
 	 * Note: some bits of battle status are not used with Bot
 	 */
 	private int battleStatus;
-	private int teamColor;
+	private Color teamColor;
 
-	public Bot(String name, String ownerName, String specifier, int battleStatus, int teamColor) {
+	public Bot(String name, String ownerName, String specifier, int battleStatus, Color teamColor) {
 
 		this.name = name;
 		this.ownerName = ownerName;
@@ -112,14 +114,14 @@ public class Bot {
 	/**
 	 * @return the teamColor
 	 */
-	public int getTeamColor() {
+	public Color getTeamColor() {
 		return teamColor;
 	}
 
 	/**
 	 * @param teamColor the teamColor to set
 	 */
-	public void setTeamColor(int teamColor) {
+	public void setTeamColor(Color teamColor) {
 		this.teamColor = teamColor;
 	}
 }

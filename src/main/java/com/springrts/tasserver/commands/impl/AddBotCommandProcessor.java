@@ -26,6 +26,7 @@ import com.springrts.tasserver.Misc;
 import com.springrts.tasserver.commands.AbstractCommandProcessor;
 import com.springrts.tasserver.commands.CommandProcessingException;
 import com.springrts.tasserver.commands.SupportedCommand;
+import java.awt.Color;
 import java.util.List;
 
 /**
@@ -66,10 +67,8 @@ public class AddBotCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		int teamColor;
-		try {
-			teamColor = Integer.parseInt(teamColorStr);
-		} catch (NumberFormatException e) {
+		Color teamColor = Misc.colorSpringStringToJava(teamColorStr);
+		if (teamColor == null) {
 			return false;
 		}
 

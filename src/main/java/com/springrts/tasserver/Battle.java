@@ -185,14 +185,14 @@ public class Battle implements ContextReceiver {
 				client.sendLine(new StringBuilder("CLIENTBATTLESTATUS ")
 						.append(this.clients.get(i).getAccount().getName()).append(" ")
 						.append(this.clients.get(i).getBattleStatus()).append(" ")
-						.append(this.clients.get(i).getTeamColor()).toString());
+						.append(Misc.colorJavaToSpring(this.clients.get(i).getTeamColor())).toString());
 			}
 		}
 		if (getFounder() != client) {
 			client.sendLine(new StringBuilder("CLIENTBATTLESTATUS ")
 					.append(getFounder().getAccount().getName()).append(" ")
 					.append(getFounder().getBattleStatus()).append(" ")
-					.append(getFounder().getTeamColor()).toString());
+					.append(Misc.colorJavaToSpring(getFounder().getTeamColor())).toString());
 		}
 	}
 
@@ -204,7 +204,7 @@ public class Battle implements ContextReceiver {
 		sendToAllClients(new StringBuilder("CLIENTBATTLESTATUS ")
 				.append(client.getAccount().getName()).append(" ")
 				.append(client.getBattleStatus()).append(" ")
-				.append(client.getTeamColor()).toString());
+				.append(Misc.colorJavaToSpring(client.getTeamColor())).toString());
 	}
 
 	public void notifyClientJoined(Client client) {
@@ -442,7 +442,7 @@ public class Battle implements ContextReceiver {
 					.append(bot.getName()).append(" ")
 					.append(bot.getOwnerName()).append(" ")
 					.append(bot.getBattleStatus()).append(" ")
-					.append(bot.getTeamColor()).append(" ")
+					.append(Misc.colorJavaToSpring(bot.getTeamColor())).append(" ")
 					.append(bot.getSpecifier()).toString());
 		}
 	}
