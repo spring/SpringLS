@@ -67,7 +67,7 @@ public class RingCommandProcessor extends AbstractCommandProcessor {
 			Battle bat = getContext().getBattles().getBattleByID(client.getBattleID());
 			getContext().getBattles().verify(bat);
 
-			if (!bat.isClientInBattle(username)) {
+			if (!bat.isClientInBattle(target)) {
 				client.sendLine("SERVERMSG RING command failed: You don't have permission to ring players other than those participating in your battle!");
 				return false;
 			}

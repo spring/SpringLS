@@ -5,6 +5,7 @@
 package com.springrts.tasserver;
 
 
+import com.springrts.tasserver.util.Processor;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -73,10 +74,14 @@ public class Battles implements ContextReceiver {
 	/** Will close given battle and notify all clients about it */
 	public void closeBattleAndNotifyAll(Battle battle) {
 
-		for (int i = 0; i < battle.getClientsSize(); i++) {
-			battle.getClient(i).setBattleID(Battle.NO_BATTLE_ID);
-		}
-		battle.getFounder().setBattleID(Battle.NO_BATTLE_ID);
+		Processor<Client> closeBattle = new Processor<Client>() {
+			@Override
+			public void process(Client curClient) {
+				curClient.setBattleID(Battle.NO_BATTLE_ID);
+			}
+		};
+		battle.applyToClientsAndFounder(closeBattle);
+
 		context.getClients().sendToAllRegisteredUsers("BATTLECLOSED " + battle.getId());
 		battles.remove(battle);
 	}
@@ -108,11 +113,11 @@ public class Battles implements ContextReceiver {
 	 * Will send a list of all active battles and users participating in it to
 	 * the given client
 	 */
-	public void sendInfoOnBattlesToClient(Client client) {
+	public void sendInfoOnBattlesToClient(final Client client) {
 
 		client.beginFastWrite();
 		for (int i = 0; i < battles.size(); i++) {
-			Battle bat = battles.get(i);
+			final Battle bat = battles.get(i);
 			// make sure that clients behind NAT get local IPs and not external ones
 			boolean local = bat.getFounder().getIp().equals(client.getIp());
 			client.sendLine(bat.createBattleOpenedCommandEx(local));
@@ -125,11 +130,15 @@ public class Battles implements ContextReceiver {
 					.append(Misc.boolToStr(bat.isLocked())).append(" ")
 					.append(bat.getMapHash()).append(" ")
 					.append(bat.getMapName()).toString());
-			for (int j = 0; j < bat.getClientsSize(); j++) {
-				client.sendLine(new StringBuilder("JOINEDBATTLE ")
-						.append(bat.getId()).append(" ")
-						.append(bat.getClient(j).getAccount().getName()).toString());
-			}
+			Processor<Client> closeBattle = new Processor<Client>() {
+				@Override
+				public void process(Client curClient) {
+					client.sendLine(new StringBuilder("JOINEDBATTLE ")
+							.append(bat.getId()).append(" ")
+							.append(curClient.getAccount().getName()).toString());
+				}
+			};
+			bat.applyToClients(closeBattle);
 		}
 		client.endFastWrite();
 	}

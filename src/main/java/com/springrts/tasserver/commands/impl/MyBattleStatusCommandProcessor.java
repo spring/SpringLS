@@ -21,7 +21,9 @@ package com.springrts.tasserver.commands.impl;
 import com.springrts.tasserver.Account;
 import com.springrts.tasserver.Battle;
 import com.springrts.tasserver.Client;
+import com.springrts.tasserver.util.Processor;
 import com.springrts.tasserver.Misc;
+import com.springrts.tasserver.TeamController;
 import com.springrts.tasserver.commands.AbstractCommandProcessor;
 import com.springrts.tasserver.commands.CommandProcessingException;
 import com.springrts.tasserver.commands.SupportedCommand;
@@ -40,7 +42,7 @@ public class MyBattleStatusCommandProcessor extends AbstractCommandProcessor {
 	}
 
 	@Override
-	public boolean process(Client client, List<String> args)
+	public boolean process(final Client client, List<String> args)
 			throws CommandProcessingException
 	{
 		boolean checksOk = super.process(client, args);
@@ -87,30 +89,19 @@ public class MyBattleStatusCommandProcessor extends AbstractCommandProcessor {
 		// if player has chosen team number which is already used by some other
 		// player/bot, force his ally number and team color to be the same as of
 		// that player/bot:
-		if ((bat.getFounder() != client)
-				&& (bat.getFounder().getTeam() == client.getTeam())
-				&& !bat.getFounder().isSpectator())
-		{
-			client.setAllyTeam(bat.getFounder().getAllyTeam());
-			client.setTeamColor(bat.getFounder().getTeamColor());
-		}
-		for (int i = 0; i < bat.getClientsSize(); i++) {
-			if ((bat.getClient(i) != client)
-					&& (bat.getClient(i).getTeam() == client.getTeam())
-					&& !bat.getClient(i).isSpectator())
-			{
-				client.setAllyTeam(bat.getClient(i).getAllyTeam());
-				client.setTeamColor(bat.getClient(i).getTeamColor());
-				break;
+		Processor<TeamController> alignAllyTeamAndColor = new Processor<TeamController>() {
+			@Override
+			public void process(TeamController curTeamController) {
+				if ((curTeamController != client)
+						&& (curTeamController.getTeam() == client.getTeam())
+						&& !curTeamController.isSpectator())
+				{
+					client.setAllyTeam(curTeamController.getAllyTeam());
+					client.setTeamColor(curTeamController.getTeamColor());
+				}
 			}
-		}
-		for (int i = 0; i < bat.getBotsSize(); i++) {
-			if (bat.getBot(i).getTeam() == client.getTeam()) {
-				client.setAllyTeam(bat.getBot(i).getAllyTeam());
-				client.setTeamColor(bat.getBot(i).getTeamColor());
-				break;
-			}
-		}
+		};
+		bat.applyToTeamControllers(alignAllyTeamAndColor);
 
 		bat.notifyClientsOfBattleStatus(client);
 

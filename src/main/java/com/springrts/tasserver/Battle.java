@@ -5,6 +5,7 @@
 package com.springrts.tasserver;
 
 
+import com.springrts.tasserver.util.Processor;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -172,28 +173,31 @@ public class Battle implements ContextReceiver {
 				.append(getModName()).toString();
 	}
 
+	private static class BattleStatusNotifyer implements Processor<Client> {
+
+		private final Client client;
+
+		BattleStatusNotifyer(Client client) {
+			this.client = client;
+		}
+
+		@Override
+		public void process(Client curClient) {
+			if (curClient != client) {
+				client.sendLine(new StringBuilder("CLIENTBATTLESTATUS ")
+						.append(curClient.getAccount().getName()).append(" ")
+						.append(curClient.getBattleStatus()).append(" ")
+						.append(Misc.colorJavaToSpring(curClient.getTeamColor())).toString());
+			}
+		}
+	}
+
 	/**
 	 * Sends series of CLIENTBATTLESTATUS command to client telling him
 	 * about the battle stati of all clients in this battle EXCEPT for himself!
 	 */
-	public void notifyOfBattleStatuses(Client client) {
-
-		for (int i = 0; i < this.clients.size(); i++) {
-			if (this.clients.get(i) == client) {
-				continue;
-			} else {
-				client.sendLine(new StringBuilder("CLIENTBATTLESTATUS ")
-						.append(this.clients.get(i).getAccount().getName()).append(" ")
-						.append(this.clients.get(i).getBattleStatus()).append(" ")
-						.append(Misc.colorJavaToSpring(this.clients.get(i).getTeamColor())).toString());
-			}
-		}
-		if (getFounder() != client) {
-			client.sendLine(new StringBuilder("CLIENTBATTLESTATUS ")
-					.append(getFounder().getAccount().getName()).append(" ")
-					.append(getFounder().getBattleStatus()).append(" ")
-					.append(Misc.colorJavaToSpring(getFounder().getTeamColor())).toString());
-		}
+	public void notifyOfBattleStatuses(final Client client) {
+		applyToClientsAndFounder(new BattleStatusNotifyer(client));
 	}
 
 	/**
@@ -201,6 +205,7 @@ public class Battle implements ContextReceiver {
 	 * about the new battle status of the client.
 	 */
 	public void notifyClientsOfBattleStatus(Client client) {
+
 		sendToAllClients(new StringBuilder("CLIENTBATTLESTATUS ")
 				.append(client.getAccount().getName()).append(" ")
 				.append(client.getBattleStatus()).append(" ")
@@ -236,37 +241,78 @@ public class Battle implements ContextReceiver {
 		}
 	}
 
-	/**
-	 * Sends <code>s</code> to all clients participating in this battle.
-	 */
-	public void sendToAllClients(String s) {
 
-		for (int i = 0; i < this.clients.size(); i++) {
-			clients.get(i).sendLine(s);
+	private static class MessageSender implements Processor<Client> {
+
+		private final String message;
+
+		MessageSender(String message) {
+			this.message = message;
 		}
-		getFounder().sendLine(s);
+
+		@Override
+		public void process(Client curClient) {
+			curClient.sendLine(message);
+		}
+	}
+	/**
+	 * Sends <code>message</code> to all clients participating in this battle.
+	 */
+	public void sendToAllClients(final String message) {
+		applyToClientsAndFounder(new MessageSender(message));
 	}
 
 	/**
-	 * Sends <code>s</code> to all clients participating in this battle
+	 * Sends <code>message</code> to all clients participating in this battle
 	 * except for the founder.
 	 */
-	public void sendToAllExceptFounder(String s) {
-		for (int i = 0; i < this.clients.size(); i++) {
-			clients.get(i).sendLine(s);
-		}
+	public void sendToAllExceptFounder(final String message) {
+		applyToClients(new MessageSender(message));
 	}
 
 	public String clientsToString() {
 
-		if (this.clients.isEmpty()) {
-			return "";
+		String clientsString = null;
+
+		if (!clients.isEmpty()) {
+			StringBuilder sb = new StringBuilder(clients.get(0).getAccount().getName());
+			for (Client curClient : clients) {
+				sb.append(" ").append(curClient.getAccount().getName());
+			}
+			clientsString = sb.toString();
+		} else {
+			clientsString = "";
 		}
-		StringBuilder sb = new StringBuilder(clients.get(0).getAccount().getName());
-		for (int i = 1; i < this.clients.size(); i++) {
-			sb.append(" ").append(clients.get(i).getAccount().getName());
+
+		return clientsString;
+	}
+
+
+	public void applyToClients(Processor<? super Client> clientsProcessor) {
+
+		for (Client client : clients) {
+			clientsProcessor.process(client);
 		}
-		return sb.toString();
+	}
+
+	public void applyToClientsAndFounder(Processor<? super Client> clientsProcessor) {
+
+		applyToClients(clientsProcessor);
+		clientsProcessor.process(founder);
+	}
+
+	private void applyToBots(Processor<? super Bot> botsProcessor) {
+
+		for (Bot bot : bots) {
+			botsProcessor.process(bot);
+		}
+	}
+
+	public void applyToTeamControllers(Processor<? super TeamController> teamControllerProcessor) {
+
+		applyToClients(teamControllerProcessor);
+		teamControllerProcessor.process(founder);
+		applyToBots(teamControllerProcessor);
 	}
 
 	/**
@@ -275,14 +321,6 @@ public class Battle implements ContextReceiver {
 	 */
 	public int getClientsSize() {
 		return clients.size();
-	}
-
-	public Client getClient(int index) {
-		try {
-			return clients.get(index);
-		} catch (IndexOutOfBoundsException e) {
-			return null;
-		}
 	}
 
 	public boolean addClient(Client client) {
@@ -301,6 +339,22 @@ public class Battle implements ContextReceiver {
 		return getFounder().isInGame();
 	}
 
+	private static class SpectatorCounter implements Processor<Client> {
+
+		private int count = 0;
+
+		@Override
+		public void process(Client curClient) {
+			if (curClient.isSpectator()) {
+				count++;
+			}
+		}
+
+		public int getCount() {
+			return count;
+		}
+	}
+
 	/**
 	 * Returns number of spectators in this battle. Note that this operation is
 	 * not very fast - we have to go through the entire list of clients in this
@@ -309,33 +363,27 @@ public class Battle implements ContextReceiver {
 	 */
 	public int spectatorCount() {
 
-		int count = 0;
+		SpectatorCounter spectatorCounter = new SpectatorCounter();
+		applyToClientsAndFounder(spectatorCounter);
 
-		for (int i = 0; i < clients.size(); i++) {
-			if (clients.get(i).isSpectator()) {
-				count++;
-			}
-		}
-		if (getFounder().isSpectator()) {
-			count++;
-		}
-
-		return count;
+		return spectatorCounter.getCount();
 	}
 
 	public int nonSpectatorCount() {
-		return clients.size() + 1 - spectatorCount();
+		return getClientsSize() + 1 - spectatorCount();
 	}
 
 	public boolean isClientInBattle(Client client) {
 		return (client.equals(getFounder()) || clients.contains(client));
 	}
 
-	public boolean isClientInBattle(String username) {
+	/** @deprecated */
+	private boolean isClientInBattle(String username) {
 		return (getClient(username) != null);
 	}
 
-	public Client getClient(String username) {
+	/** @deprecated */
+	private Client getClient(String username) {
 
 		for (int i = 0; i < clients.size(); i++) {
 			if (clients.get(i).getAccount().getName().equals(username)) {
@@ -349,7 +397,7 @@ public class Battle implements ContextReceiver {
 		return null;
 	}
 
-	public void sendDisabledUnitsListToClient(Client client) {
+	private void sendDisabledUnitsListToClient(Client client) {
 
 		if (getDisabledUnits().isEmpty()) {
 			// nothing to send
@@ -406,7 +454,7 @@ public class Battle implements ContextReceiver {
 	}
 
 	/** Removes first bot in the bots list which is owned by the client */
-	public boolean removeFirstBotOfClient(Client client) {
+	private boolean removeFirstBotOfClient(Client client) {
 
 		for (int i = 0; i < bots.size(); i++) {
 			Bot bot = bots.get(i);
@@ -433,7 +481,7 @@ public class Battle implements ContextReceiver {
 		}
 	}
 
-	public void sendBotListToClient(Client client) {
+	private void sendBotListToClient(Client client) {
 
 		for (int i = 0; i < bots.size(); i++) {
 			Bot bot = bots.get(i);
@@ -447,7 +495,7 @@ public class Battle implements ContextReceiver {
 		}
 	}
 
-	public void sendStartRectsListToClient(Client client) {
+	private void sendStartRectsListToClient(Client client) {
 
 		for (int i = 0; i < getStartRects().size(); i++) {
 			StartRect curStartRect = getStartRects().get(i);
@@ -462,7 +510,7 @@ public class Battle implements ContextReceiver {
 		}
 	}
 
-	public void sendScriptToClient(Client client) {
+	private void sendScriptToClient(Client client) {
 
 		client.sendLine("SCRIPTSTART");
 		for (int i = 0; i < getReplayScript().size(); i++) {
@@ -494,7 +542,7 @@ public class Battle implements ContextReceiver {
 		return joined.toString();
 	}
 
-	public void sendScriptTagsToClient(Client client) {
+	private void sendScriptTagsToClient(Client client) {
 
 		if (getScriptTags().isEmpty()) {
 			// nothing to send
@@ -503,7 +551,8 @@ public class Battle implements ContextReceiver {
 		client.sendLine("SETSCRIPTTAGS " + joinScriptTags());
 	}
 
-	public void sendScriptTagsToAll() {
+	/** @deprecated */
+	private void sendScriptTagsToAll() {
 
 		for (int i = 0; i < clients.size(); i++) {
 			sendScriptTagsToClient(clients.get(i));
