@@ -63,10 +63,6 @@ public class RemoveBotCommandProcessor extends AbstractCommandProcessor {
 
 		bat.removeBot(bot);
 
-		bat.sendToAllClients(new StringBuilder("REMOVEBOT ")
-				.append(bat.getId()).append(" ")
-				.append(bot.getName()).toString());
-
 		return true;
 	}
 }

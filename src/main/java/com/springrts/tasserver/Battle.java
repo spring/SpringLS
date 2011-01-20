@@ -290,8 +290,8 @@ public class Battle implements ContextReceiver {
 
 	public void applyToClients(Processor<? super Client> clientsProcessor) {
 
-		for (Client client : clients) {
-			clientsProcessor.process(client);
+		for (int c = 0; c < clients.size(); c++) {
+			clientsProcessor.process(clients.get(c));
 		}
 	}
 
@@ -303,8 +303,8 @@ public class Battle implements ContextReceiver {
 
 	private void applyToBots(Processor<? super Bot> botsProcessor) {
 
-		for (Bot bot : bots) {
-			botsProcessor.process(bot);
+		for (int b = 0; b < bots.size(); b++) {
+			botsProcessor.process(bots.get(b));
 		}
 	}
 
@@ -448,9 +448,18 @@ public class Battle implements ContextReceiver {
 		return bot;
 	}
 
-	/** Adds bot to the bot list */
+	/** Adds the specified bot to the bot list, and informs other clients */
 	public void addBot(Bot bot) {
+
 		bots.add(bot);
+
+		sendToAllClients(new StringBuilder("ADDBOT ")
+				.append(getId()).append(" ")
+				.append(bot.getName()).append(" ")
+				.append(bot.getOwnerName()).append(" ")
+				.append(bot.getBattleStatus()).append(" ")
+				.append(bot.getTeamColor()).append(" ")
+				.append(bot.getSpecifier()).toString());
 	}
 
 	/** Removes first bot in the bots list which is owned by the client */
@@ -459,19 +468,28 @@ public class Battle implements ContextReceiver {
 		for (int i = 0; i < bots.size(); i++) {
 			Bot bot = bots.get(i);
 			if (bot.getOwnerName().equals(client.getAccount().getName())) {
-				sendToAllClients(new StringBuilder("REMOVEBOT ")
-						.append(getId()).append(" ")
-						.append(bot.getName()).toString());
-				bots.remove(bot);
+				removeBot(bot);
 				return true;
 			}
 		}
 		return false;
 	}
 
-	/** Removes specified bot from the bot list */
+	/**
+	 * Removes the specified bot from the bot list if present, and informs other
+	 * clients.
+	 */
 	public boolean removeBot(Bot bot) {
-		return bots.remove(bot);
+
+		boolean containedBot = bots.remove(bot);
+
+		if (containedBot) {
+			sendToAllClients(new StringBuilder("REMOVEBOT ")
+					.append(getId()).append(" ")
+					.append(bot.getName()).toString());
+		}
+
+		return containedBot;
 	}
 
 	/* Removes all bots owned by client */

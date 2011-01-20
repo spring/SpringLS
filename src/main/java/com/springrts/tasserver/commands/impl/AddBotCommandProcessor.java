@@ -85,14 +85,6 @@ public class AddBotCommandProcessor extends AbstractCommandProcessor {
 		Bot bot = new Bot(botName, client.getAccount().getName(), specifier, battleStatus, teamColor);
 		bat.addBot(bot);
 
-		bat.sendToAllClients(new StringBuilder("ADDBOT ")
-				.append(bat.getId()).append(" ")
-				.append(bot.getName()).append(" ")
-				.append(bot.getOwnerName()).append(" ")
-				.append(bot.getBattleStatus()).append(" ")
-				.append(bot.getTeamColor()).append(" ")
-				.append(bot.getSpecifier()).toString());
-
 		return true;
 	}
 }
