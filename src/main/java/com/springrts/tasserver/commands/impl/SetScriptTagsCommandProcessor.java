@@ -21,11 +21,15 @@ package com.springrts.tasserver.commands.impl;
 import com.springrts.tasserver.Account;
 import com.springrts.tasserver.Battle;
 import com.springrts.tasserver.Client;
+import com.springrts.tasserver.Misc;
 import com.springrts.tasserver.commands.AbstractCommandProcessor;
 import com.springrts.tasserver.commands.CommandProcessingException;
 import com.springrts.tasserver.commands.InvalidNumberOfArgumentsCommandProcessingException;
 import com.springrts.tasserver.commands.SupportedCommand;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * Sent by client (battle host), to set script tags in script.txt.
@@ -37,6 +41,9 @@ import java.util.List;
  */
 @SupportedCommand("SETSCRIPTTAGS")
 public class SetScriptTagsCommandProcessor extends AbstractCommandProcessor {
+
+	private static final Pattern INVALID_KEY   = Pattern.compile("[ =;{}\\[\\]\\n\\r]");
+	private static final Pattern INVALID_VALUE = Pattern.compile("[;}\\[\\n\\r]");
 
 	public SetScriptTagsCommandProcessor() {
 		super(1, ARGS_MAX_NOCHECK, Account.Access.NORMAL);
@@ -72,94 +79,94 @@ public class SetScriptTagsCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		// FIXME the whole rest surely can be done nicer
-		String command = reconstructFullCommand(args);
-		int pairsStart = command.indexOf(' ');
-		if (pairsStart < 0) {
-			return false;
-		}
-		String[] pairs = command.substring(pairsStart + 1).split("\t");
-		StringBuilder validPairs = new StringBuilder();
+		String scriptTagsOrig = Misc.makeSentence(args, 0);
 
-		// FIXME this surely can be done nicer
-		for (int i = 0; i < pairs.length; i++) {
+		Map<String, String> scriptTags = parseScriptTags(scriptTagsOrig);
 
-			String s = pairs[i];
+		String scriptTagsClean = createScriptTagsString(scriptTags);
 
-			int equalPos = s.indexOf('=');
-			if (equalPos < 1) {
-				continue;
-			}
-
-			// parse the key
-			String key = s.substring(0, equalPos).toLowerCase();
-			if (key.length() <= 0) {
-				continue;
-			}
-			if (key.indexOf(' ') >= 0) {
-				continue;
-			}
-			if (key.indexOf('=') >= 0) {
-				continue;
-			}
-			if (key.indexOf(';') >= 0) {
-				continue;
-			}
-			if (key.indexOf('{') >= 0) {
-				continue;
-			}
-			if (key.indexOf('}') >= 0) {
-				continue;
-			}
-			if (key.indexOf('[') >= 0) {
-				continue;
-			}
-			if (key.indexOf(']') >= 0) {
-				continue;
-			}
-			if (key.indexOf('\n') >= 0) {
-				continue;
-			}
-			if (key.indexOf('\r') >= 0) {
-				continue;
-			}
-
-			// parse the value
-			String value = s.substring(equalPos + 1);
-			if (value.equals(value.trim())) {
-				continue;
-			} // forbid trailing/leading spaces
-			if (value.indexOf(';') >= 0) {
-				continue;
-			}
-			if (value.indexOf('}') >= 0) {
-				continue;
-			}
-			if (value.indexOf('[') >= 0) {
-				continue;
-			}
-			if (value.indexOf('\n') >= 0) {
-				continue;
-			}
-			if (value.indexOf('\r') >= 0) {
-				continue;
-			}
-
-			// insert the tag data into the map
-			bat.getScriptTags().put(key, value);
-
-			// add to the validPairs string
-			if (validPairs.length() > 0) {
-				validPairs.append("\t");
-			}
-			validPairs.append(key).append("=").append(value);
-		}
+		bat.getScriptTags().putAll(scriptTags);
 
 		// relay the valid pairs
-		if (validPairs.length() > 0) {
-			bat.sendToAllClients(new StringBuilder("SETSCRIPTTAGS ").append(validPairs).toString());
+		if (scriptTagsClean.length() > 0) {
+			bat.sendToAllClients("SETSCRIPTTAGS " + scriptTagsClean.toString());
 		}
 
 		return true;
+	}
+
+	private static Map<String, String> parseScriptTags(String keyValuePairs) {
+
+		Map<String, String> scriptTags = new HashMap<String, String>();
+
+		String[] pairs = keyValuePairs.split("\t");
+		for (int i = 0; i < pairs.length; i++) {
+			parseKeyValuePair(scriptTags, pairs[i]);
+		}
+
+		return scriptTags;
+	}
+
+	private static boolean isValidKey(String key) {
+
+		if (key.isEmpty()) {
+			return false;
+		}
+		if (INVALID_KEY.matcher(key).matches()) {
+			return false;
+		}
+
+		return true;
+	}
+
+	private static boolean isValidValue(String value) {
+
+		// forbid trailing/leading spaces
+		if (!value.equals(value.trim())) {
+			return false;
+		}
+		if (INVALID_VALUE.matcher(value).matches()) {
+			return false;
+		}
+
+		return true;
+	}
+
+	private static boolean parseKeyValuePair(Map<String, String> properties, String keyValuePair) {
+
+		int equalPos = keyValuePair.indexOf('=');
+		if (equalPos < 1) {
+			return false;
+		}
+
+		// parse the key
+		String key = keyValuePair.substring(0, equalPos).toLowerCase();
+		if (!isValidKey(key)) {
+			return false;
+		}
+
+		// parse the value
+		String value = keyValuePair.substring(equalPos + 1);
+		if (!isValidValue(value)) {
+			return false;
+		}
+
+		properties.put(key, value);
+
+		return true;
+	}
+
+	private static String createScriptTagsString(Map<String, String> scriptTags) {
+
+		StringBuilder scriptTagsClean = new StringBuilder();
+
+		for (String key : scriptTags.keySet()) {
+			if (scriptTagsClean.length() > 0) {
+				scriptTagsClean.append("\t");
+			}
+			scriptTagsClean.append(key).append("=").append(scriptTags.get(key));
+		}
+
+		return scriptTagsClean.toString();
 	}
 }
