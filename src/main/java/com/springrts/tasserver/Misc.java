@@ -8,11 +8,9 @@ package com.springrts.tasserver;
 import java.awt.Color;
 import net.iharder.Base64;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
@@ -25,8 +23,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
@@ -337,80 +333,6 @@ public class Misc {
 		encodedPassword = Base64.encodeBytes(md5Digest);
 
 		return encodedPassword;
-	}
-
-	/**
-	 * Will decompress ZIP archive to current folder.
-	 * Code copied from
-	 * <a href="http://www.rgagnon.com/javadetails/java-0067.html">here</a>,
-	 * and slightly modified.
-	 */
-	public static void unzipArchive(String fileName) throws IOException {
-
-		InputStream fin = null;
-		InputStream bin = null;
-		ZipInputStream zin = null;
-		try {
-			fin = new FileInputStream(fileName);
-			bin = new BufferedInputStream(fin);
-			zin = new ZipInputStream(bin);
-
-			ZipEntry zEntry;
-			while ((zEntry = zin.getNextEntry()) != null) {
-				// unzip the specified file from the archive:
-				unzipSingleEntry(zin, zEntry.getName());
-			}
-		} finally {
-			if (zin != null) {
-				zin.close();
-			} else if (bin != null) {
-				bin.close();
-			} else if (fin != null) {
-				fin.close();
-			}
-		}
-	}
-
-	/**
-	 * Will unzip only first entry from the archive file and save it as
-	 * localFileName.
-	 * If no file is found inside the archive, it will simply ignore it.
-	 */
-	public static void unzipSingleArchive(String fileName, String localFileName) throws IOException {
-
-		FileInputStream fin = null;
-		ZipInputStream zin = null;
-		try {
-			fin = new FileInputStream(fileName);
-			zin = new ZipInputStream(new BufferedInputStream(fin));
-			if (zin.getNextEntry() != null) {
-				unzipSingleEntry(zin, localFileName);
-			}
-		} finally {
-			if (zin != null) {
-				zin.close();
-			} else if (fin != null) {
-				fin.close();
-			}
-		}
-	}
-
-	/**
-	 * Will unzip next entry from given ZipInputStream
-	 */
-	public static void unzipSingleEntry(ZipInputStream zin, String toFile) throws IOException {
-
-		FileOutputStream out = null;
-		try {
-			out = new FileOutputStream(toFile);
-			byte[] b = new byte[512];
-			int len = 0;
-			while ((len = zin.read(b)) != -1) {
-				out.write(b, 0, len);
-			}
-		} finally {
-			out.close();
-		}
 	}
 
 	/**

@@ -5,6 +5,7 @@
 package com.springrts.tasserver;
 
 
+import com.springrts.tasserver.util.ZipUtil;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -121,7 +122,7 @@ public class UpdateIP2CountryThread implements Runnable, ContextReceiver {
 					// extract
 					long timeExtract = System.currentTimeMillis();
 					sourceRaw = File.createTempFile("ip2country_source", ".dat");
-					Misc.unzipSingleArchive(sourceArchive.getAbsolutePath(), sourceRaw.getAbsolutePath());
+					ZipUtil.unzipSingleFile(sourceArchive, sourceRaw);
 					timeExtract = System.currentTimeMillis() - timeExtract;
 
 					// write to combined data file
