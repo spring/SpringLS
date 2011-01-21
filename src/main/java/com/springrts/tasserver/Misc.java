@@ -51,37 +51,49 @@ public class Misc {
 	public static final String MAVEN_ARTIFACT_ID = "tasserver";
 
 	/**
-	 * Puts together strings from <code>a</code>, starting at
-	 * <code>a[startIndex]</code>, see
+	 * Concatenates a list of strings together, starting at a certain index,
+	 * using a single space character as separator.
+	 * See
 	 * <a href="http://leepoint.net/notes-java/data/strings/96string_examples/example_arrayToString.html">
 	 * this document</a> on why <code>StringBuilder</code> is faster.
 	 */
-	public static String makeSentence(String[] a, int startIndex) {
-		if (startIndex > a.length - 1) {
-			return "";
-		}
+	public static String makeSentence(String[] args, int startIndex) {
 
-		StringBuilder result = new StringBuilder(a[startIndex]);
-		for (int i = startIndex + 1; i < a.length; i++) {
-			result.append(" ");
-			result.append(a[i]);
+		StringBuilder result = new StringBuilder();
+
+		if (startIndex < args.length) {
+			result.append(args[startIndex]);
+			for (int i = startIndex + 1; i < args.length; i++) {
+				result.append(" ");
+				result.append(args[i]);
+			}
 		}
 
 		return result.toString();
 	}
-	public static String makeSentence(String[] a) {
-		return makeSentence(a, 0);
+	/**
+	 * Concatenates a list of strings together, using a single space character
+	 * as separator.
+	 * This has the same effect like <code>makeSentence(args, 0)</code>.
+	 */
+	public static String makeSentence(String[] args) {
+		return makeSentence(args, 0);
 	}
-
+	/**
+	 * Concatenates a list of strings together, using a single space character
+	 * as separator.
+	 * @see #makeSentence(String[] args, int startIndex)
+	 */
 	public static String makeSentence(List<String> sl, int startIndex) {
 
-		if (startIndex > (sl.size() - 1)) {
-			return "";
-		}
+		StringBuilder res = new StringBuilder();
 
-		StringBuilder res = new StringBuilder(sl.get(startIndex));
-		for (int i = startIndex+1; i < sl.size(); i++) {
-			res.append(" ").append(sl.get(i));
+		if (startIndex < sl.size()) {
+			res.append(sl.get(startIndex));
+			for (int i = startIndex + 1; i < sl.size(); i++) {
+				res.append(" ");
+				res.append(sl.get(i));
+			}
 		}
 
 		return res.toString();
@@ -218,6 +230,7 @@ public class Misc {
 	 */
 	@Deprecated
 	public static void bubbleSort(int[] data) {
+
 		boolean isSorted;
 		int tempVariable;
 		int numberOfTimesLooped = 0;
@@ -247,6 +260,7 @@ public class Misc {
 	 * Generic Methods</a>.
 	 */
 	public static <T> void bubbleSort(int[] data, List<T> list) {
+
 		boolean isSorted;
 		int tempInt;
 		T tempObj;
@@ -274,6 +288,7 @@ public class Misc {
 
 	@Deprecated
 	public static String getHashText(String plainText, String algorithm) throws NoSuchAlgorithmException {
+
 		MessageDigest mdAlgorithm = MessageDigest.getInstance(algorithm);
 
 		mdAlgorithm.update(plainText.getBytes());
@@ -282,13 +297,13 @@ public class Misc {
 		StringBuilder hexString = new StringBuilder();
 
 		for (int i = 0; i < digest.length; i++) {
-			plainText = Integer.toHexString(0xFF & digest[i]);
+			String hexStringPart = Integer.toHexString(0xFF & digest[i]);
 
-			if (plainText.length() < 2) {
-				plainText = "0" + plainText;
+			if (hexStringPart.length() < 2) {
+				hexString.append("0");
 			}
 
-			hexString.append(plainText);
+			hexString.append(hexStringPart);
 		}
 
 		return hexString.toString();
@@ -331,19 +346,34 @@ public class Misc {
 	 * and slightly modified.
 	 */
 	public static void unzipArchive(String fileName) throws IOException {
-		ZipInputStream zin = new ZipInputStream(new BufferedInputStream(new FileInputStream(fileName)));
-		ZipEntry e;
 
-		while ((e = zin.getNextEntry()) != null) {
-			// unzip specific file from the archive:
-			unzipSingleEntry(zin, e.getName());
+		InputStream fin = null;
+		InputStream bin = null;
+		ZipInputStream zin = null;
+		try {
+			fin = new FileInputStream(fileName);
+			bin = new BufferedInputStream(fin);
+			zin = new ZipInputStream(bin);
+
+			ZipEntry zEntry;
+			while ((zEntry = zin.getNextEntry()) != null) {
+				// unzip the specified file from the archive:
+				unzipSingleEntry(zin, zEntry.getName());
+			}
+		} finally {
+			if (zin != null) {
+				zin.close();
+			} else if (bin != null) {
+				bin.close();
+			} else if (fin != null) {
+				fin.close();
+			}
 		}
-
-		zin.close();
 	}
 
 	/**
-	 * Will unzip only first entry from the archive file and save it as localFileName.
+	 * Will unzip only first entry from the archive file and save it as
+	 * localFileName.
 	 * If no file is found inside the archive, it will simply ignore it.
 	 */
 	public static void unzipSingleArchive(String fileName, String localFileName) throws IOException {
@@ -411,7 +441,7 @@ public class Misc {
 		// with something very small, which we don't want (that's an error) - we
 		// also want to avoid division by zero at the same time.
 
-		long lastTimeStamp = System.nanoTime() / 1000000;
+		long lastTimeStamp = System.nanoTime() / 1000000L;
 		int bytesSinceLastTimeStamp = 0;
 
 		try {
@@ -431,9 +461,10 @@ public class Misc {
 					if (timeDiff > 0) { // to avoid division by zero
 						double rate = (double) bytesSinceLastTimeStamp / (double) timeDiff * 1000.0;
 						if (rate > downloadLimit) {
+							long sleepTime = Math.round(((double) bytesSinceLastTimeStamp / downloadLimit * 1000.0) - timeDiff);
 							try {
 								// sleep a bit:
-								Thread.sleep(Math.round((double) bytesSinceLastTimeStamp / (double) downloadLimit * 1000.0 - timeDiff));
+								Thread.sleep(sleepTime);
 							} catch (InterruptedException ie) {
 							}
 						}
@@ -493,14 +524,15 @@ public class Misc {
 	 * threads with the same Exception object.
 	 * It has to be thread-safe, since multiple threads may call it.
 	 */
-	public static String exceptionToFullString(Exception e) {
+	public static String exceptionToFullString(Exception ex) {
 
 		StringBuilder res = new StringBuilder(512);
 
-		res.append(e.toString());
+		res.append(ex.toString());
 
-		StackTraceElement[] trace = e.getStackTrace();
+		StackTraceElement[] trace = ex.getStackTrace();
 		for (int i = 0; i < trace.length; i++) {
+			// FIXME do not (always) use widnows line endings
 			res.append("\r\n\tat ").append(trace[i].toString());
 		}
 
@@ -524,7 +556,7 @@ public class Misc {
 
 	/**
 	 * This can be used for converting a lobby protocol color into a java color.
-	 * See  of the myteamcolor argument of the MYBATTLESTATUS command for an
+	 * See the myteamcolor argument of the MYBATTLESTATUS command for an
 	 * example.
 	 * Should be 32-bit signed integer in decimal form (e.g. 255 and not FF)
 	 * where each color channel should occupy 1 byte (e.g. in hexadecimal:
@@ -708,8 +740,10 @@ public class Misc {
 	/**
 	 * Create a temporary cache directory file descriptor
 	 * and makes sure to clean it up on application exit.
-	 * @param dirName base name of the dir descriptor to create
-	 * @return a file descriptor to a non existing file/dir.
+	 * This makes sure no file or directory with that name exists,
+	 * but the caller still has to create the directory himself.
+	 * @param dirName base name of the directory descriptor to create
+	 * @return a file descriptor to a non existing file/directory.
 	 */
 	public static File createTempDir(String dirName) throws IOException {
 
@@ -743,7 +777,8 @@ public class Misc {
 			try {
 				Misc.deleteFileOrDir(fileOrDir);
 			} catch (IOException ex) {
-				ex.printStackTrace();
+				LOG.warn("Failed to delete the temporary directory "
+						+ fileOrDir.getAbsolutePath(), ex);
 			}
 		}
 	}
