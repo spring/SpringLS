@@ -222,8 +222,8 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 				client.setTimeOfLastReceive(System.currentTimeMillis());
 
 				// read from the channel into our buffer
-				long nbytes = channel.read(readBuffer);
-				client.addToDataOverLastTimePeriod(nbytes);
+				long nBytes = channel.read(readBuffer);
+				client.addToDataOverLastTimePeriod(nBytes);
 
 				// basic anti-flood protection:
 				if (getContext().getFloodProtection().isFlooding(client)) {
@@ -247,47 +247,30 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 				}
 
 				// check for end-of-stream
-				if (nbytes == -1) {
+				if (nBytes == -1) {
 					LOG.debug("Socket disconnected - killing client");
 					channel.close();
-					getContext().getClients().killClient(client); // will also close the socket channel
+					// this will also close the socket channel
+					getContext().getClients().killClient(client);
 				} else {
 					// use a CharsetDecoder to turn those bytes into a string
-					// and append to client's StringBuilder
+					// and append it to the client's StringBuilder
 					readBuffer.flip();
 					String str = getContext().getServer().getAsciiDecoder().decode(readBuffer).toString();
 					readBuffer.clear();
-					client.getRecvBuf().append(str);
+					client.appendToRecvBuf(str);
 
 					// check for a full line
-					// TODO cleanup this
-					String line = client.getRecvBuf().toString();
-					while ((line.indexOf('\n') != -1) || (line.indexOf('\r') != -1)) {
-						int pos = line.indexOf('\r');
-						int npos = line.indexOf('\n');
-						if (pos == -1 || ((npos != -1) && (npos < pos))) {
-							pos = npos;
-						}
-						String command = line.substring(0, pos);
-						while (pos + 1 < line.length() && (line.charAt(pos + 1) == '\r' || line.charAt(pos + 1) == '\n')) {
-							++pos;
-						}
-						client.getRecvBuf().delete(0, pos + 1);
-
-						long time = System.currentTimeMillis();
-						getContext().getServerThread().executeCommand(command, client);
-						time = System.currentTimeMillis() - time;
-						if (time > 200) {
-							getContext().getClients().sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: (DEBUG) User <")
-									.append(client.getAccount().getName()).append("> caused ")
-									.append(time).append(" ms load on the server. Command issued: ")
-									.append(command).toString());
-						}
+					String line = client.readLine();
+					while (line != null) {
+						executeCommandWrapper(line, client);
 
 						if (!client.isAlive()) {
-							break; // in case client was killed within executeCommand() method
+							// in case the client was killed within the
+							// executeCommand() method
+							break;
 						}
-						line = client.getRecvBuf().toString();
+						line = client.readLine();
 					}
 				}
 			}
@@ -311,6 +294,20 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 				// do nothing
 			}
 			LOG.debug("... the exception was:", ex);
+		}
+	}
+
+	private void executeCommandWrapper(String command, Client client) {
+
+		long time = System.currentTimeMillis();
+		executeCommand(command, client);
+		time = System.currentTimeMillis() - time;
+		if (time > 200) {
+			String message = String.format(
+					"SERVERMSG [broadcast to all admins]: (DEBUG) User <%s>"
+					+ " caused %d ms load on the server. Command issued: %s",
+					client.getAccount().getName(), time, command);
+			getContext().getClients().sendToAllAdministrators(message);
 		}
 	}
 

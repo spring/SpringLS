@@ -358,7 +358,10 @@ public class Clients implements ContextReceiver, Updateable {
 		}
 	}
 
-	/** @see #killClient(Client client, String reason) */
+	/**
+	 * Kills the client and its socket channel.
+	 * @see #killClient(Client client, String reason)
+	 */
 	public boolean killClient(Client client) {
 		return killClient(client, null);
 	}

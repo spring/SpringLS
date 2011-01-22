@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 public class Client extends TeamController implements ContextReceiver {
 
 	private static final Logger LOG  = LoggerFactory.getLogger(Client.class);
+
 	/**
 	 * Indicates a message is not using an ID
 	 * (see protocol description on message/command IDs)
@@ -339,6 +340,7 @@ public class Client extends TeamController implements ContextReceiver {
 
 	/** Should only be called by Clients.killClient() method! */
 	public void disconnect() {
+
 		if (!alive) {
 			LOG.error("PROBLEM DETECTED: disconnecting dead client. Skipping ...");
 			return;
@@ -755,8 +757,67 @@ public class Client extends TeamController implements ContextReceiver {
 	/**
 	 * @return the recvBuf
 	 */
-	public StringBuilder getRecvBuf() {
-		return recvBuf;
+	public void appendToRecvBuf(String received) {
+		recvBuf.append(received);
+	}
+
+	private static boolean isWhiteSpace(char c) {
+		return (" \n\r\t\f".indexOf(c) != -1);
+	}
+
+	private static void deleteLeadingWhiteSpace(StringBuilder str) {
+
+		int wsPos = 0;
+		while (isWhiteSpace(str.charAt(wsPos))) {
+			wsPos++;
+		}
+		str.delete(0, wsPos);
+	}
+
+	/**
+	 * Removes carriage-return chars (first part of windows EOL "\r\n").
+	 * @param str where to search in
+	 * @param posUntil only chars from 0 until this position are searched
+	 * @return number of deleted chars
+	 */
+	private static int deleteCarriageReturnChars(StringBuilder str, int posUntil) {
+
+		int deleted = 0;
+
+		int rPos = str.lastIndexOf("\r", posUntil);
+		while (rPos != -1) {
+			str.deleteCharAt(rPos);
+			deleted++;
+			rPos = str.lastIndexOf("\r", rPos);
+		}
+
+		return deleted;
+	}
+
+	/**
+	 * Tries to read a line from the clients input buffer.
+	 * If the this returns non-<code>null</code>, then the line returned is
+	 * already removed from the buffer.
+	 * @return the older line from the clients input buffer or
+	 *   <code>null</code>, if there is no full line available.
+	 */
+	public String readLine() {
+
+		String line = null;
+
+		if (recvBuf.length() > 0) {
+			deleteLeadingWhiteSpace(recvBuf);
+
+			int nPos = recvBuf.indexOf("\n");
+			if (nPos != -1) {
+				int deleted = deleteCarriageReturnChars(recvBuf, nPos);
+
+				line = recvBuf.substring(0, nPos - deleted);
+				recvBuf.delete(0, nPos + 1);
+			}
+		}
+
+		return line;
 	}
 
 	/**
