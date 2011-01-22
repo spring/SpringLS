@@ -53,6 +53,7 @@ import com.springrts.tasserver.commands.impl.GetLobbyVersionCommandProcessor;
 import com.springrts.tasserver.commands.impl.GetRegistrationDateCommandProcessor;
 import com.springrts.tasserver.commands.impl.GetSendBufferSizeCommandProcessor;
 import com.springrts.tasserver.commands.impl.GetUserIdCommandProcessor;
+import com.springrts.tasserver.commands.impl.HandicapCommandProcessor;
 import com.springrts.tasserver.commands.impl.Ip2CountryCommandProcessor;
 import com.springrts.tasserver.commands.impl.JoinBattleAcceptCommandProcessor;
 import com.springrts.tasserver.commands.impl.JoinBattleCommandProcessor;
@@ -92,6 +93,7 @@ import com.springrts.tasserver.commands.impl.SetTimeOutCommandProcessor;
 import com.springrts.tasserver.commands.impl.TestLoginCommandProcessor;
 import com.springrts.tasserver.commands.impl.UnmuteCommandProcessor;
 import com.springrts.tasserver.commands.impl.UpTimeCommandProcessor;
+import com.springrts.tasserver.commands.impl.UpdateBattleInfoCommandProcessor;
 import com.springrts.tasserver.commands.impl.UpdateIp2CountryCommandProcessor;
 import com.springrts.tasserver.commands.impl.UpdateMotdCommandProcessor;
 import com.springrts.tasserver.commands.impl.UpdateStatisticsCommandProcessor;
@@ -238,6 +240,8 @@ public class CommandProcessors implements ContextReceiver {
 		commandProcessorClasses.add(LeaveBattleCommandProcessor.class);
 		commandProcessorClasses.add(MyBattleStatusCommandProcessor.class);
 		commandProcessorClasses.add(MyStatusCommandProcessor.class);
+		commandProcessorClasses.add(UpdateBattleInfoCommandProcessor.class);
+		commandProcessorClasses.add(HandicapCommandProcessor.class);
 
 		try {
 			load(commandProcessorClasses);
