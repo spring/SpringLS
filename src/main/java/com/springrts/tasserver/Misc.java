@@ -463,26 +463,6 @@ public class Misc {
 	}
 
 	/**
-	 * This method is thread-safe; or at least it is if not called from multiple
-	 * threads with the same Exception object.
-	 * It has to be thread-safe, since multiple threads may call it.
-	 */
-	public static String exceptionToFullString(Exception ex) {
-
-		StringBuilder res = new StringBuilder(512);
-
-		res.append(ex.toString());
-
-		StackTraceElement[] trace = ex.getStackTrace();
-		for (int i = 0; i < trace.length; i++) {
-			// FIXME do not (always) use widnows line endings
-			res.append("\r\n\tat ").append(trace[i].toString());
-		}
-
-		return res.toString();
-	}
-
-	/**
 	 * @see #colorSpringToJava(int)
 	 */
 	public static Color colorSpringStringToJava(String springColor) {
@@ -678,7 +658,7 @@ public class Misc {
 			in = new BufferedReader(new FileReader(file));
 			String line;
 			while ((line = in.readLine()) != null) {
-				content.append(line).append('\n');
+				content.append(line).append(EOL);
 			}
 		} catch (IOException ex) {
 			throw ex;

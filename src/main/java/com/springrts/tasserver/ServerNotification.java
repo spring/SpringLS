@@ -6,13 +6,15 @@ package com.springrts.tasserver;
 
 
 /**
- * Correct use of ServerNotification is to first create the object and then
- * add message lines to it. Finally, add it to server notifications by
- * calling ServerNotifications.addNotification().
+ * The correct use of ServerNotification is to first create the object and then
+ * add message lines to it. Finally, add it to server notifications.
+ * @see ServerNotifications#addNotification(ServerNotification)
  *
  * @author Betalord
  */
 public class ServerNotification {
+
+	public static final String EOL = "\r\n";
 
 	/**
 	 * Milliseconds passed since 1st Jan 1970
@@ -22,7 +24,7 @@ public class ServerNotification {
 	private String title;
 	private String author;
 	/**
-	 * Either an empty string or starts with a new-line.
+	 * This contains either an empty string or it starts with a new-line.
 	 */
 	private StringBuilder message;
 
@@ -43,7 +45,22 @@ public class ServerNotification {
 	}
 
 	public void addLine(String line) {
-		message.append("\r\n").append(line);
+		message.append(EOL).append(line);
+	}
+
+	/**
+	 * This method is thread-safe; or at least it is if not called from multiple
+	 * threads with the same Exception object.
+	 * It has to be thread-safe, since multiple threads may call it.
+	 */
+	public void addException(Exception ex) {
+
+		message.append(ex.toString());
+
+		StackTraceElement[] trace = ex.getStackTrace();
+		for (int i = 0; i < trace.length; i++) {
+			message.append(EOL).append("\tat ").append(trace[i].toString());
+		}
 	}
 
 	@Override
@@ -51,16 +68,16 @@ public class ServerNotification {
 
 		StringBuilder str = new StringBuilder();
 
-		str.append(getAuthor()).append("\r\n");
-		str.append(getTitle()).append("\r\n");
-		str.append(getTime()).append("\r\n");
+		str.append(getAuthor()).append(EOL);
+		str.append(getTitle()).append(EOL);
+		str.append(getTime()).append(EOL);
 		str.append(getMessage());
 
 		return str.toString();
 	}
 
 	/**
-	 * Miliseconds passed since 1st Jan 1970
+	 * Milliseconds passed since 1st Jan 1970
 	 * @see java.lang.System#currentTimeMillis()
 	 * @return the time
 	 */

@@ -185,8 +185,7 @@ public class Client extends TeamController implements ContextReceiver {
 				ip = newIP;
 			} else {
 				LOG.warn("Could not resolve local IP address."
-						+ " The user may have problems \n"
-						+ "with hosting battles.");
+						+ " The user may have problems with hosting battles.");
 			}
 		}
 		localIp = ip; // will be changed later once the client logs in

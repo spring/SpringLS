@@ -79,7 +79,8 @@ public class FSSaveAccountsThread extends Thread implements ContextReceiver {
 
 			// add server notification:
 			ServerNotification sn = new ServerNotification("Error saving accounts");
-			sn.addLine("Serious error: accounts info could not be saved to disk. Exception trace:" + Misc.exceptionToFullString(ex));
+			sn.addLine("Serious error: accounts info could not be saved to disk. Exception trace:");
+			sn.addException(ex);
 			context.getServerNotifications().addNotification(sn);
 
 			return;

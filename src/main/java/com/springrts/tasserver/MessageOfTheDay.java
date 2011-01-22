@@ -94,7 +94,7 @@ public class MessageOfTheDay implements ContextReceiver {
 		client.sendLine(new StringBuilder("MOTD participating in ").append(getContext().getBattles().getBattlesSize()).append(" battles.").toString());
 		client.sendLine(new StringBuilder("MOTD Server's uptime is ").append(Misc.timeToDHM(System.currentTimeMillis() - context.getServer().getStartTime())).append(".").toString());
 		client.sendLine("MOTD");
-		String[] sl = message.split("\n");
+		String[] sl = message.split(Misc.EOL);
 		for (int i = 0; i < sl.length; i++) {
 			client.sendLine(new StringBuilder("MOTD ").append(sl[i]).toString());
 		}

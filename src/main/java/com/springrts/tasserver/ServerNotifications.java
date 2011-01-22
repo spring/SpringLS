@@ -109,7 +109,8 @@ public class ServerNotifications implements ContextReceiver {
 		BufferedWriter out = null;
 		try {
 			out = new BufferedWriter(new FileWriter(notifFile, true));
-			out.write(NOTIFICATION_SYSTEM_VERSION + "\r\n");
+			out.write(NOTIFICATION_SYSTEM_VERSION);
+			out.write(ServerNotification.EOL);
 			out.write(sn.toString());
 			out.close();
 		} catch (IOException ex) {

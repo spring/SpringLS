@@ -42,6 +42,8 @@ public class Statistics implements ContextReceiver {
 
 	private static final Logger LOG  = LoggerFactory.getLogger(Statistics.class);
 
+	private static final String EOL = "\r\n";
+
 	/** in milliseconds */
 	private final long saveStatisticsInterval = 1000 * 60 * 20;
 	/**
@@ -160,7 +162,7 @@ public class Statistics implements ContextReceiver {
 					.append(activeBattlesCount).append(" ")
 					.append(context.getAccountsService().getAccountsSize()).append(" ")
 					.append(context.getAccountsService().getActiveAccountsSize()).append(" ")
-					.append(topMods).append("\r\n").toString());
+					.append(topMods).append(EOL).toString());
 		} catch (IOException ex) {
 			LOG.error("Unable to access file <" + fname + ">. Skipping ...", ex);
 			return -1;
@@ -209,7 +211,7 @@ public class Statistics implements ContextReceiver {
 					in = new BufferedReader(new FileReader(fileNameDay));
 					//LOG.info("--- Found: <{}>", fileNameDay);
 					while ((line = in.readLine()) != null) {
-						out.write(String.format("%s %s\r\n", dayStr, line));
+						out.write(String.format("%s %s%s", dayStr, line, EOL));
 					}
 				} catch (IOException ex) {
 					// just skip the file ...

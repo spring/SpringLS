@@ -80,7 +80,7 @@ public class Agreement implements ContextReceiver {
 	public void sendToClient(Client client) {
 
 		client.beginFastWrite();
-		String[] sl = content.split("\n");
+		String[] sl = content.split(Misc.EOL);
 		for (int i = 0; i < sl.length; i++) {
 			client.sendLine(new StringBuilder("AGREEMENT ").append(sl[i]).toString());
 		}

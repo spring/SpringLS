@@ -260,6 +260,7 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 					client.getRecvBuf().append(str);
 
 					// check for a full line
+					// TODO cleanup this
 					String line = client.getRecvBuf().toString();
 					while ((line.indexOf('\n') != -1) || (line.indexOf('\r') != -1)) {
 						int pos = line.indexOf('\r');

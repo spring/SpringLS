@@ -198,8 +198,8 @@ public class UpdateIP2CountryThread implements Runnable, ContextReceiver {
 			LOG.info("IP2Country has just been successfully updated.");
 		} catch (Exception ex) {
 			ServerNotification sn = new ServerNotification("Unable to update IP2Country database");
-			sn.addLine("Attempt to update from online IP2Country database failed. Stack trace: ");
-			sn.addLine(Misc.exceptionToFullString(ex));
+			sn.addLine("Attempt to update from online IP2Country database failed. Stack trace:");
+			sn.addException(ex);
 			context.getServerNotifications().addNotification(sn);
 		} finally {
 			inProgress.set(false);
