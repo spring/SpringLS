@@ -8,6 +8,7 @@ package com.springrts.tasserver;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
 import java.util.List;
 
 /**
@@ -59,15 +60,15 @@ public class AccountUtils {
 	private static Account createTestAccount(String userName) {
 
 		final String countryCode2L = java.util.Locale.getDefault().getCountry();
-		String localIP = "?";
+		InetAddress localIp = null;
 		try {
-			localIP = java.net.InetAddress.getLocalHost().getHostAddress();
+			localIp = java.net.InetAddress.getLocalHost();
 		} catch (java.net.UnknownHostException ex) {
 			// ignore
 		}
 
 		String userPasswd = Misc.encodePassword(userName);
-		return new Account(userName, userPasswd, localIP, countryCode2L);
+		return new Account(userName, userPasswd, localIp, countryCode2L);
 	}
 
 	public static void createAliBaba(AccountsService actSrvc) {

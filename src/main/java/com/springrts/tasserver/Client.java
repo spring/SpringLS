@@ -58,12 +58,12 @@ public class Client extends TeamController implements ContextReceiver {
 	/**
 	 * External IP
 	 */
-	private String ip;
+	private InetAddress ip;
 	/**
 	 * Local IP, which has to be sent with LOGIN command
-	 * The server can not figure out the clients local ip by himself of course.
+	 * The server can not figure out the clients local IP by himself of course.
 	 */
-	private String localIP;
+	private InetAddress localIp;
 	/**
 	 * Public UDP source port used with some NAT traversal techniques,
 	 * e.g. "hole punching".
@@ -176,21 +176,20 @@ public class Client extends TeamController implements ContextReceiver {
 		// no info on user/pass, zero access
 		this.account = new Account();
 		this.sockChan = sockChan;
-		InetAddress address = sockChan.socket().getInetAddress();
-		this.ip = address.getHostAddress();
+		this.ip = sockChan.socket().getInetAddress();
 		// this fixes the issue with local user connecting to the server at
 		// "127.0.0.1", as he can not host battles with that ip
-		if (address.isLoopbackAddress()) {
-			String newIP = Misc.getLocalIPAddress();
+		if (ip.isLoopbackAddress()) {
+			InetAddress newIP = Misc.getLocalIpAddress();
 			if (newIP != null) {
 				ip = newIP;
 			} else {
 				LOG.warn("Could not resolve local IP address."
-						+ " User may have problems \n"
+						+ " The user may have problems \n"
 						+ "with hosting battles.");
 			}
 		}
-		localIP = ip; // will be changed later once client logs in
+		localIp = ip; // will be changed later once the client logs in
 		udpSourcePort = 0; // yet unknown
 		selKey = null;
 		recvBuf = new StringBuilder();
@@ -199,7 +198,7 @@ public class Client extends TeamController implements ContextReceiver {
 		rank = Account.Rank.Newbie;
 		access = false;
 		bot = false;
-		country = IP2Country.getInstance().getCountryCode(Misc.ip2Long(ip));
+		country = IP2Country.getInstance().getCountryCode(ip);
 		inGameTime = 0;
 		battleID = Battle.NO_BATTLE_ID;
 		requestedBattleID = Battle.NO_BATTLE_ID;
@@ -608,36 +607,36 @@ public class Client extends TeamController implements ContextReceiver {
 
 	/**
 	 * External IP
-	 * @return the ip
+	 * @return the IP
 	 */
-	public String getIp() {
+	public InetAddress getIp() {
 		return ip;
 	}
 
 	/**
 	 * External IP
-	 * @param ip the ip to set
+	 * @param ip the IP to set
 	 */
-	public void setIp(String ip) {
+	public void setIp(InetAddress ip) {
 		this.ip = ip;
 	}
 
 	/**
 	 * Local IP, which has to be sent with LOGIN command
-	 * The server can not figure out the clients local ip by himself of course.
+	 * The server can not figure out the clients local IP by himself of course.
 	 * @return the localIP
 	 */
-	public String getLocalIP() {
-		return localIP;
+	public InetAddress getLocalIp() {
+		return localIp;
 	}
 
 	/**
 	 * Local IP, which has to be sent with LOGIN command
-	 * The server can not figure out the clients local ip by himself of course.
-	 * @param localIP the localIP to set
+	 * The server can not figure out the clients local IP by himself of course.
+	 * @param localIp the local IP to set
 	 */
-	public void setLocalIP(String localIP) {
-		this.localIP = localIP;
+	public void setLocalIP(InetAddress localIp) {
+		this.localIp = localIp;
 	}
 
 	/**
@@ -795,7 +794,7 @@ public class Client extends TeamController implements ContextReceiver {
 	/**
 	 * In MHz if possible, or in MHz*1.4 if AMD.
 	 * 0 means the client can not figure out its CPU speed.
-	 * @return the cpu
+	 * @return the CPU
 	 */
 	public int getCpu() {
 		return cpu;
@@ -804,7 +803,7 @@ public class Client extends TeamController implements ContextReceiver {
 	/**
 	 * In MHz if possible, or in MHz*1.4 if AMD.
 	 * 0 means the client can not figure out its CPU speed.
-	 * @param cpu the cpu to set
+	 * @param cpu the CPU to set
 	 */
 	public void setCpu(int cpu) {
 		this.cpu = cpu;

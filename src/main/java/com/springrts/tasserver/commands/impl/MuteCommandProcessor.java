@@ -84,7 +84,7 @@ public class MuteCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		chan.getMuteList().mute(username, minutes * 60, (muteByIP ? targetAccount.getLastIP() : null));
+		chan.getMuteList().mute(username, minutes * 60, (muteByIP ? targetAccount.getLastIp() : null));
 
 		client.sendLine(new StringBuilder("SERVERMSG You have muted <")
 				.append(username).append("> on channel #")

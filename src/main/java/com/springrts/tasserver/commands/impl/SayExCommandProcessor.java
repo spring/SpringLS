@@ -65,7 +65,7 @@ public class SayExCommandProcessor extends AbstractCommandProcessor {
 					.append(chan.getName())
 					.append("! Please contact one of the moderators.").toString());
 			return false;
-		} else if (chan.getMuteList().isIPMuted(client.getIp())) {
+		} else if (chan.getMuteList().isIpMuted(client.getIp())) {
 			client.sendLine(new StringBuilder("SERVERMSG Message dropped. You are not allowed to talk in #")
 					.append(chan.getName())
 					.append(" (muted by IP address)! If you believe this is an error, contact one of the moderators.").toString());

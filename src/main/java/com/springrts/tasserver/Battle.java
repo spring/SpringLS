@@ -6,6 +6,7 @@ package com.springrts.tasserver;
 
 
 import com.springrts.tasserver.util.Processor;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -150,11 +151,11 @@ public class Battle implements ContextReceiver {
 	 */
 	public String createBattleOpenedCommandEx(boolean local) {
 
-		String ip;
+		InetAddress addr;
 		if (local) {
-			ip = getFounder().getLocalIP();
+			addr = getFounder().getLocalIp();
 		} else {
-			ip = getFounder().getIp();
+			addr = getFounder().getIp();
 		}
 
 		return new StringBuilder("BATTLEOPENED ")
@@ -162,7 +163,7 @@ public class Battle implements ContextReceiver {
 				.append(getType()).append(" ")
 				.append(getNatType()).append(" ")
 				.append(getFounder().getAccount().getName()).append(" ")
-				.append(ip).append(" ")
+				.append(addr.getHostAddress()).append(" ")
 				.append(getPort()).append(" ")
 				.append(getMaxPlayers()).append(" ")
 				.append(Misc.boolToStr(restricted())).append(" ")
@@ -228,7 +229,7 @@ public class Battle implements ContextReceiver {
 		// if battle is hosted using one of the NAT traversal techniques
 		if ((getNatType() == 1) || (getNatType() == 2)) {
 			// make sure that clients behind NAT get local IPs and not external ones
-			getFounder().sendLine("CLIENTIPPORT " + client.getAccount().getName() + " " + (getFounder().getIp().equals(client.getIp()) ? client.getLocalIP() : client.getIp()) + " " + client.getUdpSourcePort());
+			getFounder().sendLine("CLIENTIPPORT " + client.getAccount().getName() + " " + (getFounder().getIp().equals(client.getIp()) ? client.getLocalIp() : client.getIp()) + " " + client.getUdpSourcePort());
 		}
 
 		client.sendLine("REQUESTBATTLESTATUS");

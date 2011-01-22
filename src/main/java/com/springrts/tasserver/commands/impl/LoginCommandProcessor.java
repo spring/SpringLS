@@ -28,6 +28,7 @@ import com.springrts.tasserver.commands.AbstractCommandProcessor;
 import com.springrts.tasserver.commands.CommandProcessingException;
 import com.springrts.tasserver.commands.InvalidNumberOfArgumentsCommandProcessingException;
 import com.springrts.tasserver.commands.SupportedCommand;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -156,12 +157,23 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		String ip = args1.get(3);
+		String localIpStr = args1.get(3);
 
-		return doLogin(client, lobbyVersion, userId, username, password, cpu, ip);
+		InetAddress localIp = null;
+		if (localIpStr.equals("*")) {
+			localIp = client.getIp();
+		} else {
+			localIp = Misc.parseIp(localIpStr);
+			if (localIp == null) {
+				client.sendLine("SERVERMSG Invalid IP address: " + localIpStr);
+				return false;
+			}
+		}
+
+		return doLogin(client, lobbyVersion, userId, username, password, cpu, localIp);
 	}
 
-	private boolean doLogin(Client client, String lobbyVersion, int userId, String username, String password, int cpu, String ip) {
+	private boolean doLogin(Client client, String lobbyVersion, int userId, String username, String password, int cpu, InetAddress localIp) {
 
 		boolean validAccount = validateAccount(client, userId, username, password);
 		if (!validAccount) {
@@ -177,12 +189,8 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 		client.setCpu(cpu);
 		client.getAccount().setLastLogin(System.currentTimeMillis());
 		client.getAccount().setLastCountry(client.getCountry());
-		client.getAccount().setLastIP(client.getIp());
-		if (ip.equals("*")) {
-			client.setLocalIP(client.getIp());
-		} else {
-			client.setLocalIP(ip);
-		}
+		client.getAccount().setLastIp(client.getIp());
+		client.setLocalIP(localIp);
 		client.setLobbyVersion(lobbyVersion);
 		client.getAccount().setLastUserId(userId);
 		final boolean mergeOk = getContext().getAccountsService().mergeAccountChanges(client.getAccount(), client.getAccount().getName());
@@ -246,7 +254,7 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 				client.sendLine("DENIED Already logged in");
 				return false;
 			}
-			BanEntry ban = getContext().getBanService().getBanEntry(username, Misc.ip2Long(client.getIp()), userId);
+			BanEntry ban = getContext().getBanService().getBanEntry(username, client.getIp(), userId);
 			if ((ban != null) && ban.isActive()) {
 				client.sendLine(String.format(
 						"DENIED You are banned from this server! (Reason: %s)."
@@ -294,7 +302,7 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 			{
 				accessLvl = Account.Access.ADMIN;
 			}
-			acc = new Account(username, password, "?", "XX");
+			acc = new Account(username, password, null, "XX");
 			acc.setAccess(accessLvl);
 			getContext().getAccountsService().addAccount(acc);
 			client.setAccount(acc);

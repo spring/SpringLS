@@ -5,6 +5,7 @@
 package com.springrts.tasserver;
 
 
+import java.net.InetAddress;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -245,7 +246,7 @@ public class JPAAccountsService extends AbstractAccountsService {
 	}
 
 	@Override
-	public Account findAccountByLastIP(String ip) {
+	public Account findAccountByLastIP(InetAddress ip) {
 
 		Account act = null;
 
@@ -253,7 +254,7 @@ public class JPAAccountsService extends AbstractAccountsService {
 		try {
 			em = open();
 			Query fetchByLastIpQuery = em.createNamedQuery("acc_fetchByLastIP");
-			fetchByLastIpQuery.setParameter("ip", ip);
+			fetchByLastIpQuery.setParameter("ip", ip.getHostAddress());
 			act = (Account) fetchByLastIpQuery.getSingleResult();
 		} catch (Exception ex) {
 			LOG.trace("Failed fetching an account by last ip", ex);

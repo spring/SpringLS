@@ -562,7 +562,7 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 		Account admin = new Account(
 				username,
 				Misc.encodePassword(password),
-				Account.NO_ACCOUNT_LAST_IP,
+				null,
 				Account.NO_ACCOUNT_LAST_COUNTRY);
 		admin.setAccess(Account.Access.ADMIN);
 		return admin;

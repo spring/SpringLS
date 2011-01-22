@@ -95,7 +95,7 @@ public class JoinBattleCommandProcessor extends AbstractCommandProcessor {
 
 		if (bat.getFounder().isHandleBattleJoinAuthorization()) {
 			client.setRequestedBattleID(battleID);
-			bat.getFounder().sendLine("JOINBATTLEREQUEST " + client.getAccount().getName() + " " + (bat.getFounder().getIp().equals(client.getIp()) ? client.getLocalIP() : client.getIp()));
+			bat.getFounder().sendLine("JOINBATTLEREQUEST " + client.getAccount().getName() + " " + (bat.getFounder().getIp().equals(client.getIp()) ? client.getLocalIp() : client.getIp()));
 		} else {
 			bat.notifyClientJoined(client);
 		}

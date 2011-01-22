@@ -12,6 +12,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.InetAddress;
 import java.util.NoSuchElementException;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -274,11 +275,17 @@ public class IP2Country {
 	}
 
 	/** For a given IP address it returns corresponding country code (2-chars wide) */
-	public String getCountryCode(long ip) {
+	public String getCountryCode(InetAddress ip) {
+
 		String result = "XX";
+
 		try {
-			IPRange x = resolveTable.headMap(new IPRange(ip+1, ip+1, "XX")).lastKey(); // +1 because headMap() returns keys that are strictly less than given key
-			if ((x.getFromIP() <= ip) && (x.getToIP() >= ip)) {
+			long longIp = Misc.ip2Long(ip);
+			// +1 because headMap() returns keys that are strictly less than the
+			// given key
+			long longIpPlus = longIp + 1;
+			IPRange x = resolveTable.headMap(new IPRange(longIpPlus, longIpPlus, "XX")).lastKey();
+			if ((x.getFromIP() <= longIp) && (x.getToIP() >= longIp)) {
 				result = x.getCountryCode2();
 			}
 		} catch (NoSuchElementException e) {

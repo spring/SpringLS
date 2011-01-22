@@ -9,6 +9,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -113,7 +114,7 @@ public class FSAccountsService extends AbstractAccountsService implements Accoun
 				.append(Integer.toString(account.getAccessBitField(), 2)).append(" ")
 				.append(account.getLastUserId()).append(" ")
 				.append(account.getLastLogin()).append(" ")
-				.append(account.getLastIP()).append(" ")
+				.append(account.getLastIpAsString()).append(" ")
 				.append(account.getRegistrationDate()).append(" ")
 				.append(account.getLastCountry()).toString();
 	}
@@ -135,7 +136,7 @@ public class FSAccountsService extends AbstractAccountsService implements Accoun
 				Account.extractAccess(accessBitField),
 				Integer.parseInt(actParts[3]),
 				Long.parseLong(actParts[4]),
-				actParts[5],
+				Misc.parseIp(actParts[5]),
 				Long.parseLong(actParts[6]),
 				actParts[7],
 				accountId,
@@ -280,14 +281,13 @@ public class FSAccountsService extends AbstractAccountsService implements Accoun
 	}
 
 	@Override
-	public Account findAccountByLastIP(String ip) {
+	public Account findAccountByLastIP(InetAddress ip) {
 
 		Account account = null;
 
-		final String[] ipSplit = ip.split("\\.");
 		for (int i = 0; i < getAccountsSize(); i++) {
 			Account actTmp = getAccount(i);
-			if (!Misc.isSameIP(ipSplit, actTmp.getLastIP())) {
+			if (!ip.equals(actTmp.getLastIp())) {
 				continue;
 			}
 			account = actTmp;

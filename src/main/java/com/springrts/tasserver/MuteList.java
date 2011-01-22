@@ -5,6 +5,7 @@
 package com.springrts.tasserver;
 
 
+import java.net.InetAddress;
 import java.util.ArrayList;
 
 /**
@@ -25,14 +26,14 @@ public class MuteList {
 	 * If user is not muted by IP (but only by username), the corresponding
 	 * IP in this list is set to 'null'.
 	 */
-	private ArrayList<String> ips;
+	private ArrayList<InetAddress> ips;
 	private Channel channel;
 
 	public MuteList(Channel channel) {
 
 		this.usernames = new ArrayList<String>();
 		this.mutedUntil = new ArrayList<Long>();
-		this.ips = new ArrayList<String>();
+		this.ips = new ArrayList<InetAddress>();
 		this.channel = channel;
 	}
 
@@ -63,7 +64,7 @@ public class MuteList {
 		return false;
 	}
 
-	public boolean isMuted(String username, String ip) {
+	public boolean isMuted(String username, InetAddress ip) {
 		clearExpiredOnes();
 
 		for (int i = 0; i < usernames.size(); i++) {
@@ -75,7 +76,7 @@ public class MuteList {
 		return false;
 	}
 
-	public boolean isIPMuted(String ip) {
+	public boolean isIpMuted(InetAddress ip) {
 		clearExpiredOnes();
 
 		for (int i = 0; i < ips.size(); i++) {
@@ -94,7 +95,7 @@ public class MuteList {
 	 * @param ip set to 'null' if you don't want to mute this user by the IP.
 	 * @return false if already muted
 	 */
-	public boolean mute(String username, long seconds, String ip) {
+	public boolean mute(String username, long seconds, InetAddress ip) {
 
 		for (int i = 0; i < usernames.size(); i++) {
 			if (usernames.get(i).equals(username)) {
@@ -156,7 +157,7 @@ public class MuteList {
 	/**
 	 * @return 'null' if no IP is set for the user
 	 */
-	public String getIP(int index) {
+	public InetAddress getIp(int index) {
 		return ips.get(index);
 	}
 

@@ -4,6 +4,7 @@
 
 package com.springrts.tasserver;
 
+import java.net.InetAddress;
 import java.util.List;
 
 
@@ -81,7 +82,7 @@ public interface AccountsService extends ContextReceiver, LiveStateListener,
 	public Account findAccountNoCase(String userName);
 
 	/** Returns 'null' if no account ever connected from this IP */
-	public Account findAccountByLastIP(String ip);
+	public Account findAccountByLastIP(InetAddress ip);
 
 	public boolean doesAccountExist(String userName);
 

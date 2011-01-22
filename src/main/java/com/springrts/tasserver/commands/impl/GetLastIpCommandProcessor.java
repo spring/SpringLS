@@ -56,7 +56,7 @@ public class GetLastIpCommandProcessor extends AbstractCommandProcessor {
 		boolean online = getContext().getClients().isUserLoggedIn(acc);
 		client.sendLine(new StringBuilder("SERVERMSG ")
 				.append(username).append("'s last IP was ")
-				.append(acc.getLastIP()).append(" (")
+				.append(acc.getLastIpAsString()).append(" (")
 				.append((online ? "online)" : "offline)")).toString());
 
 		return true;

@@ -6,6 +6,7 @@ package com.springrts.tasserver;
 
 
 import java.awt.Color;
+import java.net.UnknownHostException;
 import net.iharder.Base64;
 
 import java.io.BufferedOutputStream;
@@ -27,6 +28,7 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.Semaphore;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -115,7 +117,9 @@ public class Misc {
 	 * <a href="http://forum.java.sun.com/thread.jspa?threadID=619056&messageID=3477258">
 	 * this related post</a>.
 	 */
-	public static String getLocalIPAddress() {
+	public static InetAddress getLocalIpAddress() {
+
+		InetAddress localIpAddress = null;
 
 		try {
 			Enumeration<NetworkInterface> netfaces = NetworkInterface.getNetworkInterfaces();
@@ -127,16 +131,19 @@ public class Misc {
 				while (addresses.hasMoreElements()) {
 					InetAddress ip = addresses.nextElement();
 					if (!ip.isLoopbackAddress() && ip.getHostAddress().indexOf(':') == -1) {
-						return ip.getHostAddress();
+						localIpAddress = ip;
 					}
 				}
 			}
 		} catch (SocketException sex) {
-			return null;
+			LOG.trace("Failed evaluating the local IP address", sex);
+			localIpAddress = null;
 		}
-		return null;
+
+		return localIpAddress;
 	}
 
+	@Deprecated
 	public static long ip2Long(String ip) {
 
 		long res = 0;
@@ -155,6 +162,20 @@ public class Misc {
 		} catch (NumberFormatException nfex) {
 			res = -2;
 		}
+
+		return res;
+	}
+
+	public static long ip2Long(InetAddress ip) {
+
+		long res;
+
+		byte[] addr = ip.getAddress();
+		final long f1 = (long) addr[0] << 24;
+		final long f2 = (long) addr[1] << 16;
+		final long f3 = (long) addr[2] << 8;
+		final long f4 = (long) addr[3];
+		res = f1 + f2 + f3 + f4;
 
 		return res;
 	}
@@ -515,13 +536,15 @@ public class Misc {
 		return springColor;
 	}
 
-	public static  boolean isSameIP(final String[] ip1Split, final String ip2) {
+	@Deprecated
+	public static boolean isSameIP(final String[] ip1Split, final String ip2) {
 
 		String[] ip2Split = ip2.split("\\.");
 
 		return isSameIP(ip1Split, ip2Split);
 	}
-	public static  boolean isSameIP(final String[] ip1Split, final String[] ip2Split) {
+	@Deprecated
+	public static boolean isSameIP(final String[] ip1Split, final String[] ip2Split) {
 
 		if        (!ip1Split[0].equals("*") && !ip1Split[0].equals(ip2Split[0])) {
 			return false;
@@ -534,6 +557,36 @@ public class Misc {
 		}
 
 		return true;
+	}
+
+	private static Pattern patternIpV4 = Pattern.compile("^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$");
+	private static Pattern patternIpV6 = Pattern.compile("^[0-9a-fA-F.:]+$");
+
+	public static InetAddress parseIp(final String ip, boolean failOnNonV4, boolean failOnNonV6) {
+
+		InetAddress inetAddress = null;
+
+		try {
+			if (failOnNonV6 && !patternIpV6.matcher(ip).matches()) {
+				throw new IllegalArgumentException("Is neither a v4 nor a v6 IP addresses");
+			} else if (failOnNonV4 && !patternIpV4.matcher(ip).matches()) {
+				throw new IllegalArgumentException("Only IP v4 addresses are supported");
+			}
+
+			try {
+				inetAddress = InetAddress.getByName(ip);
+			} catch (UnknownHostException ex) {
+				throw new IllegalArgumentException("Could not to resolve hostname to IP", ex);
+			}
+		} catch (Exception ex) {
+			inetAddress = null;
+			LOG.trace("Failed parsing IP: {} - {}", ip, ex.getMessage());
+		}
+
+		return inetAddress;
+	}
+	public static InetAddress parseIp(final String ip) {
+		return parseIp(ip, true, true);
 	}
 
 	private static Properties initMavenProperties() {

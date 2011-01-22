@@ -192,6 +192,9 @@ public class Clients implements ContextReceiver, Updateable {
 
 		return theClient;
 	}
+	public Client getClient(Account account) {
+		return getClient(account.getName());
+	}
 
 	/** Returns null if index is out of bounds */
 	public Client getClient(int index) {
@@ -205,17 +208,7 @@ public class Clients implements ContextReceiver, Updateable {
 
 	/** Returns true if user is logged in */
 	public boolean isUserLoggedIn(Account acc) {
-
-		boolean isLoggedIn = false;
-
-		for (int i = 0; i < clients.size(); i++) {
-			if (clients.get(i).getAccount().getName().equals(acc.getName())) {
-				isLoggedIn = true;
-				break;
-			}
-		}
-
-		return isLoggedIn;
+		return (getClient(acc) != null);
 	}
 
 	public void sendToAllRegisteredUsers(String s) {

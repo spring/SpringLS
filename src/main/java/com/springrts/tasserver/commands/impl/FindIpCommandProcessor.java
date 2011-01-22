@@ -24,9 +24,12 @@ import com.springrts.tasserver.Misc;
 import com.springrts.tasserver.commands.AbstractCommandProcessor;
 import com.springrts.tasserver.commands.CommandProcessingException;
 import com.springrts.tasserver.commands.SupportedCommand;
+import java.net.InetAddress;
 import java.util.List;
 
 /**
+ * Find a currently online client by IP, or if no match, search in the pool of
+ * IPs last used by each account.
  * @author hoijui
  */
 @SupportedCommand("FINDIP")
@@ -46,27 +49,34 @@ public class FindIpCommandProcessor extends AbstractCommandProcessor {
 		}
 
 		boolean found = false;
+
+		// NOTE In the past, this command allowed to specify a range of IPs,
+		//      by specifying a radix like "192.168.*.*".
+		//      Support for this has been removed.
+		//      You now have to explicitly specify the IP.
 		String ip = args.get(0);
-		String[] sp1 = ip.split("\\.");
-		if (sp1.length != 4) {
-			client.sendLine(new StringBuilder("SERVERMSG Invalid IP address/range: ").append(ip).toString());
+
+		InetAddress addr = Misc.parseIp(ip);
+		if (addr == null) {
+			client.sendLine("SERVERMSG Invalid IP address: " + ip);
 			return false;
 		}
 
 		for (int i = 0; i < getContext().getClients().getClientsSize(); i++) {
-			if (!Misc.isSameIP(sp1, getContext().getClients().getClient(i).getIp())) {
+			Client curClient = getContext().getClients().getClient(i);
+			if (!addr.equals(curClient.getIp())) {
 				continue;
 			}
 
 			found = true;
 			client.sendLine(new StringBuilder("SERVERMSG ")
 					.append(ip).append(" is bound to: ")
-					.append(getContext().getClients().getClient(i).getAccount().getName()).toString());
+					.append(curClient.getAccount().getName()).toString());
 		}
 
-		// now let's check if this ip matches any recently used ip:
-		Account lastAct = getContext().getAccountsService().findAccountByLastIP(ip);
-		if (lastAct != null && getContext().getClients().getClient(lastAct.getName()) == null) { // user is offline
+		// now let's check if this IP matches any recently used IP:
+		Account lastAct = getContext().getAccountsService().findAccountByLastIP(addr);
+		if ((lastAct != null) && !getContext().getClients().isUserLoggedIn(lastAct)) {
 			found = true;
 			client.sendLine(new StringBuilder("SERVERMSG ")
 					.append(ip).append(" was recently bound to: ")
@@ -74,8 +84,9 @@ public class FindIpCommandProcessor extends AbstractCommandProcessor {
 		}
 
 		if (!found) {
-			//*** perhaps add an explanation like "(note that server only keeps track of last used ip addresses)" ?
-			client.sendLine(new StringBuilder("SERVERMSG No client is/was recently using IP: ").append(ip).toString());
+			// TODO perhaps add an explanation like
+			// "(note that server only keeps track of last used IP addresses)"?
+			client.sendLine("SERVERMSG No client is/was recently using IP: " + ip);
 		}
 
 		return true;

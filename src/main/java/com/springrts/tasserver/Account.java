@@ -6,6 +6,7 @@ package com.springrts.tasserver;
 
 
 import java.io.Serializable;
+import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.Collection;
 import javax.persistence.Column;
@@ -110,7 +111,7 @@ public class Account implements Serializable, Cloneable {
 	public static final int NO_USER_ID = 0;
 	public static final int NO_ACCOUNT_ID = 0;
 	public static final int NEW_ACCOUNT_ID = -1;
-	public static final String NO_ACCOUNT_LAST_IP = "?";
+	public static final String NO_ACCOUNT_LAST_IP_STR = "?";
 	public static final String NO_ACCOUNT_LAST_COUNTRY = "XX";
 
 
@@ -121,43 +122,18 @@ public class Account implements Serializable, Cloneable {
 	 * This is different to the <code>lastUserId</code>, because it
 	 * @see #lastUserId
 	 */
-	@Id
-	@GeneratedValue
-	@Column(
-		name       = "id",
-		unique     = true,
-		nullable   = false,
-		insertable = true,
-		updatable  = false
-		)
 	private int id;
 
 	/**
 	 * Accounts login name.
 	 * This is what you see, for example, in the lobby or in-game.
 	 */
-	@Column(
-		name       = "name",
-		unique     = true,
-		nullable   = false,
-		insertable = true,
-		updatable  = true,
-		length     = 40
-		)
 	private String name;
 
 	/**
 	 * Encrypted form of the password.
 	 * TODO: add description of method used to encrypt the password; lobby side
 	 */
-	@Column(
-		name       = "password",
-		unique     = false,
-		nullable   = false,
-		insertable = true,
-		updatable  = true,
-		length     = 32
-		)
 	private String password;
 
 	/**
@@ -168,40 +144,20 @@ public class Account implements Serializable, Cloneable {
 	 * introduced with Spring 0.67b3, Dec 18 2005.
 	 * @see java.lang.System#currentTimeMillis()
 	 */
-	@Column(
-		name       = "register_date",
-		unique     = false,
-		nullable   = true,
-		insertable = true,
-		updatable  = false
-		)
 	private long registrationDate;
 
 	/**
 	 * Time of the last login.
 	 * @see java.lang.System#currentTimeMillis()
 	 */
-	@Column(
-		name       = "last_login",
-		unique     = false,
-		nullable   = false,
-		insertable = true,
-		updatable  = true
-		)
 	private long lastLogin;
 
 	/**
 	 * Most recent IP used to log into this account.
+	 * Note for devs: As this requires custom toString() and fromString()
+	 * methods for persistence, we annotate it on the property methods.
 	 */
-	@Column(
-		name       = "last_ip",
-		unique     = false,
-		nullable   = false,
-		insertable = true,
-		updatable  = true,
-		length     = 15
-		)
-	private String lastIP;
+	private InetAddress lastIp;
 
 	/**
 	 * Unique name identification number.
@@ -212,13 +168,6 @@ public class Account implements Serializable, Cloneable {
 	 * name), ban evasion etc.
 	 * @see #id
 	 */
-	@Column(
-		name       = "last_id",
-		unique     = false,
-		nullable   = true,
-		insertable = true,
-		updatable  = true
-		)
 	private int lastUserId;
 
 	/**
@@ -226,26 +175,11 @@ public class Account implements Serializable, Cloneable {
 	 * If country could not be resolved, "XX" is used for country code,
 	 * otherwise a 2-char country code is used.
 	 */
-	@Column(
-		name       = "last_country",
-		unique     = false,
-		nullable   = false,
-		insertable = true,
-		updatable  = true,
-		length     = 2
-		)
 	private String lastCountry;
 
 	/**
 	 * How many seconds did the client spend in-game (unix time-stamp compatible).
 	 */
-	@Column(
-		name       = "ingame_time",
-		unique     = false,
-		nullable   = true,
-		insertable = true,
-		updatable  = true
-		)
 	private long inGameTime;
 
 	/**
@@ -259,25 +193,11 @@ public class Account implements Serializable, Cloneable {
 	 * Bot mode specifies whether this is an automated bot,
 	 * for example an instance of ChanServ, or a normal account.
 	 */
-	@Column(
-		name       = "bot",
-		unique     = false,
-		nullable   = false,
-		insertable = true,
-		updatable  = true
-		)
 	private boolean bot;
 
 	/**
 	 * Whether the user accepted the agreement or not.
 	 */
-	@Column(
-		name       = "agreement",
-		unique     = false,
-		nullable   = false,
-		insertable = true,
-		updatable  = true
-		)
 	private boolean agreementAccepted;
 
 	// END: User specific data (stored in the DB)
@@ -295,7 +215,7 @@ public class Account implements Serializable, Cloneable {
 		this.registrationDate  = 0;
 		this.lastLogin         = 0;
 		this.lastUserId        = NO_ACCOUNT_ID;
-		this.lastIP            = NO_ACCOUNT_LAST_IP;
+		this.lastIp            = null;
 		this.lastCountry       = NO_ACCOUNT_LAST_COUNTRY;
 		this.inGameTime        = 0;
 		this.access            = Access.NONE;
@@ -306,7 +226,7 @@ public class Account implements Serializable, Cloneable {
 	 * Only used by 'FSAccountsService'.
 	 */
 	Account(String name, String password, Access access, int lastUserId,
-			long lastLogin, String lastIP, long registrationDate,
+			long lastLogin, InetAddress lastIp, long registrationDate,
 			String lastCountry, int id, boolean bot, long inGameTime,
 			boolean agreementAccepted)
 	{
@@ -316,7 +236,7 @@ public class Account implements Serializable, Cloneable {
 		this.registrationDate  = registrationDate;
 		this.lastLogin         = lastLogin;
 		this.lastUserId        = lastUserId;
-		this.lastIP            = lastIP;
+		this.lastIp            = lastIp;
 		this.lastCountry       = lastCountry;
 		this.inGameTime        = inGameTime;
 		this.access            = access;
@@ -326,7 +246,7 @@ public class Account implements Serializable, Cloneable {
 	/**
 	 * Used when a user registers a new account.
 	 */
-	public Account(String name, String password, String lastIP, String lastCountry) {
+	public Account(String name, String password, InetAddress lastIp, String lastCountry) {
 
 		//this.id                = NEW_ACCOUNT_ID; // will be generated by JPA
 		this.name              = name;
@@ -334,7 +254,7 @@ public class Account implements Serializable, Cloneable {
 		this.registrationDate  = System.currentTimeMillis();
 		this.lastLogin         = System.currentTimeMillis();
 		this.lastUserId        = NO_USER_ID;
-		this.lastIP            = lastIP;
+		this.lastIp            = lastIp;
 		this.lastCountry       = lastCountry;
 		this.inGameTime        = 0;
 		this.access            = Access.NORMAL;
@@ -349,7 +269,7 @@ public class Account implements Serializable, Cloneable {
 		this.access            = acc.getAccess();
 		this.lastUserId        = NO_USER_ID;
 		this.lastLogin         = acc.getLastLogin();
-		this.lastIP            = acc.getLastIP();
+		this.lastIp            = acc.getLastIp();
 		this.registrationDate  = acc.getRegistrationDate();
 		this.lastCountry       = acc.getLastCountry();
 		this.id                = acc.getId();
@@ -365,7 +285,7 @@ public class Account implements Serializable, Cloneable {
 				.append(getAccess()).append(" ")
 				.append(getLastUserId()).append(" ")
 				.append(getLastLogin()).append(" ")
-				.append(getLastIP()).append(" ")
+				.append(getLastIp()).append(" ")
 				.append(getRegistrationDate()).append(" ")
 				.append(getLastCountry()).append(" ")
 				.append(getId()).append(" ")
@@ -589,6 +509,15 @@ public class Account implements Serializable, Cloneable {
 	 * @see #getLastUserId()
 	 * @return the id
 	 */
+	@Id
+	@GeneratedValue
+	@Column(
+		name       = "id",
+		unique     = true,
+		nullable   = false,
+		insertable = true,
+		updatable  = false
+		)
 	protected int getId() {
 		return id;
 	}
@@ -608,6 +537,14 @@ public class Account implements Serializable, Cloneable {
 	 * This is what you see, for example, in the lobby or in-game.
 	 * @return the name
 	 */
+	@Column(
+		name       = "name",
+		unique     = true,
+		nullable   = false,
+		insertable = true,
+		updatable  = true,
+		length     = 40
+		)
 	public String getName() {
 		return name;
 	}
@@ -626,6 +563,14 @@ public class Account implements Serializable, Cloneable {
 	 * TODO: add method of description
 	 * @return the password
 	 */
+	@Column(
+		name       = "password",
+		unique     = false,
+		nullable   = false,
+		insertable = true,
+		updatable  = true,
+		length     = 32
+		)
 	public String getPassword() {
 		return password;
 	}
@@ -640,23 +585,99 @@ public class Account implements Serializable, Cloneable {
 	}
 
 	/**
-	 * Access type.
-	 * Bit 31 must be 0 (due to int being a signed number, and we don't want to
-	 * use any binary complement conversions).
-	 * @return the accessType
+	 * Date of when the name registered this account.
+	 * In milliseconds (refers to System.currentTimeMillis()). 0 means
+	 * registration date is unknown. This applies to users that registered in
+	 * some early version, when this field was not yet present. Note that this
+	 * field was first introduced with Spring 0.67b3, Dec 18 2005.
+	 * @return the registrationDate
 	 */
-	public Access getAccess() {
-		return access;
+	@Column(
+		name       = "register_date",
+		unique     = false,
+		nullable   = true,
+		insertable = true,
+		updatable  = false
+		)
+	public long getRegistrationDate() {
+		return registrationDate;
 	}
 
 	/**
-	 * Access type.
-	 * Bit 31 must be 0 (due to int being a signed number, and we don't want to
-	 * use any binary complement conversions).
-	 * @param access the access type to set
+	 * Time (System.currentTimeMillis()) of the last login.
+	 * @return the lastLogin
 	 */
-	public void setAccess(Access access) {
-		this.access = access;
+	@Column(
+		name       = "last_login",
+		unique     = false,
+		nullable   = false,
+		insertable = true,
+		updatable  = true
+		)
+	public long getLastLogin() {
+		return lastLogin;
+	}
+
+	/**
+	 * Time (System.currentTimeMillis()) of the last login.
+	 * @param lastLogin the lastLogin to set
+	 */
+	public void setLastLogin(long lastLogin) {
+		this.lastLogin = lastLogin;
+	}
+
+	/**
+	 * Most recent IP used to log into this account.
+	 * @return the lastIP
+	 */
+	public InetAddress getLastIp() {
+		return lastIp;
+	}
+
+	/**
+	 * Most recent IP used to log into this account.
+	 * @param lastIp the lastIP to set
+	 */
+	public void setLastIp(InetAddress lastIp) {
+		this.lastIp = lastIp;
+	}
+
+	/**
+	 * Returns the most recent IP used to log into this account as string.
+	 * This should be used in persistence and lobby protocol specific parts
+	 * only.
+	 * @see #getLastIp()
+	 */
+	@Column(
+		name       = "last_ip",
+		unique     = false,
+		nullable   = false,
+		insertable = true,
+		updatable  = true,
+		length     = 15
+		)
+	public String getLastIpAsString() {
+
+		if (lastIp == null) {
+			return NO_ACCOUNT_LAST_IP_STR;
+		} else {
+			return lastIp.getHostAddress();
+		}
+	}
+
+	/**
+	 * Sets the most recent IP used to log into this account as string.
+	 * This should be used in persistence and lobby protocol specific parts
+	 * only.
+	 * @see #setLastIp(InetAddress)
+	 */
+	public void setLastIpAsString(String lastIp) {
+
+		if (lastIp.equals(NO_ACCOUNT_LAST_IP_STR)) {
+			this.lastIp = null;
+		} else {
+			this.lastIp = Misc.parseIp(lastIp);
+		}
 	}
 
 	/**
@@ -669,6 +690,13 @@ public class Account implements Serializable, Cloneable {
 	 * @see #getId()
 	 * @return the lastUserId
 	 */
+	@Column(
+		name       = "last_id",
+		unique     = false,
+		nullable   = true,
+		insertable = true,
+		updatable  = true
+		)
 	public int getLastUserId() {
 		return lastUserId;
 	}
@@ -688,55 +716,19 @@ public class Account implements Serializable, Cloneable {
 	}
 
 	/**
-	 * Time (System.currentTimeMillis()) of the last login.
-	 * @return the lastLogin
-	 */
-	public long getLastLogin() {
-		return lastLogin;
-	}
-
-	/**
-	 * Time (System.currentTimeMillis()) of the last login.
-	 * @param lastLogin the lastLogin to set
-	 */
-	public void setLastLogin(long lastLogin) {
-		this.lastLogin = lastLogin;
-	}
-
-	/**
-	 * Most recent IP used to log into this account.
-	 * @return the lastIP
-	 */
-	public String getLastIP() {
-		return lastIP;
-	}
-
-	/**
-	 * Most recent IP used to log into this account.
-	 * @param lastIP the lastIP to set
-	 */
-	public void setLastIP(String lastIP) {
-		this.lastIP = lastIP;
-	}
-
-	/**
-	 * Date of when the name registered this account.
-	 * In milliseconds (refers to System.currentTimeMillis()). 0 means
-	 * registration date is unknown. This applies to users that registered in
-	 * some early version, when this field was not yet present. Note that this
-	 * field was first introduced with Spring 0.67b3, Dec 18 2005.
-	 * @return the registrationDate
-	 */
-	public long getRegistrationDate() {
-		return registrationDate;
-	}
-
-	/**
 	 * Resolved country code for this name's IP when he last logged on.
 	 * If country could not be resolved, "XX" is used for country code,
 	 * otherwise a 2-char country code is used.
 	 * @return the lastCountry
 	 */
+	@Column(
+		name       = "last_country",
+		unique     = false,
+		nullable   = false,
+		insertable = true,
+		updatable  = true,
+		length     = 2
+		)
 	public String getLastCountry() {
 		return lastCountry;
 	}
@@ -752,10 +744,61 @@ public class Account implements Serializable, Cloneable {
 	}
 
 	/**
+	 * How many seconds did the client spend in-game (unix time-stamp compatible).
+	 * @return the inGameTime
+	 */
+	@Column(
+		name       = "ingame_time",
+		unique     = false,
+		nullable   = true,
+		insertable = true,
+		updatable  = true
+		)
+	public long getInGameTime() {
+		return inGameTime;
+	}
+
+	/**
+	 * How many seconds did the client spend in-game (unix time-stamp compatible).
+	 * @param inGameTime the inGameTime to set
+	 */
+	public void setInGameTime(long inGameTime) {
+		this.inGameTime = inGameTime;
+	}
+
+	/**
+	 * Access type.
+	 * Bit 31 must be 0 (due to int being a signed number, and we don't want to
+	 * use any binary complement conversions).
+	 * @return the accessType
+	 */
+	// FIXME why is this not persisted?
+	public Access getAccess() {
+		return access;
+	}
+
+	/**
+	 * Access type.
+	 * Bit 31 must be 0 (due to int being a signed number, and we don't want to
+	 * use any binary complement conversions).
+	 * @param access the access type to set
+	 */
+	public void setAccess(Access access) {
+		this.access = access;
+	}
+
+	/**
 	 * Bot mode specifies whether this is an automated bot,
 	 * for example an instance of ChanServ, or a normal account.
 	 * @return whether this is an automated bot or not
 	 */
+	@Column(
+		name       = "bot",
+		unique     = false,
+		nullable   = false,
+		insertable = true,
+		updatable  = true
+		)
 	public boolean isBot() {
 		return bot;
 	}
@@ -770,25 +813,16 @@ public class Account implements Serializable, Cloneable {
 	}
 
 	/**
-	 * How many seconds did the client spend in-game (unix time-stamp compatible).
-	 * @return the inGameTime
-	 */
-	public long getInGameTime() {
-		return inGameTime;
-	}
-
-	/**
-	 * How many seconds did the client spend in-game (unix time-stamp compatible).
-	 * @param inGameTime the inGameTime to set
-	 */
-	public void setInGameTime(long inGameTime) {
-		this.inGameTime = inGameTime;
-	}
-
-	/**
 	 * Whether the user accepted the agreement or not.
 	 * @return the agreementAccepted
 	 */
+	@Column(
+		name       = "agreement",
+		unique     = false,
+		nullable   = false,
+		insertable = true,
+		updatable  = true
+		)
 	public boolean isAgreementAccepted() {
 		return agreementAccepted;
 	}

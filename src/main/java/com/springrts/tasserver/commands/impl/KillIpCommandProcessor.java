@@ -24,9 +24,12 @@ import com.springrts.tasserver.Misc;
 import com.springrts.tasserver.commands.AbstractCommandProcessor;
 import com.springrts.tasserver.commands.CommandProcessingException;
 import com.springrts.tasserver.commands.SupportedCommand;
+import java.net.InetAddress;
 import java.util.List;
 
 /**
+ * Disconnects a currently online client (specified by IP) from the server
+ * forcefully.
  * @author hoijui
  */
 @SupportedCommand("KILLIP")
@@ -45,18 +48,23 @@ public class KillIpCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
+		// NOTE In the past, this command allowed to specify a range of IPs,
+		//      by specifying a radix like "192.168.*.*".
+		//      Support for this has been removed.
+		//      You now have to explicitly specify the IP.
 		String ip = args.get(0);
 
-		String[] sp1 = ip.split("\\.");
-		if (sp1.length != 4) {
-			client.sendLine("SERVERMSG Invalid IP address/range: " + ip);
+		InetAddress addr = Misc.parseIp(ip);
+		if (addr == null) {
+			client.sendLine("SERVERMSG Invalid IP address: " + ip);
 			return false;
 		}
+
 		for (int i = 0; i < getContext().getClients().getClientsSize(); i++) {
-			if (!Misc.isSameIP(sp1, getContext().getClients().getClient(i).getIp())) {
-				continue;
+			Client curClient = getContext().getClients().getClient(i);
+			if (curClient.getIp().equals(addr)) {
+				getContext().getClients().killClient(curClient);
 			}
-			getContext().getClients().killClient(getContext().getClients().getClient(i));
 		}
 
 		return true;

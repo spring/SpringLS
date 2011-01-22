@@ -5,6 +5,7 @@
 package com.springrts.tasserver;
 
 
+import java.net.InetAddress;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -154,7 +155,7 @@ public class JPABanService implements BanService {
 	}
 
 	@Override
-	public BanEntry getBanEntry(String username, long ip, int userId) {
+	public BanEntry getBanEntry(String username, InetAddress ip, int userId) {
 
 		BanEntry ban = null;
 
@@ -163,7 +164,7 @@ public class JPABanService implements BanService {
 			em = open();
 			Query fetchQuery = em.createNamedQuery("ban_fetch");
 			fetchQuery.setParameter("username", username);
-			fetchQuery.setParameter("ip", ip);
+			fetchQuery.setParameter("ip", Misc.ip2Long(ip));
 			fetchQuery.setParameter("userId", userId);
 			ban = (BanEntry) fetchQuery.getSingleResult();
 		} catch (Exception ex) {

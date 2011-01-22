@@ -83,7 +83,7 @@ public class RenameAccountCommandProcessor extends AbstractCommandProcessor {
 		Account accountNew = client.getAccount().clone();
 		accountNew.setName(newUsername);
 		accountNew.setLastLogin(System.currentTimeMillis());
-		accountNew.setLastIP(client.getIp());
+		accountNew.setLastIp(client.getIp());
 		final boolean mergeOk = getContext().getAccountsService().mergeAccountChanges(accountNew, client.getAccount().getName());
 		if (mergeOk) {
 			client.setAccount(accountNew);

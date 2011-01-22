@@ -5,6 +5,7 @@
 package com.springrts.tasserver;
 
 
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,7 +34,7 @@ public class DummyBanService implements BanService{
 	}
 
 	@Override
-	public BanEntry getBanEntry(String username, long ip, int userId) {
+	public BanEntry getBanEntry(String username, InetAddress ip, int userId) {
 		return null;
 	}
 

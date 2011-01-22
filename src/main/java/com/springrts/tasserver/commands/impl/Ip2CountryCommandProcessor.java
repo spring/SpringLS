@@ -25,6 +25,7 @@ import com.springrts.tasserver.Misc;
 import com.springrts.tasserver.commands.AbstractCommandProcessor;
 import com.springrts.tasserver.commands.CommandProcessingException;
 import com.springrts.tasserver.commands.SupportedCommand;
+import java.net.InetAddress;
 import java.util.List;
 
 /**
@@ -48,7 +49,14 @@ public class Ip2CountryCommandProcessor extends AbstractCommandProcessor {
 		}
 
 		String ip = args.get(0);
-		String country = IP2Country.getInstance().getCountryCode(Misc.ip2Long(ip));
+
+		InetAddress addr = Misc.parseIp(ip);
+		if (addr == null) {
+			client.sendLine("SERVERMSG Invalid IP address/range: " + ip);
+			return false;
+		}
+
+		String country = IP2Country.getInstance().getCountryCode(addr);
 
 		client.sendLine("SERVERMSG Country = " + country);
 

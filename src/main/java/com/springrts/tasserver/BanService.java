@@ -5,6 +5,7 @@
 package com.springrts.tasserver;
 
 
+import java.net.InetAddress;
 import java.util.List;
 
 /**
@@ -34,7 +35,7 @@ public interface BanService {
 	public boolean removeBanEntry(BanEntry ban);
 
 	/** Returns null if no matching ban is found */
-	public BanEntry getBanEntry(String username, long ip, int userId);
+	public BanEntry getBanEntry(String username, InetAddress ip, int userId);
 
 	/**
 	 * Save changes to a ban entry to permanent storage.
