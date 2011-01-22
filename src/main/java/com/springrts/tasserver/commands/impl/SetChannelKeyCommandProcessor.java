@@ -57,11 +57,11 @@ public class SetChannelKeyCommandProcessor extends AbstractCommandProcessor {
 		}
 
 		if (key.equals("*")) {
-			if (chan.getKey().equals("")) {
+			if (!chan.isLocked()) {
 				client.sendLine("SERVERMSG Error: Unable to unlock channel - channel is not locked!");
 				return false;
 			}
-			chan.setKey("");
+			chan.setKey(Channel.KEY_NONE);
 			chan.broadcast(new StringBuilder("<")
 					.append(client.getAccount().getName()).append("> has just unlocked #")
 					.append(chan.getName()).toString());

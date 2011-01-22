@@ -26,13 +26,43 @@ public class Channel implements ContextReceiver, LiveStateListener {
 	private static final Logger LOG  = LoggerFactory.getLogger(Channel.class);
 
 	private static final String LOG_FILES_DIR  = "./";
+	/**
+	 * A channel with this topic -> topic is disabled for this channel.
+	 * @see #getTopic()
+	 */
+	public static final String TOPIC_NONE  = "";
+	/**
+	 * Has equal meaning like TOPIC_NONE.
+	 * @see #TOPIC_NONE
+	 */
+	public static final String TOPIC_NONE_2  = "*";
+	/**
+	 * A channel with this key -> channel is not locked, so anyone can join.
+	 * @see #getKey()
+	 */
+	public static final String KEY_NONE  = "";
+	/**
+	 * Has equal meaning like KEY_NONE.
+	 * @see #KEY_NONE
+	 */
+	public static final String KEY_NONE_2  = "*";
 
 	private String name;
-	private String topic; // "" represents no topic (topic is disabled for this channel)
+	/**
+	 * @see #TOPIC_NONE
+	 */
+	private String topic;
 	private String topicAuthor;
-	private long topicChangedTime; // time when topic was last changed (in ms since Jan 1, 1970 UTC)
-	private String key = ""; // if key is "" then this channel is not locked (anyone can join). Otherwise, user must supply correct key to join it.
-	private List<Client> clients; // clients participating in this channel
+	/** Time when topic was last changed (in ms since Jan 1, 1970 UTC) */
+	private long topicChangedTime;
+	/**
+	 * The client must supply this key to join the channel, except it is
+	 * KEY_NONE.
+	 * @see #KEY_NONE
+	 */
+	private String key;
+	/** The clients participating in this channel */
+	private List<Client> clients;
 	/**
 	 * Contains a list of user names which are muted
 	 * (not allowed to talk in the channel).
@@ -49,12 +79,18 @@ public class Channel implements ContextReceiver, LiveStateListener {
 	public Channel(String channelName) {
 
 		name = channelName;
-		topic = "";
+		topic = TOPIC_NONE;
 		topicAuthor = "";
+		key = KEY_NONE;
 		clients = new ArrayList<Client>();
 		logFile = new File(LOG_FILES_DIR, "channel_" + name + ".log");
 		logging = false;
 		fileLog = null;
+	}
+
+
+	public static boolean isTopicNone(String topic) {
+		return (topic.equals(TOPIC_NONE) || topic.equals(TOPIC_NONE_2));
 	}
 
 
@@ -93,36 +129,45 @@ public class Channel implements ContextReceiver, LiveStateListener {
 		return topicChangedTime;
 	}
 
+	/**
+	 * Sets a new topic or disables topic for this channel.
+	 * @param newTopic content of the new topic, or TOPIC_NONE or TOPIC_NONE_2
+	 *   to disable the topic.
+	 * @param author username of the author of the new topic
+	 * @return returns true if the new topic has been set, false if the topic
+	 *   has been disabled.
+	 */
 	public boolean setTopic(String newTopic, String author) {
 
-		if (newTopic.trim().equals("*")) {
-			topic = "";
-			topicAuthor = author;
-			topicChangedTime = System.currentTimeMillis();
-			return false;
-		}
-		topic = newTopic.trim();
 		topicAuthor = author;
 		topicChangedTime = System.currentTimeMillis();
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("* Topic for #{} changed to '{}' (set by <{}>)", new Object[] {name, topic, author});
+		if (isTopicNone(newTopic.trim())) {
+			topic = TOPIC_NONE;
+			LOG.debug("* Topic for #{} disabled (by <{}>)", name, author);
+			return false;
+		} else {
+			topic = newTopic.trim();
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("* Topic for #{} changed to '{}' (set by <{}>)",
+						new Object[] {name, topic, author});
+			}
+			return true;
 		}
-		return true;
 	}
 
-	/** Sends msg as a channel message to all clients on this channel */
+	public boolean isTopicSet() {
+		return !isTopicNone(topic);
+	}
+
+	/** Sends 'msg' as a channel message to all clients on this channel */
 	public void broadcast(String msg) {
 
-		if (msg.trim().equals("")) {
+		if (msg.trim().isEmpty()) {
 			// do not send empty messages
 			return;
 		}
 
-		sendLineToClients("CHANNELMESSAGE " + name + " " + msg);
-	}
-
-	public boolean isTopicSet() {
-		return !(topic.equals(""));
+		sendLineToClients(String.format("CHANNELMESSAGE %s %s", name, msg));
 	}
 
 	/** Adds new client to the list of clients of this channel */
@@ -151,30 +196,31 @@ public class Channel implements ContextReceiver, LiveStateListener {
 
 	/** Returns null if index if out of bounds */
 	public Client getClient(int index) {
+
 		try {
 			return clients.get(index);
-		} catch(IndexOutOfBoundsException e) {
+		} catch (IndexOutOfBoundsException ex) {
 			return null;
 		}
 	}
 
 	/** Sends a text to all clients in this channel */
-	public void sendLineToClients(String s) {
+	public void sendLineToClients(String msg) {
 
 		if (fileLog != null) {
 			// As DateFormats are generally not-thread save,
 			// we always create a new one.
 			DateFormat timeFormat = new SimpleDateFormat("<HH:mm:ss> ");
 			fileLog.println(timeFormat.format(new Date()));
-			fileLog.println(s);
+			fileLog.println(msg);
 		}
 		for (int i = 0; i < clients.size(); i++) {
-			clients.get(i).sendLine(s);
+			clients.get(i).sendLine(msg);
 		}
 	}
 
 	public boolean isLocked() {
-		return !(key.equals("*") || key.equals(""));
+		return !(key.equals(KEY_NONE) || key.equals(KEY_NONE_2));
 	}
 
 	public void setKey(String key) {
@@ -209,6 +255,7 @@ public class Channel implements ContextReceiver, LiveStateListener {
 		return logFile;
 	}
 
+	// TODO use slf4j too?
 	public boolean setLogging(boolean enabled) {
 
 		// only change if change is needed

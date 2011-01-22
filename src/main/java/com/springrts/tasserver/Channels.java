@@ -188,7 +188,11 @@ public class Channels implements ContextReceiver, LiveStateListener, Updateable
 
 		// send the topic:
 		if (chan.isTopicSet()) {
-			client.sendLine("CHANNELTOPIC " + chan.getName() + " " + chan.getTopicAuthor() + " " + chan.getTopicChangedTime() + " " + chan.getTopic());
+			client.sendLine(String.format("CHANNELTOPIC %s %s %d %s",
+					chan.getName(),
+					chan.getTopicAuthor(),
+					chan.getTopicChangedTime(),
+					chan.getTopic()));
 		}
 
 		client.endFastWrite();
@@ -207,7 +211,11 @@ public class Channels implements ContextReceiver, LiveStateListener, Updateable
 
 		client.beginFastWrite();
 		for (int i = 0; i < channels.size(); i++) {
-			client.sendLine("CHANNEL " + channels.get(i).getName() + " " + channels.get(i).getClientsSize() + (channels.get(i).isTopicSet() ? " " + channels.get(i).getTopic() : ""));
+			Channel chan = channels.get(i);
+			client.sendLine(String.format("CHANNEL %s %d%s",
+					chan.getName(),
+					chan.getClientsSize(),
+					(chan.isTopicSet() ? (" " + chan.getTopic()) : "")));
 		}
 		client.sendLine("ENDOFCHANNELS");
 		client.endFastWrite();
@@ -218,7 +226,8 @@ public class Channels implements ContextReceiver, LiveStateListener, Updateable
 		for (int i = 0; i < chan.getClientsSize(); i++) {
 			Client toBeNotified = chan.getClient(i);
 			if (toBeNotified != client) {
-				toBeNotified.sendLine("JOINED " + chan.getName() + " " + client.getAccount().getName());
+				toBeNotified.sendLine("JOINED " + chan.getName() + " "
+						+ client.getAccount().getName());
 			}
 		}
 	}
