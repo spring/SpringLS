@@ -8,6 +8,8 @@ package com.springrts.tasserver;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -261,15 +263,34 @@ public class Channel implements ContextReceiver, LiveStateListener {
 		// only change if change is needed
 		if (enabled != isLogging()) {
 			if (enabled) {
+				OutputStream fOut = null;
+				OutputStream bOut = null;
 				try {
-					fileLog = new PrintStream(new BufferedOutputStream(new FileOutputStream(logFile, true)), true);
+					fOut = new FileOutputStream(logFile, true);
+					bOut = new BufferedOutputStream(fOut);
+					fileLog = new PrintStream(bOut, true);
 					fileLog.println();
 					fileLog.print("Log started on ");
-					fileLog.println(new SimpleDateFormat("dd/MM/yy").format(new Date()));
+					fileLog.println(new SimpleDateFormat("dd/MM/yy")
+							.format(new Date()));
 					logging = true;
-				} catch (Exception ex) {
+				} catch (IOException ex) {
 					if (fileLog != null) {
 						fileLog.close();
+					} else if (bOut != null) {
+						try {
+							bOut.close();
+						} catch (IOException ex2) {
+							LOG.debug("Failed to close buffered stream to file "
+									+ logFile.getAbsolutePath(), ex2);
+						}
+					} else if (fOut != null) {
+						try {
+							fOut.close();
+						} catch (IOException ex2) {
+							LOG.debug("Failed to close stream to file "
+									+ logFile.getAbsolutePath(), ex2);
+						}
 					}
 					fileLog = null;
 					LOG.error("Unable to open channel log file for channel "
