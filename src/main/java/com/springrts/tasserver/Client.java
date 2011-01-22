@@ -264,35 +264,38 @@ public class Client extends TeamController implements ContextReceiver {
 	 * @see #setSendMsgId(int msgId)
 	 */
 	public boolean sendLine(String text, int msgId) {
+
 		if (!alive || halfDead) {
 			return false;
 		}
 
+		StringBuilder data = new StringBuilder();
+
 		// prefix message with a message ID:
 		if (msgId != NO_MSG_ID) {
-			text = "#" + msgId + " " + text;
+			data.append("#").append(msgId).append(" ");
 		}
+		data.append(text);
 
 		if (fastWrite != null) {
 			if (fastWrite.length() != 0) {
 				fastWrite.append(Misc.EOL);
 			}
-			fastWrite.append(text);
+			fastWrite.append(data);
 			return true;
 		}
 
 		if (LOG.isDebugEnabled()) {
-			LOG.debug("[->{}] \"{}\"",
-					((account.getAccess() != Account.Access.NONE)
+			String nameOrIp = (account.getAccess() != Account.Access.NONE)
 						? account.getName()
-						: ip),
-					text);
+						: ip.getHostAddress();
+			LOG.debug("[->{}] \"{}\"", nameOrIp, data);
 		}
 
 		try {
 			// prepare data and add it to the send queue
 
-			String data = text + Misc.EOL;
+			data.append(Misc.EOL);
 
 			if ((sockChan == null) || (!sockChan.isConnected())) {
 				LOG.warn("SocketChannel is not ready to be written to."
@@ -302,7 +305,7 @@ public class Client extends TeamController implements ContextReceiver {
 			}
 
 			ByteBuffer buf;
-			try{
+			try {
 				buf = context.getServer().getAsciiEncoder().encode(CharBuffer.wrap(data));
 			} catch (CharacterCodingException ex) {
 				LOG.warn("Unable to encode message. Killing the client next loop ...", ex);
@@ -310,7 +313,7 @@ public class Client extends TeamController implements ContextReceiver {
 				return false;
 			}
 
-			if (sendQueue.size() != 0) {
+			if (!sendQueue.isEmpty()) {
 				sendQueue.add(buf);
 			} else {
 				sendQueue.add(buf);
@@ -384,9 +387,9 @@ public class Client extends TeamController implements ContextReceiver {
 	 */
 	public boolean leaveChannel(Channel chan, String reason) {
 
-		boolean result = chan.removeClient(this);
+		boolean left = chan.removeClient(this);
 
-		if (result) {
+		if (left) {
 			if (chan.getClientsSize() == 0) {
 				// since channel is empty, there is no point in keeping it
 				// in a channels list. If we would keep it, the channels list
@@ -394,20 +397,22 @@ public class Client extends TeamController implements ContextReceiver {
 				// We don't want that!
 				context.getChannels().removeChannel(chan);
 			} else {
-				if (!reason.equals("")) {
-					reason = " " + reason;
+				StringBuilder message = new StringBuilder("LEFT ");
+				message.append(chan.getName()).append(" ");
+				message.append(this.account.getName());
+				if (!reason.isEmpty()) {
+					message.append(" ").append(reason);
 				}
+
+				String messageStr = message.toString();
 				for (int i = 0; i < chan.getClientsSize(); i++) {
-					chan.getClient(i).sendLine(new StringBuilder("LEFT ")
-							.append(chan.getName()).append(" ")
-							.append(this.account.getName())
-							.append(reason).toString());
+					chan.getClient(i).sendLine(messageStr);
 				}
 			}
 			this.channels.remove(chan);
 		}
 
-		return result;
+		return left;
 	}
 
 	/**
