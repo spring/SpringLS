@@ -14,8 +14,6 @@ package com.springrts.tasserver;
  */
 public class ServerNotification {
 
-	public static final String EOL = "\r\n";
-
 	/**
 	 * Milliseconds passed since 1st Jan 1970
 	 * @see System.currentTimeMillis()
@@ -45,7 +43,7 @@ public class ServerNotification {
 	}
 
 	public void addLine(String line) {
-		message.append(EOL).append(line);
+		message.append(Misc.EOL).append(line);
 	}
 
 	/**
@@ -59,7 +57,7 @@ public class ServerNotification {
 
 		StackTraceElement[] trace = ex.getStackTrace();
 		for (int i = 0; i < trace.length; i++) {
-			message.append(EOL).append("\tat ").append(trace[i].toString());
+			message.append(Misc.EOL).append("\tat ").append(trace[i].toString());
 		}
 	}
 
@@ -68,9 +66,9 @@ public class ServerNotification {
 
 		StringBuilder str = new StringBuilder();
 
-		str.append(getAuthor()).append(EOL);
-		str.append(getTitle()).append(EOL);
-		str.append(getTime()).append(EOL);
+		str.append(getAuthor()).append(Misc.EOL);
+		str.append(getTitle()).append(Misc.EOL);
+		str.append(getTime()).append(Misc.EOL);
 		str.append(getMessage());
 
 		return str.toString();
