@@ -381,9 +381,11 @@ public class Client extends TeamController implements ContextReceiver {
 	}
 
 	/**
-	 * Removes client from the channel and notifies all other clients in the channel about it.
-	 * If this was the last client in the channel, then channel is removed from channels list.
-	 * "reason" may be left blank ("") if no reason is to be given.
+	 * Removes this client from a specific channel and notifies all other
+	 * clients in that channel about it.
+	 * If this was the last client in the channel, then the channel is removed
+	 * from channels list.
+	 * @param reason may be left blank ("") if no reason is to be given.
 	 */
 	public boolean leaveChannel(Channel chan, String reason) {
 

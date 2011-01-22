@@ -87,9 +87,9 @@ public class Battles implements ContextReceiver {
 	}
 
 	/**
-	 * Removes client from a battle and notifies everyone. Also automatically checks if
-	 * client is founder and closes the battle in that case. All client's bots in this
-	 * battle are removed as well.
+	 * Removes the client from a battle and notifies everyone.
+	 * This also checks if the client is the founder and closes the battle in
+	 * that case. All client's bots in this battle are removed as well.
 	 */
 	public boolean leaveBattle(Client client, Battle battle) {
 
@@ -118,7 +118,8 @@ public class Battles implements ContextReceiver {
 		client.beginFastWrite();
 		for (int i = 0; i < battles.size(); i++) {
 			final Battle bat = battles.get(i);
-			// make sure that clients behind NAT get local IPs and not external ones
+			// make sure that clients behind NAT get local IPs and not external
+			// ones
 			boolean local = bat.getFounder().getIp().equals(client.getIp());
 			client.sendLine(bat.createBattleOpenedCommandEx(local));
 			// We have to send UPDATEBATTLEINFO command too,

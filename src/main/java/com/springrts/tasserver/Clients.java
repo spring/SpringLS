@@ -32,7 +32,8 @@ public class Clients implements ContextReceiver, Updateable {
 	/**
 	 * KillList is used when we want to kill a client but not immediately
 	 * (within a loop, for example).
-	 * Client on the list will get killed after main server loop reaches its end.
+	 * Clients on the list will get killed after the main server loop reaches
+	 * its end.
 	 * Also see killClientDelayed() method. Any redundant entries will be
 	 * removed (client will be killed only once), so no additional logic for
 	 * consistency is required.
@@ -154,7 +155,7 @@ public class Clients implements ContextReceiver, Updateable {
 		try {
 			chan.configureBlocking(false);
 			chan.socket().setSendBufferSize(sendBufferSize);
-			//***chan.socket().setSoTimeout(TIMEOUT_LENGTH); -> this doesn't seem to have an effect with java.nio
+			//***chan.socket().setSoTimeout(TIMEOUT_LENGTH); // TODO this doesn't seem to have an effect with java.nio
 			client.setSelKey(chan.register(readSelector, SelectionKey.OP_READ, client));
 		} catch (ClosedChannelException cce) {
 			killClient(client);
@@ -392,7 +393,9 @@ public class Clients implements ContextReceiver, Updateable {
 				LOG.error("Invalid battle ID. Server will now exit!");
 				context.getServerThread().closeServerAndExit();
 			}
-			context.getBattles().leaveBattle(client, bat); // automatically checks if client is founder and closes the battle
+			// internally checks if the client is the founder and closes the
+			// battle in that case
+			context.getBattles().leaveBattle(client, bat);
 		}
 
 		if (client.getAccount().getAccess() != Account.Access.NONE) {
@@ -418,6 +421,7 @@ public class Clients implements ContextReceiver, Updateable {
 	 * index, which would be invalid as the highest index would decrease by 1.
 	 */
 	public void killClientDelayed(Client client, String reason) {
+
 		killList.add(client);
 		reasonList.add(reason);
 		client.setHalfDead(true);
@@ -446,7 +450,8 @@ public class Clients implements ContextReceiver, Updateable {
 		Client client;
 		while ((client = sendQueue.poll()) != null) {
 			if (!client.tryToFlushData()) {
-				sendQueue.add(client); // add client to the tail of the queue
+				// add the client to the tail of the queue
+				sendQueue.add(client);
 				break;
 			}
 		}
