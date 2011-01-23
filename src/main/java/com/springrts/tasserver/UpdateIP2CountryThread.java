@@ -91,7 +91,7 @@ public class UpdateIP2CountryThread implements Runnable, ContextReceiver {
 
 		try {
 			if (inProgress.compareAndSet(false, true)) {
-				throw new Exception("Update already in progress");
+				throw new IOException("Update already in progress");
 			}
 
 			List<URL> sourceUrls = new ArrayList<URL>(2);
@@ -161,7 +161,7 @@ public class UpdateIP2CountryThread implements Runnable, ContextReceiver {
 					sn.addLine("  * time taken to re-write: " + timeCombine + " ms");
 					sn.addLine("");
 				} catch (IOException ex) {
-					throw new RuntimeException("Failed to download & extract IP2Country data from " + url.toString(), ex);
+					throw new IOException("Failed to download & extract IP2Country data from " + url.toString(), ex);
 				} finally {
 					// clean up
 					if (sourceRawIn != null) {
@@ -173,10 +173,16 @@ public class UpdateIP2CountryThread implements Runnable, ContextReceiver {
 						combinedDataOut.close();
 					}
 					if ((sourceArchive != null) && sourceArchive.exists()) {
-						sourceArchive.delete();
+						boolean deleted = sourceArchive.delete();
+						if (!deleted) {
+							throw new IOException("Failed to delete the local archive after an incomplete download: " + sourceArchive.getAbsolutePath());
+						}
 					}
 					if ((sourceRaw != null) && sourceRaw.exists()) {
-						sourceRaw.delete();
+						boolean deleted = sourceRaw.delete();
+						if (!deleted) {
+							throw new IOException("Failed to delete the local file after an incomplete extraction: " + sourceRaw.getAbsolutePath());
+						}
 					}
 				}
 			}
@@ -196,7 +202,7 @@ public class UpdateIP2CountryThread implements Runnable, ContextReceiver {
 			context.getServerNotifications().addNotification(sn);
 
 			LOG.info("IP2Country has just been successfully updated.");
-		} catch (Exception ex) {
+		} catch (IOException ex) {
 			ServerNotification sn = new ServerNotification("Unable to update IP2Country database");
 			sn.addLine("Attempt to update from online IP2Country database failed. Stack trace:");
 			sn.addException(ex);
@@ -211,11 +217,14 @@ public class UpdateIP2CountryThread implements Runnable, ContextReceiver {
 				try {
 					combinedDataFileOut.close();
 				} catch (IOException ex) {
-					LOG.warn("Failed to delete temporary IP2Country data file " + combinedData.getAbsolutePath(), ex);
+					LOG.warn("Failed to close stream to the temporary IP2Country data file " + combinedData.getAbsolutePath(), ex);
 				}
 			}
 			if ((combinedData != null) && combinedData.exists()) {
-				combinedData.delete();
+				boolean deleted = combinedData.delete();
+				if (!deleted) {
+					LOG.warn("Failed to delete the temporary IP2Country data file " + combinedData.getAbsolutePath());
+				}
 			}
 		}
 	}

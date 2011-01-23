@@ -300,7 +300,7 @@ public class Channel implements ContextReceiver, LiveStateListener {
 			} else {
 				try {
 					fileLog.close();
-				} catch (Exception e) {
+				} catch (Exception ex) {
 					// ignore
 				}
 				logFile = null;

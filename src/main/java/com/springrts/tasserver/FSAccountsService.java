@@ -9,6 +9,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,7 +22,7 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Betalord
  */
-public class FSAccountsService extends AbstractAccountsService implements AccountsService {
+public class FSAccountsService extends AbstractAccountsService {
 
 	private static final Logger LOG  = LoggerFactory.getLogger(FSAccountsService.class);
 
@@ -153,29 +154,46 @@ public class FSAccountsService extends AbstractAccountsService implements Accoun
 	 */
 	@Override
 	public boolean loadAccounts() {
+
 		long time = System.currentTimeMillis();
+
+		Reader fIn = null;
+		BufferedReader in = null;
 		try {
-			BufferedReader in = new BufferedReader(new FileReader(ACCOUNTS_INFO_FILEPATH));
+			fIn = new FileReader(ACCOUNTS_INFO_FILEPATH);
+			in = new BufferedReader(fIn);
 
 			accounts.clear();
 
 			String line;
-
 			while ((line = in.readLine()) != null) {
-				if (line.equals("")) {
+				if (line.isEmpty()) {
 					continue;
 				}
 				Account act = FSAccountsService.parsePersistenString(line);
 				addAccount(act);
 			}
-
-			in.close();
-
 		} catch (IOException ex) {
 			// catch possible io errors from readLine()
 			LOG.error("Failed updating accounts info from "
 					+ ACCOUNTS_INFO_FILEPATH + "! Skipping ...", ex);
 			return false;
+		} finally {
+			if (in != null) {
+				try {
+					in.close();
+				} catch (IOException ex) {
+					LOG.warn("Failed closing stream from "
+							+ ACCOUNTS_INFO_FILEPATH, ex);
+				}
+			} else if (fIn != null) {
+				try {
+					fIn.close();
+				} catch (IOException ex) {
+					LOG.warn("Failed closing file stream from "
+							+ ACCOUNTS_INFO_FILEPATH, ex);
+				}
+			}
 		}
 
 		LOG.info("{} accounts information read from {} ({} ms)",

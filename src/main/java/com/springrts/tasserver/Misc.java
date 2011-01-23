@@ -558,7 +558,7 @@ public class Misc {
 			} catch (UnknownHostException ex) {
 				throw new IllegalArgumentException("Could not to resolve hostname to IP", ex);
 			}
-		} catch (Exception ex) {
+		} catch (IllegalArgumentException ex) {
 			inetAddress = null;
 			LOG.trace("Failed parsing IP: {} - {}", ip, ex.getMessage());
 		}

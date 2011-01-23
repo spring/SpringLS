@@ -383,12 +383,11 @@ public class Clients implements ContextReceiver, Updateable {
 		client.disconnect();
 		clients.remove(index);
 		client.setAlive(false);
-		if ((reason == null) || reason.trim().equals("")) {
-			reason = "Quit";
-		}
+		String reasonNonNull = ((reason == null) || reason.trim().equals(""))
+				? "Quit" : reason;
 
 		// let's remove client from all channels he is participating in:
-		client.leaveAllChannels(reason);
+		client.leaveAllChannels(reasonNonNull);
 
 		if (client.getBattleID() != Battle.NO_BATTLE_ID) {
 			Battle bat = context.getBattles().getBattleByID(client.getBattleID());

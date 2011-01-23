@@ -71,16 +71,17 @@ public class Battles implements ContextReceiver {
 		}
 	}
 
+	private static class BattleCloser implements Processor<Client> {
+		@Override
+		public void process(Client curClient) {
+			curClient.setBattleID(Battle.NO_BATTLE_ID);
+		}
+	}
+
 	/** Will close given battle and notify all clients about it */
 	public void closeBattleAndNotifyAll(Battle battle) {
 
-		Processor<Client> closeBattle = new Processor<Client>() {
-			@Override
-			public void process(Client curClient) {
-				curClient.setBattleID(Battle.NO_BATTLE_ID);
-			}
-		};
-		battle.applyToClientsAndFounder(closeBattle);
+		battle.applyToClientsAndFounder(new BattleCloser());
 
 		context.getClients().sendToAllRegisteredUsers("BATTLECLOSED " + battle.getId());
 		battles.remove(battle);
@@ -109,6 +110,21 @@ public class Battles implements ContextReceiver {
 		return true;
 	}
 
+	private static class BattleJoiner implements Processor<Client> {
+
+		private int battleId;
+
+		BattleJoiner(int battleId) {
+			this.battleId = battleId;
+		}
+
+		@Override
+		public void process(Client curClient) {
+			curClient.sendLine(String.format("JOINEDBATTLE %d %s", battleId,
+					curClient.getAccount().getName()));
+		}
+	}
+
 	/**
 	 * Will send a list of all active battles and users participating in it to
 	 * the given client
@@ -131,15 +147,7 @@ public class Battles implements ContextReceiver {
 					.append(Misc.boolToStr(bat.isLocked())).append(" ")
 					.append(bat.getMapHash()).append(" ")
 					.append(bat.getMapName()).toString());
-			Processor<Client> closeBattle = new Processor<Client>() {
-				@Override
-				public void process(Client curClient) {
-					client.sendLine(new StringBuilder("JOINEDBATTLE ")
-							.append(bat.getId()).append(" ")
-							.append(curClient.getAccount().getName()).toString());
-				}
-			};
-			bat.applyToClients(closeBattle);
+			bat.applyToClients(new BattleJoiner(bat.getId()));
 		}
 		client.endFastWrite();
 	}

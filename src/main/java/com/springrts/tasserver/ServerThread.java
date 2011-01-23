@@ -191,7 +191,7 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 		try {
 			(new PrintWriter(socket.getOutputStream(), true)).println("REDIRECT " + context.getServer().getRedirectAddress().getHostAddress());
 			socket.close();
-		} catch (Exception e) {
+		} catch (IOException ex) {
 			return false;
 		}
 		return true;
@@ -284,16 +284,6 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 				// do nothing
 			}
 			LOG.debug("... the exception was:", ioex);
-		} catch (Exception ex) {
-			LOG.info("exception in readIncomingMessages(): killing the client ... ", ex);
-			try {
-				if (client != null) {
-					getContext().getClients().killClient(client, "Quit: connection lost");
-				}
-			} catch (Exception ex2) {
-				// do nothing
-			}
-			LOG.debug("... the exception was:", ex);
 		}
 	}
 

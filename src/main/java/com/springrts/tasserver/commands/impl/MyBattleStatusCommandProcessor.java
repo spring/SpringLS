@@ -54,8 +54,9 @@ public class MyBattleStatusCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		Battle bat = getContext().getBattles().getBattleByID(client.getBattleID());
-		if (bat == null) {
+		Battle battle =
+				getContext().getBattles().getBattleByID(client.getBattleID());
+		if (battle == null) {
 			return false;
 		}
 
@@ -74,6 +75,33 @@ public class MyBattleStatusCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
+		return setBattleStatus(client, battle, newBattleStatus, newTeamColor);
+	}
+
+	private static class AllyTeamAndColorAligner
+			implements Processor<TeamController>
+	{
+		private TeamController alignTo;
+
+		AllyTeamAndColorAligner(TeamController alignTo) {
+			this.alignTo = alignTo;
+		}
+
+		@Override
+		public void process(TeamController curTeamController) {
+			if ((curTeamController != alignTo)
+					&& (curTeamController.getTeam() == alignTo.getTeam())
+					&& !curTeamController.isSpectator())
+			{
+				alignTo.setAllyTeam(curTeamController.getAllyTeam());
+				alignTo.setTeamColor(curTeamController.getTeamColor());
+			}
+		}
+	}
+
+	private boolean setBattleStatus(final Client client, Battle battle,
+			int newBattleStatus, Color newTeamColor)
+	{
 		int oldHandicap = client.getHandicap();
 		client.setBattleStatus(newBattleStatus);
 		// Note: We ignore the handicap value, as it can be changed only by the
@@ -83,27 +111,17 @@ public class MyBattleStatusCommandProcessor extends AbstractCommandProcessor {
 
 		// if game is full or game type is "battle replay", force player's mode
 		// to spectator:
-		if ((bat.getClientsSize() + 1 - bat.spectatorCount() > bat.getMaxPlayers()) || (bat.getType() == 1)) {
+		if (((battle.getClientsSize() + 1 - battle.spectatorCount())
+				> battle.getMaxPlayers()) || (battle.getType() == 1))
+		{
 			client.setSpectator(true);
 		}
-		// if player has chosen team number which is already used by some other
-		// player/bot, force his ally number and team color to be the same as of
-		// that player/bot:
-		Processor<TeamController> alignAllyTeamAndColor = new Processor<TeamController>() {
-			@Override
-			public void process(TeamController curTeamController) {
-				if ((curTeamController != client)
-						&& (curTeamController.getTeam() == client.getTeam())
-						&& !curTeamController.isSpectator())
-				{
-					client.setAllyTeam(curTeamController.getAllyTeam());
-					client.setTeamColor(curTeamController.getTeamColor());
-				}
-			}
-		};
-		bat.applyToTeamControllers(alignAllyTeamAndColor);
+		// if player has chosen a team number which is already used by some
+		// other player/bot, force his ally number and team color to be the same
+		// as the one of that player/bot:
+		battle.applyToTeamControllers(new AllyTeamAndColorAligner(client));
 
-		bat.notifyClientsOfBattleStatus(client);
+		battle.notifyClientsOfBattleStatus(client);
 
 		return true;
 	}
