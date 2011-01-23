@@ -45,7 +45,8 @@ import org.slf4j.LoggerFactory;
 @SupportedCommand("LOGIN")
 public class LoginCommandProcessor extends AbstractCommandProcessor {
 
-	private static final Logger LOG = LoggerFactory.getLogger(LoginCommandProcessor.class);
+	private static final Logger LOG
+			= LoggerFactory.getLogger(LoginCommandProcessor.class);
 
 	/**
 	 * For how long (in milli-seconds) to keep failed login attempts recorded.
@@ -63,14 +64,16 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 	 * Here we store information on latest failed login attempts.
 	 * We use it to block users from brute-forcing other accounts.
 	 */
-	private List<FailedLoginAttempt> failedLoginAttempts = new ArrayList<FailedLoginAttempt>();
+	private List<FailedLoginAttempt> failedLoginAttempts;
 
 	public LoginCommandProcessor() {
 		super(5, ARGS_MAX_NOCHECK);
 
 		// TODO cleanup nicely at server shutdown?
 		failedLoginsPurger = new Timer("Failed Login Purger");
-		failedLoginsPurger.schedule(new PurgeFailedLogins(), PURGE_INTERVAL, PURGE_INTERVAL);
+		failedLoginsPurger.schedule(new PurgeFailedLogins(), PURGE_INTERVAL,
+				PURGE_INTERVAL);
+		failedLoginAttempts = new ArrayList<FailedLoginAttempt>();
 	}
 
 	@Override
@@ -96,7 +99,8 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 		String username = args.get(0);
 
 		if (!getContext().getServer().isLoginEnabled()
-				&& getContext().getAccountsService().getAccount(username).getAccess().isLessThen(Account.Access.PRIVILEGED))
+				&& getContext().getAccountsService().getAccount(username)
+				.getAccess().isLessThen(Account.Access.PRIVILEGED))
 		{
 			client.sendLine("DENIED Sorry, logging in is currently disabled");
 			return false;
@@ -109,8 +113,8 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 		return processInner(client, args, args2);
 	}
 
-	private boolean processInner(Client client, List<String> args1, List<String> args2)
-			throws CommandProcessingException
+	private boolean processInner(Client client, List<String> args1,
+			List<String> args2) throws CommandProcessingException
 	{
 		String username = args1.get(0);
 		String lobbyVersion = args2.get(0);
@@ -132,7 +136,8 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 			// prepare the compatibility flags (space separated)
 			String compatFlagsStr = Misc.makeSentence(args2, 2);
 			String[] compatFlagsSplit = compatFlagsStr.split(" ");
-			ArrayList<String> compatFlags = new ArrayList<String>(compatFlagsSplit.length + 1);
+			ArrayList<String> compatFlags
+					= new ArrayList<String>(compatFlagsSplit.length + 1);
 			compatFlags.addAll(Arrays.asList(compatFlagsSplit));
 			// split old flags for backwards compatibility,
 			// as there were no spaces in the past
@@ -170,12 +175,15 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 			}
 		}
 
-		return doLogin(client, lobbyVersion, userId, username, password, cpu, localIp);
+		return doLogin(client, lobbyVersion, userId, username, password, cpu,
+				localIp);
 	}
 
-	private boolean doLogin(Client client, String lobbyVersion, int userId, String username, String password, int cpu, InetAddress localIp) {
-
-		boolean validAccount = validateAccount(client, userId, username, password);
+	private boolean doLogin(Client client, String lobbyVersion, int userId,
+			String username, String password, int cpu, InetAddress localIp)
+	{
+		boolean validAccount = validateAccount(client, userId, username,
+				password);
 		if (!validAccount) {
 			return false;
 		}
@@ -183,7 +191,8 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 		// set client's status:
 		client.setRank(client.getAccount().getRank());
 		client.setBot(client.getAccount().isBot());
-		client.setAccess(((client.getAccount().getAccess().isLessThen(Account.Access.PRIVILEGED)
+		client.setAccess(((client.getAccount().getAccess().isLessThen(
+				Account.Access.PRIVILEGED)
 				&& (!getContext().getServer().isLanMode())) ? true : false));
 
 		client.setCpu(cpu);
@@ -193,9 +202,12 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 		client.setLocalIP(localIp);
 		client.setLobbyVersion(lobbyVersion);
 		client.getAccount().setLastUserId(userId);
-		final boolean mergeOk = getContext().getAccountsService().mergeAccountChanges(client.getAccount(), client.getAccount().getName());
+		final boolean mergeOk = getContext().getAccountsService()
+				.mergeAccountChanges(client.getAccount(),
+				client.getAccount().getName());
 		if (!mergeOk) {
-			LOG.info("Failed saving login info to persistent storage for user: {}", client.getAccount().getName());
+			LOG.info("Failed saving login info to persistent storage for user:"
+					+ " {}", client.getAccount().getName());
 			return false;
 		}
 
@@ -217,24 +229,27 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 		return true;
 	}
 
-	private boolean validateAccount(Client client, int userId, String username, String password) {
-
+	private boolean validateAccount(Client client, int userId, String username,
+			String password)
+	{
 		if (!getContext().getServer().isLanMode()) { // "normal", non-LAN mode
 			// protection from brute-forcing the account:
 			FailedLoginAttempt attempt = findFailedLoginAttempt(username);
 			if ((attempt != null) && (attempt.getFailedAttempts() >= 3)) {
-				client.sendLine("DENIED Too many failed login attempts. Wait for 30 seconds before trying again!");
+				client.sendLine("DENIED Too many failed login attempts. Wait"
+						+ " for 30 seconds before trying again!");
 				recordFailedLoginAttempt(username);
 				if (!attempt.isLogged()) {
 					attempt.setLogged(true);
-					getContext().getClients().sendToAllAdministrators(String.format(
-							"SERVERMSG [broadcast to all admins]:"
-							+ " Too many failed login attempts for <%s> from %s."
-							+ " Blocking the user for 30 seconds."
+					getContext().getClients().sendToAllAdministrators(
+							String.format("SERVERMSG [broadcast to all admins]:"
+							+ " Too many failed login attempts for <%s> from"
+							+ " %s. Blocking the user for 30 seconds."
 							+ " There will be no further notifications.",
 							username, client.getIp().getHostAddress()));
 					// add server notification:
-					ServerNotification sn = new ServerNotification("Excessive failed login attempts");
+					ServerNotification sn = new ServerNotification(
+							"Excessive failed login attempts");
 					sn.addLine(String.format(
 							"Too many failed login attempts for <%s> from %s."
 							+ " Blocking for 30 seconds.",
@@ -244,7 +259,8 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 				return false;
 			}
 
-			Account acc = getContext().getAccountsService().verifyLogin(username, password);
+			Account acc = getContext().getAccountsService().verifyLogin(
+					username, password);
 			if (acc == null) {
 				client.sendLine("DENIED Bad username/password");
 				recordFailedLoginAttempt(username);
@@ -254,7 +270,8 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 				client.sendLine("DENIED Already logged in");
 				return false;
 			}
-			BanEntry ban = getContext().getBanService().getBanEntry(username, client.getIp(), userId);
+			BanEntry ban = getContext().getBanService().getBanEntry(username,
+					client.getIp(), userId);
 			if ((ban != null) && ban.isActive()) {
 				client.sendLine(String.format(
 						"DENIED You are banned from this server! (Reason: %s)."
@@ -272,18 +289,21 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 			}
 			// everything is OK so far!
 			if (!acc.isAgreementAccepted()) {
-				// user has obviously accepted the agreement... Let's update it
+				// the user has obviously accepted the agreement -> update
 				acc.setAgreementAccepted(true);
-				final boolean mergeOk = getContext().getAccountsService().mergeAccountChanges(acc, acc.getName());
+				final boolean mergeOk = getContext().getAccountsService()
+						.mergeAccountChanges(acc, acc.getName());
 				if (!mergeOk) {
 					acc.setAgreementAccepted(false);
-					client.sendLine("DENIED Failed saving 'agreement accepted' to persistent storage.");
+					client.sendLine("DENIED Failed saving 'agreement accepted'"
+							+ " to persistent storage.");
 					return false;
 				}
 				getContext().getAccountsService().saveAccounts(false);
 			}
 			if (acc.getLastLogin() + 5000 > System.currentTimeMillis()) {
-				client.sendLine("DENIED This account has already connected in the last 5 seconds");
+				client.sendLine("DENIED This account has already connected in"
+						+ " the last 5 seconds");
 				return false;
 			}
 			client.setAccount(acc);
@@ -291,14 +311,17 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 			if (username.equals("")) {
 				client.sendLine("DENIED Cannot login with null username");
 			}
-			Account acc = getContext().getAccountsService().getAccount(username);
+			Account acc = getContext().getAccountsService().getAccount(username
+					);
 			if (acc != null) {
-				client.sendLine("DENIED Player with same name already logged in");
+				client.sendLine("DENIED Player with same name already logged in"
+						);
 				return false;
 			}
 			Account.Access accessLvl = Account.Access.NORMAL;
 			if (username.equals(getContext().getServer().getLanAdminUsername())
-					&& password.equals(getContext().getServer().getLanAdminPassword()))
+					&& password.equals(getContext().getServer()
+					.getLanAdminPassword()))
 			{
 				accessLvl = Account.Access.ADMIN;
 			}
@@ -341,7 +364,8 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 			// purge list of failed login attempts:
 			for (int i = 0; i < failedLoginAttempts.size(); i++) {
 				FailedLoginAttempt attempt = failedLoginAttempts.get(i);
-				if ((System.currentTimeMillis() - attempt.getTimeOfLastFailedAttempt())
+				if ((System.currentTimeMillis()
+						- attempt.getTimeOfLastFailedAttempt())
 						> KEEP_FAILED_LOGIN_ATTEMPT_TIME)
 				{
 					failedLoginAttempts.remove(i);
