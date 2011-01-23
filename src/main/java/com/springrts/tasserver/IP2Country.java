@@ -360,7 +360,8 @@ public class IP2Country {
 				result = x.getCountryCode2();
 			}
 		} catch (NoSuchElementException ex) {
-			LOG.debug("Failed to evaluate country code for IP: " + ip, ex);
+			LOG.debug("Failed to evaluate country code for IP: "
+					+ ip.getHostAddress(), ex);
 		}
 
 		// quick fix for some non-standard country codes:

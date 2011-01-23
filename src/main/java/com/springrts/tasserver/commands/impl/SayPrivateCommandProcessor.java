@@ -65,12 +65,12 @@ public class SayPrivateCommandProcessor extends AbstractCommandProcessor {
 				&& client.getAccount().getAccess().isLessThen(Account.Access.ADMIN))
 		{
 			LOG.warn("Flooding detected from {} ({}) [exceeded max. chat message size]",
-					client.getIp(),
+					client.getIp().getHostAddress(),
 					client.getAccount().getName());
 			client.sendLine(new StringBuilder("SERVERMSG Flooding detected - you have exceeded maximum allowed chat message size (")
 					.append(getContext().getServer().getMaxChatMessageLength()).append(" bytes). Your message has been ignored.").toString());
 			getContext().getClients().sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: Flooding has been detected from ")
-					.append(client.getIp()).append(" (")
+					.append(client.getIp().getHostAddress()).append(" (")
 					.append(client.getAccount().getName())
 					.append(") - exceeded maximum chat message size. Ignoring ...").toString());
 			return false;

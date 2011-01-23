@@ -240,7 +240,7 @@ public class Battle implements ContextReceiver {
 					? client.getLocalIp() : client.getIp());
 			getFounder().sendLine(String.format("CLIENTIPPORT %s %s %d",
 					client.getAccount().getName(),
-					ip,
+					ip.getHostAddress(),
 					client.getUdpSourcePort()));
 		}
 

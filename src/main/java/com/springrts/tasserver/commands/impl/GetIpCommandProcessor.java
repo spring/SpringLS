@@ -53,7 +53,7 @@ public class GetIpCommandProcessor extends AbstractCommandProcessor {
 
 		client.sendLine(new StringBuilder("SERVERMSG ")
 				.append(targetClient.getAccount().getName()).append("'s IP is ")
-				.append(targetClient.getIp()).toString());
+				.append(targetClient.getIp().getHostAddress()).toString());
 
 		return true;
 	}

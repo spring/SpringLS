@@ -100,8 +100,10 @@ public class JoinBattleCommandProcessor extends AbstractCommandProcessor {
 			client.setRequestedBattleID(battleID);
 			InetAddress ip = battle.getFounder().getIp().equals(client.getIp())
 					? client.getLocalIp() : client.getIp();
-			// FIXME use ip.getAddress()
-			battle.getFounder().sendLine("JOINBATTLEREQUEST " + client.getAccount().getName() + " " + ip);
+			battle.getFounder().sendLine(String.format(
+					"JOINBATTLEREQUEST %s %s",
+					client.getAccount().getName(),
+					ip.getHostAddress()));
 		} else {
 			battle.notifyClientJoined(client);
 		}

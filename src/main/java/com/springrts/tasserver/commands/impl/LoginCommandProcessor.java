@@ -232,13 +232,13 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 							+ " Too many failed login attempts for <%s> from %s."
 							+ " Blocking the user for 30 seconds."
 							+ " There will be no further notifications.",
-							username, client.getIp()));
+							username, client.getIp().getHostAddress()));
 					// add server notification:
 					ServerNotification sn = new ServerNotification("Excessive failed login attempts");
 					sn.addLine(String.format(
 							"Too many failed login attempts for <%s> from %s."
 							+ " Blocking for 30 seconds.",
-							username, client.getIp()));
+							username, client.getIp().getHostAddress()));
 					getContext().getServerNotifications().addNotification(sn);
 				}
 				return false;

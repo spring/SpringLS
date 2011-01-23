@@ -124,7 +124,7 @@ public class Clients implements ContextReceiver, Updateable {
 			LOG.warn("Timeout detected from {} ({}). "
 					+ "Client has been scheduled for kill ...",
 					client.getAccount().getName(),
-					client.getIp());
+					client.getIp().getHostAddress());
 			getContext().getClients().killClientDelayed(client, "Quit: timeout");
 		}
 	}

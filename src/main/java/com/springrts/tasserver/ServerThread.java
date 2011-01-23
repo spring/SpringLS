@@ -177,7 +177,8 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 				// has been successfully connected
 				client.sendWelcomeMessage();
 
-				LOG.debug("New client connected: {}", client.getIp());
+				LOG.debug("New client connected: {}",
+						client.getIp().getHostAddress());
 			}
 		} catch (Exception ex) {
 			LOG.error("Exception in acceptNewConnections(): " + ex.getMessage(), ex);
@@ -228,17 +229,17 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 				// basic anti-flood protection:
 				if (getContext().getFloodProtection().isFlooding(client)) {
 					LOG.warn("Flooding detected from {} ({})",
-							client.getIp(),
+							client.getIp().getHostAddress(),
 							client.getAccount().getName());
 					getContext().getClients().sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: Flooding has been detected from ")
-							.append(client.getIp()).append(" (")
+							.append(client.getIp().getHostAddress()).append(" (")
 							.append(client.getAccount().getName()).append("). User has been kicked.").toString());
 					getContext().getClients().killClient(client, "Disconnected due to excessive flooding");
 
 					// add server notification:
 					ServerNotification sn = new ServerNotification("Flooding detected");
 					sn.addLine(new StringBuilder("Flooding detected from ")
-							.append(client.getIp()).append(" (")
+							.append(client.getIp().getHostAddress()).append(" (")
 							.append(client.getAccount().getName()).append(").").toString());
 					sn.addLine("User has been kicked from the server.");
 					getContext().getServerNotifications().addNotification(sn);
@@ -312,7 +313,7 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 			LOG.debug("[<-{}] \"{}\"",
 					(client.getAccount().getAccess() != Account.Access.NONE)
 						? client.getAccount().getName()
-						: client.getIp(),
+						: client.getIp().getHostAddress(),
 					commandClean);
 		}
 

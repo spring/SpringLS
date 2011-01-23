@@ -296,7 +296,7 @@ public class Account implements Serializable, Cloneable {
 				.append(getAccess()).append(" ")
 				.append(getLastUserId()).append(" ")
 				.append(getLastLogin()).append(" ")
-				.append(getLastIp()).append(" ")
+				.append(getLastIp().getHostAddress()).append(" ")
 				.append(getRegistrationDate()).append(" ")
 				.append(getLastCountry()).append(" ")
 				.append(getId()).append(" ")

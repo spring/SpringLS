@@ -118,12 +118,14 @@ public class RegisterCommandProcessor extends AbstractCommandProcessor {
 		}*/
 		getContext().getClients().sendToAllAdministrators(new StringBuilder("SERVERMSG New registration of <")
 				.append(username).append("> at ")
-				.append(client.getIp()).toString());
-		acc = new Account(
-				username,
-				password, client.getIp(), client.getCountry());
+				.append(client.getIp().getHostAddress()).toString());
+		acc = new Account(username, password, client.getIp(),
+				client.getCountry());
 		getContext().getAccountsService().addAccount(acc);
-		getContext().getAccountsService().saveAccounts(false); // let's save new accounts info to disk
+
+		// let's save new accounts info to disk
+		getContext().getAccountsService().saveAccounts(false);
+
 		client.sendLine("REGISTRATIONACCEPTED");
 		return true;
 	}
