@@ -302,7 +302,7 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 			{
 				accessLvl = Account.Access.ADMIN;
 			}
-			acc = new Account(username, password, null, "XX");
+			acc = new Account(username, password);
 			acc.setAccess(accessLvl);
 			getContext().getAccountsService().addAccount(acc);
 			client.setAccount(acc);

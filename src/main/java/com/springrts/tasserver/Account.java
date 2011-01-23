@@ -261,6 +261,12 @@ public class Account implements Serializable, Cloneable {
 		this.bot               = false;
 		this.agreementAccepted = false;
 	}
+	/**
+	 * Used when logging in on a server in LAN mode.
+	 */
+	public Account(String name, String password) {
+		this(name, password, null, IP2Country.COUNTRY_UNKNOWN);
+	}
 
 	private Account(Account acc) {
 
