@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
  */
 public class FSSaveAccountsThread extends Thread implements ContextReceiver {
 
-	private static final Logger LOG  = LoggerFactory.getLogger(FSSaveAccountsThread.class);
+	private static final Logger LOG = LoggerFactory.getLogger(FSSaveAccountsThread.class);
 
 	private Context context = null;
 

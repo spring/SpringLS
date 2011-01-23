@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Channel implements ContextReceiver, LiveStateListener {
 
-	private static final Logger LOG  = LoggerFactory.getLogger(Channel.class);
+	private static final Logger LOG = LoggerFactory.getLogger(Channel.class);
 
 	private static final String LOG_FILES_DIR  = "./";
 	/**

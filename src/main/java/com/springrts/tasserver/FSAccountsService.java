@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
  */
 public class FSAccountsService extends AbstractAccountsService {
 
-	private static final Logger LOG  = LoggerFactory.getLogger(FSAccountsService.class);
+	private static final Logger LOG = LoggerFactory.getLogger(FSAccountsService.class);
 
 	/** in milliseconds */
 	private static final long SAVE_ACCOUNT_INFO_INTERVAL = 1000 * 60 * 60;

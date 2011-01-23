@@ -39,11 +39,12 @@ public class UpdateProperties implements ContextReceiver {
 
 	public static final String DEFAULT_FILENAME = "updates.xml";
 	private static final String DEFAULT_RESPONSE =
-			"SERVERMSGBOX No update available. "
-			+ "Please download the latest version of the software from official "
-			+ "Spring web site: http://springrts.com";
+			"SERVERMSGBOX No update available."
+			+ " Please download the latest version of the software from"
+			+ " the official Spring web site: http://springrts.com";
 
-	private static final Logger LOG  = LoggerFactory.getLogger(UpdateProperties.class);
+	private static final Logger LOG
+			= LoggerFactory.getLogger(UpdateProperties.class);
 
 	private Context context;
 
@@ -77,7 +78,8 @@ public class UpdateProperties implements ContextReceiver {
 			updateProperties.loadFromXML(fStream);
 			success = true;
 		} catch (IOException ex) {
-			LOG.warn("Could not find or read from file '" + fileName + "'.", ex);
+			LOG.warn("Could not find or read from file '" + fileName + "'.",
+					ex);
 		} finally {
 			if (fStream != null) {
 				try {

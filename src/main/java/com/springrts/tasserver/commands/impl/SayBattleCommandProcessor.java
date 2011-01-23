@@ -41,7 +41,7 @@ import org.slf4j.LoggerFactory;
 @SupportedCommand("SAYBATTLE")
 public class SayBattleCommandProcessor extends AbstractCommandProcessor {
 
-	private static final Logger LOG  = LoggerFactory.getLogger(SayBattleCommandProcessor.class);
+	private static final Logger LOG = LoggerFactory.getLogger(SayBattleCommandProcessor.class);
 
 	public SayBattleCommandProcessor() {
 		super(1, ARGS_MAX_NOCHECK, Account.Access.ADMIN);

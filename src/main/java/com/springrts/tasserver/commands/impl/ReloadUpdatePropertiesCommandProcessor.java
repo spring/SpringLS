@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
 @SupportedCommand("RELOADUPDATEPROPERTIES")
 public class ReloadUpdatePropertiesCommandProcessor extends AbstractCommandProcessor {
 
-	private static final Logger LOG  = LoggerFactory.getLogger(ReloadUpdatePropertiesCommandProcessor.class);
+	private static final Logger LOG = LoggerFactory.getLogger(ReloadUpdatePropertiesCommandProcessor.class);
 
 	public ReloadUpdatePropertiesCommandProcessor() {
 		super(Account.Access.ADMIN);

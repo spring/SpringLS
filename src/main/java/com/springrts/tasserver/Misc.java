@@ -41,7 +41,7 @@ public class Misc {
 	/** Make clear that this is an utility class */
 	private Misc() {}
 
-	private static final Logger LOG  = LoggerFactory.getLogger(Misc.class);
+	private static final Logger LOG = LoggerFactory.getLogger(Misc.class);
 
 	public static final String EOL = "\n";
 

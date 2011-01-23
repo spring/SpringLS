@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
  */
 public class MessageOfTheDay implements ContextReceiver {
 
-	private static final Logger LOG  = LoggerFactory.getLogger(MessageOfTheDay.class);
+	private static final Logger LOG = LoggerFactory.getLogger(MessageOfTheDay.class);
 
 	private static final String DEFAULT_TEXT = "Enjoy your stay :-)";
 	private static final String DEFAULT_FILENAME = "motd.txt";

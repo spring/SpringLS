@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
 @SupportedCommand("SAYEX")
 public class SayExCommandProcessor extends AbstractCommandProcessor {
 
-	private static final Logger LOG  = LoggerFactory.getLogger(SayExCommandProcessor.class);
+	private static final Logger LOG = LoggerFactory.getLogger(SayExCommandProcessor.class);
 
 	public SayExCommandProcessor() {
 		super(2, ARGS_MAX_NOCHECK, Account.Access.ADMIN);

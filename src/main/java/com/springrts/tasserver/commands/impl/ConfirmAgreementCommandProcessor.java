@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
 @SupportedCommand("CONFIRMAGREEMENT")
 public class ConfirmAgreementCommandProcessor extends AbstractCommandProcessor {
 
-	private static final Logger LOG  = LoggerFactory.getLogger(ConfirmAgreementCommandProcessor.class);
+	private static final Logger LOG = LoggerFactory.getLogger(ConfirmAgreementCommandProcessor.class);
 
 	public ConfirmAgreementCommandProcessor() {
 		super();

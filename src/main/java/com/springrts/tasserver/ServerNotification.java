@@ -57,7 +57,8 @@ public class ServerNotification {
 
 		StackTraceElement[] trace = ex.getStackTrace();
 		for (int i = 0; i < trace.length; i++) {
-			message.append(Misc.EOL).append("\tat ").append(trace[i].toString());
+			message.append(Misc.EOL).append("\tat ")
+					.append(trace[i].toString());
 		}
 	}
 

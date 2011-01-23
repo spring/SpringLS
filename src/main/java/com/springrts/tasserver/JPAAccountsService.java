@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
  */
 public class JPAAccountsService extends AbstractAccountsService {
 
-	private static final Logger LOG  = LoggerFactory.getLogger(JPAAccountsService.class);
+	private static final Logger LOG = LoggerFactory.getLogger(JPAAccountsService.class);
 
 	private EntityManagerFactory emf = null;
 

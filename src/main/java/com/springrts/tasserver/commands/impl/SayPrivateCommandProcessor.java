@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
 @SupportedCommand("SAYPRIVATE")
 public class SayPrivateCommandProcessor extends AbstractCommandProcessor {
 
-	private static final Logger LOG  = LoggerFactory.getLogger(SayPrivateCommandProcessor.class);
+	private static final Logger LOG = LoggerFactory.getLogger(SayPrivateCommandProcessor.class);
 
 	public SayPrivateCommandProcessor() {
 		super(2, ARGS_MAX_NOCHECK, Account.Access.ADMIN);

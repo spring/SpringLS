@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
  */
 public class IP2Country {
 
-	private static final Logger LOG  = LoggerFactory.getLogger(IP2Country.class);
+	private static final Logger LOG = LoggerFactory.getLogger(IP2Country.class);
 
 	public static final String COUNTRY_UNKNOWN = "XX";
 

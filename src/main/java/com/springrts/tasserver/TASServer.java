@@ -19,7 +19,7 @@ public class TASServer {
 	 */
 	//boolean logMainChannel = false;
 	//private List<String> whiteList = new LinkedList<String>();
-	private static final Logger LOG  = LoggerFactory.getLogger(TASServer.class);
+	private static final Logger LOG = LoggerFactory.getLogger(TASServer.class);
 
 	public TASServer(Context context) {
 

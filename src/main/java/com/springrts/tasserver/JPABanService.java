@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
  */
 public class JPABanService implements BanService {
 
-	private static final Logger LOG  = LoggerFactory.getLogger(JPABanService.class);
+	private static final Logger LOG = LoggerFactory.getLogger(JPABanService.class);
 
 	private EntityManagerFactory emf;
 

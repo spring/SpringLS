@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
 @SupportedCommand("LOGIN")
 public class LoginCommandProcessor extends AbstractCommandProcessor {
 
-	private static final Logger LOG  = LoggerFactory.getLogger(LoginCommandProcessor.class);
+	private static final Logger LOG = LoggerFactory.getLogger(LoginCommandProcessor.class);
 
 	/**
 	 * For how long (in milli-seconds) to keep failed login attempts recorded.

@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
 @SupportedCommand("REDIRECT")
 public class RedirectCommandProcessor extends AbstractCommandProcessor {
 
-	private static final Logger LOG  = LoggerFactory.getLogger(RedirectCommandProcessor.class);
+	private static final Logger LOG = LoggerFactory.getLogger(RedirectCommandProcessor.class);
 
 	public RedirectCommandProcessor() {
 		super(1, 1, Account.Access.ADMIN);

@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Clients implements ContextReceiver, Updateable {
 
-	private static final Logger LOG  = LoggerFactory.getLogger(Clients.class);
+	private static final Logger LOG = LoggerFactory.getLogger(Clients.class);
 
 	private static class KillJob {
 

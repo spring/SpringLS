@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
 @SupportedCommand("MYSTATUS")
 public class MyStatusCommandProcessor extends AbstractCommandProcessor {
 
-	private static final Logger LOG  = LoggerFactory.getLogger(MyStatusCommandProcessor.class);
+	private static final Logger LOG = LoggerFactory.getLogger(MyStatusCommandProcessor.class);
 
 	public MyStatusCommandProcessor() {
 		super(1, 1, Account.Access.NORMAL);

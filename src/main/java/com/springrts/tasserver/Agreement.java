@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Agreement implements ContextReceiver {
 
-	private static final Logger LOG  = LoggerFactory.getLogger(Agreement.class);
+	private static final Logger LOG = LoggerFactory.getLogger(Agreement.class);
 
 	private Context context;
 
@@ -67,10 +67,12 @@ public class Agreement implements ContextReceiver {
 				success = true;
 				LOG.info("Using agreement from file '{}'.", DEFAULT_FILE_NAME);
 			} else {
-				LOG.warn("Agreement in file '{}' is too short.", DEFAULT_FILE_NAME);
+				LOG.warn("Agreement in file '{}' is too short.",
+						DEFAULT_FILE_NAME);
 			}
 		} catch (IOException ex) {
-			LOG.warn("Could not find or read from file '{}'. Using no agreement.", DEFAULT_FILE_NAME);
+			LOG.warn("Could not find or read from file '{}'."
+					+ " Using no agreement.", DEFAULT_FILE_NAME);
 			LOG.debug("... reason:", ex);
 		}
 
@@ -82,7 +84,7 @@ public class Agreement implements ContextReceiver {
 		client.beginFastWrite();
 		String[] sl = content.split(Misc.EOL);
 		for (int i = 0; i < sl.length; i++) {
-			client.sendLine(new StringBuilder("AGREEMENT ").append(sl[i]).toString());
+			client.sendLine("AGREEMENT " + sl[i]);
 		}
 		client.sendLine("AGREEMENTEND");
 		client.endFastWrite();

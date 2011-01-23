@@ -13,7 +13,6 @@ import java.util.List;
  */
 public class Channels implements ContextReceiver, LiveStateListener, Updateable
 {
-
 	private List<Channel> channels;
 	private Context context;
 	public static final String MATCH_NO_CHANNEL = "^%%%%%%%$";
@@ -49,7 +48,9 @@ public class Channels implements ContextReceiver, LiveStateListener, Updateable
 	 */
 	private void purgeMuteLists() {
 
-		if ((System.currentTimeMillis() - lastMutesPurgeTime) > purgeMutesInterval) {
+		if ((System.currentTimeMillis() - lastMutesPurgeTime)
+				> purgeMutesInterval)
+		{
 			lastMutesPurgeTime = System.currentTimeMillis();
 			for (Channel channel : channels) {
 				channel.getMuteList().clearExpiredOnes();

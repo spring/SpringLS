@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Client extends TeamController implements ContextReceiver {
 
-	private static final Logger LOG  = LoggerFactory.getLogger(Client.class);
+	private static final Logger LOG = LoggerFactory.getLogger(Client.class);
 
 	/**
 	 * Indicates a message is not using an ID

@@ -44,7 +44,9 @@ public class Bot extends TeamController {
 	 */
 	private String version;
 
-	public Bot(String name, String ownerName, String specifier, int battleStatus, Color teamColor) {
+	public Bot(String name, String ownerName, String specifier,
+			int battleStatus, Color teamColor)
+	{
 		super(battleStatus, teamColor);
 
 		this.name = name;

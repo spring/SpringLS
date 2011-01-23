@@ -43,7 +43,7 @@ import org.slf4j.LoggerFactory;
  */
 public class UpdateIP2CountryThread implements Runnable, ContextReceiver {
 
-	private static final Logger LOG  = LoggerFactory.getLogger(UpdateIP2CountryThread.class);
+	private static final Logger LOG = LoggerFactory.getLogger(UpdateIP2CountryThread.class);
 
 	/** true if updating is already in progress */
 	private AtomicBoolean inProgress;
