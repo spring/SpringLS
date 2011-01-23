@@ -151,9 +151,7 @@ public class NatHelpServer implements Runnable, ContextReceiver,
 			} catch (InterruptedIOException e) {
 				break;
 			} catch (IOException ex) {
-				if (ex.getMessage().equalsIgnoreCase("socket closed")) {
-					// server stopped gracefully!
-				} else {
+				if (!ex.getMessage().equalsIgnoreCase("socket closed")) {
 					LOG.error("Error in UDP server", ex);
 				}
 			}

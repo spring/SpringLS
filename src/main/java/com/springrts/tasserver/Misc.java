@@ -17,6 +17,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Reader;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -472,6 +473,7 @@ public class Misc {
 		try {
 			color = colorSpringToJava(Integer.parseInt(springColor));
 		} catch (NumberFormatException ex) {
+			LOG.debug("Invalid Spring color format number", ex);
 		}
 
 		return color;
@@ -653,9 +655,11 @@ public class Misc {
 		StringBuilder content = null;
 
 		content = new StringBuilder();
+		Reader inF = null;
 		BufferedReader in = null;
 		try {
-			in = new BufferedReader(new FileReader(file));
+			inF = new FileReader(file);
+			in = new BufferedReader(inF);
 			String line;
 			while ((line = in.readLine()) != null) {
 				content.append(line).append(EOL);
@@ -663,12 +667,15 @@ public class Misc {
 		} catch (IOException ex) {
 			throw ex;
 		} finally {
-			if (in != null) {
-				try {
+			try {
+				if (in != null) {
 					in.close();
-				} catch (IOException ex) {
-					// ignore
+				} else if (inF != null) {
+					inF.close();
 				}
+			} catch (IOException ex) {
+				LOG.debug("Failed to close file reader: "
+						+ file.getAbsolutePath(), ex);
 			}
 		}
 

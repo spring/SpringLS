@@ -275,22 +275,18 @@ public class Channel implements ContextReceiver, LiveStateListener {
 							.format(new Date()));
 					logging = true;
 				} catch (IOException ex) {
-					if (fileLog != null) {
-						fileLog.close();
-					} else if (bOut != null) {
-						try {
+					try {
+						if (fileLog != null) {
+							fileLog.close();
+						} else if (bOut != null) {
 							bOut.close();
-						} catch (IOException ex2) {
-							LOG.debug("Failed to close buffered stream to file "
-									+ logFile.getAbsolutePath(), ex2);
-						}
-					} else if (fOut != null) {
-						try {
+						} else if (fOut != null) {
 							fOut.close();
-						} catch (IOException ex2) {
-							LOG.debug("Failed to close stream to file "
-									+ logFile.getAbsolutePath(), ex2);
 						}
+					} catch (IOException ex2) {
+						LOG.warn("Failed to close buffered stream to channel"
+								+ " log-file " + logFile.getAbsolutePath(),
+								ex2);
 					}
 					fileLog = null;
 					LOG.error("Unable to open channel log file for channel "
@@ -301,7 +297,8 @@ public class Channel implements ContextReceiver, LiveStateListener {
 				try {
 					fileLog.close();
 				} catch (Exception ex) {
-					// ignore
+					LOG.warn("Failed to close buffered stream to channel"
+							+ " log-file " + logFile.getAbsolutePath(), ex);
 				}
 				logFile = null;
 				fileLog = null;

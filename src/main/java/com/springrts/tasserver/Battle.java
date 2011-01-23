@@ -10,8 +10,10 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -477,19 +479,6 @@ public class Battle implements ContextReceiver {
 				.append(bot.getSpecifier()).toString());
 	}
 
-	/** Removes first bot in the bots list which is owned by the client */
-	private boolean removeFirstBotOfClient(Client client) {
-
-		for (int i = 0; i < bots.size(); i++) {
-			Bot bot = bots.get(i);
-			if (bot.getOwnerName().equals(client.getAccount().getName())) {
-				removeBot(bot);
-				return true;
-			}
-		}
-		return false;
-	}
-
 	/**
 	 * Removes the specified bot from the bot list if present, and informs other
 	 * clients.
@@ -509,8 +498,17 @@ public class Battle implements ContextReceiver {
 
 	/* Removes all bots owned by client */
 	public void removeClientBots(Client client) {
-		while (removeFirstBotOfClient(client)) {
-			// empty loop body
+
+		Set<Bot> clientsBots = new HashSet<Bot>();
+		for (int i = 0; i < bots.size(); i++) {
+			Bot bot = bots.get(i);
+			if (bot.getOwnerName().equals(client.getAccount().getName())) {
+				clientsBots.add(bot);
+			}
+		}
+
+		for (Bot bot : clientsBots) {
+			removeBot(bot);
 		}
 	}
 

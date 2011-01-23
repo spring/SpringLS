@@ -754,9 +754,6 @@ public class Client extends TeamController implements ContextReceiver {
 		this.selKey = selKey;
 	}
 
-	/**
-	 * @return the recvBuf
-	 */
 	public void appendToRecvBuf(String received) {
 		recvBuf.append(received);
 	}
