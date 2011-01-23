@@ -24,6 +24,7 @@ import com.springrts.tasserver.Client;
 import com.springrts.tasserver.commands.AbstractCommandProcessor;
 import com.springrts.tasserver.commands.CommandProcessingException;
 import com.springrts.tasserver.commands.SupportedCommand;
+import java.net.InetAddress;
 import java.util.List;
 
 /**
@@ -57,19 +58,21 @@ public class JoinBattleCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		if (client.getBattleID() != Battle.NO_BATTLE_ID) { // can't join a battle if already participating in another battle
-			client.sendLine("JOINBATTLEFAILED Cannot participate in multiple battles at the same time!");
+		if (client.getBattleID() != Battle.NO_BATTLE_ID) {
+			// ca not join a battle if we are already participating in one
+			client.sendLine("JOINBATTLEFAILED Cannot participate in multiple"
+					+ " battles at the same time!");
 			return false;
 		}
 
-		Battle bat = getContext().getBattles().getBattleByID(battleID);
+		Battle battle = getContext().getBattles().getBattleByID(battleID);
 
-		if (bat == null) {
+		if (battle == null) {
 			client.sendLine("JOINBATTLEFAILED Invalid battle ID!");
 			return false;
 		}
 
-		if (bat.restricted()) {
+		if (battle.restricted()) {
 			if (args.size() < 2) {
 				client.sendLine("JOINBATTLEFAILED Password required");
 				return false;
@@ -77,13 +80,13 @@ public class JoinBattleCommandProcessor extends AbstractCommandProcessor {
 
 			String password = args.get(1);
 
-			if (!bat.getPassword().equals(password)) {
+			if (!battle.getPassword().equals(password)) {
 				client.sendLine("JOINBATTLEFAILED Invalid password");
 				return false;
 			}
 		}
 
-		if (bat.isLocked()) {
+		if (battle.isLocked()) {
 			client.sendLine("JOINBATTLEFAILED You cannot join locked battles!");
 			return false;
 		}
@@ -93,11 +96,14 @@ public class JoinBattleCommandProcessor extends AbstractCommandProcessor {
 			client.setScriptPassword(scriptPassword);
 		}
 
-		if (bat.getFounder().isHandleBattleJoinAuthorization()) {
+		if (battle.getFounder().isHandleBattleJoinAuthorization()) {
 			client.setRequestedBattleID(battleID);
-			bat.getFounder().sendLine("JOINBATTLEREQUEST " + client.getAccount().getName() + " " + (bat.getFounder().getIp().equals(client.getIp()) ? client.getLocalIp() : client.getIp()));
+			InetAddress ip = battle.getFounder().getIp().equals(client.getIp())
+					? client.getLocalIp() : client.getIp();
+			// FIXME use ip.getAddress()
+			battle.getFounder().sendLine("JOINBATTLEREQUEST " + client.getAccount().getName() + " " + ip);
 		} else {
-			bat.notifyClientJoined(client);
+			battle.notifyClientJoined(client);
 		}
 
 		return true;

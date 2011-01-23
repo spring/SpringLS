@@ -48,18 +48,18 @@ public class ForceCloseBattleCommandProcessor extends AbstractCommandProcessor {
 		int battleID;
 		try {
 			battleID = Integer.parseInt(args.get(0));
-		} catch (NumberFormatException e) {
+		} catch (NumberFormatException ex) {
 			client.sendLine("SERVERMSG Invalid BattleID!");
 			return false;
 		}
 
-		Battle bat = getContext().getBattles().getBattleByID(battleID);
-		if (bat == null) {
+		Battle battle = getContext().getBattles().getBattleByID(battleID);
+		if (battle == null) {
 			client.sendLine("SERVERMSG Error: unknown BATTLE_ID!");
 			return false;
 		}
 
-		getContext().getBattles().closeBattleAndNotifyAll(bat);
+		getContext().getBattles().closeBattleAndNotifyAll(battle);
 
 		return true;
 	}

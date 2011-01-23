@@ -47,7 +47,7 @@ public class SetScriptTagsCommandProcessor extends AbstractCommandProcessor {
 	private static final Pattern INVALID_VALUE = Pattern.compile("[;}\\[\\n\\r]");
 
 	public SetScriptTagsCommandProcessor() {
-		super(1, ARGS_MAX_NOCHECK, Account.Access.NORMAL);
+		super(1, ARGS_MAX_NOCHECK, Account.Access.NORMAL, true, true);
 	}
 
 	@Override
@@ -69,16 +69,7 @@ public class SetScriptTagsCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		if (client.getBattleID() == Battle.NO_BATTLE_ID) {
-			return false;
-		}
-
-		Battle bat = getContext().getBattles().getBattleByID(client.getBattleID());
-		getContext().getBattles().verify(bat);
-
-		if (bat.getFounder() != client) {
-			return false;
-		}
+		Battle battle = getBattle(client);
 
 		String scriptTagsOrig = Misc.makeSentence(args, 0);
 
@@ -86,11 +77,11 @@ public class SetScriptTagsCommandProcessor extends AbstractCommandProcessor {
 
 		String scriptTagsClean = createScriptTagsString(scriptTags);
 
-		bat.getScriptTags().putAll(scriptTags);
+		battle.getScriptTags().putAll(scriptTags);
 
 		// relay the valid pairs
 		if (scriptTagsClean.length() > 0) {
-			bat.sendToAllClients("SETSCRIPTTAGS " + scriptTagsClean);
+			battle.sendToAllClients("SETSCRIPTTAGS " + scriptTagsClean);
 		}
 
 		return true;

@@ -36,7 +36,7 @@ import java.util.List;
 public class AddBotCommandProcessor extends AbstractCommandProcessor {
 
 	public AddBotCommandProcessor() {
-		super(4, ARGS_MAX_NOCHECK, Account.Access.NORMAL);
+		super(4, ARGS_MAX_NOCHECK, Account.Access.NORMAL, true);
 	}
 
 	@Override
@@ -48,12 +48,7 @@ public class AddBotCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		if (client.getBattleID() == Battle.NO_BATTLE_ID) {
-			return false;
-		}
-
-		Battle bat = getContext().getBattles().getBattleByID(client.getBattleID());
-		getContext().getBattles().verify(bat);
+		Battle battle = getBattle(client);
 
 		String botName = args.get(0);
 		String battleStatusStr = args.get(1);
@@ -77,13 +72,15 @@ public class AddBotCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		if (bat.getBot(botName) != null) {
-			client.sendLine("SERVERMSGBOX Bot name already assigned. Choose another!");
+		if (battle.getBot(botName) != null) {
+			client.sendLine("SERVERMSGBOX Bot name already assigned."
+					+ " Choose another!");
 			return false;
 		}
 
-		Bot bot = new Bot(botName, client.getAccount().getName(), specifier, battleStatus, teamColor);
-		bat.addBot(bot);
+		Bot bot = new Bot(botName, client.getAccount().getName(), specifier,
+				battleStatus, teamColor);
+		battle.addBot(bot);
 
 		return true;
 	}

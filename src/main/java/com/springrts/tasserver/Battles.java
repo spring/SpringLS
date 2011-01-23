@@ -53,13 +53,20 @@ public class Battles implements ContextReceiver {
 	 * If battle with id 'battleID' exist, it is returned,
 	 * or else null is returned.
 	 */
-	public Battle getBattleByID(int battleID) {
-		for (int i = 0; i < battles.size(); i++) {
-			if (battles.get(i).getId() == battleID) {
-				return battles.get(i);
+	public Battle getBattleByID(int battleId) {
+
+		Battle battle = null;
+
+		if (battleId != Battle.NO_BATTLE_ID) { // only used for speedup
+			for (int i = 0; i < battles.size(); i++) {
+				if (battles.get(i).getId() == battleId) {
+					battle = battles.get(i);
+					break;
+				}
 			}
 		}
-		return null;
+
+		return battle;
 	}
 
 	/** Returns null if index is out of bounds */
@@ -136,21 +143,21 @@ public class Battles implements ContextReceiver {
 
 		client.beginFastWrite();
 		for (int i = 0; i < battles.size(); i++) {
-			final Battle bat = battles.get(i);
+			final Battle battle = battles.get(i);
 			// make sure that clients behind NAT get local IPs and not external
 			// ones
-			boolean local = bat.getFounder().getIp().equals(client.getIp());
-			client.sendLine(bat.createBattleOpenedCommandEx(local));
+			boolean local = battle.getFounder().getIp().equals(client.getIp());
+			client.sendLine(battle.createBattleOpenedCommandEx(local));
 			// We have to send UPDATEBATTLEINFO command too,
 			// in order to tell the user how many spectators are in the battle,
 			// for example.
 			client.sendLine(new StringBuilder("UPDATEBATTLEINFO ")
-					.append(bat.getId()).append(" ")
-					.append(bat.spectatorCount()).append(" ")
-					.append(Misc.boolToStr(bat.isLocked())).append(" ")
-					.append(bat.getMapHash()).append(" ")
-					.append(bat.getMapName()).toString());
-			bat.applyToClients(new BattleJoiner(bat.getId()));
+					.append(battle.getId()).append(" ")
+					.append(battle.spectatorCount()).append(" ")
+					.append(Misc.boolToStr(battle.isLocked())).append(" ")
+					.append(battle.getMapHash()).append(" ")
+					.append(battle.getMapName()).toString());
+			battle.applyToClients(new BattleJoiner(battle.getId()));
 		}
 		client.endFastWrite();
 	}

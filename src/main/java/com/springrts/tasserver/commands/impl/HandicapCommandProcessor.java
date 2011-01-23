@@ -37,7 +37,8 @@ import java.util.List;
 public class HandicapCommandProcessor extends AbstractCommandProcessor {
 
 	public HandicapCommandProcessor() {
-		super(2, 2, Account.Access.NORMAL);
+		// only the founder can change handicap value of another user
+		super(2, 2, Account.Access.NORMAL, true, true);
 	}
 
 	@Override
@@ -49,16 +50,7 @@ public class HandicapCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		if (client.getBattleID() == Battle.NO_BATTLE_ID) {
-			return false;
-		}
-		Battle bat = getContext().getBattles().getBattleByID(client.getBattleID());
-		if (bat == null) {
-			return false;
-		}
-		if (bat.getFounder() != client) {
-			return false; // only founder can change handicap value of another user
-		}
+		Battle battle = getBattle(client);
 
 		String username = args.get(0);
 		String handicapStr = args.get(1);
@@ -78,12 +70,12 @@ public class HandicapCommandProcessor extends AbstractCommandProcessor {
 		if (target == null) {
 			return false;
 		}
-		if (!bat.isClientInBattle(target)) {
+		if (!battle.isClientInBattle(target)) {
 			return false;
 		}
 
 		target.setHandicap(handicap);
-		bat.notifyClientsOfBattleStatus(target);
+		battle.notifyClientsOfBattleStatus(target);
 
 		return true;
 	}

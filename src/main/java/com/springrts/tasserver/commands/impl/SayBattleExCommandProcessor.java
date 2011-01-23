@@ -43,7 +43,7 @@ public class SayBattleExCommandProcessor extends AbstractCommandProcessor {
 	private static final Logger LOG = LoggerFactory.getLogger(SayBattleExCommandProcessor.class);
 
 	public SayBattleExCommandProcessor() {
-		super(1, ARGS_MAX_NOCHECK, Account.Access.ADMIN);
+		super(1, ARGS_MAX_NOCHECK, Account.Access.ADMIN, true);
 	}
 
 	@Override
@@ -55,15 +55,9 @@ public class SayBattleExCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		String message = Misc.makeSentence(args, 0);
+		Battle battle = getBattle(client);
 
-		if (client.getBattleID() == Battle.NO_BATTLE_ID) {
-			return false;
-		}
-		Battle bat = getContext().getBattles().getBattleByID(client.getBattleID());
-		if (bat == null) {
-			return false;
-		}
+		String message = Misc.makeSentence(args, 0);
 
 		// check for flooding:
 		if ((message.length() > getContext().getServer().getMaxChatMessageLength())
@@ -81,7 +75,7 @@ public class SayBattleExCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		bat.sendToAllClients(new StringBuilder("SAIDBATTLEEX ")
+		battle.sendToAllClients(new StringBuilder("SAIDBATTLEEX ")
 				.append(client.getAccount().getName()).append(" ")
 				.append(message).toString());
 

@@ -36,7 +36,8 @@ import java.util.List;
 public class JoinBattleDenyCommandProcessor extends AbstractCommandProcessor {
 
 	public JoinBattleDenyCommandProcessor() {
-		super(1, ARGS_MAX_NOCHECK, Account.Access.NORMAL);
+		// only the founder can deny a battle join
+		super(1, ARGS_MAX_NOCHECK, Account.Access.NORMAL, true, true);
 	}
 
 	@Override
@@ -48,32 +49,19 @@ public class JoinBattleDenyCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		if (client.getBattleID() == Battle.NO_BATTLE_ID) {
-			return false;
-		}
-
-		Battle bat = getContext().getBattles().getBattleByID(client.getBattleID());
-		if (bat == null) {
-			return false;
-		}
-
-		// only the founder can deny a battle join
-		if (bat.getFounder() != client) {
-			return false;
-		}
-
 		String username = args.get(0);
 		Client joiningClient = getContext().getClients().getClient(username);
 		if (joiningClient == null) {
 			return false;
 		}
-		if (joiningClient.getRequestedBattleID() !=  client.getBattleID()) {
+		if (joiningClient.getRequestedBattleID() != client.getBattleID()) {
 			return false;
 		}
 		joiningClient.setRequestedBattleID(Battle.NO_BATTLE_ID);
 		if(args.size() > 1) {
 			String reason = Misc.makeSentence(args, 1);
-			joiningClient.sendLine("JOINBATTLEFAILED Denied by battle founder - " + reason);
+			joiningClient.sendLine("JOINBATTLEFAILED Denied by battle founder"
+					+ " - " + reason);
 		} else {
 			joiningClient.sendLine("JOINBATTLEFAILED Denied by battle founder");
 		}

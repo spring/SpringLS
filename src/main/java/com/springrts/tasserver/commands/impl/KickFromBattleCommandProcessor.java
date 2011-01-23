@@ -40,7 +40,8 @@ import java.util.List;
 public class KickFromBattleCommandProcessor extends AbstractCommandProcessor {
 
 	public KickFromBattleCommandProcessor() {
-		super(1, 1, Account.Access.NORMAL);
+		// only the founder can kick other clients
+		super(1, 1, Account.Access.NORMAL, true, true);
 	}
 
 	@Override
@@ -52,16 +53,7 @@ public class KickFromBattleCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		if (client.getBattleID() == Battle.NO_BATTLE_ID) {
-			return false;
-		}
-		Battle bat = getContext().getBattles().getBattleByID(client.getBattleID());
-		if (bat == null) {
-			return false;
-		}
-		if (bat.getFounder() != client) {
-			return false; // only founder can kick other clients
-		}
+		Battle battle = getBattle(client);
 
 		String username = args.get(0);
 
@@ -69,13 +61,14 @@ public class KickFromBattleCommandProcessor extends AbstractCommandProcessor {
 		if (target == null) {
 			return false;
 		}
-		if (!bat.isClientInBattle(target)) {
+		if (!battle.isClientInBattle(target)) {
 			return false;
 		}
 
-		bat.sendToAllClients(new StringBuilder("SAIDBATTLEEX ")
-				.append(client.getAccount().getName()).append(" kicked ")
-				.append(target.getAccount().getName()).append(" from battle").toString());
+		battle.sendToAllClients(String.format(
+				"SAIDBATTLEEX %s kicked %s from battle",
+				client.getAccount().getName(),
+				target.getAccount().getName()));
 		// notify client that he was kicked from the battle:
 		target.sendLine("FORCEQUITBATTLE");
 		// force client to leave battle:

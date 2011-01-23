@@ -35,7 +35,7 @@ import java.util.List;
 public class RemoveScriptTagsCommandProcessor extends AbstractCommandProcessor {
 
 	public RemoveScriptTagsCommandProcessor() {
-		super(1, ARGS_MAX_NOCHECK, Account.Access.NORMAL);
+		super(1, ARGS_MAX_NOCHECK, Account.Access.NORMAL, true, true);
 	}
 
 	@Override
@@ -57,26 +57,17 @@ public class RemoveScriptTagsCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		if (client.getBattleID() == Battle.NO_BATTLE_ID) {
-			return false;
-		}
-
-		Battle bat = getContext().getBattles().getBattleByID(client.getBattleID());
-		getContext().getBattles().verify(bat);
-
-		if (bat.getFounder() != client) {
-			return false;
-		}
+		Battle battle = getBattle(client);
 
 		StringBuilder loweyKeyCommand = new StringBuilder("REMOVESCRIPTTAGS");
 		for (String key : args) {
 			String lowerKey = key.toLowerCase();
 			loweyKeyCommand.append(" ").append(lowerKey);
-			bat.getScriptTags().remove(lowerKey);
+			battle.getScriptTags().remove(lowerKey);
 		}
 
 		// relay the command
-		bat.sendToAllClients(loweyKeyCommand.toString());
+		battle.sendToAllClients(loweyKeyCommand.toString());
 
 		return true;
 	}

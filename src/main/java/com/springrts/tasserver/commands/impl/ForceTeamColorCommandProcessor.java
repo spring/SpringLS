@@ -38,7 +38,8 @@ import java.util.List;
 public class ForceTeamColorCommandProcessor extends AbstractCommandProcessor {
 
 	public ForceTeamColorCommandProcessor() {
-		super(2, 2, Account.Access.NORMAL);
+		// only the founder can force the team color
+		super(2, 2, Account.Access.NORMAL, true, true);
 	}
 
 	@Override
@@ -50,16 +51,7 @@ public class ForceTeamColorCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		if (client.getBattleID() == Battle.NO_BATTLE_ID) {
-			return false;
-		}
-		Battle bat = getContext().getBattles().getBattleByID(client.getBattleID());
-		if (bat == null) {
-			return false;
-		}
-		if (bat.getFounder() != client) {
-			return false; // only founder can force team color
-		}
+		Battle battle = getBattle(client);
 
 		String username = args.get(0);
 		String colorStr = args.get(1);
@@ -73,12 +65,12 @@ public class ForceTeamColorCommandProcessor extends AbstractCommandProcessor {
 		if (target == null) {
 			return false;
 		}
-		if (!bat.isClientInBattle(target)) {
+		if (!battle.isClientInBattle(target)) {
 			return false;
 		}
 
 		target.setTeamColor(color);
-		bat.notifyClientsOfBattleStatus(target);
+		battle.notifyClientsOfBattleStatus(target);
 
 		return true;
 	}

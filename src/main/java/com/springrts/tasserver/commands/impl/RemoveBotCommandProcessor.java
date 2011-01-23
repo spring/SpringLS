@@ -35,7 +35,7 @@ import java.util.List;
 public class RemoveBotCommandProcessor extends AbstractCommandProcessor {
 
 	public RemoveBotCommandProcessor() {
-		super(1, 1, Account.Access.NORMAL);
+		super(1, 1, Account.Access.NORMAL, true);
 	}
 
 	@Override
@@ -47,21 +47,16 @@ public class RemoveBotCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		if (client.getBattleID() == Battle.NO_BATTLE_ID) {
-			return false;
-		}
-
-		Battle bat = getContext().getBattles().getBattleByID(client.getBattleID());
-		getContext().getBattles().verify(bat);
+		Battle battle = getBattle(client);
 
 		String botName = args.get(0);
 
-		Bot bot = bat.getBot(botName);
+		Bot bot = battle.getBot(botName);
 		if (bot == null) {
 			return false;
 		}
 
-		bat.removeBot(bot);
+		battle.removeBot(bot);
 
 		return true;
 	}

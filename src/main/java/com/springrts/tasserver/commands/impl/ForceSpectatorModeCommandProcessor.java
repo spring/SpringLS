@@ -33,10 +33,12 @@ import java.util.List;
  * @author hoijui
  */
 @SupportedCommand("FORCESPECTATORMODE")
-public class ForceSpectatorModeCommandProcessor extends AbstractCommandProcessor {
-
+public class ForceSpectatorModeCommandProcessor
+		extends AbstractCommandProcessor
+{
 	public ForceSpectatorModeCommandProcessor() {
-		super(1, 1, Account.Access.NORMAL);
+		// only the founder can force spectator mode
+		super(1, 1, Account.Access.NORMAL, true, true);
 	}
 
 	@Override
@@ -48,16 +50,7 @@ public class ForceSpectatorModeCommandProcessor extends AbstractCommandProcessor
 			return false;
 		}
 
-		if (client.getBattleID() == Battle.NO_BATTLE_ID) {
-			return false;
-		}
-		Battle bat = getContext().getBattles().getBattleByID(client.getBattleID());
-		if (bat == null) {
-			return false;
-		}
-		if (bat.getFounder() != client) {
-			return false; // only founder can force spectator mode
-		}
+		Battle battle = getBattle(client);
 
 		String username = args.get(0);
 
@@ -65,16 +58,17 @@ public class ForceSpectatorModeCommandProcessor extends AbstractCommandProcessor
 		if (target == null) {
 			return false;
 		}
-		if (!bat.isClientInBattle(target)) {
+		if (!battle.isClientInBattle(target)) {
 			return false;
 		}
 
 		if (target.isSpectator()) {
-			// no need to change it, it's already set to spectator mode!
+			// no need to change this, it is already set to spectator mode!
 			return false;
 		}
+
 		target.setSpectator(true);
-		bat.notifyClientsOfBattleStatus(target);
+		battle.notifyClientsOfBattleStatus(target);
 
 		return true;
 	}

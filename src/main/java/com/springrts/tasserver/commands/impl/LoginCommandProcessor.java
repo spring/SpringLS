@@ -337,6 +337,7 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 		@Override
 		public void run() {
 
+			// TODO use list-iterator
 			// purge list of failed login attempts:
 			for (int i = 0; i < failedLoginAttempts.size(); i++) {
 				FailedLoginAttempt attempt = failedLoginAttempts.get(i);

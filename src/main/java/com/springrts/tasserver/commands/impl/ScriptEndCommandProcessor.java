@@ -35,7 +35,7 @@ import java.util.List;
 public class ScriptEndCommandProcessor extends AbstractCommandProcessor {
 
 	public ScriptEndCommandProcessor() {
-		super(0, 0, Account.Access.NORMAL);
+		super(0, 0, Account.Access.NORMAL, true);
 	}
 
 	@Override
@@ -47,17 +47,12 @@ public class ScriptEndCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		if (client.getBattleID() == Battle.NO_BATTLE_ID) {
-			return false;
-		}
-
-		Battle bat = getContext().getBattles().getBattleByID(client.getBattleID());
-		getContext().getBattles().verify(bat);
+		Battle battle = getBattle(client);
 
 		// copy temp script to active script:
-		bat.ratifyTempScript();
+		battle.ratifyTempScript();
 
-		bat.sendScriptToAllExceptFounder();
+		battle.sendScriptToAllExceptFounder();
 
 		return true;
 	}

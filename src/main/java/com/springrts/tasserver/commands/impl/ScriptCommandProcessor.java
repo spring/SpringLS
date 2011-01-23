@@ -38,7 +38,7 @@ import java.util.List;
 public class ScriptCommandProcessor extends AbstractCommandProcessor {
 
 	public ScriptCommandProcessor() {
-		super(Account.Access.NORMAL);
+		super(Account.Access.NORMAL, true);
 	}
 
 	@Override
@@ -50,14 +50,9 @@ public class ScriptCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		if (client.getBattleID() == Battle.NO_BATTLE_ID) {
-			return false;
-		}
+		Battle battle = getBattle(client);
 
-		Battle bat = getContext().getBattles().getBattleByID(client.getBattleID());
-		getContext().getBattles().verify(bat);
-
-		bat.getTempReplayScript().add(Misc.makeSentence(args, 0));
+		battle.getTempReplayScript().add(Misc.makeSentence(args, 0));
 
 		return true;
 	}

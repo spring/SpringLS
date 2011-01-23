@@ -35,7 +35,8 @@ import java.util.List;
 public class JoinBattleAcceptCommandProcessor extends AbstractCommandProcessor {
 
 	public JoinBattleAcceptCommandProcessor() {
-		super(1, 1, Account.Access.NORMAL);
+		// only the founder can accept battle join
+		super(1, 1, Account.Access.NORMAL, true, true);
 	}
 
 	@Override
@@ -51,14 +52,7 @@ public class JoinBattleAcceptCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		// check battle
-		Battle bat = getContext().getBattles().getBattleByID(client.getBattleID());
-		if (bat == null) {
-			return false;
-		} else if (bat.getFounder() != client) {
-			// only founder can accept battle join
-			return false;
-		}
+		Battle battle = getBattle(client);
 
 		String username = args.get(0);
 
@@ -66,11 +60,13 @@ public class JoinBattleAcceptCommandProcessor extends AbstractCommandProcessor {
 		Client joiningClient = getContext().getClients().getClient(username);
 		if (joiningClient == null) {
 			return false;
-		} else if (joiningClient.getRequestedBattleID() !=  client.getBattleID()) {
+		} else if (joiningClient.getRequestedBattleID()
+				!= client.getBattleID())
+		{
 			return false;
 		}
 
-		bat.notifyClientJoined(joiningClient);
+		battle.notifyClientJoined(joiningClient);
 
 		return true;
 	}

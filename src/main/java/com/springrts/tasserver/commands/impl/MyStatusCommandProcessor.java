@@ -38,7 +38,8 @@ import org.slf4j.LoggerFactory;
 @SupportedCommand("MYSTATUS")
 public class MyStatusCommandProcessor extends AbstractCommandProcessor {
 
-	private static final Logger LOG = LoggerFactory.getLogger(MyStatusCommandProcessor.class);
+	private static final Logger LOG
+			= LoggerFactory.getLogger(MyStatusCommandProcessor.class);
 
 	public MyStatusCommandProcessor() {
 		super(1, 1, Account.Access.NORMAL);
@@ -62,7 +63,8 @@ public class MyStatusCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		// we must preserve rank bits, access bit and bot mode bit (client is not allowed to change them himself):
+		// we must preserve rank bits, access bit and bot mode bit
+		// (the client is not allowed to change them himself):
 		Account.Rank rank = client.getRank();
 		boolean inGame = client.isInGame();
 		boolean access = client.isAccess();
@@ -77,15 +79,26 @@ public class MyStatusCommandProcessor extends AbstractCommandProcessor {
 		if (client.isInGame() != inGame) {
 			// user changed his in-game status.
 			if (!inGame) { // client just entered game
-				Battle bat = getContext().getBattles().getBattleByID(client.getBattleID());
-				if ((bat != null) && (bat.getClientsSize() > 0)) {
+				Battle battle = getBattle(client);
+				if ((battle != null) && (battle.getClientsSize() > 0)) {
 					client.setInGameTime(System.currentTimeMillis());
 				} else {
-					client.setInGameTime(0); // we won't update clients who play by themselves (or with bots), since some try to exploit the system by leaving computer alone in-battle for hours to increase their ranks
-				}						// check if client is a battle host using "hole punching" technique:
-				if ((bat != null) && (bat.getFounder() == client) && (bat.getNatType() == 1)) {
-					// tell clients to replace battle port with founder's public UDP source port:
-					bat.sendToAllExceptFounder(new StringBuilder("HOSTPORT ").append(client.getUdpSourcePort()).toString());
+					// we will not update clients that play by themselves
+					// (or with bots), since some try to exploit the system by
+					// leaving thier computer alone in-battle for hours, to
+					// increase their ranks
+					client.setInGameTime(0);
+				}
+				if ((battle != null) && (battle.getFounder() == client)
+						&& (battle.getNatType() == 1))
+				{
+					// the client is a battle host using the "hole punching"
+					// technique
+
+					// tell clients to replace the battle port with the
+					// founder's public UDP source port
+					battle.sendToAllExceptFounder(String.format("HOSTPORT %d",
+							client.getUdpSourcePort()));
 				}
 			} else { // back from game
 				if (client.getInGameTime() != 0) {
@@ -94,15 +107,20 @@ public class MyStatusCommandProcessor extends AbstractCommandProcessor {
 					// since some try to exploit the system
 					// by leaving their computer alone in-battle
 					// for hours, to increase their ranks.
-					long diffMins = (System.currentTimeMillis() - client.getInGameTime()) / 60000;
-					boolean rankChanged = client.getAccount().addMinsToInGameTime(diffMins);
+					long diffMins = (System.currentTimeMillis()
+							- client.getInGameTime()) / 60000;
+					boolean rankChanged = client.getAccount()
+							.addMinsToInGameTime(diffMins);
 					if (rankChanged) {
 						client.setRank(client.getAccount().getRank());
 					}
-					final boolean mergeOk = getContext().getAccountsService().mergeAccountChanges( client.getAccount(), client.getAccount().getName());
+					final boolean mergeOk = getContext().getAccountsService()
+							.mergeAccountChanges(client.getAccount(),
+							client.getAccount().getName());
 					if (!mergeOk) {
 						// as this is no serious problem, only log a message
-						LOG.warn("Failed updating users in-game-time in persistent storage: {}",
+						LOG.warn("Failed updating users in-game-time in"
+								+ " persistent storage: {}",
 								client.getAccount().getName());
 						return false;
 					}

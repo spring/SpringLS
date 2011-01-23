@@ -37,7 +37,8 @@ import java.util.List;
 public class UpdateBattleInfoCommandProcessor extends AbstractCommandProcessor {
 
 	public UpdateBattleInfoCommandProcessor() {
-		super(4, ARGS_MAX_NOCHECK, Account.Access.NORMAL);
+		// only the founder may change battle parameters!
+		super(4, ARGS_MAX_NOCHECK, Account.Access.NORMAL, true, true);
 	}
 
 	@Override
@@ -49,16 +50,7 @@ public class UpdateBattleInfoCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		if (client.getBattleID() == Battle.NO_BATTLE_ID) {
-			return false;
-		}
-		Battle bat = getContext().getBattles().getBattleByID(client.getBattleID());
-		if (bat == null) {
-			return false;
-		}
-		if (bat.getFounder() != client) {
-			return false; // only founder may change battle parameters!
-		}
+		Battle battle = getBattle(client);
 
 		String spectatorCountStr = args.get(0);
 		String lockedStr = args.get(1);
@@ -76,16 +68,16 @@ public class UpdateBattleInfoCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		bat.setMapName(mapName);
-		bat.setLocked(locked);
-		bat.setMapHash(maphash);
+		battle.setMapName(mapName);
+		battle.setLocked(locked);
+		battle.setMapHash(maphash);
 		getContext().getClients().sendToAllRegisteredUsers(
-				new StringBuilder("UPDATEBATTLEINFO ")
-				.append(bat.getId()).append(" ")
-				.append(spectatorCount).append(" ")
-				.append(Misc.boolToStr(bat.isLocked())).append(" ")
-				.append(maphash).append(" ")
-				.append(bat.getMapName()).toString());
+				String.format("UPDATEBATTLEINFO %d %d %s %s %s",
+				battle.getId(),
+				spectatorCount,
+				Misc.boolToStr(battle.isLocked()),
+				maphash,
+				battle.getMapName()));
 
 		return true;
 	}

@@ -36,7 +36,8 @@ import java.util.List;
 public class EnableUnitsCommandProcessor extends AbstractCommandProcessor {
 
 	public EnableUnitsCommandProcessor() {
-		super(1, ARGS_MAX_NOCHECK, Account.Access.NORMAL);
+		// only the founder can disable/enable units
+		super(1, ARGS_MAX_NOCHECK, Account.Access.NORMAL, true, true);
 	}
 
 	@Override
@@ -48,22 +49,14 @@ public class EnableUnitsCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		if (client.getBattleID() == Battle.NO_BATTLE_ID) {
-			return false;
-		}
-		Battle bat = getContext().getBattles().getBattleByID(client.getBattleID());
-		if (bat == null) {
-			return false;
-		}
-		if (bat.getFounder() != client) {
-			return false; // only founder can disable/enable units
-		}
+		Battle battle = getBattle(client);
+
 		for (String unit : args) {
 			// will ignore it if string is not found in the list
-			bat.getDisabledUnits().remove(unit);
+			battle.getDisabledUnits().remove(unit);
 		}
 
-		bat.sendToAllExceptFounder(reconstructFullCommand(args));
+		battle.sendToAllExceptFounder(reconstructFullCommand(args));
 
 		return true;
 	}

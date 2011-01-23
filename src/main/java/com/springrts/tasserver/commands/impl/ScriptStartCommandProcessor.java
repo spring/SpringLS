@@ -42,7 +42,7 @@ import java.util.List;
 public class ScriptStartCommandProcessor extends AbstractCommandProcessor {
 
 	public ScriptStartCommandProcessor() {
-		super(0, 0, Account.Access.NORMAL);
+		super(0, 0, Account.Access.NORMAL, true);
 	}
 
 	@Override
@@ -54,14 +54,9 @@ public class ScriptStartCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		if (client.getBattleID() == Battle.NO_BATTLE_ID) {
-			return false;
-		}
+		Battle battle = getBattle(client);
 
-		Battle bat = getContext().getBattles().getBattleByID(client.getBattleID());
-		getContext().getBattles().verify(bat);
-
-		bat.getTempReplayScript().clear();
+		battle.getTempReplayScript().clear();
 
 		return true;
 	}

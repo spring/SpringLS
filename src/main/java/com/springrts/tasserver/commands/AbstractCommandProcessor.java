@@ -19,6 +19,7 @@ package com.springrts.tasserver.commands;
 
 
 import com.springrts.tasserver.Account;
+import com.springrts.tasserver.Battle;
 import com.springrts.tasserver.Client;
 import com.springrts.tasserver.Context;
 import java.util.List;
@@ -37,13 +38,39 @@ public abstract class AbstractCommandProcessor implements CommandProcessor {
 	private final int argsMin;
 	private final int argsMax;
 	private final Account.Access accessMin;
+	private final boolean battleRequired;
+	private final boolean battleFounderRequired;
 
-	protected AbstractCommandProcessor(int argsMin, int argsMax, Account.Access accessMin) {
-
-		this.commandName = CommandProcessors.extractCommandName(this.getClass());
+	protected AbstractCommandProcessor(int argsMin, int argsMax,
+			Account.Access accessMin, boolean battleRequired,
+			boolean battleFounderRequired)
+	{
+		this.commandName
+				= CommandProcessors.extractCommandName(this.getClass());
 		this.argsMin = argsMin;
 		this.argsMax = argsMax;
 		this.accessMin = accessMin;
+		this.battleRequired = battleRequired;
+		this.battleFounderRequired = battleFounderRequired;
+		if (battleFounderRequired && !battleRequired) {
+			throw new IllegalArgumentException("The client can never be founder"
+					+ " of a battle but not in a battle");
+		}
+	}
+	protected AbstractCommandProcessor(int argsMin, int argsMax,
+			Account.Access accessMin, boolean battleRequired)
+	{
+		this(argsMin, argsMax, accessMin, battleRequired, false);
+	}
+	protected AbstractCommandProcessor(int argsMin, int argsMax,
+			Account.Access accessMin)
+	{
+		this(argsMin, argsMax, accessMin, false);
+	}
+	protected AbstractCommandProcessor(Account.Access accessMin,
+			boolean battleRequired)
+	{
+		this(ARGS_MIN_NOCHECK, ARGS_MAX_NOCHECK, accessMin, battleRequired);
 	}
 	protected AbstractCommandProcessor(int argsMin, int argsMax) {
 		this(argsMin, argsMax, ACCESS_NOCHECK);
@@ -105,6 +132,73 @@ public abstract class AbstractCommandProcessor implements CommandProcessor {
 	}
 
 	/**
+	 * Returns whether this command requires the sending client to be in a
+	 * battle.
+	 * @return true if the sending client is required to be in a battle.
+	 */
+	public boolean isBattleRequired() {
+		return this.battleRequired;
+	}
+
+	/**
+	 * Returns whether this command requires the sending client to be the
+	 * founder of a battle.
+	 * @return true if the sending client is requires to be the founder of a
+	 *   battle.
+	 */
+	public boolean isBattleFounderRequired() {
+		return this.battleFounderRequired;
+	}
+
+	/**
+	 * Returns the battle instance the client is founder of, or
+	 * <code>null</code>, if it is not currently founder of any battle.
+	 * @param client the client to check whether it is battle founder
+	 */
+	@Deprecated
+	protected Battle checkBattleFounder(Client client) {
+
+		Battle battle = null;
+
+		if (client.getBattleID() != Battle.NO_BATTLE_ID) {
+			battle = getContext().getBattles()
+					.getBattleByID(client.getBattleID());
+			if ((battle != null) && (battle.getFounder() != client)) {
+				battle = null;
+			}
+		}
+
+		return battle;
+	}
+
+	/**
+	 * Returns whether the client is currently in a battle.
+	 * @return true if the client is currently in a battle.
+	 */
+	protected Battle getBattle(Client client) {
+		return getContext().getBattles().getBattleByID(client.getBattleID());
+	}
+
+	/**
+	 * Returns whether the client is currently in a battle.
+	 * @return true if the client is currently in a battle.
+	 */
+	protected boolean isInBattle(Client client) {
+		return (getBattle(client) != null);
+	}
+
+	/**
+	 * Returns whether the client is currently founder of a battle.
+	 * @return true if the client is currently founder of a battle.
+	 */
+	protected boolean isBattleFounder(Client client) {
+
+		Battle battle = getContext().getBattles()
+					.getBattleByID(client.getBattleID());
+		return ((battle != null) && (battle.getFounder() == client));
+	}
+
+	/**
 	 * Perform common checks.
 	 */
 	@Override
@@ -121,17 +215,30 @@ public abstract class AbstractCommandProcessor implements CommandProcessor {
 					client.getAccount().getAccess());
 		}
 
-		if ((getArgsMin() != ARGS_MIN_NOCHECK) && (args.size() < getArgsMin())) {
+		if ((getArgsMin() != ARGS_MIN_NOCHECK)
+				&& (args.size() < getArgsMin()))
+		{
 			throw new TooFewArgumentsCommandProcessingException(
 					getCommandName(),
 					getArgsMin(),
 					args.size());
 		}
-		if ((getArgsMax() != ARGS_MAX_NOCHECK) && (args.size() > getArgsMax())) {
+		if ((getArgsMax() != ARGS_MAX_NOCHECK)
+				&& (args.size() > getArgsMax()))
+		{
 			throw new TooManyArgumentsCommandProcessingException(
 					getCommandName(),
 					getArgsMax(),
 					args.size());
+		}
+
+		if (isBattleFounderRequired() && !isBattleFounder(client)) {
+			throw new CommandProcessingException(getCommandName(),
+					"This command requires the issuing client to be founder of"
+					+ " the battle");
+		} else if (isBattleRequired() && !isInBattle(client)) {
+			throw new CommandProcessingException(getCommandName(),
+					"This command requires the issuing client to in a battle");
 		}
 
 		return true;

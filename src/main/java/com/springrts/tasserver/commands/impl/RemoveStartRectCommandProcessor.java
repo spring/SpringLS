@@ -36,7 +36,7 @@ import java.util.List;
 public class RemoveStartRectCommandProcessor extends AbstractCommandProcessor {
 
 	public RemoveStartRectCommandProcessor() {
-		super(1, 1, Account.Access.NORMAL);
+		super(1, 1, Account.Access.NORMAL, true, true);
 	}
 
 	@Override
@@ -48,16 +48,7 @@ public class RemoveStartRectCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		if (client.getBattleID() == Battle.NO_BATTLE_ID) {
-			return false;
-		}
-
-		Battle bat = getContext().getBattles().getBattleByID(client.getBattleID());
-		getContext().getBattles().verify(bat);
-
-		if (bat.getFounder() != client) {
-			return false;
-		}
+		Battle battle = getBattle(client);
 
 		int allyno;
 		try {
@@ -69,7 +60,7 @@ public class RemoveStartRectCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		StartRect startRect = bat.getStartRects().get(allyno);
+		StartRect startRect = battle.getStartRects().get(allyno);
 		if (!startRect.isEnabled()) {
 			client.sendLine(new StringBuilder("SERVERMSG Serious error: inconsistent data (")
 					.append(getCommandName()).append(" command). You will now be disconnected ...").toString());
@@ -79,7 +70,7 @@ public class RemoveStartRectCommandProcessor extends AbstractCommandProcessor {
 
 		startRect.setEnabled(false);
 
-		bat.sendToAllExceptFounder(new StringBuilder("REMOVESTARTRECT ").append(allyno).toString());
+		battle.sendToAllExceptFounder(new StringBuilder("REMOVESTARTRECT ").append(allyno).toString());
 
 		return true;
 	}

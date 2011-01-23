@@ -64,16 +64,16 @@ public class RingCommandProcessor extends AbstractCommandProcessor {
 				return false;
 			}
 
-			Battle bat = getContext().getBattles().getBattleByID(client.getBattleID());
-			getContext().getBattles().verify(bat);
+			Battle battle = getBattle(client);
+			getContext().getBattles().verify(battle);
 
-			if (!bat.isClientInBattle(target)) {
+			if (!battle.isClientInBattle(target)) {
 				client.sendLine("SERVERMSG RING command failed: You don't have permission to ring players other than those participating in your battle!");
 				return false;
 			}
 
 			// only host can ring players participating in his own battle, unless target is host himself:
-			if ((client != bat.getFounder()) && (target != bat.getFounder())) {
+			if ((client != battle.getFounder()) && (target != battle.getFounder())) {
 				client.sendLine("SERVERMSG RING command failed: You can ring only battle host, or if you are the battle host, only players participating in your own battle!");
 				return false;
 			}

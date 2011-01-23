@@ -47,17 +47,20 @@ public class OpenBattleCommandProcessor extends AbstractCommandProcessor {
 		}
 
 		if (client.getBattleID() != Battle.NO_BATTLE_ID) {
-			client.sendLine("OPENBATTLEFAILED You are already hosting a battle!");
+			client.sendLine("OPENBATTLEFAILED You are already hosting a battle!"
+					);
 			return false;
 		}
-		Battle bat = getContext().getBattles().createBattleFromString(args, client);
-		if (bat == null) {
-			client.sendLine("OPENBATTLEFAILED Invalid command format or bad arguments");
+		Battle battle = getContext().getBattles().createBattleFromString(args,
+				client);
+		if (battle == null) {
+			client.sendLine("OPENBATTLEFAILED Invalid command format or bad"
+					+ " arguments");
 			return false;
 		}
-		getContext().getBattles().addBattle(bat);
+		getContext().getBattles().addBattle(battle);
 		client.setDefaultBattleStatus();
-		client.setBattleID(bat.getId());
+		client.setBattleID(battle.getId());
 		client.setRequestedBattleID(Battle.NO_BATTLE_ID);
 
 		boolean local;
@@ -67,13 +70,14 @@ public class OpenBattleCommandProcessor extends AbstractCommandProcessor {
 			if (c.getAccount().getAccess().isLessThen(Account.Access.NORMAL)) {
 				continue;
 			}
-			// make sure that clients behind NAT get local IPs and not external ones:
+			// make sure that the clients behind NAT get local IPs and not
+			// external ones:
 			local = client.getIp().equals(c.getIp());
-			c.sendLine(bat.createBattleOpenedCommandEx(local));
+			c.sendLine(battle.createBattleOpenedCommandEx(local));
 		}
 
 		// notify client that he successfully opened a new battle
-		client.sendLine("OPENBATTLE " + bat.getId());
+		client.sendLine("OPENBATTLE " + battle.getId());
 		client.sendLine("REQUESTBATTLESTATUS");
 		return true;
 	}

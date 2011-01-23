@@ -35,7 +35,7 @@ import java.util.List;
 public class LeaveBattleCommandProcessor extends AbstractCommandProcessor {
 
 	public LeaveBattleCommandProcessor() {
-		super(0, 0, Account.Access.NORMAL);
+		super(0, 0, Account.Access.NORMAL, true);
 	}
 
 	@Override
@@ -47,16 +47,15 @@ public class LeaveBattleCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		if (client.getBattleID() == Battle.NO_BATTLE_ID) {
-			// this may happen when client sent the LEAVEBATTLE command
-			// right after he was kicked from the battle, for example.
-			return false;
-		}
-		Battle bat = getContext().getBattles().getBattleByID(client.getBattleID());
-		getContext().getBattles().verify(bat);
+		// If the client sent the LEAVEBATTLE command right after he was kicked
+		// from the battle, this might be <code>null</code>, but we already
+		// check for that earlier, in AbstractCommandProcessor
+		// -> we always get a valid value here
+		Battle battle = getBattle(client);
 
-		// automatically checks if the client is a founder and closes the battle
-		getContext().getBattles().leaveBattle(client, bat);
+		// automatically checks if the client is the founder and in that case
+		// closes the battle
+		getContext().getBattles().leaveBattle(client, battle);
 
 		return true;
 	}

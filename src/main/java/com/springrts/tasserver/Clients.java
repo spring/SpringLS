@@ -417,14 +417,14 @@ public class Clients implements ContextReceiver, Updateable {
 		client.leaveAllChannels(reasonNonNull);
 
 		if (client.getBattleID() != Battle.NO_BATTLE_ID) {
-			Battle bat = context.getBattles().getBattleByID(client.getBattleID());
-			if (bat == null) {
+			Battle battle = context.getBattles().getBattleByID(client.getBattleID());
+			if (battle == null) {
 				LOG.error("Invalid battle ID. Server will now exit!");
 				context.getServerThread().closeServerAndExit();
 			}
 			// internally checks if the client is the founder and closes the
 			// battle in that case
-			context.getBattles().leaveBattle(client, bat);
+			context.getBattles().leaveBattle(client, battle);
 		}
 
 		if (client.getAccount().getAccess() != Account.Access.NONE) {

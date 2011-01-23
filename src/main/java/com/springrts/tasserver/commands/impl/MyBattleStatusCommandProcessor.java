@@ -38,7 +38,7 @@ import java.util.List;
 public class MyBattleStatusCommandProcessor extends AbstractCommandProcessor {
 
 	public MyBattleStatusCommandProcessor() {
-		super(2, 2, Account.Access.NORMAL);
+		super(2, 2, Account.Access.NORMAL, true);
 	}
 
 	@Override
@@ -50,15 +50,7 @@ public class MyBattleStatusCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		if (client.getBattleID() == Battle.NO_BATTLE_ID) {
-			return false;
-		}
-
-		Battle battle =
-				getContext().getBattles().getBattleByID(client.getBattleID());
-		if (battle == null) {
-			return false;
-		}
+		Battle battle = getBattle(client);
 
 		String newBattleStatusStr = args.get(0);
 		String teamColorStr = args.get(1);

@@ -36,7 +36,8 @@ import java.util.List;
 public class ForceAllyNumberCommandProcessor extends AbstractCommandProcessor {
 
 	public ForceAllyNumberCommandProcessor() {
-		super(2, 2, Account.Access.NORMAL);
+		// only the founder can force the ally-team number
+		super(2, 2, Account.Access.NORMAL, true, true);
 	}
 
 	@Override
@@ -48,16 +49,7 @@ public class ForceAllyNumberCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		if (client.getBattleID() == Battle.NO_BATTLE_ID) {
-			return false;
-		}
-		Battle bat = getContext().getBattles().getBattleByID(client.getBattleID());
-		if (bat == null) {
-			return false;
-		}
-		if (bat.getFounder() != client) {
-			return false; // only founder can force team/ally numbers
-		}
+		Battle battle = getBattle(client);
 
 		String username = args.get(0);
 		String alllyTeamNumberStr = args.get(1);
@@ -68,7 +60,9 @@ public class ForceAllyNumberCommandProcessor extends AbstractCommandProcessor {
 		} catch (NumberFormatException e) {
 			return false;
 		}
-		if ((alllyTeamNumber < 0) || (alllyTeamNumber > getContext().getEngine().getMaxTeams() - 1)) {
+		if ((alllyTeamNumber < 0) || (alllyTeamNumber
+				> getContext().getEngine().getMaxTeams() - 1))
+		{
 			return false;
 		}
 
@@ -76,12 +70,12 @@ public class ForceAllyNumberCommandProcessor extends AbstractCommandProcessor {
 		if (target == null) {
 			return false;
 		}
-		if (!bat.isClientInBattle(target)) {
+		if (!battle.isClientInBattle(target)) {
 			return false;
 		}
 
 		target.setAllyTeam(alllyTeamNumber);
-		bat.notifyClientsOfBattleStatus(target);
+		battle.notifyClientsOfBattleStatus(target);
 
 		return true;
 	}

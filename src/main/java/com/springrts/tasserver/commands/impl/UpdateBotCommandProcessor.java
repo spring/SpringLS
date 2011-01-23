@@ -38,7 +38,7 @@ import java.util.List;
 public class UpdateBotCommandProcessor extends AbstractCommandProcessor {
 
 	public UpdateBotCommandProcessor() {
-		super(3, 3, Account.Access.NORMAL);
+		super(3, 3, Account.Access.NORMAL, true);
 	}
 
 	@Override
@@ -49,12 +49,8 @@ public class UpdateBotCommandProcessor extends AbstractCommandProcessor {
 		if (!checksOk) {
 			return false;
 		}
-		if (client.getBattleID() == Battle.NO_BATTLE_ID) {
-			return false;
-		}
 
-		Battle bat = getContext().getBattles().getBattleByID(client.getBattleID());
-		getContext().getBattles().verify(bat);
+		Battle battle = getBattle(client);
 
 		String botName = args.get(0);
 		String battleStatusStr = args.get(1);
@@ -62,11 +58,10 @@ public class UpdateBotCommandProcessor extends AbstractCommandProcessor {
 		// TODO needs protocol change
 		//String specifier = Misc.makeSentence(args, 3);
 
-		Bot bot = bat.getBot(botName);
+		Bot bot = battle.getBot(botName);
 		if (bot == null) {
 			return false;
 		}
-
 
 		int battleStatus;
 		try {
@@ -81,17 +76,21 @@ public class UpdateBotCommandProcessor extends AbstractCommandProcessor {
 		}
 
 		// only bot owner and battle host are allowed to update bot:
-		if (!((client.getAccount().getName().equals(bot.getOwnerName())) || (client.getAccount().getName().equals(bat.getFounder().getAccount().getName())))) {
+		if (!(client.getAccount().getName().equals(bot.getOwnerName())
+				|| client.getAccount().getName().equals(
+				battle.getFounder().getAccount().getName())))
+		{
 			return false;
 		}
 
 		bot.setBattleStatus(battleStatus);
 		bot.setTeamColor(teamColor);
 
-		//*** add: force ally and color number if someone else is using his team number already
+		// TODO force ally and color number if someone else is using his team
+		// number already
 
-		bat.sendToAllClients(new StringBuilder("UPDATEBOT ")
-				.append(bat.getId()).append(" ")
+		battle.sendToAllClients(new StringBuilder("UPDATEBOT ")
+				.append(battle.getId()).append(" ")
 				.append(bot.getName()).append(" ")
 				.append(bot.getBattleStatus()).append(" ")
 				.append(Misc.colorJavaToSpring(bot.getTeamColor())).toString());
