@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Battles implements ContextReceiver {
 
-	private static final Logger LOG  = LoggerFactory.getLogger(Battle.class);
+	private static final Logger LOG = LoggerFactory.getLogger(Battle.class);
 
 	private List<Battle> battles;
 	private Context context = null;
@@ -83,7 +83,8 @@ public class Battles implements ContextReceiver {
 
 		battle.applyToClientsAndFounder(new BattleCloser());
 
-		context.getClients().sendToAllRegisteredUsers("BATTLECLOSED " + battle.getId());
+		context.getClients().sendToAllRegisteredUsers("BATTLECLOSED "
+				+ battle.getId());
 		battles.remove(battle);
 	}
 
@@ -97,14 +98,16 @@ public class Battles implements ContextReceiver {
 		if (battle.getFounder() == client) {
 			closeBattleAndNotifyAll(battle);
 		} else {
-			if (client.getBattleID() != battle.getId() || !battle.removeClient(client)) {
+			if ((client.getBattleID() != battle.getId())
+					|| !battle.removeClient(client))
+			{
 				return false;
 			}
 			client.setBattleID(Battle.NO_BATTLE_ID);
 			battle.removeClientBots(client);
-			context.getClients().sendToAllRegisteredUsers(new StringBuilder("LEFTBATTLE ")
-					.append(battle.getId()).append(" ")
-					.append(client.getAccount().getName()).toString());
+			context.getClients().sendToAllRegisteredUsers(String.format(
+					"LEFTBATTLE %d %s", battle.getId(),
+					client.getAccount().getName()));
 		}
 
 		return true;
@@ -168,6 +171,9 @@ public class Battles implements ContextReceiver {
 		if (parsed2.length != 3) {
 			return null;
 		}
+		String mapName = parsed2[0];
+		String title   = parsed2[1];
+		String modName = parsed2[2];
 
 		String pass = args.get(2);
 		if (!pass.equals("*") && !pass.matches("^[A-Za-z0-9_]+$")) {
@@ -203,7 +209,8 @@ public class Battles implements ContextReceiver {
 			return null;
 		}
 
-		Battle battle = new Battle(type, natType, founder, pass, port, maxPlayers, hash, rank, maphash, parsed2[0], parsed2[1], parsed2[2]);
+		Battle battle = new Battle(type, natType, founder, pass, port,
+				maxPlayers, hash, rank, maphash, mapName, title, modName);
 
 		return battle;
 	}

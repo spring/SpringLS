@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Battle implements ContextReceiver {
 
-	private static final Logger LOG  = LoggerFactory.getLogger(Battle.class);
+	private static final Logger LOG = LoggerFactory.getLogger(Battle.class);
 
 	/** the id that the next battle will have */
 	private static int nextId;
@@ -104,7 +104,10 @@ public class Battle implements ContextReceiver {
 	}
 
 
-	public Battle(int type, int natType, Client founder, String password, int port, int maxPlayers, int hashCode, int rank, int mapHash, String mapName, String title, String modName) {
+	public Battle(int type, int natType, Client founder, String password,
+			int port, int maxPlayers, int hashCode, int rank, int mapHash,
+			String mapName, String title, String modName)
+	{
 		this.id = nextId++;
 		this.type = type;
 		this.natType = natType;
@@ -121,7 +124,8 @@ public class Battle implements ContextReceiver {
 		this.mapHash = mapHash;
 		this.modName = modName;
 		this.disabledUnits = new ArrayList<String>();
-		this.locked = false; // we assume this by default. Client must make sure it is unlocked.
+		// we assume this by default. Client must make sure it is unlocked.
+		this.locked = false;
 		this.scriptTags = new HashMap<String, String>();
 		this.replayScript = new ArrayList<String>();
 		this.tempReplayScript = new ArrayList<String>();
@@ -185,10 +189,10 @@ public class Battle implements ContextReceiver {
 		@Override
 		public void process(Client curClient) {
 			if (curClient != client) {
-				client.sendLine(new StringBuilder("CLIENTBATTLESTATUS ")
-						.append(curClient.getAccount().getName()).append(" ")
-						.append(curClient.getBattleStatus()).append(" ")
-						.append(Misc.colorJavaToSpring(curClient.getTeamColor())).toString());
+				client.sendLine(String.format("CLIENTBATTLESTATUS %s %d %d",
+						curClient.getAccount().getName(),
+						curClient.getBattleStatus(),
+						Misc.colorJavaToSpring(curClient.getTeamColor())));
 			}
 		}
 	}
@@ -207,10 +211,10 @@ public class Battle implements ContextReceiver {
 	 */
 	public void notifyClientsOfBattleStatus(Client client) {
 
-		sendToAllClients(new StringBuilder("CLIENTBATTLESTATUS ")
-				.append(client.getAccount().getName()).append(" ")
-				.append(client.getBattleStatus()).append(" ")
-				.append(Misc.colorJavaToSpring(client.getTeamColor())).toString());
+		sendToAllClients(String.format("CLIENTBATTLESTATUS %s %d %d",
+				client.getAccount().getName(),
+				client.getBattleStatus(),
+				Misc.colorJavaToSpring(client.getTeamColor())));
 	}
 
 	public void notifyClientJoined(Client client) {
@@ -228,8 +232,14 @@ public class Battle implements ContextReceiver {
 		// tell host about this client's IP and UDP source port
 		// if battle is hosted using one of the NAT traversal techniques
 		if ((getNatType() == 1) || (getNatType() == 2)) {
-			// make sure that clients behind NAT get local IPs and not external ones
-			getFounder().sendLine("CLIENTIPPORT " + client.getAccount().getName() + " " + (getFounder().getIp().equals(client.getIp()) ? client.getLocalIp() : client.getIp()) + " " + client.getUdpSourcePort());
+			// make sure that clients behind NAT get local IPs and not external
+			// ones
+			InetAddress ip = (getFounder().getIp().equals(client.getIp())
+					? client.getLocalIp() : client.getIp());
+			getFounder().sendLine(String.format("CLIENTIPPORT %s %s %d",
+					client.getAccount().getName(),
+					ip,
+					client.getUdpSourcePort()));
 		}
 
 		client.sendLine("REQUESTBATTLESTATUS");
@@ -276,10 +286,12 @@ public class Battle implements ContextReceiver {
 		String clientsString = null;
 
 		if (!clients.isEmpty()) {
-			StringBuilder sb = new StringBuilder(clients.get(0).getAccount().getName());
+			StringBuilder sb = new StringBuilder();
 			for (Client curClient : clients) {
 				sb.append(" ").append(curClient.getAccount().getName());
 			}
+			// delete the initial " "
+			sb.deleteCharAt(0);
 			clientsString = sb.toString();
 		} else {
 			clientsString = "";
@@ -296,8 +308,9 @@ public class Battle implements ContextReceiver {
 		}
 	}
 
-	public void applyToClientsAndFounder(Processor<? super Client> clientsProcessor) {
-
+	public void applyToClientsAndFounder(
+			Processor<? super Client> clientsProcessor)
+	{
 		applyToClients(clientsProcessor);
 		clientsProcessor.process(founder);
 	}
@@ -309,8 +322,9 @@ public class Battle implements ContextReceiver {
 		}
 	}
 
-	public void applyToTeamControllers(Processor<? super TeamController> teamControllerProcessor) {
-
+	public void applyToTeamControllers(
+			Processor<? super TeamController> teamControllerProcessor)
+	{
 		applyToClients(teamControllerProcessor);
 		teamControllerProcessor.process(founder);
 		applyToBots(teamControllerProcessor);
@@ -504,13 +518,13 @@ public class Battle implements ContextReceiver {
 
 		for (int i = 0; i < bots.size(); i++) {
 			Bot bot = bots.get(i);
-			client.sendLine(new StringBuilder("ADDBOT ")
-					.append(getId()).append(" ")
-					.append(bot.getName()).append(" ")
-					.append(bot.getOwnerName()).append(" ")
-					.append(bot.getBattleStatus()).append(" ")
-					.append(Misc.colorJavaToSpring(bot.getTeamColor())).append(" ")
-					.append(bot.getSpecifier()).toString());
+			client.sendLine(String.format("ADDBOT %d %s %s %d %d %s",
+					getId(),
+					bot.getName(),
+					bot.getOwnerName(),
+					bot.getBattleStatus(),
+					Misc.colorJavaToSpring(bot.getTeamColor()),
+					bot.getSpecifier()));
 		}
 	}
 
@@ -519,23 +533,25 @@ public class Battle implements ContextReceiver {
 		for (int i = 0; i < getStartRects().size(); i++) {
 			StartRect curStartRect = getStartRects().get(i);
 			if (curStartRect.isEnabled()) {
-				client.sendLine(new StringBuilder("ADDSTARTRECT ")
-						.append(i).append(" ")
-						.append(curStartRect.getLeft()).append(" ")
-						.append(curStartRect.getTop()).append(" ")
-						.append(curStartRect.getRight()).append(" ")
-						.append(curStartRect.getBottom()).toString());
+				client.sendLine(String.format("ADDSTARTRECT %d %d %d %d %d",
+						i,
+						curStartRect.getLeft(),
+						curStartRect.getTop(),
+						curStartRect.getRight(),
+						curStartRect.getBottom()));
 			}
 		}
 	}
 
 	private void sendScriptToClient(Client client) {
 
+		client.beginFastWrite();
 		client.sendLine("SCRIPTSTART");
 		for (int i = 0; i < getReplayScript().size(); i++) {
 			client.sendLine("SCRIPT " + getReplayScript().get(i));
 		}
 		client.sendLine("SCRIPTEND");
+		client.endFastWrite();
 	}
 
 	public void sendScriptToAllExceptFounder() {
@@ -552,12 +568,16 @@ public class Battle implements ContextReceiver {
 	private String joinScriptTags() {
 
 		StringBuilder joined = new StringBuilder();
+
 		for (Map.Entry<String, String> e : getScriptTags().entrySet()) {
-			if (joined.length() > 0) {
-				joined.append("\t");
-			}
+			joined.append("\t");
 			joined.append(e.getKey()).append("=").append(e.getValue());
 		}
+		// delete the initial "\t"
+		if (joined.length() > 0) {
+			joined.deleteCharAt(0);
+		}
+
 		return joined.toString();
 	}
 

@@ -50,7 +50,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ServerThread implements ContextReceiver, LiveStateListener, Updateable {
 
-	private static final Logger LOG  = LoggerFactory.getLogger(ServerThread.class);
+	private static final Logger LOG = LoggerFactory.getLogger(ServerThread.class);
 
 	private static class DeprecatedCommand {
 
@@ -276,12 +276,8 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 			}
 		} catch (IOException ioex) {
 			LOG.info("exception during select(): possibly due to force disconnect. Killing the client ...");
-			try {
-				if (client != null) {
-					getContext().getClients().killClient(client, "Quit: connection lost");
-				}
-			} catch (Exception ex) {
-				// do nothing
+			if (client != null) {
+				getContext().getClients().killClient(client, "Quit: connection lost");
 			}
 			LOG.debug("... the exception was:", ioex);
 		}

@@ -23,9 +23,11 @@ import org.slf4j.LoggerFactory;
  *
  * @author Betalord
  */
-public class NatHelpServer implements Runnable, ContextReceiver, LiveStateListener, Updateable {
-
-	private static final Logger LOG  = LoggerFactory.getLogger(NatHelpServer.class);
+public class NatHelpServer implements Runnable, ContextReceiver,
+		LiveStateListener, Updateable
+{
+	private static final Logger LOG
+			= LoggerFactory.getLogger(NatHelpServer.class);
 	private static final int RECEIVE_BUFFER_SIZE = 256;
 
 	/**
@@ -47,7 +49,8 @@ public class NatHelpServer implements Runnable, ContextReceiver, LiveStateListen
 	public NatHelpServer() {
 
 		this.port = DEFAULT_PORT;
-		this.msgList = Collections.synchronizedList(new LinkedList<DatagramPacket>());
+		this.msgList = Collections.synchronizedList(
+				new LinkedList<DatagramPacket>());
 		this.socket = null;
 		this.myThread = null;
 		this.context = null;
@@ -74,16 +77,17 @@ public class NatHelpServer implements Runnable, ContextReceiver, LiveStateListen
 		DatagramPacket packet;
 		while ((packet = fetchNextPackage()) != null) {
 			InetAddress address = packet.getAddress();
-			int p = packet.getPort();
-			String data = new String(packet.getData(), packet.getOffset(), packet.getLength());
+			int clientPort = packet.getPort();
+			String data = new String(packet.getData(), packet.getOffset(),
+					packet.getLength());
 			LOG.debug("*** UDP packet received from {} from port {}",
-					address.getHostAddress(), p);
+					address.getHostAddress(), clientPort);
 			Client client = getContext().getClients().getClient(data);
 			if (client == null) {
 				continue;
 			}
-			client.setUdpSourcePort(p);
-			client.sendLine(new StringBuilder("UDPSOURCEPORT ").append(p).toString());
+			client.setUdpSourcePort(clientPort);
+			client.sendLine(String.format("UDPSOURCEPORT %d", clientPort));
 		}
 	}
 
@@ -125,7 +129,8 @@ public class NatHelpServer implements Runnable, ContextReceiver, LiveStateListen
 		try {
 			socket = new DatagramSocket(port);
 		} catch (Exception ex) {
-			LOG.warn("Unable to start UDP server on port " + port + ". Ignoring ...", ex);
+			LOG.warn("Unable to start UDP server on port " + port
+					+ ". Ignoring ...", ex);
 			return;
 		}
 
@@ -139,7 +144,8 @@ public class NatHelpServer implements Runnable, ContextReceiver, LiveStateListen
 				}
 
 				// receive packet
-				DatagramPacket packet = new DatagramPacket(buffer, RECEIVE_BUFFER_SIZE);
+				DatagramPacket packet = new DatagramPacket(buffer,
+						RECEIVE_BUFFER_SIZE);
 				socket.receive(packet);
 				msgList.add(packet);
 			} catch (InterruptedIOException e) {

@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Reader;
 import java.io.Writer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -23,16 +24,16 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Statistics file format:
- * <time> <# of active clients> <# of active battles> <# of accounts> <# of active accounts> <list of mods>
+ * <time> <#active-clients> <#active-battles> <#accounts> <#active-accounts> <list-of-mods>
  * where <time> is of form: "hhmmss"
  * and "active battles" are battles that are in-game and have 2 or more players
- * in it and <list of mods> is a list of first k mods (where k is 0 or greater)
+ * in it and <list-of-mods> is a list of first k mods (where k is 0 or greater)
  * with frequencies of active battles using these mods. Example: XTA 0.66 15.
- * Note that delimiter in <list of mods> is TAB and not SPACE! See code for more
+ * Note that delimiter in <list-of-mods> is TAB and not SPACE! See code for more
  * info.
  *
  * Aggregated statistics file format:
- * <date> <time> <# of active clients> <# of active battles> <# of accounts> <# of active accounts> <list of mods>
+ * <date> <time> <#active-clients> <#active-battles> <#accounts> <#active-accounts> <list-of-mods>
  * where <date> is of form: "ddMMyy"
  * and all other fields are of same format as those from normal statistics file.
  *
@@ -40,7 +41,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Statistics implements ContextReceiver {
 
-	private static final Logger LOG  = LoggerFactory.getLogger(Statistics.class);
+	private static final Logger LOG = LoggerFactory.getLogger(Statistics.class);
 
 	/** in milliseconds */
 	private final long saveStatisticsInterval = 1000 * 60 * 20;
@@ -83,7 +84,9 @@ public class Statistics implements ContextReceiver {
 	 */
 	public void update() {
 
-		if (recording && ((System.currentTimeMillis() - lastStatisticsUpdate) > saveStatisticsInterval)) {
+		if (recording && ((System.currentTimeMillis() - lastStatisticsUpdate)
+				> saveStatisticsInterval))
+		{
 			saveStatisticsToDisk();
 		}
 	}
@@ -137,46 +140,57 @@ public class Statistics implements ContextReceiver {
 	 */
 	private long autoUpdateStatisticsFile() {
 
-		String fname = STATISTICS_FOLDER + now("ddMMyy") + ".dat";
+		String fileName = STATISTICS_FOLDER + now("ddMMyy") + ".dat";
 		long startTime = System.currentTimeMillis();
 
 		int activeBattlesCount = 0;
 		for (int i = 0; i < context.getBattles().getBattlesSize(); i++) {
-			if ((context.getBattles().getBattleByIndex(i).getClientsSize() >= 1)
-					// at least 1 client + founder == 2 players
-					&& (context.getBattles().getBattleByIndex(i).inGame()))
-			{
+			Battle battle = context.getBattles().getBattleByIndex(i);
+			// at least 1 client + founder == 2 players
+			if ((battle.getClientsSize() > 0) && battle.inGame()) {
 				activeBattlesCount++;
 			}
 		}
 
 		String topMods = currentlyPopularModsList();
 
-		BufferedWriter out = null;
+		Writer outF = null;
+		Writer out = null;
 		try {
-			out = new BufferedWriter(new FileWriter(fname, true));
-			out.write(new StringBuilder(now("HHmmss")).append(" ")
-					.append(context.getClients().getClientsSize()).append(" ")
-					.append(activeBattlesCount).append(" ")
-					.append(context.getAccountsService().getAccountsSize()).append(" ")
-					.append(context.getAccountsService().getActiveAccountsSize()).append(" ")
-					.append(topMods).append(Misc.EOL).toString());
+			outF = new FileWriter(fileName, true);
+			out = new BufferedWriter(outF);
+			Clients clients = context.getClients();
+			AccountsService accounts = context.getAccountsService();
+			out.write(now("HHmmss"));
+			out.write(" "); out.write("" + clients.getClientsSize());
+			out.write(" "); out.write("" + activeBattlesCount);
+			out.write(" "); out.write("" + accounts.getAccountsSize());
+			out.write(" "); out.write("" + accounts.getActiveAccountsSize());
+			out.write(" "); out.write(topMods);
+			out.write(Misc.EOL);
 		} catch (IOException ex) {
-			LOG.error("Unable to access file <" + fname + ">. Skipping ...", ex);
+			LOG.error("Unable to access file <" + fileName + ">. Skipping ...",
+					ex);
 			return -1;
 		} finally {
-			if (out != null) {
-				try {
+			try {
+				if (out != null) {
 					out.close();
-				} catch (IOException ex) {
-					LOG.trace("Failed closing file-writer for file: " + fname, ex);
+				} else if (outF != null) {
+					outF.close();
 				}
+			} catch (IOException ex) {
+				LOG.trace("Failed closing statistics file-writer for file: "
+						+ fileName, ex);
 			}
 		}
 
-		LOG.info("Statistics has been updated to disk ...");
+		long updateTime = System.currentTimeMillis() - startTime;
 
-		return System.currentTimeMillis() - startTime;
+		LOG.info("Statistics have been updated and stored to disk in {} ms",
+				updateTime);
+
+		return updateTime;
 	}
 
 	/**
@@ -203,25 +217,34 @@ public class Statistics implements ContextReceiver {
 				Date day = new Date();
 				day.setTime(today.getTime() - (((long) i - 1) * msPerDay));
 				String dayStr = formatter.format(day);
-				String fileNameDay = STATISTICS_FOLDER + formatter.format(dayStr) + ".dat";
+				File fileDay = new File(STATISTICS_FOLDER
+						+ formatter.format(dayStr) + ".dat");
+				Reader inF = null;
 				BufferedReader in = null;
 				try {
-					in = new BufferedReader(new FileReader(fileNameDay));
-					//LOG.info("--- Found: <{}>", fileNameDay);
+					inF = new FileReader(fileDay);
+					in = new BufferedReader(inF);
+					LOG.trace("Found stats: <{}>", fileDay.getAbsolutePath());
 					while ((line = in.readLine()) != null) {
-						out.write(String.format("%s %s%s", dayStr, line, Misc.EOL));
+						out.write(dayStr);
+						out.write(' ');
+						out.write(line);
+						out.write(Misc.EOL);
 					}
 				} catch (IOException ex) {
-					// just skip the file ...
-					//LOG.error("--- Skipped: <" + fileNameDay + ">", ex);
+					LOG.trace("Skipped stats: <" + fileDay.getAbsolutePath()
+							+ ">", ex);
 				} finally {
 					if (in != null) {
 						in.close();
+					} else if (inF != null) {
+						inF.close();
 					}
 				}
 			}
 		} catch (IOException ex) {
-			LOG.error("Unable to access file <" + fileName + ">. Skipping ...", ex);
+			LOG.error("Unable to access file <" + fileName + ">. Skipping ...",
+					ex);
 			return false;
 		} finally {
 			try {
@@ -230,29 +253,36 @@ public class Statistics implements ContextReceiver {
 				} else if (outF != null) {
 					outF.close();
 				}
-			} catch (IOException ex) {}
+			} catch (IOException ex) {
+				LOG.trace("Failed closing aggregate statistics file-writer for"
+						+ " file: " + fileName, ex);
+			}
 		}
 
 		return true;
 	}
 
+	private static final long DAY = 1000L * 60L * 60L * 24L;
 	private boolean generatePloticusImages() {
 
 		boolean ret = false;
 
 		try {
-			String cmd;
+			StringBuilder cmd;
 			String[] cmds;
 
 			SimpleDateFormat dayFormatter = new SimpleDateFormat("ddMMyy");
+			// from (today_00:00 - 6 days) till today_00:00
 			Date endDate = today(); // today_00:00
-			Date startDate = new Date(endDate.getTime() - ((long) 6 * (1000 * 60 * 60 * 24))); // today_00:00 - 6 days
+			Date startDate = new Date(endDate.getTime() - (6L * DAY));
 			String startDateString = dayFormatter.format(startDate);
 			String endDateString = dayFormatter.format(endDate);
 
-			SimpleDateFormat lastUpdateFormatter = new SimpleDateFormat("dd/MM/yyyy, HH:mm:ss (z)");
+			SimpleDateFormat lastUpdateFormatter
+					= new SimpleDateFormat("dd/MM/yyyy, HH:mm:ss (z)");
 
-			long upTime = System.currentTimeMillis() - context.getServer().getStartTime();
+			long upTime = System.currentTimeMillis()
+					- context.getServer().getStartTime();
 
 			// generate "server stats diagram":
 			cmds = new String[8];
@@ -274,8 +304,8 @@ public class Statistics implements ContextReceiver {
 					.append("clients.png startdate=").append(startDateString)
 					.append(" enddate=").append(endDateString)
 					.append(" datafile=").append(STATISTICS_FOLDER)
-					.append("statistics.dat").toString();
-			Runtime.getRuntime().exec(cmd).waitFor();
+					.append("statistics.dat");
+			Runtime.getRuntime().exec(cmd.toString()).waitFor();
 
 			// generate "active battles diagram":
 			cmd = new StringBuilder(PLOTICUS_FULLPATH)
@@ -283,8 +313,9 @@ public class Statistics implements ContextReceiver {
 					.append("battles.pl -o ").append(STATISTICS_FOLDER)
 					.append("battles.png startdate=").append(startDateString)
 					.append(" enddate=").append(endDateString)
-					.append(" datafile=").append(STATISTICS_FOLDER).append("statistics.dat").toString();
-			Runtime.getRuntime().exec(cmd).waitFor();
+					.append(" datafile=").append(STATISTICS_FOLDER)
+					.append("statistics.dat");
+			Runtime.getRuntime().exec(cmd.toString()).waitFor();
 
 			// generate "accounts diagram":
 			cmd = new StringBuilder(PLOTICUS_FULLPATH)
@@ -292,35 +323,39 @@ public class Statistics implements ContextReceiver {
 					.append("accounts.pl -o ").append(STATISTICS_FOLDER)
 					.append("accounts.png startdate=").append(startDateString)
 					.append(" enddate=").append(endDateString)
-					.append(" datafile=").append(STATISTICS_FOLDER).append("statistics.dat").toString();
-			Runtime.getRuntime().exec(cmd).waitFor();
+					.append(" datafile=").append(STATISTICS_FOLDER)
+					.append("statistics.dat");
+			Runtime.getRuntime().exec(cmd.toString()).waitFor();
 
 			// generate "popular mods chart":
-			String[] params = getPopularModsList(now("ddMMyy")).split(("\t"));
-			cmds = new String[params.length + 5];
-			cmds[0] = PLOTICUS_FULLPATH;
-			cmds[1] = "-png";
-			cmds[2] = STATISTICS_FOLDER + "mods.pl";
-			cmds[3] = "-o";
-			cmds[4] = STATISTICS_FOLDER + "mods.png";
-			cmds[5] = "count=" + Integer.parseInt(params[0]);
+			String[] params = getPopularModsList(now("ddMMyy")).split("\t");
+			cmd = new StringBuilder(PLOTICUS_FULLPATH)
+					.append(" -png ").append(STATISTICS_FOLDER)
+					.append("mods.pl -o ").append(STATISTICS_FOLDER)
+					.append("mods.png count=")
+					.append(Integer.parseInt(params[0]))
+					.append(" enddate=").append(endDateString)
+					.append(" datafile=").append(STATISTICS_FOLDER)
+					.append("statistics.dat");
 			for (int i = 1; i < params.length; i++) {
 				if ((i % 2) != 0) {
 					// odd index
-					cmds[i + 5] = "mod" + ((i + 1) / 2) + "=" + params[i];
+					cmd.append("mod").append((i + 1) / 2).append("=")
+							.append(params[i]);
 				} else {
 					// even index
-					cmds[i + 5] = "modfreq" + (i / 2) + "=" + params[i];
+					cmd.append("modfreq").append(i / 2).append("=")
+							.append(params[i]);
 				}
 			}
-			Runtime.getRuntime().exec(cmds).waitFor();
+			Runtime.getRuntime().exec(cmd.toString()).waitFor();
 
 			ret = true;
 		} catch (InterruptedException ex) {
-			LOG.error("*** Failed generating ploticus charts!", ex);
+			LOG.error("Failed generating ploticus charts!", ex);
 			ret = false;
 		} catch (IOException ex) {
-			LOG.error("*** Failed generating ploticus charts!", ex);
+			LOG.error("Failed generating ploticus charts!", ex);
 			ret = false;
 		}
 
@@ -340,13 +375,14 @@ public class Statistics implements ContextReceiver {
 		int[] freq = new int[0];
 
 		for (int i = 0; i < context.getBattles().getBattlesSize(); i++) {
-			if ((context.getBattles().getBattleByIndex(i).inGame()) && (context.getBattles().getBattleByIndex(i).getClientsSize() >= 1)) {
+			Battle battle = context.getBattles().getBattleByIndex(i);
+			if (battle.inGame() && (battle.getClientsSize() >= 1)) {
 				// add to list or update in list:
 
 				boolean found = false;
 				for (int j = 0; j < mods.size(); j++) {
-					if (mods.get(j).equals(context.getBattles().getBattleByIndex(i).getModName())) {
-						// mod already in the list. Just increase it's frequency:
+					if (mods.get(j).equals(battle.getModName())) {
+						// mod already in the list. Just increase it's frequency
 						freq[j]++;
 						found = true;
 						break;
@@ -354,7 +390,7 @@ public class Statistics implements ContextReceiver {
 				}
 
 				if (!found) {
-					mods.add(context.getBattles().getBattleByIndex(i).getModName());
+					mods.add(battle.getModName());
 					freq = (int[]) Misc.resizeArray(freq, freq.length + 1);
 					freq[freq.length - 1] = 1;
 				}
@@ -365,10 +401,11 @@ public class Statistics implements ContextReceiver {
 	}
 
 	/**
-	 * This will return popular mod list for a certain date (date must be on "ddMMyy"
-	 * format). It will take first entry for every new hour and add it to the list
-	 * (other entries for the same hour will be ignored).
-	 * See comments for currentlyPopularModList() method for more info.
+	 * This will return a list of popular mods for a certain date.
+	 * The date must be in the format "ddMMyy". It will take the first entry for
+	 * every new hour and add it to the list. Other entries for the same hour
+	 * will be ignored.
+	 * @see #currentlyPopularModList()
 	 */
 	private String getPopularModsList(String date) {
 
@@ -376,12 +413,15 @@ public class Statistics implements ContextReceiver {
 		int[] freq = new int[0];
 		boolean found = false;
 
+		File file = new File(STATISTICS_FOLDER + date + ".dat");
+		Reader inF = null;
 		BufferedReader in = null;
 		try {
 			int lastHour = -1;
 			String line;
 			String sHour;
-			in = new BufferedReader(new FileReader(STATISTICS_FOLDER + date + ".dat"));
+			inF = new FileReader(file);
+			in = new BufferedReader(inF);
 			while ((line = in.readLine()) != null) {
 				sHour = line.substring(0, 2); // 00 .. 23
 				if (lastHour == Integer.parseInt(sHour)) {
@@ -391,7 +431,8 @@ public class Statistics implements ContextReceiver {
 				String temp = Misc.makeSentence(line.split(" "), 5);
 				String[] temp2 = temp.split("\t");
 				if (temp2.length % 2 != 1) {
-					throw new Exception("Bad mod list format"); // number of arguments must be odd
+					// the number of arguments must be odd
+					throw new Exception("Bad mod list format");
 				}
 				int noMods = Integer.parseInt(temp2[0]);
 				if (temp2.length != noMods * 2 + 1) {
@@ -401,7 +442,8 @@ public class Statistics implements ContextReceiver {
 					found = false;
 					for (int j = 0; j < mods.size(); j++) {
 						if (mods.get(j).equals(temp2[1 + i * 2])) {
-							// mod already in the list. Just increase it's frequency:
+							// the mod is already in the list.
+							// just increase it's frequency:
 							freq[j] += Integer.parseInt(temp2[2 + i * 2]);
 							found = true;
 							break;
@@ -410,27 +452,33 @@ public class Statistics implements ContextReceiver {
 					if (!found) {
 						mods.add(temp2[1 + i * 2]);
 						freq = (int[]) Misc.resizeArray(freq, freq.length + 1);
-						freq[freq.length - 1] = Integer.parseInt(temp2[2 + i * 2]);
+						freq[freq.length - 1]
+								= Integer.parseInt(temp2[2 + i * 2]);
 					}
 				}
 			}
 		} catch (Exception ex) {
-			LOG.error("*** Error in getPopularModsList(). Skipping ...", ex);
+			LOG.error("Error in getPopularModsList(). Skipping ...", ex);
 			return "0";
 		} finally {
-			if (in != null) {
-				try {
+			try {
+				if (in != null) {
 					in.close();
-				} catch (IOException ex) {
-					// ignore
+				} else if (inF != null) {
+					inF.close();
 				}
+			} catch (IOException ex) {
+				LOG.trace("Failed closing statistics file-reader for file: "
+						+ file.getAbsolutePath(), ex);
 			}
 		}
 
 		return createModPopularityString(mods, freq);
 	}
-	private static String createModPopularityString(List<String> modNames, int[] numBattles) {
 
+	private static String createModPopularityString(List<String> modNames,
+			int[] numBattles)
+	{
 		// now generate a list of top 5 mods with frequencies:
 		StringBuilder result = new StringBuilder(512);
 		int numMods = Math.min(5, modNames.size()); // return 5 or less mods
@@ -439,7 +487,8 @@ public class Statistics implements ContextReceiver {
 		//       or sorting will not have any effect!
 		Misc.bubbleSort(numBattles, modNames);
 		for (int m = 0; m < numMods; m++) {
-			result.append("\t").append(modNames.get(m)).append("\t").append(numBattles[m]);
+			result.append("\t").append(modNames.get(m)).append("\t")
+					.append(numBattles[m]);
 		}
 
 		return result.toString();
@@ -482,9 +531,11 @@ public class Statistics implements ContextReceiver {
 		Date today = null;
 
 		try {
-			today = new SimpleDateFormat(TODAY_FILTER_FORMAT).parse(now(TODAY_FILTER_FORMAT));
+			today = new SimpleDateFormat(TODAY_FILTER_FORMAT)
+					.parse(now(TODAY_FILTER_FORMAT));
 		} catch (ParseException ex) {
-			// should not ever happen!
+			// this could not possible ever happen!
+			LOG.error("Failed creating date string for 'today'", ex);
 		}
 
 		return today;

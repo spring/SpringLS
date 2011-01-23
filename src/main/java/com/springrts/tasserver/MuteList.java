@@ -7,109 +7,161 @@ package com.springrts.tasserver;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.ListIterator;
 
 /**
  * @author Betalord
  */
 public class MuteList {
 
-	private ArrayList<String> usernames;
-	/**
-	 * Time (in milliseconds) when it will expire.
-	 * Expired records are automatically removed in certain methods.
-	 * Use 0 to mute user for indefinite time.
-	 * @see System.currentTimeMillis()
-	 */
-	private ArrayList<Long> mutedUntil;
-	/**
-	 * IPs of the muted users.
-	 * If user is not muted by IP (but only by username), the corresponding
-	 * IP in this list is set to 'null'.
-	 */
-	private ArrayList<InetAddress> ips;
+	private static class MuteEntry {
+
+		private String username;
+		private long expireTime;
+		private InetAddress ip;
+
+		MuteEntry(String username, long expireTime, InetAddress ip) {
+
+			this.username = username;
+			this.expireTime = expireTime;
+			this.ip = ip;
+		}
+
+		public String getUsername() {
+			return username;
+		}
+
+		public void setUsername(String username) {
+			this.username = username;
+		}
+
+		/**
+		 * Time (in milliseconds) when it will expire.
+		 * Expired records are automatically removed in certain methods.
+		 * Use 0 to mute user for indefinite time.
+		 * @see System.currentTimeMillis()
+		 */
+		public long getExpireTime() {
+			return expireTime;
+		}
+
+		/**
+		 * IP of the muted users.
+		 * If the user is not muted by IP (but only by username), the IP is
+		 * <code>null</code>.
+		 */
+		public InetAddress getIp() {
+			return ip;
+		}
+
+		public boolean isPersistent() {
+			return (expireTime == 0);
+		}
+		public boolean isExpired() {
+			return (!isPersistent()
+					&& getExpireTime() <= System.currentTimeMillis());
+		}
+	}
+
+	private List<MuteEntry> mutes;
 	private Channel channel;
 
 	public MuteList(Channel channel) {
 
-		this.usernames = new ArrayList<String>();
-		this.mutedUntil = new ArrayList<Long>();
-		this.ips = new ArrayList<InetAddress>();
+		this.mutes = new ArrayList<MuteEntry>();
 		this.channel = channel;
 	}
 
 	/** Purges expired entries */
 	public void clearExpiredOnes() {
-		// remove any expired records
-		// (those with expire time 0 are persistent, we won't remove them):
-		for (int i = 0; i < usernames.size(); i++) {
-			if ((mutedUntil.get(i).longValue() <= System.currentTimeMillis()) && (mutedUntil.get(i).longValue() != 0)) {
-				channel.broadcast("<" + usernames.get(i) + "> has been unmuted (mute expired)");
-				usernames.remove(i);
-				mutedUntil.remove(i);
-				ips.remove(i);
-				i--;
+
+		ListIterator<MuteEntry> m = mutes.listIterator();
+		while (m.hasNext()) {
+			MuteEntry mute = m.next();
+			if (mute.isExpired()) {
+				m.remove();
+				channel.broadcast(String.format(
+						"<%s> has been unmuted (mute expired)",
+						mute.getUsername()));
 			}
 		}
 	}
 
 	public boolean isMuted(String username) {
-		clearExpiredOnes();
 
-		for (int i = 0; i < usernames.size(); i++) {
-			if (usernames.get(i).equals(username)) {
-				return true;
+		clearExpiredOnes();
+		return isMutedFast(username);
+	}
+
+	private boolean isMutedFast(String username) {
+
+		boolean muted = false;
+
+		for (MuteEntry mute : mutes) {
+			if (mute.getUsername().equals(username)) {
+				muted = true;
+				break;
 			}
 		}
 
-		return false;
+		return muted;
 	}
 
 	public boolean isMuted(String username, InetAddress ip) {
+
+		boolean muted = false;
+
 		clearExpiredOnes();
 
-		for (int i = 0; i < usernames.size(); i++) {
-			if (usernames.get(i).equals(username) || ((ips.get(i) != null) && (ips.get(i).equals(ip)))) {
-				return true;
+		for (MuteEntry mute : mutes) {
+			if (mute.getUsername().equals(username)
+					|| ((mute.getIp() != null) && (mute.getIp().equals(ip))))
+			{
+				muted = true;
+				break;
 			}
 		}
 
-		return false;
+		return muted;
 	}
 
 	public boolean isIpMuted(InetAddress ip) {
+
+		boolean muted = false;
+
 		clearExpiredOnes();
 
-		for (int i = 0; i < ips.size(); i++) {
-			if ((ips.get(i) != null) && (ips.get(i).equals(ip))) {
-				return true;
+		for (MuteEntry mute : mutes) {
+			if ((mute.getIp() != null) && (mute.getIp().equals(ip))) {
+				muted = true;
+				break;
 			}
 		}
 
-		return false;
+		return muted;
 	}
 
 	/**
 	 * Mutes a user.
-	 * @param username name of hte user to mute.
+	 * @param username name of the user to mute.
 	 * @param seconds use to specify for how long he user should be muted.
 	 * @param ip set to 'null' if you don't want to mute this user by the IP.
 	 * @return false if already muted
 	 */
 	public boolean mute(String username, long seconds, InetAddress ip) {
 
-		for (int i = 0; i < usernames.size(); i++) {
-			if (usernames.get(i).equals(username)) {
-				return false;
-			}
+		if (isMutedFast(username)) {
+			return false;
 		}
 
-		usernames.add(username);
-		Long until = 0L;
-		if (seconds != 0) {
-			until = System.currentTimeMillis() + (seconds * 1000);
+		long until = 0L;
+		if (seconds != 0L) {
+			until = System.currentTimeMillis() + (seconds * 1000L);
 		}
-		mutedUntil.add(until);
-		ips.add(ip);
+
+		mutes.add(new MuteEntry(username, until, ip));
+
 		return true;
 	}
 
@@ -118,39 +170,45 @@ public class MuteList {
 	 */
 	public boolean unmute(String username) {
 
-		for (int i = 0; i < usernames.size(); i++) {
-			if (usernames.get(i).equals(username)) {
-				usernames.remove(i);
-				mutedUntil.remove(i);
-				ips.remove(i);
-				return true;
+		boolean unmuted = false;
+
+		for (MuteEntry mute : mutes) {
+			if (mute.getUsername().equals(username)) {
+				mutes.remove(mute);
+				unmuted = true;
+				break;
 			}
 		}
 
-		return false;
+		return unmuted;
 	}
 
 	public int size() {
+
 		clearExpiredOnes();
-		return usernames.size();
+		return mutes.size();
 	}
 
 	public String getUsername(int index) {
-		if (index > usernames.size()-1) {
+
+		if (index >= mutes.size()) {
 			return "";
 		} else {
-			return usernames.get(index);
+			return mutes.get(index).getUsername();
 		}
 	}
 
 	public long getRemainingSeconds(int index) {
-		// note: you shouldn't call clearExpiredOnes() here! (see "MUTELIST" command to see why)
-		if (index > mutedUntil.size()-1) {
+
+		// note: you shouldn't call clearExpiredOnes() here!
+		// (see "MUTELIST" command to see why)
+		if (index >= mutes.size()) {
 			return -1;
-		} else if (mutedUntil.get(index).longValue() == 0) {
+		} else if (mutes.get(index).isPersistent()) {
 			return 0;
 		} else {
-			return (mutedUntil.get(index).longValue() - System.currentTimeMillis()) / 1000;
+			return (mutes.get(index).getExpireTime()
+					- System.currentTimeMillis()) / 1000L;
 		}
 	}
 
@@ -158,13 +216,14 @@ public class MuteList {
 	 * @return 'null' if no IP is set for the user
 	 */
 	public InetAddress getIp(int index) {
-		return ips.get(index);
+		return mutes.get(index).getIp();
 	}
 
 	public boolean rename(String oldUsername, String newUsername) {
-		for (int i = 0; i < usernames.size(); i++) {
-			if (usernames.get(i).equals(oldUsername)) {
-				usernames.set(i, newUsername);
+
+		for (MuteEntry mute : mutes) {
+			if (mute.getUsername().equals(oldUsername)) {
+				mute.setUsername(newUsername);
 				return true;
 			}
 		}

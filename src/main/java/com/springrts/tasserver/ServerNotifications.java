@@ -9,6 +9,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -21,7 +22,8 @@ import org.slf4j.LoggerFactory;
  */
 public class ServerNotifications implements ContextReceiver {
 
-	private static final Logger LOG  = LoggerFactory.getLogger(ServerNotifications.class);
+	private static final Logger LOG
+			= LoggerFactory.getLogger(ServerNotifications.class);
 	/**
 	 * This will also get saved with notifications, just in case the format
 	 * of notification files changes in the future.
@@ -59,7 +61,7 @@ public class ServerNotifications implements ContextReceiver {
 		}
 	}
 
-	private synchronized File findWriteableNotifFile(final String baseFileName) {
+	private static synchronized File findWriteableNotifFile(final String baseFileName) {
 
 		File notifFile = null;
 
@@ -96,34 +98,46 @@ public class ServerNotifications implements ContextReceiver {
 		ensureNotifsDirExists();
 
 		DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
-		final String baseFileName = notificationsDir + "/" + dateFormat.format(new Date());
+		final String baseFileName
+				= notificationsDir + "/" + dateFormat.format(new Date());
 
 		File notifFile = findWriteableNotifFile(baseFileName);
 
 		if (notifFile == null) {
-			LOG.error("Unable to find/create a notification file. Server notification will not be saved!");
-			context.getClients().sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Serious problem: Unable to find/create a notification file (notification dropped).");
+			LOG.error("Unable to find/create a notification file. Server"
+					+ " notification will not be saved!");
+			context.getClients().sendToAllAdministrators("SERVERMSG [broadcast"
+					+ " to all admins]: Serious problem: Unable to find/create"
+					+ " a notification file (notification dropped)");
 			return false;
 		}
 
+		Writer outF = null;
 		BufferedWriter out = null;
 		try {
-			out = new BufferedWriter(new FileWriter(notifFile, true));
+			outF = new FileWriter(notifFile, true);
+			out = new BufferedWriter(outF);
 			out.write(NOTIFICATION_SYSTEM_VERSION);
 			out.write(Misc.EOL);
 			out.write(sn.toString());
 			out.close();
 		} catch (IOException ex) {
-			LOG.error("Unable to write file <" + notifFile + ">. Server notification will not be saved!", ex);
-			context.getClients().sendToAllAdministrators("SERVERMSG [broadcast to all admins]: Serious problem: Unable to save server notification (notification dropped).");
+			LOG.error("Unable to write file <" + notifFile
+					+ ">. Server notification will not be saved!", ex);
+			context.getClients().sendToAllAdministrators("SERVERMSG [broadcast"
+					+ " to all admins]: Serious problem: Unable to save server"
+					+ " notification (notification dropped).");
 			return false;
 		} finally {
-			if (out != null) {
-				try {
+			try {
+				if (out != null) {
 					out.close();
-				} catch (IOException ex) {
-					// ignore
+				} else if (outF != null) {
+					outF.close();
 				}
+			} catch (IOException ex) {
+				LOG.warn("Failed to close notification file writer: "
+						+ notifFile.getAbsolutePath(), ex);
 			}
 		}
 
