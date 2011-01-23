@@ -16,6 +16,7 @@ import java.nio.charset.CharacterCodingException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Queue;
 
 import org.slf4j.Logger;
@@ -120,10 +121,9 @@ public class Client extends TeamController implements ContextReceiver {
 	 */
 	private long inGameTime;
 	/**
-	 * Two letter country code, as defined in ISO 3166-1 alpha-2.
-	 * "XX" is used for unknown country.
+	 * Specifying the origin of the user. So far, only the country part is used.
 	 */
-	private String country;
+	private Locale locale;
 	/**
 	 * In MHz if possible, or in MHz*1.4 if AMD.
 	 * 0 means the client can not figure out its CPU speed.
@@ -198,7 +198,7 @@ public class Client extends TeamController implements ContextReceiver {
 		rank = Account.Rank.Newbie;
 		access = false;
 		bot = false;
-		country = IP2Country.getInstance().getCountryCode(ip);
+		locale = IP2Country.getInstance().getLocale(ip);
 		inGameTime = 0;
 		battleID = Battle.NO_BATTLE_ID;
 		requestedBattleID = Battle.NO_BATTLE_ID;
@@ -841,12 +841,33 @@ public class Client extends TeamController implements ContextReceiver {
 	}
 
 	/**
+	 * Specifying the origin of the user. So far, only the country part is used.
+	 * @return the locale specifying the country
+	 */
+	public Locale getLocale() {
+		return locale;
+	}
+
+	/**
+	 * Specifying the origin of the user. So far, only the country part is used.
+	 * @param locale the locale specifying the country
+	 */
+	public void setLocale(Locale locale) {
+		this.locale = locale;
+	}
+
+	/**
 	 * Two letter country code, as defined in ISO 3166-1 alpha-2.
 	 * "XX" is used for unknown country.
 	 * @return the country
 	 */
 	public String getCountry() {
-		return country;
+
+		if ((locale == null) || locale.getCountry().isEmpty()) {
+			return IP2Country.COUNTRY_UNKNOWN;
+		} else {
+			return locale.getCountry();
+		}
 	}
 
 	/**
@@ -855,7 +876,7 @@ public class Client extends TeamController implements ContextReceiver {
 	 * @param country the country to set
 	 */
 	public void setCountry(String country) {
-		this.country = country;
+		IP2Country.countryToLocale(country);
 	}
 
 	/**

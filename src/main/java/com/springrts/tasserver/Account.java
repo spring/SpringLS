@@ -112,7 +112,6 @@ public class Account implements Serializable, Cloneable {
 	public static final int NO_ACCOUNT_ID = 0;
 	public static final int NEW_ACCOUNT_ID = -1;
 	public static final String NO_ACCOUNT_LAST_IP_STR = "?";
-	public static final String NO_ACCOUNT_LAST_COUNTRY = "XX";
 
 
 	// BEGIN: User specific data (stored in the DB)
@@ -174,6 +173,7 @@ public class Account implements Serializable, Cloneable {
 	 * Resolved country code for this name's IP when he last logged on.
 	 * If country could not be resolved, "XX" is used for country code,
 	 * otherwise a 2-char country code is used.
+	 * @see IP2Country#getCountryCode(InetAddress)
 	 */
 	private String lastCountry;
 
@@ -216,7 +216,7 @@ public class Account implements Serializable, Cloneable {
 		this.lastLogin         = 0;
 		this.lastUserId        = NO_ACCOUNT_ID;
 		this.lastIp            = null;
-		this.lastCountry       = NO_ACCOUNT_LAST_COUNTRY;
+		this.lastCountry       = IP2Country.COUNTRY_UNKNOWN;
 		this.inGameTime        = 0;
 		this.access            = Access.NONE;
 		this.bot               = false;
@@ -725,6 +725,7 @@ public class Account implements Serializable, Cloneable {
 	 * Resolved country code for this name's IP when he last logged on.
 	 * If country could not be resolved, "XX" is used for country code,
 	 * otherwise a 2-char country code is used.
+	 * @see IP2Country#getCountryCode(InetAddress)
 	 * @return the lastCountry
 	 */
 	@Column(
@@ -743,6 +744,7 @@ public class Account implements Serializable, Cloneable {
 	 * Resolved country code for this name's IP when he last logged on.
 	 * If country could not be resolved, "XX" is used for country code,
 	 * otherwise a 2-char country code is used.
+	 * @see IP2Country#getCountryCode(InetAddress)
 	 * @param lastCountry the lastCountry to set
 	 */
 	public void setLastCountry(String lastCountry) {

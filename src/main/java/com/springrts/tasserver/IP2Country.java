@@ -13,6 +13,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.InetAddress;
+import java.util.Locale;
 import java.util.NoSuchElementException;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -26,6 +27,8 @@ import org.slf4j.LoggerFactory;
 public class IP2Country {
 
 	private static final Logger LOG  = LoggerFactory.getLogger(IP2Country.class);
+
+	public static final String COUNTRY_UNKNOWN = "XX";
 
 	private TreeSet<String> countries = new TreeSet<String>();
 	private TreeMap<IPRange, IPRange> resolveTable = new TreeMap<IPRange, IPRange>();
@@ -147,8 +150,8 @@ public class IP2Country {
 				// check if this entry overlaps with any existing entry
 				try {
 					// try to find a duplicate
-					IPRange prev = resolveTable.headMap(new IPRange(ip.getFromIP() + 1, ip.getToIP() + 1, "XX")).lastKey(); // +1 because headMap() returns keys that are strictly less than given key, but we want equals as well
-					IPRange next = resolveTable.tailMap(new IPRange(ip.getFromIP() + 1, ip.getToIP() + 1, "XX")).firstKey(); // +1 because tailMap() returns keys that are bigger or equal to given key, but we want strictly bigger ones
+					IPRange prev = resolveTable.headMap(new IPRange(ip.getFromIP() + 1, ip.getToIP() + 1, COUNTRY_UNKNOWN)).lastKey(); // +1 because headMap() returns keys that are strictly less than given key, but we want equals as well
+					IPRange next = resolveTable.tailMap(new IPRange(ip.getFromIP() + 1, ip.getToIP() + 1, COUNTRY_UNKNOWN)).firstKey(); // +1 because tailMap() returns keys that are bigger or equal to given key, but we want strictly bigger ones
 
 					if ((prev.getFromIP() == ip.getFromIP()) && (prev.getToIP() == ip.getToIP())) {
 						// duplicate!
@@ -274,17 +277,28 @@ public class IP2Country {
 		countries = newCountries;
 	}
 
-	/** For a given IP address it returns corresponding country code (2-chars wide) */
+	public static Locale countryToLocale(String country) {
+
+		String isoCountry = country.equals(COUNTRY_UNKNOWN) ? "" : country;
+		return new Locale("", isoCountry);
+	}
+
+	/**
+	 * Converts an IP address into the corresponding country code in the
+	 * lobby protocol standard.
+	 * @return 2-chars wide country code, as defined in ISO 3166-1 alpha-2,
+	 *   or "XX" if the country is unknown.
+	 */
 	public String getCountryCode(InetAddress ip) {
 
-		String result = "XX";
+		String result = COUNTRY_UNKNOWN;
 
 		try {
 			long longIp = Misc.ip2Long(ip);
 			// +1 because headMap() returns keys that are strictly less than the
 			// given key
 			long longIpPlus = longIp + 1;
-			IPRange x = resolveTable.headMap(new IPRange(longIpPlus, longIpPlus, "XX")).lastKey();
+			IPRange x = resolveTable.headMap(new IPRange(longIpPlus, longIpPlus, COUNTRY_UNKNOWN)).lastKey();
 			if ((x.getFromIP() <= longIp) && (x.getToIP() >= longIp)) {
 				result = x.getCountryCode2();
 			}
@@ -301,5 +315,13 @@ public class IP2Country {
 		}
 
 		return result;
+	}
+
+	/**
+	 * Converts an IP address into a Locale, with the language unspecified.
+	 * @see #getCountryCode(InetAddress)
+	 */
+	public Locale getLocale(InetAddress ip) {
+		return countryToLocale(getCountryCode(ip));
 	}
 }
