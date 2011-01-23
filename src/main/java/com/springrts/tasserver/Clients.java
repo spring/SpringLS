@@ -6,7 +6,6 @@ package com.springrts.tasserver;
 
 
 import java.io.IOException;
-import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
@@ -26,20 +25,38 @@ public class Clients implements ContextReceiver, Updateable {
 
 	private static final Logger LOG  = LoggerFactory.getLogger(Clients.class);
 
+	private static class KillJob {
+
+		private Client client;
+		private String reason;
+
+		KillJob(Client client, String reason) {
+
+			this.client = client;
+			this.reason = reason;
+		}
+
+		public Client getClient() {
+			return client;
+		}
+
+		public String getReason() {
+			return reason;
+		}
+	}
+
 	private List<Client> clients = new ArrayList<Client>();
-	/** A list of clients waiting to be killed (disconnected) */
-	private List<Client> killList = new ArrayList<Client>();
 	/**
-	 * KillList is used when we want to kill a client but not immediately
-	 * (within a loop, for example).
-	 * Clients on the list will get killed after the main server loop reaches
-	 * its end.
-	 * Also see killClientDelayed() method. Any redundant entries will be
-	 * removed (client will be killed only once), so no additional logic for
-	 * consistency is required.
-	 * @see killList gives a reason for each scheduled kill
+	 * A list of clients waiting to be killed/disconnected.
+	 * This is used when we want to kill a client but not immediately,
+	 * within a loop, for example.
+	 * Clients on the list will get killed at the start of a main server loop
+	 * iteration.
+	 * Any redundant entries will be removed, so a client will be killed only
+	 * once; no additional logic for consistency is required.
+	 * @see killClientDelayed(Client)
 	 */
-	private List<String> reasonList = new ArrayList<String>();
+	private List<KillJob> delayedKills = new ArrayList<KillJob>();
 
 	/**
 	 * Here we keep a list of clients who have their send queues not empty.
@@ -155,16 +172,12 @@ public class Clients implements ContextReceiver, Updateable {
 		try {
 			chan.configureBlocking(false);
 			chan.socket().setSendBufferSize(sendBufferSize);
-			//***chan.socket().setSoTimeout(TIMEOUT_LENGTH); // TODO this doesn't seem to have an effect with java.nio
+			// TODO this doesn't seem to have an effect with java.nio
+			//chan.socket().setSoTimeout(TIMEOUT_LENGTH);
 			client.setSelKey(chan.register(readSelector, SelectionKey.OP_READ, client));
-		} catch (ClosedChannelException cce) {
-			killClient(client);
-			return null;
-		} catch (IOException ioe) {
-			killClient(client);
-			return null;
-		} catch (Exception e) {
-			killClient(client);
+		} catch (IOException ioex) {
+			LOG.warn("Failed to establish a connection with a client", ioex);
+			killClient(client, "Failed to establish a connection");
 			return null;
 		}
 
@@ -261,9 +274,9 @@ public class Clients implements ContextReceiver, Updateable {
 				// only send it if not 0.
 				// The user assumes that every new user's status is 0,
 				// so we don't need to tell him that explicitly.
-				client.sendLine(new StringBuilder("CLIENTSTATUS ")
-						.append(toBeNotified.getAccount().getName()).append(" ")
-						.append(toBeNotified.getStatus()).toString());
+				client.sendLine(String.format("CLIENTSTATUS %s %d",
+						toBeNotified.getAccount().getName(),
+						toBeNotified.getStatus()));
 			}
 		}
 		client.endFastWrite();
@@ -275,9 +288,9 @@ public class Clients implements ContextReceiver, Updateable {
 	 */
 	public void notifyClientsOfNewClientStatus(Client client) {
 
-		sendToAllRegisteredUsers(new StringBuilder("CLIENTSTATUS ")
-				.append(client.getAccount().getName()).append(" ")
-				.append(client.getStatus()).toString());
+		sendToAllRegisteredUsers(String.format("CLIENTSTATUS %s %d",
+				client.getAccount().getName(),
+				client.getStatus()));
 	}
 
 	/**
@@ -315,22 +328,25 @@ public class Clients implements ContextReceiver, Updateable {
 	 */
 	public void notifyClientsOfNewClientOnServer(Client client) {
 
+		StringBuilder cmd = new StringBuilder("ADDUSER ");
+		cmd.append(client.getAccount().getName());
+		cmd.append(" ").append(client.getCountry());
+		cmd.append(" ").append(client.getCpu());
+
+		String cmdNoId = cmd.toString();
+
+		cmd.append(" ").append(client.getAccount().getId());
+		String cmdWithId = cmd.toString();
+
 		for (int i = 0; i < clients.size(); i++) {
 			Client toBeNotified = clients.get(i);
 			if ((toBeNotified.getAccount().getAccess().isAtLeast(Account.Access.NORMAL))
 					&& (toBeNotified != client))
 			{
 				if (toBeNotified.isAcceptAccountIDs()) {
-					toBeNotified.sendLine(new StringBuilder("ADDUSER ")
-							.append(client.getAccount().getName()).append(" ")
-							.append(client.getCountry()).append(" ")
-							.append(client.getCpu()).append(" ")
-							.append(client.getAccount().getId()).toString());
+					toBeNotified.sendLine(cmdWithId);
 				} else {
-					toBeNotified.sendLine(new StringBuilder("ADDUSER ")
-							.append(client.getAccount().getName()).append(" ")
-							.append(client.getCountry()).append(" ")
-							.append(client.getCpu()).toString());
+					toBeNotified.sendLine(cmdNoId);
 				}
 			}
 		}
@@ -343,17 +359,28 @@ public class Clients implements ContextReceiver, Updateable {
 	 */
 	public void notifyClientsOfNewClientInBattle(Battle battle, Client client) {
 
-		String cmdBase = "JOINEDBATTLE " + battle.getId() + " " + client.getAccount().getName();
-		for (Client toBeNotified : clients)  {
+		StringBuilder cmd = new StringBuilder("JOINEDBATTLE ");
+		cmd.append(battle.getId());
+		cmd.append(" ").append(client.getAccount().getName());
+
+		String cmdNoScriptPassword = cmd.toString();
+
+		if (client.isScriptPassordSupported()
+				&& (!client.getScriptPassword().equals(Client.NO_SCRIPT_PASSWORD)))
+		{
+			cmd.append(" ").append(client.getScriptPassword());
+		}
+		String cmdWithScriptPassword = cmd.toString();
+
+		for (int i = 0; i < clients.size(); i++) {
+			Client toBeNotified = clients.get(i);
 			if (toBeNotified.getAccount().getAccess().isAtLeast(Account.Access.NORMAL)) {
-				StringBuilder cmd = new StringBuilder(cmdBase);
-				if ((toBeNotified.equals(battle.getFounder()) || toBeNotified.equals(client))
-						&& client.isScriptPassordSupported()
-						&& (!client.getScriptPassword().equals(Client.NO_SCRIPT_PASSWORD)))
+				if (toBeNotified.equals(battle.getFounder())
+						|| toBeNotified.equals(client))
 				{
-					cmd.append(" ").append(client.getScriptPassword());
+					toBeNotified.sendLine(cmdWithScriptPassword);
 				}
-				toBeNotified.sendLine(cmd.toString());
+				toBeNotified.sendLine(cmdNoScriptPassword);
 			}
 		}
 	}
@@ -424,8 +451,7 @@ public class Clients implements ContextReceiver, Updateable {
 	 */
 	public void killClientDelayed(Client client, String reason) {
 
-		killList.add(client);
-		reasonList.add(reason);
+		delayedKills.add(new KillJob(client, reason));
 		client.setHalfDead(true);
 	}
 
@@ -435,10 +461,10 @@ public class Clients implements ContextReceiver, Updateable {
 	 * Any redundant entries are ignored (cleared).
 	 */
 	public void processKillList() {
-		while (!killList.isEmpty()) {
-			killClient(killList.get(0), reasonList.get(0));
-			killList.remove(0);
-			reasonList.remove(0);
+
+		while (!delayedKills.isEmpty()) {
+			KillJob killJob = delayedKills.remove(0);
+			killClient(killJob.getClient(), killJob.getReason());
 		}
 	}
 
@@ -449,6 +475,7 @@ public class Clients implements ContextReceiver, Updateable {
 	 * him to the queues tail and break the loop.
 	 */
 	public void flushData() {
+
 		Client client;
 		while ((client = sendQueue.poll()) != null) {
 			if (!client.tryToFlushData()) {
