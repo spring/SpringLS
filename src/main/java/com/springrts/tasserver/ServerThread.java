@@ -46,6 +46,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Runs the thread that handles connections by and messages sent from clients.
+ * @author Betalord
  * @author hoijui
  */
 public class ServerThread implements ContextReceiver, LiveStateListener, Updateable {

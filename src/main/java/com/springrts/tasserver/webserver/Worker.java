@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @author hoijui
+ * @author Betalord
  */
 class Worker extends WebServer implements Runnable {
 

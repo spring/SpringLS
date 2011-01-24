@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
  * This class handles everything concerning starting this server as a normal
  * application, directly from the command line or the graphical interface of the
  * OS.
+ * @author Betalord
  * @author hoijui
  */
 public class Main {

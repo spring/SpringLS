@@ -19,7 +19,7 @@ package com.springrts.tasserver.webserver;
 
 
 /**
- * @author hoijui
+ * @author Betalord
  */
 final class HttpConstants {
 

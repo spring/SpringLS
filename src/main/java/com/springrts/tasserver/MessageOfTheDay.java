@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Stores and processes the "message of the day" (MOTD).
  * It can be set by an administrator, and is sent to clients when they log in.
+ * @author Betalord
  * @author hoijui
  */
 public class MessageOfTheDay implements ContextReceiver {
