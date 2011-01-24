@@ -25,7 +25,8 @@ import org.slf4j.LoggerFactory;
  */
 public class JPABanService implements BanService {
 
-	private static final Logger LOG = LoggerFactory.getLogger(JPABanService.class);
+	private static final Logger LOG
+			= LoggerFactory.getLogger(JPABanService.class);
 
 	private EntityManagerFactory emf;
 
@@ -53,7 +54,8 @@ public class JPABanService implements BanService {
 				if (em.isOpen() && em.getTransaction().isActive()) {
 					em.getTransaction().rollback();
 				} else {
-					LOG.error("Failed to rollback a transaction: no active connection or transaction");
+					LOG.error("Failed to rollback a transaction: no active"
+							+ " connection or transaction");
 				}
 			} catch (PersistenceException ex) {
 				LOG.error("Failed to rollback a transaction", ex);
@@ -81,7 +83,8 @@ public class JPABanService implements BanService {
 		EntityManager em = null;
 		try {
 			em = open();
-			long numBans = (Long) (em.createNamedQuery("ban_size").getSingleResult());
+			long numBans = (Long) (em.createNamedQuery("ban_size")
+					.getSingleResult());
 			return (int)numBans;
 		} catch (Exception ex) {
 			LOG.error("Failed fetching number of bans", ex);
@@ -101,7 +104,8 @@ public class JPABanService implements BanService {
 		EntityManager em = null;
 		try {
 			em = open();
-			long numBans = (Long) (em.createNamedQuery("ban_size_active").getSingleResult());
+			long numBans = (Long) (em.createNamedQuery("ban_size_active")
+					.getSingleResult());
 			activeBans = (int) numBans;
 		} catch (Exception ex) {
 			LOG.error("Failed fetching number of bans", ex);
@@ -209,7 +213,8 @@ public class JPABanService implements BanService {
 		EntityManager em = null;
 		try {
 			em = open();
-			bans = (List<BanEntry>) (em.createNamedQuery("ban_list").getResultList());
+			bans = (List<BanEntry>) (em.createNamedQuery("ban_list")
+					.getResultList());
 		} catch (Exception ex) {
 			LOG.error("Failed fetching all bans", ex);
 			bans = null;
@@ -229,7 +234,8 @@ public class JPABanService implements BanService {
 		EntityManager em = null;
 		try {
 			em = open();
-			bans = (List<BanEntry>) (em.createNamedQuery("ban_list_active").getResultList());
+			bans = (List<BanEntry>) (em.createNamedQuery("ban_list_active")
+					.getResultList());
 		} catch (Exception ex) {
 			LOG.error("Failed fetching all bans", ex);
 			bans = null;

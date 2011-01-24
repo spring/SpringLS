@@ -192,8 +192,9 @@ public class Context implements LiveStateListener {
 		return serverNotifications;
 	}
 
-	public void setServerNotifications(ServerNotifications serverNotifications) {
-
+	public void setServerNotifications(
+			ServerNotifications serverNotifications)
+	{
 		this.serverNotifications = serverNotifications;
 		addContextReceiver(serverNotifications);
 	}

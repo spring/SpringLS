@@ -203,6 +203,7 @@ public class BanEntry implements Serializable {
 	 * A ban is active when it is enabled and not expired.
 	 */
 	public boolean isActive() {
-		return (isEnabled() && ((getExpireDate() == 0) || (getExpireDate() > System.currentTimeMillis())));
+		return (isEnabled() && ((getExpireDate() == 0)
+				|| (getExpireDate() > System.currentTimeMillis())));
 	}
 }

@@ -27,10 +27,10 @@ public interface BanService {
 	 */
 	public int getActiveBansSize();
 
-	/** WARNING: caller must check if username/password is valid etc. himself! */
+	/**
+	 * WARNING: caller must check if username/password is valid etc. himself!
+	 */
 	public void addBanEntry(BanEntry ban);
-
-	//public boolean addBanEntryWithCheck(BanEntry ban);
 
 	public boolean removeBanEntry(BanEntry ban);
 

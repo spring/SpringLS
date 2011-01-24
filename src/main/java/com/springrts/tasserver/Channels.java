@@ -13,9 +13,10 @@ import java.util.List;
  */
 public class Channels implements ContextReceiver, LiveStateListener, Updateable
 {
+	private static final String MATCH_NO_CHANNEL = "^%%%%%%%$";
+
 	private List<Channel> channels;
 	private Context context;
-	public static final String MATCH_NO_CHANNEL = "^%%%%%%%$";
 	private String channelsToLogRegex;
 
 	/**
@@ -126,6 +127,7 @@ public class Channels implements ContextReceiver, LiveStateListener, Updateable
 	 * Returns <code>null</code> if index is out of bounds
 	 */
 	public Channel getChannel(int index) {
+
 		try {
 			return channels.get(index);
 		} catch (IndexOutOfBoundsException e) {
@@ -164,12 +166,14 @@ public class Channels implements ContextReceiver, LiveStateListener, Updateable
 	 * Also sets the topic of the channel for that client.
 	 */
 	public boolean sendChannelInfoToClient(Channel chan, Client client) {
-		client.beginFastWrite();
+
 		// it always sends info about at least one client;
 		// the one to whom this list must be sent
 		StringBuilder sb = new StringBuilder();
 		sb.append("CLIENTS ").append(chan.getName());
 		int c = 0;
+
+		client.beginFastWrite();
 
 		for (int i = 0; i < chan.getClientsSize(); i++) {
 			sb.append(' ').append(chan.getClient(i).getAccount().getName());
@@ -197,6 +201,7 @@ public class Channels implements ContextReceiver, LiveStateListener, Updateable
 		}
 
 		client.endFastWrite();
+
 		return true;
 	}
 
@@ -224,11 +229,12 @@ public class Channels implements ContextReceiver, LiveStateListener, Updateable
 
 	public void notifyClientsOfNewClientInChannel(Channel chan, Client client) {
 
+		String cmd = String.format("JOINED %s %s", chan.getName(),
+				client.getAccount().getName());
 		for (int i = 0; i < chan.getClientsSize(); i++) {
 			Client toBeNotified = chan.getClient(i);
 			if (toBeNotified != client) {
-				toBeNotified.sendLine("JOINED " + chan.getName() + " "
-						+ client.getAccount().getName());
+				toBeNotified.sendLine(cmd);
 			}
 		}
 	}

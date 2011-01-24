@@ -41,7 +41,8 @@ public class IPRange implements Comparable<IPRange> {
 			} else if (this.getToIP() > other.getToIP()) {
 				return 1;
 			} else {
-				return this.getCountryCode2().compareTo(other.getCountryCode2());
+				return this.getCountryCode2()
+						.compareTo(other.getCountryCode2());
 			}
 		}
 	}
@@ -59,9 +60,10 @@ public class IPRange implements Comparable<IPRange> {
 		if (!(obj instanceof IPRange)) {
 			return false;
 		}
-		return (this.getFromIP() == ((IPRange) obj).getFromIP())
-				&& (this.getToIP() == ((IPRange) obj).getToIP())
-				&& (this.getCountryCode2().equals(((IPRange) obj).getCountryCode2()));
+		IPRange other = (IPRange) obj;
+		return (this.getFromIP() == other.getFromIP())
+				&& (this.getToIP() == other.getToIP())
+				&& (this.getCountryCode2().equals(other.getCountryCode2()));
 	}
 
 	@Override
@@ -69,7 +71,8 @@ public class IPRange implements Comparable<IPRange> {
 		int hash = 7;
 		hash = 17 * hash + (int) (this.getFromIP() ^ (this.getFromIP() >>> 32));
 		hash = 17 * hash + (int) (this.getToIP() ^ (this.getToIP() >>> 32));
-		hash = 17 * hash + (this.getCountryCode2() != null ? this.getCountryCode2().hashCode() : 0);
+		hash = 17 * hash + ((this.getCountryCode2() != null)
+				? this.getCountryCode2().hashCode() : 0);
 		return hash;
 	}
 

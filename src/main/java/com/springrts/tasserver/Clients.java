@@ -45,7 +45,12 @@ public class Clients implements ContextReceiver, Updateable {
 		}
 	}
 
-	private List<Client> clients = new ArrayList<Client>();
+
+	/** in milli-seconds */
+	private static final int TIMEOUT_CHECK = 5000;
+
+	private List<Client> clients;
+
 	/**
 	 * A list of clients waiting to be killed/disconnected.
 	 * This is used when we want to kill a client but not immediately,
@@ -56,7 +61,7 @@ public class Clients implements ContextReceiver, Updateable {
 	 * once; no additional logic for consistency is required.
 	 * @see killClientDelayed(Client)
 	 */
-	private List<KillJob> delayedKills = new ArrayList<KillJob>();
+	private List<KillJob> delayedKills;
 
 	/**
 	 * Here we keep a list of clients who have their send queues not empty.
@@ -65,10 +70,8 @@ public class Clients implements ContextReceiver, Updateable {
 	 * if synchronized access is needed.
 	 * @see http://java.sun.com/j2se/1.5.0/docs/api/java/util/Collections.html#synchronizedList(java.util.List))
 	 */
-	private Queue<Client> sendQueue = new LinkedList<Client>();
+	private Queue<Client> sendQueue;
 
-	/** in milli-seconds */
-	private static final int TIMEOUT_CHECK = 5000;
 	/**
 	 * Time ({@link java.lang.System#currentTimeMillis()}) when we last checked
 	 * for timeouts from clients.
@@ -79,6 +82,10 @@ public class Clients implements ContextReceiver, Updateable {
 
 
 	public Clients() {
+
+		clients = new ArrayList<Client>();
+		delayedKills = new ArrayList<KillJob>();
+		sendQueue = new LinkedList<Client>();
 		lastTimeoutCheck = System.currentTimeMillis();
 	}
 
@@ -125,7 +132,8 @@ public class Clients implements ContextReceiver, Updateable {
 					+ "Client has been scheduled for kill ...",
 					client.getAccount().getName(),
 					client.getIp().getHostAddress());
-			getContext().getClients().killClientDelayed(client, "Quit: timeout");
+			getContext().getClients().killClientDelayed(client,
+					"Quit: timeout");
 		}
 	}
 
@@ -139,7 +147,8 @@ public class Clients implements ContextReceiver, Updateable {
 
 		Collection<Client> timedOutClients = new LinkedList<Client>();
 
-		boolean timeOut = ((System.currentTimeMillis() - lastTimeoutCheck) > TIMEOUT_CHECK);
+		boolean timeOut = ((System.currentTimeMillis() - lastTimeoutCheck)
+				> TIMEOUT_CHECK);
 
 		if (timeOut) {
 			lastTimeoutCheck = System.currentTimeMillis();
@@ -161,8 +170,9 @@ public class Clients implements ContextReceiver, Updateable {
 	 * and register its socket channel with 'readSelector'.
 	 * @param sendBufferSize specifies the sockets send buffer size.
 	 */
-	public Client addNewClient(SocketChannel chan, Selector readSelector, int sendBufferSize) {
-
+	public Client addNewClient(SocketChannel chan, Selector readSelector,
+			int sendBufferSize)
+	{
 		Client client = new Client(chan);
 		client.receiveContext(context);
 		clients.add(client);
@@ -174,7 +184,8 @@ public class Clients implements ContextReceiver, Updateable {
 			chan.socket().setSendBufferSize(sendBufferSize);
 			// TODO this doesn't seem to have an effect with java.nio
 			//chan.socket().setSoTimeout(TIMEOUT_LENGTH);
-			client.setSelKey(chan.register(readSelector, SelectionKey.OP_READ, client));
+			client.setSelKey(chan.register(readSelector, SelectionKey.OP_READ,
+					client));
 		} catch (IOException ioex) {
 			LOG.warn("Failed to establish a connection with a client", ioex);
 			killClient(client, "Failed to establish a connection");
@@ -229,7 +240,9 @@ public class Clients implements ContextReceiver, Updateable {
 
 		for (int i = 0; i < clients.size(); i++) {
 			Client toBeNotified = clients.get(i);
-			if (toBeNotified.getAccount().getAccess().isAtLeast(Account.Access.NORMAL)) {
+			if (toBeNotified.getAccount().getAccess().isAtLeast(
+					Account.Access.NORMAL))
+			{
 				toBeNotified.sendLine(s);
 			}
 		}
@@ -240,8 +253,8 @@ public class Clients implements ContextReceiver, Updateable {
 
 		for (int i = 0; i < clients.size(); i++) {
 			Client toBeNotified = clients.get(i);
-			if ((toBeNotified.getAccount().getAccess().isAtLeast(Account.Access.NORMAL))
-					&& (toBeNotified != client))
+			if ((toBeNotified.getAccount().getAccess().isAtLeast(
+					Account.Access.NORMAL)) && (toBeNotified != client))
 			{
 				continue;
 			}
@@ -253,7 +266,9 @@ public class Clients implements ContextReceiver, Updateable {
 
 		for (int i = 0; i < clients.size(); i++) {
 			Client toBeNotified = clients.get(i);
-			if (toBeNotified.getAccount().getAccess().isAtLeast(Account.Access.ADMIN)) {
+			if (toBeNotified.getAccount().getAccess().isAtLeast(
+					Account.Access.ADMIN))
+			{
 				toBeNotified.sendLine(s);
 			}
 		}
@@ -268,8 +283,8 @@ public class Clients implements ContextReceiver, Updateable {
 		client.beginFastWrite();
 		for (int i = 0; i < clients.size(); i++) {
 			Client toBeNotified = clients.get(i);
-			if ((toBeNotified.getAccount().getAccess().isAtLeast(Account.Access.NORMAL))
-				&& toBeNotified.getStatus() != 0)
+			if ((toBeNotified.getAccount().getAccess().isAtLeast(
+					Account.Access.NORMAL)) && toBeNotified.getStatus() != 0)
 			{
 				// only send it if not 0.
 				// The user assumes that every new user's status is 0,
@@ -303,18 +318,20 @@ public class Clients implements ContextReceiver, Updateable {
 		client.beginFastWrite();
 		for (int i = 0; i < clients.size(); i++) {
 			Client toBeNotified = clients.get(i);
-			if (toBeNotified.getAccount().getAccess().isAtLeast(Account.Access.NORMAL)) {
+			if (toBeNotified.getAccount().getAccess().isAtLeast(
+					Account.Access.NORMAL))
+			{
 				if (client.isAcceptAccountIDs()) {
-					client.sendLine(new StringBuilder("ADDUSER ")
-							.append(toBeNotified.getAccount().getName()).append(" ")
-							.append(toBeNotified.getCountry()).append(" ")
-							.append(toBeNotified.getCpu()).append(" ")
-							.append(toBeNotified.getAccount().getId()).toString());
+					client.sendLine(String.format("ADDUSER %s %s %d %d",
+							toBeNotified.getAccount().getName(),
+							toBeNotified.getCountry(),
+							toBeNotified.getCpu(),
+							toBeNotified.getAccount().getId()));
 				} else {
-					client.sendLine(new StringBuilder("ADDUSER ")
-							.append(toBeNotified.getAccount().getName()).append(" ")
-							.append(toBeNotified.getCountry()).append(" ")
-							.append(toBeNotified.getCpu()).toString());
+					client.sendLine(String.format("ADDUSER %s %s %d",
+							toBeNotified.getAccount().getName(),
+							toBeNotified.getCountry(),
+							toBeNotified.getCpu()));
 				}
 			}
 		}
@@ -328,20 +345,16 @@ public class Clients implements ContextReceiver, Updateable {
 	 */
 	public void notifyClientsOfNewClientOnServer(Client client) {
 
-		StringBuilder cmd = new StringBuilder("ADDUSER ");
-		cmd.append(client.getAccount().getName());
-		cmd.append(" ").append(client.getCountry());
-		cmd.append(" ").append(client.getCpu());
-
-		String cmdNoId = cmd.toString();
-
-		cmd.append(" ").append(client.getAccount().getId());
-		String cmdWithId = cmd.toString();
+		String cmdNoId = String.format("ADDUSER %s %s %d",
+				client.getAccount().getName(),
+				client.getCountry(),
+				client.getCpu());
+		String cmdWithId = cmdNoId + " " + client.getAccount().getId();
 
 		for (int i = 0; i < clients.size(); i++) {
 			Client toBeNotified = clients.get(i);
-			if ((toBeNotified.getAccount().getAccess().isAtLeast(Account.Access.NORMAL))
-					&& (toBeNotified != client))
+			if ((toBeNotified.getAccount().getAccess().isAtLeast(
+					Account.Access.NORMAL)) && (toBeNotified != client))
 			{
 				if (toBeNotified.isAcceptAccountIDs()) {
 					toBeNotified.sendLine(cmdWithId);
@@ -366,7 +379,8 @@ public class Clients implements ContextReceiver, Updateable {
 		String cmdNoScriptPassword = cmd.toString();
 
 		if (client.isScriptPassordSupported()
-				&& (!client.getScriptPassword().equals(Client.NO_SCRIPT_PASSWORD)))
+				&& (!client.getScriptPassword().equals(
+				Client.NO_SCRIPT_PASSWORD)))
 		{
 			cmd.append(" ").append(client.getScriptPassword());
 		}
@@ -374,7 +388,9 @@ public class Clients implements ContextReceiver, Updateable {
 
 		for (int i = 0; i < clients.size(); i++) {
 			Client toBeNotified = clients.get(i);
-			if (toBeNotified.getAccount().getAccess().isAtLeast(Account.Access.NORMAL)) {
+			if (toBeNotified.getAccount().getAccess().isAtLeast(
+					Account.Access.NORMAL))
+			{
 				if (toBeNotified.equals(battle.getFounder())
 						|| toBeNotified.equals(client))
 				{
@@ -410,14 +426,15 @@ public class Clients implements ContextReceiver, Updateable {
 		client.disconnect();
 		clients.remove(index);
 		client.setAlive(false);
-		String reasonNonNull = ((reason == null) || reason.trim().equals(""))
+		String reasonNonNull = ((reason == null) || reason.trim().isEmpty())
 				? "Quit" : reason;
 
 		// let's remove client from all channels he is participating in:
 		client.leaveAllChannels(reasonNonNull);
 
 		if (client.getBattleID() != Battle.NO_BATTLE_ID) {
-			Battle battle = context.getBattles().getBattleByID(client.getBattleID());
+			Battle battle = context.getBattles().getBattleByID(
+					client.getBattleID());
 			if (battle == null) {
 				LOG.error("Invalid battle ID. Server will now exit!");
 				context.getServerThread().closeServerAndExit();
@@ -428,8 +445,10 @@ public class Clients implements ContextReceiver, Updateable {
 		}
 
 		if (client.getAccount().getAccess() != Account.Access.NONE) {
-			sendToAllRegisteredUsers("REMOVEUSER " + client.getAccount().getName());
-			LOG.debug("Registered user killed: {}", client.getAccount().getName());
+			sendToAllRegisteredUsers("REMOVEUSER "
+					+ client.getAccount().getName());
+			LOG.debug("Registered user killed: {}",
+					client.getAccount().getName());
 		} else {
 			LOG.debug("Unregistered user killed");
 		}

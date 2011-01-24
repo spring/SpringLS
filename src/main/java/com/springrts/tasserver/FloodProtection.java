@@ -137,7 +137,8 @@ public class FloodProtection {
 	 */
 	public boolean isFlooding(Client client) {
 
-		int maxBytes = client.isBot() ? getMaxBytesAlertForBot() : getMaxBytesAlert();
+		int maxBytes = client.isBot() ? getMaxBytesAlertForBot()
+				: getMaxBytesAlert();
 		return client.getAccount().getAccess().isAtLeast(Account.Access.ADMIN)
 				&& (client.getDataOverLastTimePeriod() > maxBytes);
 	}
@@ -150,7 +151,8 @@ public class FloodProtection {
 	 */
 	public boolean hasFloodCheckPeriodPassed() {
 
-		boolean passed = (System.currentTimeMillis() - getLastFloodCheckedTime())
+		boolean passed = (System.currentTimeMillis()
+				- getLastFloodCheckedTime())
 				> (getReceivedRecordPeriod() * 1000L);
 
 		if (passed) {

@@ -227,7 +227,8 @@ public class Battle implements ContextReceiver {
 		client.setRequestedBattleID(Battle.NO_BATTLE_ID);
 		addClient(client);
 	 	// notify client that he has successfully joined the battle
-		client.sendLine("JOINBATTLE " + getId() + " " + getHashCode());
+		client.sendLine(String.format("JOINBATTLE %d %d", getId(),
+				getHashCode()));
 		context.getClients().notifyClientsOfNewClientInBattle(this, client);
 		notifyOfBattleStatuses(client);
 		sendBotListToClient(client);
@@ -488,9 +489,8 @@ public class Battle implements ContextReceiver {
 		boolean containedBot = bots.remove(bot);
 
 		if (containedBot) {
-			sendToAllClients(new StringBuilder("REMOVEBOT ")
-					.append(getId()).append(" ")
-					.append(bot.getName()).toString());
+			sendToAllClients(String.format("REMOVEBOT %d %s", getId(),
+					bot.getName()));
 		}
 
 		return containedBot;

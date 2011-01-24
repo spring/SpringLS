@@ -106,86 +106,7 @@ public class UpdateIP2CountryThread implements Runnable, ContextReceiver {
 			combinedDataFileOut = new FileWriter(combinedData);
 			combinedDataOut = new PrintWriter(new BufferedWriter(combinedDataFileOut));
 
-			for (URL url : sourceUrls) {
-				File sourceArchive = null;
-				File sourceRaw = null;
-				FileReader sourceRawFileIn = null;
-				BufferedReader sourceRawIn = null;
-
-				try {
-					// download
-					long timeDownload = System.currentTimeMillis();
-					sourceArchive = File.createTempFile("ip2country_source", ".dat.zip");
-					long bytesDownloaded = Misc.download(url.toString(), sourceArchive.getAbsolutePath(), DOWNLOAD_LIMIT);
-					timeDownload = System.currentTimeMillis() - timeDownload;
-
-					// extract
-					long timeExtract = System.currentTimeMillis();
-					sourceRaw = File.createTempFile("ip2country_source", ".dat");
-					ZipUtil.unzipSingleFile(sourceArchive, sourceRaw);
-					timeExtract = System.currentTimeMillis() - timeExtract;
-
-					// write to combined data file
-					// duplicate entries and any inconsistencies will be removed
-					// later
-					long timeCombine = System.currentTimeMillis();
-					sourceRawFileIn = new FileReader(sourceRaw.getAbsolutePath());
-					sourceRawIn = new BufferedReader(sourceRawFileIn);
-
-					String inLine;
-					while ((inLine = sourceRawIn.readLine()) != null) {
-						inLine = inLine.trim();
-						if (inLine.equals("") || inLine.charAt(0) == '#') {
-							continue;
-						}
-
-						String[] tokens = inLine.split(",");
-						StringBuilder outLine = new StringBuilder();
-
-						// IP FROM field
-						outLine.append(stripQuotes(tokens[0])).append(",");
-						// IP TO field
-						outLine.append(stripQuotes(tokens[1])).append(",");
-						// COUNTRY_CHAR2 field
-						outLine.append(stripQuotes(tokens[2]));
-
-						combinedDataOut.println(outLine);
-					}
-					timeCombine = System.currentTimeMillis() - timeCombine;
-
-					sn.addLine("- " + url.toString());
-					sn.addLine("  Statistics:");
-					sn.addLine("  * downloaded: " + (bytesDownloaded / 1024) + " KB");
-					sn.addLine("  * time taken to download: " + timeDownload + " ms");
-					sn.addLine("  * time taken to decompress: " + timeExtract + " ms");
-					sn.addLine("  * time taken to re-write: " + timeCombine + " ms");
-					sn.addLine("");
-				} catch (IOException ex) {
-					throw new IOException("Failed to download & extract IP2Country data from " + url.toString(), ex);
-				} finally {
-					// clean up
-					if (sourceRawIn != null) {
-						sourceRawIn.close();
-					} else if (sourceRawFileIn != null) {
-						sourceRawFileIn.close();
-					}
-					if (combinedDataOut != null) {
-						combinedDataOut.close();
-					}
-					if ((sourceArchive != null) && sourceArchive.exists()) {
-						boolean deleted = sourceArchive.delete();
-						if (!deleted) {
-							throw new IOException("Failed to delete the local archive after an incomplete download: " + sourceArchive.getAbsolutePath());
-						}
-					}
-					if ((sourceRaw != null) && sourceRaw.exists()) {
-						boolean deleted = sourceRaw.delete();
-						if (!deleted) {
-							throw new IOException("Failed to delete the local file after an incomplete extraction: " + sourceRaw.getAbsolutePath());
-						}
-					}
-				}
-			}
+			downloadAndCombineRawSources(sourceUrls, combinedDataOut, sn);
 
 			long timeBuildDB = System.currentTimeMillis();
 			TreeMap<IPRange, IPRange> ipTable = new TreeMap<IPRange, IPRange>();
@@ -224,6 +145,92 @@ public class UpdateIP2CountryThread implements Runnable, ContextReceiver {
 				boolean deleted = combinedData.delete();
 				if (!deleted) {
 					LOG.warn("Failed to delete the temporary IP2Country data file " + combinedData.getAbsolutePath());
+				}
+			}
+		}
+	}
+
+	private static void downloadAndCombineRawSources(List<URL> sourceUrls,
+			PrintWriter combinedDataOut, ServerNotification sn)
+			throws IOException
+	{
+		for (URL url : sourceUrls) {
+			File sourceArchive = null;
+			File sourceRaw = null;
+			FileReader sourceRawFileIn = null;
+			BufferedReader sourceRawIn = null;
+
+			try {
+				// download
+				long timeDownload = System.currentTimeMillis();
+				sourceArchive = File.createTempFile("ip2country_source", ".dat.zip");
+				long bytesDownloaded = Misc.download(url.toString(), sourceArchive.getAbsolutePath(), DOWNLOAD_LIMIT);
+				timeDownload = System.currentTimeMillis() - timeDownload;
+
+				// extract
+				long timeExtract = System.currentTimeMillis();
+				sourceRaw = File.createTempFile("ip2country_source", ".dat");
+				ZipUtil.unzipSingleFile(sourceArchive, sourceRaw);
+				timeExtract = System.currentTimeMillis() - timeExtract;
+
+				// write to combined data file
+				// duplicate entries and any inconsistencies will be removed
+				// later
+				long timeCombine = System.currentTimeMillis();
+				sourceRawFileIn = new FileReader(sourceRaw.getAbsolutePath());
+				sourceRawIn = new BufferedReader(sourceRawFileIn);
+
+				String inLine;
+				while ((inLine = sourceRawIn.readLine()) != null) {
+					inLine = inLine.trim();
+					if (inLine.equals("") || inLine.charAt(0) == '#') {
+						continue;
+					}
+
+					String[] tokens = inLine.split(",");
+					StringBuilder outLine = new StringBuilder();
+
+					// IP FROM field
+					outLine.append(stripQuotes(tokens[0])).append(",");
+					// IP TO field
+					outLine.append(stripQuotes(tokens[1])).append(",");
+					// COUNTRY_CHAR2 field
+					outLine.append(stripQuotes(tokens[2]));
+
+					combinedDataOut.println(outLine);
+				}
+				timeCombine = System.currentTimeMillis() - timeCombine;
+
+				sn.addLine("- " + url.toString());
+				sn.addLine("  Statistics:");
+				sn.addLine("  * downloaded: " + (bytesDownloaded / 1024) + " KB");
+				sn.addLine("  * time taken to download: " + timeDownload + " ms");
+				sn.addLine("  * time taken to decompress: " + timeExtract + " ms");
+				sn.addLine("  * time taken to re-write: " + timeCombine + " ms");
+				sn.addLine("");
+			} catch (IOException ex) {
+				throw new IOException("Failed to download & extract IP2Country data from " + url.toString(), ex);
+			} finally {
+				// clean up
+				if (sourceRawIn != null) {
+					sourceRawIn.close();
+				} else if (sourceRawFileIn != null) {
+					sourceRawFileIn.close();
+				}
+				if (combinedDataOut != null) {
+					combinedDataOut.close();
+				}
+				if ((sourceArchive != null) && sourceArchive.exists()) {
+					boolean deleted = sourceArchive.delete();
+					if (!deleted) {
+						throw new IOException("Failed to delete the local archive after an incomplete download: " + sourceArchive.getAbsolutePath());
+					}
+				}
+				if ((sourceRaw != null) && sourceRaw.exists()) {
+					boolean deleted = sourceRaw.delete();
+					if (!deleted) {
+						throw new IOException("Failed to delete the local file after an incomplete extraction: " + sourceRaw.getAbsolutePath());
+					}
 				}
 			}
 		}

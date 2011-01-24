@@ -24,11 +24,15 @@ import com.springrts.tasserver.Account;
  * @see CommandProcessor#process(com.springrts.tasserver.Client, java.util.List)
  * @author hoijui
  */
-public class InsufficientAccessCommandProcessingException extends CommandProcessingException {
-
-	public InsufficientAccessCommandProcessingException(String commandName, Account.Access required, Account.Access present) {
+public class InsufficientAccessCommandProcessingException
+		extends CommandProcessingException
+{
+	public InsufficientAccessCommandProcessingException(String commandName,
+			Account.Access required, Account.Access present)
+	{
 		super(commandName, String.format(
-				"Insufficient access rights; the minimum required is %s, but the account has %s.",
+				"Insufficient access rights; the minimum required is %s, but"
+				+ " the account has %s.",
 				required,
 				present));
 	}

@@ -15,8 +15,9 @@ public class FailedLoginAttempt {
 	private long timeOfLastFailedAttempt;
 	private boolean logged;
 
-	public FailedLoginAttempt(String username, int numOfFailedAttempts, long timeOfLastFailedAttempt) {
-
+	public FailedLoginAttempt(String username, int numOfFailedAttempts,
+			long timeOfLastFailedAttempt)
+	{
 		this.userName = username;
 		this.failedAttempts = numOfFailedAttempts;
 		this.timeOfLastFailedAttempt = timeOfLastFailedAttempt;

@@ -27,7 +27,10 @@ public class CommandProcessingException extends Exception {
 		this(commandName, message, null);
 	}
 
-	public CommandProcessingException(String commandName, String message, Throwable t) {
-		super(String.format("Failed processing command \"%s\": %s", commandName, message), t);
+	public CommandProcessingException(String commandName, String message,
+			Throwable t)
+	{
+		super(String.format("Failed processing command \"%s\": %s", commandName,
+				message), t);
 	}
 }

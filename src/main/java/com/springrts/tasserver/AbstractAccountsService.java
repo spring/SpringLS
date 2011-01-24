@@ -103,7 +103,7 @@ public abstract class AbstractAccountsService implements AccountsService {
 	}
 
 	@Override
-	public final Account verifyLogin(String username, String password) {
+	public Account verifyLogin(String username, String password) {
 
 		Account account = null;
 

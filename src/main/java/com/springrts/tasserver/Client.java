@@ -217,13 +217,16 @@ public class Client extends TeamController implements ContextReceiver {
 
 	@Override
 	public int hashCode() {
+
 		int hash = 5;
-		hash = 67 * hash + (this.sockChan != null ? this.sockChan.hashCode() : 0);
+		hash = 67 * hash + (this.sockChan != null ? this.sockChan.hashCode()
+				: 0);
 		return hash;
 	}
 
 	@Override
 	public boolean equals(Object obj) {
+
 		if (obj == null) {
 			return false;
 		}
@@ -231,7 +234,9 @@ public class Client extends TeamController implements ContextReceiver {
 			return false;
 		}
 		final Client other = (Client) obj;
-		if (this.sockChan != other.getSockChan() && (this.sockChan == null || !this.sockChan.equals(other.getSockChan()))) {
+		if (this.sockChan != other.getSockChan() && (this.sockChan == null
+				|| !this.sockChan.equals(other.getSockChan())))
+		{
 			return false;
 		}
 		return true;
@@ -263,7 +268,7 @@ public class Client extends TeamController implements ContextReceiver {
 	 *        use NO_MSG_ID for none.
 	 * @see #setSendMsgId(int msgId)
 	 */
-	public boolean sendLine(String text, int msgId) {
+	private boolean sendLine(String text, int msgId) {
 
 		if (!alive || halfDead) {
 			return false;
@@ -300,16 +305,20 @@ public class Client extends TeamController implements ContextReceiver {
 			if ((sockChan == null) || (!sockChan.isConnected())) {
 				LOG.warn("SocketChannel is not ready to be written to."
 						+ " Killing the client next loop ...");
-				context.getClients().killClientDelayed(this, "Quit: undefined connection error");
+				context.getClients().killClientDelayed(this,
+						"Quit: undefined connection error");
 				return false;
 			}
 
 			ByteBuffer buf;
 			try {
-				buf = context.getServer().getAsciiEncoder().encode(CharBuffer.wrap(data));
+				buf = context.getServer().getAsciiEncoder().encode(
+						CharBuffer.wrap(data));
 			} catch (CharacterCodingException ex) {
-				LOG.warn("Unable to encode message. Killing the client next loop ...", ex);
-				context.getClients().killClientDelayed(this, "Quit: undefined encoder error");
+				LOG.warn("Unable to encode message. Killing the client next"
+						+ " loop ...", ex);
+				context.getClients().killClientDelayed(this,
+						"Quit: undefined encoder error");
 				return false;
 			}
 
@@ -323,26 +332,30 @@ public class Client extends TeamController implements ContextReceiver {
 				}
 			}
 		} catch (Exception ex) {
-			LOG.error("Failed sending data (undefined). Killing the client next loop ...", ex);
-			context.getClients().killClientDelayed(this, "Quit: undefined connection error");
+			LOG.error("Failed sending data (undefined). Killing the client next"
+					+ " loop ...", ex);
+			context.getClients().killClientDelayed(this,
+					"Quit: undefined connection error");
 			return false;
 		}
 		return true;
 	}
 
 	public void sendWelcomeMessage() {
-		sendLine(new StringBuilder(Server.getApplicationName()).append(" ")
-				.append(Misc.getAppVersion()).append(" ")
-				.append(context.getEngine().getVersion()).append(" ")
-				.append(context.getNatHelpServer().getPort()).append(" ")
-				.append(context.getServer().isLanMode() ? 1 : 0).toString());
+		sendLine(String.format("%s %s %s %d %d",
+				Server.getApplicationName(),
+				Misc.getAppVersion(),
+				context.getEngine().getVersion(),
+				context.getNatHelpServer().getPort(),
+				context.getServer().isLanMode() ? 1 : 0));
 	}
 
 	/** Should only be called by Clients.killClient() method! */
 	public void disconnect() {
 
 		if (!alive) {
-			LOG.error("PROBLEM DETECTED: disconnecting dead client. Skipping ...");
+			LOG.error("PROBLEM DETECTED: disconnecting dead client."
+					+ " Skipping ...");
 			return;
 		}
 
@@ -474,15 +487,17 @@ public class Client extends TeamController implements ContextReceiver {
 				}
 				// remove element from queue (it was sent entirely)
 				sendQueue.remove();
-			} catch (ClosedChannelException cce) {
+			} catch (ClosedChannelException ccex) {
 				// no point sending the rest to the closed channel
 				if (alive) {
-					context.getClients().killClientDelayed(this, "Quit: socket channel closed exception");
+					context.getClients().killClientDelayed(this,
+							"Quit: socket channel closed exception");
 				}
 				break;
-			} catch (IOException io) {
+			} catch (IOException ioex) {
 				if (alive) {
-					context.getClients().killClientDelayed(this, "Quit: socket channel closed exception");
+					context.getClients().killClientDelayed(this,
+							"Quit: socket channel closed exception");
 				}
 				break;
 			}
@@ -777,8 +792,9 @@ public class Client extends TeamController implements ContextReceiver {
 	 * @param posUntil only chars from 0 until this position are searched
 	 * @return number of deleted chars
 	 */
-	private static int deleteCarriageReturnChars(StringBuilder str, int posUntil) {
-
+	private static int deleteCarriageReturnChars(StringBuilder str,
+			int posUntil)
+	{
 		int deleted = 0;
 
 		int rPos = str.lastIndexOf("\r", posUntil);
@@ -976,9 +992,10 @@ public class Client extends TeamController implements ContextReceiver {
 
 	/**
 	 * Does the client accept JOINBATTLEREQUEST command?
-	 * @param handleBattleJoinAuthorization the handleBattleJoinAuthorization to set
 	 */
-	public void setHandleBattleJoinAuthorization(boolean handleBattleJoinAuthorization) {
+	public void setHandleBattleJoinAuthorization(
+			boolean handleBattleJoinAuthorization)
+	{
 		this.handleBattleJoinAuthorization = handleBattleJoinAuthorization;
 	}
 

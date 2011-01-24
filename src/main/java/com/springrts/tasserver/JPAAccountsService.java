@@ -26,7 +26,9 @@ import org.slf4j.LoggerFactory;
  */
 public class JPAAccountsService extends AbstractAccountsService {
 
-	private static final Logger LOG = LoggerFactory.getLogger(JPAAccountsService.class);
+	private static final Logger LOG
+			= LoggerFactory.getLogger(JPAAccountsService.class);
+	private static final long DAY = 1000L * 60L * 60L * 24L;
 
 	private EntityManagerFactory emf = null;
 
@@ -56,7 +58,8 @@ public class JPAAccountsService extends AbstractAccountsService {
 				if (em.isOpen() && em.getTransaction().isActive()) {
 					em.getTransaction().rollback();
 				} else {
-					LOG.error("Failed to rollback a transaction: no active connection or transaction");
+					LOG.error("Failed to rollback a transaction: no active"
+							+ " connection or transaction");
 				}
 			} catch (PersistenceException ex) {
 				LOG.error("Failed to rollback a transaction", ex);
@@ -92,7 +95,8 @@ public class JPAAccountsService extends AbstractAccountsService {
 		EntityManager em = null;
 		try {
 			em = open();
-			long numAccounts = (Long) (em.createNamedQuery("acc_size").getSingleResult());
+			long numAccounts = (Long) (em.createNamedQuery("acc_size")
+					.getSingleResult());
 			accounts = (int) numAccounts;
 		} catch (Exception ex) {
 			LOG.error("Failed fetching number of accounts", ex);
@@ -113,9 +117,10 @@ public class JPAAccountsService extends AbstractAccountsService {
 		try {
 			em = open();
 			Query activeSizeQuery = em.createNamedQuery("acc_size_active");
-			final long oneWeekAgo = System.currentTimeMillis() - (1000 * 60 * 60 * 24 * 7);
+			final long oneWeekAgo = System.currentTimeMillis() - (DAY * 7);
 			activeSizeQuery.setParameter("oneWeekAgo", oneWeekAgo);
-			activeAccounts = (int) (long) (Long) (activeSizeQuery.getSingleResult());
+			activeAccounts = (int) (long) (Long)
+					activeSizeQuery.getSingleResult();
 		} catch (Exception ex) {
 			LOG.error("Failed fetching active accounts", ex);
 			activeAccounts = -1;
@@ -213,7 +218,8 @@ public class JPAAccountsService extends AbstractAccountsService {
 			fetchByNameQuery.setParameter("name", username);
 			act = (Account) fetchByNameQuery.getSingleResult();
 		} catch (NoResultException ex) {
-			LOG.trace("Failed fetching an account by name: " + username + " (user not found)", ex);
+			LOG.trace("Failed fetching an account by name: " + username
+					+ " (user not found)", ex);
 		} catch (Exception ex) {
 			LOG.trace("Failed fetching an account by name: " + username, ex);
 		} finally {
@@ -232,11 +238,14 @@ public class JPAAccountsService extends AbstractAccountsService {
 		EntityManager em = null;
 		try {
 			em = open();
-			Query fetchByLowerNameQuery = em.createNamedQuery("acc_fetchByLowerName");
-			fetchByLowerNameQuery.setParameter("lowerName", username.toLowerCase());
+			Query fetchByLowerNameQuery = em.createNamedQuery(
+					"acc_fetchByLowerName");
+			fetchByLowerNameQuery.setParameter("lowerName",
+					username.toLowerCase());
 			act = (Account) fetchByLowerNameQuery.getSingleResult();
 		} catch (Exception ex) {
-			LOG.trace("Failed fetching an account by name (case-insensitive)", ex);
+			LOG.trace("Failed fetching an account by name (case-insensitive)",
+					ex);
 		} finally {
 			close(em);
 			em = null;
@@ -297,7 +306,8 @@ public class JPAAccountsService extends AbstractAccountsService {
 		EntityManager em = null;
 		try {
 			em = open();
-			acts = (List<Account>) (em.createNamedQuery("acc_list").getResultList());
+			acts = (List<Account>) (em.createNamedQuery("acc_list")
+					.getResultList());
 		} catch (Exception ex) {
 			LOG.error("Failed fetching all accounts", ex);
 		} finally {
