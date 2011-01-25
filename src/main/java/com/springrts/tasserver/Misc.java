@@ -559,15 +559,17 @@ public class Misc {
 	private static Pattern patternIpV4 = Pattern.compile("^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$");
 	private static Pattern patternIpV6 = Pattern.compile("^[0-9a-fA-F.:]+$");
 
-	public static InetAddress parseIp(final String ip, boolean failOnNonV4, boolean failOnNonV6) {
+	public static InetAddress parseIp(final String ip, boolean acceptV6, boolean acceptHostname) {
 
 		InetAddress inetAddress = null;
 
 		try {
-			if (failOnNonV6 && !patternIpV6.matcher(ip).matches()) {
-				throw new IllegalArgumentException("Is neither a v4 nor a v6 IP addresses");
-			} else if (failOnNonV4 && !patternIpV4.matcher(ip).matches()) {
-				throw new IllegalArgumentException("Only IP v4 addresses are supported");
+			if (!acceptHostname) {
+				if (!patternIpV6.matcher(ip).matches()) {
+					throw new IllegalArgumentException("Is neither a v4 nor a v6 IP address");
+				} else if (!acceptV6 && !patternIpV4.matcher(ip).matches()) {
+					throw new IllegalArgumentException("Only IP v4 addresses are supported");
+				}
 			}
 
 			try {
@@ -583,7 +585,7 @@ public class Misc {
 		return inetAddress;
 	}
 	public static InetAddress parseIp(final String ip) {
-		return parseIp(ip, true, true);
+		return parseIp(ip, false, false);
 	}
 
 	private static Properties initMavenProperties() {
