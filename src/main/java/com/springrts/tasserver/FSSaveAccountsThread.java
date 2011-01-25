@@ -23,29 +23,34 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Writer;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Note that it is vital that everything here is synchronized with main server thread.
- * Currently dupAccounts list is cloned from original accounts list so we don't have
- * to worry about thread-safety here (this is the easiest way since otherwise we would
- * have to make sure no account is added or removed while we are saving accounts to disk).
- * The second thing for which we must ensure thread-safety is Account.toString() method.
- * The only problem with Account.toString() method is calling MapGradeList.toString()
- * method, which could potentially cause problems (other fields used in Account.toString()
- * are mostly atomic or if they are not it doesn't hurt us really - example is 'long' type,
- * which consists of two 32 bit ints and is thus not atomic, but it won't cause corruption
- * in accounts file as it is used right now). So it is essential to ensure that MapGrading
- * class is thread-safe (or at least its toString() method is).
+ * Note that it is vital that everything here is synchronized with main server
+ * thread.
+ * Currently dupAccounts list is cloned from the original accounts list, so we
+ * do not have to worry about thread-safety here. This is the easiest way, since
+ * otherwise we would have to make sure no account is added or removed while we
+ * are saving accounts to disk.
+ * The second thing for which we must ensure thread-safety is the
+ * Account.toString() method. The only problem there is the call to
+ * MapGradeList.toString(), which could potentially cause problems. Other fields
+ * used in Account.toString() are mostly atomic, or if they are not, it does not
+ * hurt us really - an example is the 'long' type, which consists of two 32 bit
+ * <code>int</code>s, and is thus not atomic, but it will not cause corruption
+ * in the accounts file, as it is used right now. So it is essential to ensure
+ * that the MapGrading class is thread-safe, or at least its toString() method.
  *
  * @author Betalord
  */
 public class FSSaveAccountsThread extends Thread implements ContextReceiver {
 
-	private static final Logger LOG = LoggerFactory.getLogger(FSSaveAccountsThread.class);
+	private static final Logger LOG
+			= LoggerFactory.getLogger(FSSaveAccountsThread.class);
 
 	private Context context = null;
 
@@ -79,24 +84,44 @@ public class FSSaveAccountsThread extends Thread implements ContextReceiver {
 		LOG.info("Dumping accounts to disk in a separate thread ...");
 		long time = System.currentTimeMillis();
 
+		Writer outF = null;
+		Writer outB = null;
+		PrintWriter out = null;
 		try {
-			PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(saveFile)));
+			outF = new FileWriter(saveFile);
+			outB = new BufferedWriter(outF);
+			out = new PrintWriter(outB);
 
 			for (int i = 0; i < dupAccounts.size(); i++) {
-				out.println(FSAccountsService.toPersistentString(dupAccounts.get(i)));
+				out.println(FSAccountsService.toPersistentString(
+						dupAccounts.get(i)));
 			}
-
-			out.close();
 		} catch (IOException ex) {
-			LOG.error("Failed writing accounts info to " + saveFile.getAbsolutePath() + "!", ex);
+			LOG.error("Failed writing accounts info to "
+					+ saveFile.getAbsolutePath() + "!", ex);
 
 			// add server notification:
-			ServerNotification sn = new ServerNotification("Error saving accounts");
-			sn.addLine("Serious error: accounts info could not be saved to disk. Exception trace:");
+			ServerNotification sn = new ServerNotification(
+					"Error saving accounts");
+			sn.addLine("Serious error: accounts info could not be saved to"
+					+ " disk. Exception trace:");
 			sn.addException(ex);
 			context.getServerNotifications().addNotification(sn);
 
 			return;
+		} finally {
+			try {
+				if (out != null) {
+					out.close();
+				} else if (outB != null) {
+					outB.close();
+				} else if (outF != null) {
+					outF.close();
+				}
+			} catch (IOException ex) {
+				LOG.debug("Failed closing file writer to accounts file: "
+						+ saveFile.getAbsolutePath(), ex);
+			}
 		}
 
 		LOG.info("{} accounts information written to {} successfully ({} ms).",
@@ -106,7 +131,7 @@ public class FSSaveAccountsThread extends Thread implements ContextReceiver {
 					(System.currentTimeMillis() - time)
 				});
 
-		// let garbage collector free the duplicate accounts list:
+		// let the garbage collector free the duplicate accounts list
 		dupAccounts = null;
 	}
 }
