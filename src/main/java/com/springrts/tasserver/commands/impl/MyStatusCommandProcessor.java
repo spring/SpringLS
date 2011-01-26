@@ -63,22 +63,13 @@ public class MyStatusCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		// we must preserve rank bits, access bit and bot mode bit
-		// (the client is not allowed to change them himself):
-		Account.Rank rank = client.getRank();
-		boolean inGame = client.isInGame();
-		boolean access = client.isAccess();
-		boolean bot = client.isBot();
+		boolean oldInGame = client.isInGame();
 
-		client.setStatus(newStatus);
+		client.setStatus(newStatus, false);
 
-		client.setRank(rank);
-		client.setAccess(access);
-		client.setBot(bot);
-
-		if (client.isInGame() != inGame) {
+		if (client.isInGame() != oldInGame) {
 			// user changed his in-game status.
-			if (!inGame) { // client just entered game
+			if (!oldInGame) { // client just entered game
 				Battle battle = getBattle(client);
 				if ((battle != null) && (battle.getClientsSize() > 0)) {
 					client.setInGameTime(System.currentTimeMillis());

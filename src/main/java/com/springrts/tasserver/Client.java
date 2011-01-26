@@ -714,19 +714,24 @@ public class Client extends TeamController implements ContextReceiver {
 	/**
 	 * See the 'MYSTATUS' command for valid values
 	 * @param status the status to set
+	 * @param priviledged rank, access and bot are only changed if this is true
 	 */
-	public void setStatus(int status) {
+	public void setStatus(int status, boolean priviledged) {
 
 		setInGame( (status & 0x1)        == 1);
 		setAway(  ((status & 0x2)  >> 1) == 1);
-		// use highest rank if a too high value was specified
-		int rankIndex = (status & 0x1C) >> 2;
-		Account.Rank newRank = (rankIndex < Account.Rank.values().length)
-				? Account.Rank.values()[rankIndex]
-				: Account.Rank.values()[Account.Rank.values().length - 1];
-		setRank(newRank);
-		setAccess(((status & 0x20) >> 5) == 1);
-		setBot(   ((status & 0x40) >> 6) == 1);
+
+		// This method is only used in MYSTATUS, which is not allowed to
+		if (priviledged) {
+			// use the highest rank, if a too high value was specified
+			int rankIndex = (status & 0x1C) >> 2;
+			Account.Rank newRank = (rankIndex < Account.Rank.values().length)
+					? Account.Rank.values()[rankIndex]
+					: Account.Rank.values()[Account.Rank.values().length - 1];
+			setRank(newRank);
+			setAccess(((status & 0x20) >> 5) == 1);
+			setBot(   ((status & 0x40) >> 6) == 1);
+		}
 	}
 
 	/**
