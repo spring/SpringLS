@@ -189,12 +189,6 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 		}
 
 		// set client's status:
-		client.setRank(client.getAccount().getRank());
-		client.setBot(client.getAccount().isBot());
-		client.setAccess(((client.getAccount().getAccess().isLessThen(
-				Account.Access.PRIVILEGED)
-				&& (!getContext().getServer().isLanMode())) ? true : false));
-
 		client.setCpu(cpu);
 		client.getAccount().setLastLogin(System.currentTimeMillis());
 		client.getAccount().setLastCountry(client.getCountry());

@@ -87,9 +87,6 @@ public class Client extends TeamController implements ContextReceiver {
 	private int udpSourcePort;
 	private boolean inGame;
 	private boolean away;
-	private Account.Rank rank;
-	private boolean access;
-	private boolean bot;
 	/**
 	 * ID of the battle in which this client is participating.
 	 * Has to be -1 if not participating in any battle.
@@ -209,9 +206,6 @@ public class Client extends TeamController implements ContextReceiver {
 		recvBuf = new StringBuilder();
 		inGame = false;
 		away = false;
-		rank = Account.Rank.Newbie;
-		access = false;
-		bot = false;
 		locale = IP2Country.getInstance().getLocale(ip);
 		inGameTime = 0;
 		battleID = Battle.NO_BATTLE_ID;
@@ -356,6 +350,7 @@ public class Client extends TeamController implements ContextReceiver {
 	}
 
 	public void sendWelcomeMessage() {
+
 		sendLine(String.format("%s %s %s %d %d",
 				Server.getApplicationName(),
 				Misc.getAppVersion(),
@@ -566,28 +561,16 @@ public class Client extends TeamController implements ContextReceiver {
 		this.away = away;
 	}
 
-	public Account.Rank getRank() {
-		return rank;
-	}
-
-	public void setRank(Account.Rank rank) {
-		this.rank = rank;
-	}
-
-	public boolean isAccess() {
-		return access;
-	}
-
-	public void setAccess(boolean access) {
-		this.access = access;
-	}
-
-	public boolean isBot() {
-		return bot;
-	}
-
-	public void setBot(boolean bot) {
-		this.bot = bot;
+	/**
+	 * The access status tells us whether this client is a server moderator or
+	 * not. A client is not allowed to change this bit himself, only the server
+	 * may set them.
+	 * This is only used for generating the status bits for the CLIENTSTATUS
+	 * command.
+	 */
+	private boolean isAccess() {
+		return (getAccount().getAccess().isLessThen(Account.Access.PRIVILEGED)
+				&& !context.getServer().isLanMode());
 	}
 
 	/**
@@ -702,11 +685,11 @@ public class Client extends TeamController implements ContextReceiver {
 
 		int status = 0;
 
-		status +=  isInGame() ? 1 : 0;
-		status += (isAway()   ? 1 : 0) << 1;
-		status +=  getRank().ordinal() << 2;
-		status += (isAccess() ? 1 : 0) << 5;
-		status += (isBot()    ? 1 : 0) << 6;
+		status +=  isInGame()           ? 1 : 0;
+		status += (isAway()             ? 1 : 0)    << 1;
+		status +=  getAccount().getRank().ordinal() << 2;
+		status += (isAccess()           ? 1 : 0)    << 5;
+		status += (getAccount().isBot() ? 1 : 0)    << 6;
 
 		return status;
 	}
@@ -721,16 +704,18 @@ public class Client extends TeamController implements ContextReceiver {
 		setInGame( (status & 0x1)        == 1);
 		setAway(  ((status & 0x2)  >> 1) == 1);
 
-		// This method is only used in MYSTATUS, which is not allowed to
+		// This method is only used in MYSTATUS, which priviledged == false.
+		// Therefore, the following is never used, and only stays here for
+		// historical reasons.
 		if (priviledged) {
 			// use the highest rank, if a too high value was specified
-			int rankIndex = (status & 0x1C) >> 2;
-			Account.Rank newRank = (rankIndex < Account.Rank.values().length)
-					? Account.Rank.values()[rankIndex]
-					: Account.Rank.values()[Account.Rank.values().length - 1];
-			setRank(newRank);
-			setAccess(((status & 0x20) >> 5) == 1);
-			setBot(   ((status & 0x40) >> 6) == 1);
+//			int rankIndex = (status & 0x1C) >> 2;
+//			Account.Rank newRank = (rankIndex < Account.Rank.values().length)
+//					? Account.Rank.values()[rankIndex]
+//					: Account.Rank.values()[Account.Rank.values().length - 1];
+//			getAccount().setRank(newRank);
+//			setAccess(((status & 0x20) >> 5) == 1);
+			getAccount().setBot(((status & 0x40) >> 6) == 1);
 		}
 	}
 

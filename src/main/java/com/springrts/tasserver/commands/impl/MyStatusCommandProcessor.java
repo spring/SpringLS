@@ -100,11 +100,7 @@ public class MyStatusCommandProcessor extends AbstractCommandProcessor {
 					// for hours, to increase their ranks.
 					long diffMins = (System.currentTimeMillis()
 							- client.getInGameTime()) / 60000;
-					boolean rankChanged = client.getAccount()
-							.addMinsToInGameTime(diffMins);
-					if (rankChanged) {
-						client.setRank(client.getAccount().getRank());
-					}
+					client.getAccount().addMinsToInGameTime(diffMins);
 					final boolean mergeOk = getContext().getAccountsService()
 							.mergeAccountChanges(client.getAccount(),
 							client.getAccount().getName());
