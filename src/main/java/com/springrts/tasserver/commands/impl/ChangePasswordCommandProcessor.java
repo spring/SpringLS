@@ -45,7 +45,7 @@ public class ChangePasswordCommandProcessor extends AbstractCommandProcessor {
 		try {
 			checksOk = super.process(client, args);
 		} catch (InvalidNumberOfArgumentsCommandProcessingException ex) {
-					client.sendLine("SERVERMSG Bad CHANGEPASSWORD command - too many or too few parameters");
+					client.sendLine("SERVERMSG Bad CHANGEPASSWORD command - Too many or too few parameters have been supplied");
 			throw ex;
 		}
 		if (!checksOk) {
@@ -56,12 +56,12 @@ public class ChangePasswordCommandProcessor extends AbstractCommandProcessor {
 		String newPassword = args.get(1);
 
 		if (getContext().getServer().isLanMode()) {
-			client.sendLine("SERVERMSG CHANGEPASSWORD failed: You cannot change your password while server is running in LAN mode!");
+			client.sendLine("SERVERMSG CHANGEPASSWORD failed: You can not change your password while the server is running in LAN mode!");
 			return false;
 		}
 
-		if (!(oldPassword.equals(client.getAccount().getPassword()))) {
-			client.sendLine("SERVERMSG CHANGEPASSWORD failed: Old password is incorrect!");
+		if (!oldPassword.equals(client.getAccount().getPassword())) {
+			client.sendLine("SERVERMSG CHANGEPASSWORD failed: The old password is incorrect!");
 			return false;
 		}
 
@@ -74,14 +74,17 @@ public class ChangePasswordCommandProcessor extends AbstractCommandProcessor {
 
 		final String oldPasswd = client.getAccount().getPassword();
 		client.getAccount().setPassword(newPassword);
-		final boolean mergeOk = getContext().getAccountsService().mergeAccountChanges( client.getAccount(), client.getAccount().getName());
+		final boolean mergeOk = getContext().getAccountsService()
+				.mergeAccountChanges(client.getAccount(),
+				client.getAccount().getName());
 		if (!mergeOk) {
 			client.getAccount().setPassword(oldPasswd);
 			client.sendLine("SERVERMSG CHANGEPASSWORD failed: Failed saving to persistent storage.");
 			return false;
 		}
 
-		getContext().getAccountsService().saveAccounts(false); // let's save new accounts info to disk
+		// let's save new accounts info to disk
+		getContext().getAccountsService().saveAccounts(false);
 		client.sendLine("SERVERMSG Your password has been successfully updated!");
 
 		return true;

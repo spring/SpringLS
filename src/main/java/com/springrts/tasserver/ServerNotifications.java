@@ -105,7 +105,7 @@ public class ServerNotifications implements ContextReceiver {
 	public boolean addNotification(ServerNotification sn) {
 
 		if (context.getServer().isLanMode()) {
-			// ignore notifications if server is running in lan mode!
+			// ignore notifications if server is running in LAN mode!
 			return false;
 		}
 

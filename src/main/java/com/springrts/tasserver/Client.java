@@ -563,8 +563,7 @@ public class Client extends TeamController implements ContextReceiver {
 
 	/**
 	 * The access status tells us whether this client is a server moderator or
-	 * not. A client is not allowed to change this bit himself, only the server
-	 * may set them.
+	 * not.
 	 * This is only used for generating the status bits for the CLIENTSTATUS
 	 * command.
 	 */

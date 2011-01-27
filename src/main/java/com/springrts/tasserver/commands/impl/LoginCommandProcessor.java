@@ -301,9 +301,10 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 				return false;
 			}
 			client.setAccount(acc);
-		} else { // lanMode == true
-			if (username.equals("")) {
-				client.sendLine("DENIED Cannot login with null username");
+		} else { // LAN mode
+			if (username.isEmpty()) {
+				client.sendLine("DENIED Can not login with null/empty username"
+						);
 			}
 			Account acc = getContext().getAccountsService().getAccount(username
 					);

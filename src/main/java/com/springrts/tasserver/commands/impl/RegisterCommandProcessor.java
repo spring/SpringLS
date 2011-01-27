@@ -56,13 +56,16 @@ public class RegisterCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		if (client.getAccount().getAccess() != Account.Access.NONE) { // only clients which aren't logged-in can register
+		if (client.getAccount().getAccess() != Account.Access.NONE) {
+			// only clients which are not logged-in can register
 			client.sendLine("REGISTRATIONDENIED You are already logged-in, no need to register new account");
 			return false;
 		}
 
-		if (getContext().getServer().isLanMode()) { // no need to register account in LAN mode since it accepts any userName
-			client.sendLine("REGISTRATIONDENIED Can't register in LAN-mode. Login with any username and password to proceed");
+		if (getContext().getServer().isLanMode()) {
+			// no need to register an account in LAN mode, since it accepts any
+			// userName
+			client.sendLine("REGISTRATIONDENIED Can not register in LAN-mode. Login with any username and password to proceed");
 			return false;
 		}
 

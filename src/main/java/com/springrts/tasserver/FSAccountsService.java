@@ -143,7 +143,8 @@ public class FSAccountsService extends AbstractAccountsService {
 		if (actParts.length >= 9) {
 			accountId = Integer.parseInt(actParts[8]);
 		}
-		final int accessBitField = Integer.parseInt(actParts[2], 2); // input is of the form "1100110"
+		// input is of the form "1100110"
+		final int accessBitField = Integer.parseInt(actParts[2], 2);
 		Account act = new Account(
 				actParts[0],
 				actParts[1],
@@ -222,8 +223,8 @@ public class FSAccountsService extends AbstractAccountsService {
 	/**
 	 * Saves accounts to permanent storage.
 	 * @param block if false, this method will spawn a new thread,
-	 *              so this method can return immediately (non-blocking mode).
-	 *              If 'true', it will not return until the accounts have been saved.
+	 *   so this method can return immediately (non-blocking mode).
+	 *   If 'true', it will not return until the accounts have been saved.
 	 */
 	@Override
 	public void saveAccounts(boolean block) {
@@ -233,14 +234,15 @@ public class FSAccountsService extends AbstractAccountsService {
 		lastSaveAccountsTime = System.currentTimeMillis();
 		List<Account> accountsCopy = new ArrayList<Account>(accounts.size());
 		Collections.copy(accountsCopy, accounts);
-		saveAccountsThread = new FSSaveAccountsThread(new File(ACCOUNTS_INFO_FILEPATH), accountsCopy);
+		File accsFile = new File(ACCOUNTS_INFO_FILEPATH);
+		saveAccountsThread = new FSSaveAccountsThread(accsFile, accountsCopy);
 		saveAccountsThread.receiveContext(getContext());
 		saveAccountsThread.start();
 
 		if (block) {
 			try {
 				saveAccountsThread.join(); // wait until thread returns
-			} catch (InterruptedException e) {
+			} catch (InterruptedException ex) {
 				// do nothing
 			}
 		}
@@ -262,7 +264,10 @@ public class FSAccountsService extends AbstractAccountsService {
 		}
 	}
 
-	/** WARNING: caller must check if username/password is valid etc. himself! */
+	/**
+	 * WARNING: The caller must check if username/password is valid etc.
+	 * himself!
+	 */
 	@Override
 	public void addAccount(Account acc) {
 		if (acc.getId() == Account.NEW_ACCOUNT_ID) {
