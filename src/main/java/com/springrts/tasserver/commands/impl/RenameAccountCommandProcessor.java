@@ -69,14 +69,9 @@ public class RenameAccountCommandProcessor extends AbstractCommandProcessor {
 		}
 
 		Account acc = getContext().getAccountsService().findAccountNoCase(newUsername);
-		if (acc != null && acc != client.getAccount()) {
+		if ((acc != null) && (acc != client.getAccount())) {
 			client.sendLine("SERVERMSG RENAMEACCOUNT failed: Account with same username already exists!");
 			return false;
-		}
-
-		// make sure all mutes are accordingly adjusted to new userName:
-		for (int i = 0; i < getContext().getChannels().getChannelsSize(); i++) {
-			getContext().getChannels().getChannel(i).getMuteList().rename(client.getAccount().getName(), newUsername);
 		}
 
 		final String oldName = client.getAccount().getName();
@@ -90,6 +85,11 @@ public class RenameAccountCommandProcessor extends AbstractCommandProcessor {
 		} else {
 			client.sendLine("SERVERMSG Your account renaming failed.");
 			return false;
+		}
+
+		// make sure all mutes are accordingly adjusted to the new userName:
+		for (int i = 0; i < getContext().getChannels().getChannelsSize(); i++) {
+			getContext().getChannels().getChannel(i).getMuteList().rename(client.getAccount().getName(), newUsername);
 		}
 
 		client.sendLine(new StringBuilder("SERVERMSG Your account has been renamed to <")
