@@ -18,6 +18,8 @@
 package com.springrts.tasserver;
 
 
+import java.util.Arrays;
+import java.util.List;
 import junit.framework.TestCase;
 
 /**
@@ -27,8 +29,23 @@ public class TestMisc extends TestCase {
 
 	public void testMakeSentence() {
 
-		String sentence = Misc.makeSentence(new String[] {}, 0);
-		TestCase.assertEquals("", sentence);
+		TestCase.assertEquals("", Misc.makeSentence(new String[] {}, 0));
+		TestCase.assertEquals("", Misc.makeSentence(new String[] {}, 1));
+
+		String yellowSubSent = "We all live in a yellow submarine";
+
+		String[] yellowSub = yellowSubSent.split(" ");
+		TestCase.assertEquals(yellowSubSent, Misc.makeSentence(yellowSub));
+		TestCase.assertEquals(yellowSubSent, Misc.makeSentence(yellowSub, 0));
+		TestCase.assertEquals("submarine", Misc.makeSentence(yellowSub, 6));
+		TestCase.assertEquals("yellow submarine", Misc.makeSentence(yellowSub, 5));
+		TestCase.assertEquals("a yellow submarine", Misc.makeSentence(yellowSub, 4));
+
+		List<String> yellowSubList = Arrays.asList(yellowSub);
+		TestCase.assertEquals(yellowSubSent, Misc.makeSentence(yellowSubList, 0));
+		TestCase.assertEquals("submarine", Misc.makeSentence(yellowSubList, 6));
+		TestCase.assertEquals("yellow submarine", Misc.makeSentence(yellowSubList, 5));
+		TestCase.assertEquals("a yellow submarine", Misc.makeSentence(yellowSubList, 4));
 	}
 
 	public void testParseIp() {
