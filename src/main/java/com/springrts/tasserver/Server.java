@@ -76,7 +76,7 @@ public class Server implements ContextReceiver {
 	private String lanAdminPassword;
 
 	/** Default TCP server port. */
-	private static final int DEFAULT_PORT = 8200;
+	public static final int DEFAULT_PORT = 8200;
 	/**
 	 * Main TCP port to run the server on.
 	 */
