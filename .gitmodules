@@ -1,3 +1,6 @@
 [submodule "LobbyProtocol"]
 	path = Documentation/Protocol
 	url = git://github.com/spring/LobbyProtocol.git
+[submodule "Tools/ChanServ"]
+	path = Tools/ChanServ
+	url = git://github.com/spring/ChanServ.git
