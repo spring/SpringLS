@@ -409,9 +409,7 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 		getContext().stopping();
 
 		// close everything:
-		if (!getContext().getServer().isLanMode()) {
-			getContext().getAccountsService().saveAccounts(true);
-		}
+		getContext().getAccountsService().saveAccounts(true);
 		if (getContext().getNatHelpServer().isRunning()) {
 			getContext().getNatHelpServer().stopServer();
 		}
@@ -528,8 +526,8 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 		if (!context.getServer().isLanMode()) {
 			AccountsService accountsService = context.getAccountsService();
 			if (accountsService.getAccountsSize() == 0) {
-				String username = "admin";
-				String password = "admin";
+				String username = Server.DEFAULT_ADMIN_USERNAME;
+				String password = Server.DEFAULT_ADMIN_PASSWORD;
 				LOG.info("As there are no accounts yet, we are creating an"
 						+ " admin account: username=\"{}\", password=\"{}\"",
 						username, password);

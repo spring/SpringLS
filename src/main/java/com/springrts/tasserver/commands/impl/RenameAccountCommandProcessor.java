@@ -57,11 +57,11 @@ public class RenameAccountCommandProcessor extends AbstractCommandProcessor {
 		String newUsername = Misc.makeSentence(args, 0);
 
 		if (getContext().getServer().isLanMode()) {
-			client.sendLine("SERVERMSG RENAMEACCOUNT failed: You cannot rename your account while server is running in LAN mode since you have no account!");
+			client.sendLine("SERVERMSG RENAMEACCOUNT failed: You cannot rename your account while the server is running in LAN mode, since you have no persistent account!");
 			return false;
 		}
 
-		// validate new userName:
+		// validate new user name
 		String valid = Account.isOldUsernameValid(newUsername);
 		if (valid != null) {
 			client.sendLine(new StringBuilder("SERVERMSG RENAMEACCOUNT failed: Invalid username (reason: ").append(valid).append(")").toString());

@@ -50,12 +50,13 @@ public class Server implements ContextReceiver {
 	private long startTime;
 
 	/**
-	 * Default LAN administrator user name.
+	 * Default administrator user name for LAN mode and if no account is found
+	 * in the backing storage.
 	 * Can be overwritten with -LANADMIN switch.
 	 * Used only when server is running in LAN mode!
-	 * @see #DEFAULT_LAN_ADMIN_PASSWORD
+	 * @see #DEFAULT_ADMIN_PASSWORD
 	 */
-	private static final String DEFAULT_LAN_ADMIN_USERNAME = "admin";
+	public static final String DEFAULT_ADMIN_USERNAME = "admin";
 	/**
 	 * LAN mode administrator user-name.
 	 * Only relevant if {@link getLanMode()} is <code>true</code>.
@@ -63,10 +64,11 @@ public class Server implements ContextReceiver {
 	private String lanAdminUsername;
 
 	/**
-	 * Default LAN administrator password.
-	 * @see #DEFAULT_LAN_ADMIN_USERNAME
+	 * Default administrator password for LAN mode and if no account is found in
+	 * the backing storage.
+	 * @see #DEFAULT_ADMIN_USERNAME
 	 */
-	private static final String DEFAULT_LAN_ADMIN_PASSWORD = "admin";
+	public static final String DEFAULT_ADMIN_PASSWORD = "admin";
 	/**
 	 * LAN mode administrator password.
 	 * Only relevant if {@link getLanMode()} is <code>true</code>.
@@ -105,8 +107,8 @@ public class Server implements ContextReceiver {
 
 		lanMode = false;
 		startTime = System.currentTimeMillis();
-		lanAdminUsername = DEFAULT_LAN_ADMIN_USERNAME;
-		lanAdminPassword = Misc.encodePassword(DEFAULT_LAN_ADMIN_PASSWORD);
+		lanAdminUsername = DEFAULT_ADMIN_USERNAME;
+		lanAdminPassword = Misc.encodePassword(DEFAULT_ADMIN_PASSWORD);
 		port = DEFAULT_PORT;
 		useUserDB = false;
 		loginEnabled = true;

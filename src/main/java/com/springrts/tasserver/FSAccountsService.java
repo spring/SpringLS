@@ -259,7 +259,7 @@ public class FSAccountsService extends AbstractAccountsService {
 
 		// note: lastSaveAccountsTime will get updated in saveAccounts() method!
 		long timeSinceLastSave = System.currentTimeMillis() - lastSaveAccountsTime;
-		if (!getContext().getServer().isLanMode() && (timeSinceLastSave > SAVE_ACCOUNT_INFO_INTERVAL)) {
+		if (timeSinceLastSave > SAVE_ACCOUNT_INFO_INTERVAL) {
 			saveAccounts(false);
 		}
 	}

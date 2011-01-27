@@ -568,8 +568,7 @@ public class Client extends TeamController implements ContextReceiver {
 	 * command.
 	 */
 	private boolean isAccess() {
-		return (getAccount().getAccess().isAtLeast(Account.Access.PRIVILEGED)
-				&& !context.getServer().isLanMode());
+		return getAccount().getAccess().isAtLeast(Account.Access.PRIVILEGED);
 	}
 
 	/**

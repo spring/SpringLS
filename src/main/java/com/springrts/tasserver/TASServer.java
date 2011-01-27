@@ -45,17 +45,18 @@ public class TASServer {
 
 		context.getCommandProcessors().init();
 
-		// switch to LAN mode if user accounts information is not present:
-		if (!context.getServer().isLanMode()
-				&& !context.getAccountsService().isReadyToOperate())
-		{
+		// switch to LAN mode if user accounts information is not present
+		if (!context.getAccountsService().isReadyToOperate()) {
+			assert(context.getServer().isLanMode());
 			LOG.warn("Accounts service not ready, switching to \"LAN mode\" ...");
 			context.getServer().setLanMode(true);
+			context.setAccountsService(createAccountsService(context));
 		}
 
+		context.getAccountsService().loadAccounts();
+
+		// TODO needs adjusting due to new LAN mode accounts service
 		if (!context.getServer().isLanMode()) {
-			context.getAccountsService().loadAccounts();
-			context.getBanService();
 			context.getAgreement().read();
 		} else {
 			LOG.info("LAN mode enabled");
@@ -89,7 +90,9 @@ public class TASServer {
 
 		AccountsService accountsService = null;
 
-		if (!context.getServer().isLanMode() && context.getServer().isUseUserDB()) {
+		if (context.getServer().isLanMode()) {
+			accountsService = new LanAccountsService();
+		} else if(context.getServer().isUseUserDB()) {
 			accountsService = new JPAAccountsService();
 		} else {
 			accountsService = new FSAccountsService();
@@ -106,10 +109,11 @@ public class TASServer {
 			try {
 				banService = new JPABanService();
 			} catch (Exception pex) {
-				banService = new DummyBanService();
 				LOG.warn("Failed to access database for ban entries, bans are not supported!", pex);
 			}
-		} else {
+		}
+
+		if (banService == null) {
 			banService = new DummyBanService();
 		}
 

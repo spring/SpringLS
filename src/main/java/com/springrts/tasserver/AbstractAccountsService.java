@@ -59,7 +59,7 @@ public abstract class AbstractAccountsService implements AccountsService {
 	@Override
 	public void stopping() {
 
-		if (!getContext().getServer().isLanMode() && started) {
+		if (started) {
 			// We need to check if initialization has completed,
 			// so that we do not save an empty accounts arra,
 			// and therefore overwrite actual accounts
