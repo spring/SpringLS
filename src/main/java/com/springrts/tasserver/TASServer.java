@@ -43,8 +43,6 @@ public class TASServer {
 
 		context.push();
 
-		context.getCommandProcessors().init();
-
 		// switch to LAN mode if user accounts information is not present
 		if (!context.getAccountsService().isReadyToOperate()) {
 			assert(context.getServer().isLanMode());
@@ -82,6 +80,8 @@ public class TASServer {
 		if (!context.getServerThread().startServer()) {
 			context.getServerThread().closeServerAndExit();
 		}
+
+		context.getCommandProcessors().init();
 
 		context.getServerThread().run();
 	}
