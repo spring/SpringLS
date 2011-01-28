@@ -73,11 +73,11 @@ public class AccountUtils {
 	private static Account createTestAccount(String userName) {
 
 		final String countryCode2L = java.util.Locale.getDefault().getCountry();
-		InetAddress localIp = null;
+		InetAddress localIp;
 		try {
-			localIp = java.net.InetAddress.getLocalHost();
+			localIp = InetAddress.getLocalHost();
 		} catch (java.net.UnknownHostException ex) {
-			// ignore
+			localIp = null;
 		}
 
 		String userPasswd = Misc.encodePassword(userName);
