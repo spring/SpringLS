@@ -122,10 +122,6 @@ public class Misc {
 		}
 	}
 
-	@Deprecated
-	public static boolean strToBool(String str) {
-		return numberToBool(Byte.parseByte(str));
-	}
 	public static boolean numberToBool(byte number) {
 		return (number == 1);
 	}
@@ -163,29 +159,6 @@ public class Misc {
 		return localIpAddress;
 	}
 
-	@Deprecated
-	public static long ip2Long(String ip) {
-
-		long res = 0;
-
-		String[] tokens = ip.split("\\.");
-		if (tokens.length != 4) {
-			res = -1;
-		}
-
-		try {
-			final long f1 = Long.parseLong(tokens[0]) << 24;
-			final long f2 = Long.parseLong(tokens[1]) << 16;
-			final long f3 = Long.parseLong(tokens[2]) << 8;
-			final long f4 = Long.parseLong(tokens[3]);
-			res = f1 + f2 + f3 + f4;
-		} catch (NumberFormatException nfex) {
-			res = -2;
-		}
-
-		return res;
-	}
-
 	public static long ip2Long(InetAddress ip) {
 
 		long res;
@@ -198,19 +171,6 @@ public class Misc {
 		res = f1 + f2 + f3 + f4;
 
 		return res;
-	}
-
-	@Deprecated
-	public static String long2ip(long ip) {
-
-		StringBuilder result = new StringBuilder(15);
-
-		result.append( ip               >> 24).append(".");
-		result.append((ip & 0x00FFFFFF) >> 16).append(".");
-		result.append((ip & 0x0000FFFF) >> 8).append(".");
-		result.append((ip & 0x000000FF));
-
-		return result.toString();
 	}
 
 	/**
@@ -261,35 +221,6 @@ public class Misc {
 	}
 
 	/**
-	 * Sorts an array of integers using simple bubble sort algorithm.
-	 * You may want to see the
-	 * <a href="http://en.wikisource.org/wiki/Bubble_sort">Bubble-Sort Wiki</a>.
-	 */
-	@Deprecated
-	public static void bubbleSort(int[] data) {
-
-		boolean isSorted;
-		int tempVariable;
-		int numberOfTimesLooped = 0;
-
-		do {
-			isSorted = true;
-
-			for (int i = 1; i < data.length - numberOfTimesLooped; i++) {
-				if (data[i] > data[i - 1]) {
-					tempVariable = data[i];
-					data[i] = data[i - 1];
-					data[i - 1] = tempVariable;
-
-					isSorted = false;
-				}
-			}
-
-			numberOfTimesLooped++;
-		} while (!isSorted);
-	}
-
-	/**
 	 * Sorts an array of integers plus a parallel List of objects
 	 * using simple bubble sort. This is a generic method.
 	 * Documentation about
@@ -321,29 +252,6 @@ public class Misc {
 
 			numberOfTimesLooped++;
 		} while (!isSorted);
-	}
-
-	@Deprecated
-	public static String getHashText(String plainText, String algorithm) throws NoSuchAlgorithmException {
-
-		MessageDigest mdAlgorithm = MessageDigest.getInstance(algorithm);
-
-		mdAlgorithm.update(plainText.getBytes());
-
-		byte[] digest = mdAlgorithm.digest();
-		StringBuilder hexString = new StringBuilder();
-
-		for (int i = 0; i < digest.length; i++) {
-			String hexStringPart = Integer.toHexString(0xFF & digest[i]);
-
-			if (hexStringPart.length() < 2) {
-				hexString.append("0");
-			}
-
-			hexString.append(hexStringPart);
-		}
-
-		return hexString.toString();
 	}
 
 	public static byte[] getMD5(String plainText) throws NoSuchAlgorithmException {
@@ -477,11 +385,6 @@ public class Misc {
 		return download(address, localFileName, 0);
 	}
 
-	@Deprecated
-	public static boolean deleteFile(String fileName) {
-		return (new File(fileName)).delete();
-	}
-
 	/**
 	 * @see #colorSpringToJava(int)
 	 */
@@ -535,29 +438,6 @@ public class Misc {
 		springColor += color.getRed();
 
 		return springColor;
-	}
-
-	@Deprecated
-	public static boolean isSameIP(final String[] ip1Split, final String ip2) {
-
-		String[] ip2Split = ip2.split("\\.");
-
-		return isSameIP(ip1Split, ip2Split);
-	}
-	@Deprecated
-	public static boolean isSameIP(final String[] ip1Split, final String[] ip2Split) {
-
-		if        (!ip1Split[0].equals("*") && !ip1Split[0].equals(ip2Split[0])) {
-			return false;
-		} else if (!ip1Split[1].equals("*") && !ip1Split[1].equals(ip2Split[1])) {
-			return false;
-		} else if (!ip1Split[2].equals("*") && !ip1Split[2].equals(ip2Split[2])) {
-			return false;
-		} else if (!ip1Split[3].equals("*") && !ip1Split[3].equals(ip2Split[3])) {
-			return false;
-		}
-
-		return true;
 	}
 
 	private static Pattern patternIpV4 = Pattern.compile("^[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}$");

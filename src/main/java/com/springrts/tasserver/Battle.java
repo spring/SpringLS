@@ -410,26 +410,6 @@ public class Battle implements ContextReceiver {
 		return (client.equals(getFounder()) || clients.contains(client));
 	}
 
-	/** @deprecated */
-	private boolean isClientInBattle(String username) {
-		return (getClient(username) != null);
-	}
-
-	/** @deprecated */
-	private Client getClient(String username) {
-
-		for (int i = 0; i < clients.size(); i++) {
-			if (clients.get(i).getAccount().getName().equals(username)) {
-				return clients.get(i);
-			}
-		}
-		if (getFounder().getAccount().getName().equals(username)) {
-			return getFounder();
-		}
-
-		return null;
-	}
-
 	private void sendDisabledUnitsListToClient(Client client) {
 
 		if (getDisabledUnits().isEmpty()) {
@@ -601,14 +581,6 @@ public class Battle implements ContextReceiver {
 			return;
 		}
 		client.sendLine("SETSCRIPTTAGS " + joinScriptTags());
-	}
-
-	/** @deprecated */
-	private void sendScriptTagsToAll() {
-
-		for (int i = 0; i < clients.size(); i++) {
-			sendScriptTagsToClient(clients.get(i));
-		}
 	}
 
 	/**

@@ -151,27 +151,6 @@ public abstract class AbstractCommandProcessor implements CommandProcessor {
 	}
 
 	/**
-	 * Returns the battle instance the client is founder of, or
-	 * <code>null</code>, if it is not currently founder of any battle.
-	 * @param client the client to check whether it is battle founder
-	 */
-	@Deprecated
-	protected Battle checkBattleFounder(Client client) {
-
-		Battle battle = null;
-
-		if (client.getBattleID() != Battle.NO_BATTLE_ID) {
-			battle = getContext().getBattles()
-					.getBattleByID(client.getBattleID());
-			if ((battle != null) && (battle.getFounder() != client)) {
-				battle = null;
-			}
-		}
-
-		return battle;
-	}
-
-	/**
 	 * Returns whether the client is currently in a battle.
 	 * @return true if the client is currently in a battle.
 	 */
