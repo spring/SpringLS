@@ -95,7 +95,7 @@ public class FloodProtection {
 	/**
 	 * Same as {@link #maxBytesAlert} but is used for clients in "bot mode"
 	 * only.
-	 * @see Client#isBot()
+	 * @see Account#isBot()
 	 * @return the maxBytesAlertForBot
 	 */
 	public int getMaxBytesAlertForBot() {
@@ -105,7 +105,7 @@ public class FloodProtection {
 	/**
 	 * Same as {@link #maxBytesAlert} but is used for clients in "bot mode"
 	 * only.
-	 * @see Client#isBot()
+	 * @see Account#isBot()
 	 * @param maxBytesAlertForBot the maxBytesAlertForBot to set
 	 */
 	public void setMaxBytesAlertForBot(int maxBytesAlertForBot) {
