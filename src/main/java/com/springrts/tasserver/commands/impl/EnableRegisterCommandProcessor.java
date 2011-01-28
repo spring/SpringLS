@@ -46,7 +46,8 @@ public class EnableRegisterCommandProcessor extends AbstractCommandProcessor {
 		}
 
 		if (args.size() == 1) {
-			boolean enableRegistration = Misc.strToBool(args.get(0));
+			boolean enableRegistration
+					= Misc.numberToBool(Byte.parseByte(args.get(0)));
 			getContext().getAccountsService()
 					.setRegistrationEnabled(enableRegistration);
 		}

@@ -179,7 +179,7 @@ public class Battle implements ContextReceiver {
 		}
 
 		return String.format(
-				"BATTLEOPENED %d %d %d %s %s %d %d %s %d %d %s\t%s\t%s",
+				"BATTLEOPENED %d %d %d %s %s %d %d %d %d %d %s\t%s\t%s",
 				getId(),
 				getType(),
 				getNatType(),
@@ -187,7 +187,7 @@ public class Battle implements ContextReceiver {
 				addr.getHostAddress(),
 				getPort(),
 				getMaxPlayers(),
-				Misc.boolToStr(restricted()),
+				Misc.boolToNumber(restricted()),
 				getRank(),
 				getMapHash(),
 				getMapName(),

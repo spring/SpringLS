@@ -165,10 +165,10 @@ public class Battles implements ContextReceiver {
 			// We have to send UPDATEBATTLEINFO command too,
 			// in order to tell the user how many spectators are in the battle,
 			// for example.
-			client.sendLine(String.format("UPDATEBATTLEINFO %d %d %s %d %s",
+			client.sendLine(String.format("UPDATEBATTLEINFO %d %d %d %d %s",
 					battle.getId(),
 					battle.spectatorCount(),
-					Misc.boolToStr(battle.isLocked()),
+					Misc.boolToNumber(battle.isLocked()),
 					battle.getMapHash(),
 					battle.getMapName()));
 			battle.applyToClients(new BattleJoiner(battle.getId()));

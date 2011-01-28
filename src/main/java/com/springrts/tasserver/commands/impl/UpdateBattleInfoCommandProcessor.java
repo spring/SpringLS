@@ -62,9 +62,9 @@ public class UpdateBattleInfoCommandProcessor extends AbstractCommandProcessor {
 		int maphash;
 		try {
 			spectatorCount = Integer.parseInt(spectatorCountStr);
-			locked = Misc.strToBool(lockedStr);
+			locked = Misc.numberToBool(Byte.parseByte(lockedStr));
 			maphash = Integer.decode(mapHashStr);
-		} catch (NumberFormatException e) {
+		} catch (NumberFormatException ex) {
 			return false;
 		}
 
@@ -72,10 +72,10 @@ public class UpdateBattleInfoCommandProcessor extends AbstractCommandProcessor {
 		battle.setLocked(locked);
 		battle.setMapHash(maphash);
 		getContext().getClients().sendToAllRegisteredUsers(
-				String.format("UPDATEBATTLEINFO %d %d %s %s %s",
+				String.format("UPDATEBATTLEINFO %d %d %d %s %s",
 				battle.getId(),
 				spectatorCount,
-				Misc.boolToStr(battle.isLocked()),
+				Misc.boolToNumber(battle.isLocked()),
 				maphash,
 				battle.getMapName()));
 

@@ -113,17 +113,21 @@ public class Misc {
 		return res.toString();
 	}
 
-	public static String boolToStr(boolean b) {
+	public static byte boolToNumber(boolean b) {
 
 		if (b) {
-			return "1";
+			return 1;
 		} else {
-			return "0";
+			return 0;
 		}
 	}
 
-	public static boolean strToBool(String s) {
-		return s.equals("1");
+	@Deprecated
+	public static boolean strToBool(String str) {
+		return numberToBool(Byte.parseByte(str));
+	}
+	public static boolean numberToBool(byte number) {
+		return (number == 1);
 	}
 
 	/**
