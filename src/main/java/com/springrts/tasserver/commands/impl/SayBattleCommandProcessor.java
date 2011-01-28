@@ -22,13 +22,10 @@ import com.springrts.tasserver.Account;
 import com.springrts.tasserver.Battle;
 import com.springrts.tasserver.Client;
 import com.springrts.tasserver.Misc;
-import com.springrts.tasserver.commands.AbstractCommandProcessor;
 import com.springrts.tasserver.commands.CommandProcessingException;
 import com.springrts.tasserver.commands.SupportedCommand;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Sent by client who is participating in a battle to server, who forwards this
@@ -39,9 +36,7 @@ import org.slf4j.LoggerFactory;
  * @author hoijui
  */
 @SupportedCommand("SAYBATTLE")
-public class SayBattleCommandProcessor extends AbstractCommandProcessor {
-
-	private static final Logger LOG = LoggerFactory.getLogger(SayBattleCommandProcessor.class);
+public class SayBattleCommandProcessor extends AbstractSayCommandProcessor {
 
 	public SayBattleCommandProcessor() {
 		super(1, ARGS_MAX_NOCHECK, Account.Access.ADMIN, true);
@@ -60,26 +55,7 @@ public class SayBattleCommandProcessor extends AbstractCommandProcessor {
 
 		String message = Misc.makeSentence(args, 0);
 
-		// check for flooding:
-		if ((message.length() > getContext().getServer().getMaxChatMessageLength())
-				&& client.getAccount().getAccess().isLessThen(Account.Access.ADMIN))
-		{
-			LOG.warn("Flooding detected from {} ({}) [exceeded max. chat message size]",
-					client.getIp().getHostAddress(),
-					client.getAccount().getName());
-			client.sendLine(String.format(
-					"SERVERMSG Flooding detected - you have exceeded the"
-					+ " maximum allowed chat message size (%d bytes)."
-					+ " Your message has been ignored.",
-					getContext().getServer().getMaxChatMessageLength()));
-			getContext().getClients().sendToAllAdministrators(String.format(
-					"SERVERMSG [broadcast to all admins]: Flooding has been"
-					+ " detected from %s <%s> - exceeded maximum chat message"
-					+ " size. Ignoring ...",
-					client.getIp().getHostAddress(),
-					client.getAccount().getName()));
-			return false;
-		}
+		checkFlooding(client, message);
 
 		battle.sendToAllClients(String.format("SAIDBATTLE %s %s",
 				client.getAccount().getName(), message));

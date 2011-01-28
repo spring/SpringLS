@@ -22,22 +22,17 @@ import com.springrts.tasserver.Account;
 import com.springrts.tasserver.Channel;
 import com.springrts.tasserver.Client;
 import com.springrts.tasserver.Misc;
-import com.springrts.tasserver.commands.AbstractCommandProcessor;
 import com.springrts.tasserver.commands.CommandProcessingException;
 import com.springrts.tasserver.commands.SupportedCommand;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Allows a user to chat.
  * @author hoijui
  */
 @SupportedCommand("SAY")
-public class SayCommandProcessor extends AbstractCommandProcessor {
-
-	private static final Logger LOG = LoggerFactory.getLogger(SayCommandProcessor.class);
+public class SayCommandProcessor extends AbstractSayCommandProcessor {
 
 	public SayCommandProcessor() {
 		super(2, ARGS_MAX_NOCHECK, Account.Access.NORMAL);
@@ -55,48 +50,17 @@ public class SayCommandProcessor extends AbstractCommandProcessor {
 		String channelName = args.get(0);
 		String message = Misc.makeSentence(args, 1);
 
-		Channel chan = client.getChannel(channelName);
-		if (chan == null) {
+		Channel channel = client.getChannel(channelName);
+		if (channel == null) {
 			return false;
 		}
 
-		if (chan.getMuteList().isMuted(client.getAccount().getName())) {
-			client.sendLine(String.format(
-					"SERVERMSG Message dropped. You are not allowed to talk in"
-					+ " #%s! Please contact one of the moderators.",
-					chan.getName()));
-			return false;
-		} else if (chan.getMuteList().isIpMuted(client.getIp())) {
-			client.sendLine(String.format(
-					"SERVERMSG Message dropped. You are not allowed to talk in"
-					+ " #%s (muted by IP address)! If you believe this is an"
-					+ " error, contact one of the moderators.",
-					chan.getName()));
-			return false;
-		}
+		checkMuted(client, channel);
 
+		checkFlooding(client, message);
 
-		// check for flooding:
-		if ((message.length() > getContext().getServer().getMaxChatMessageLength())
-				&& client.getAccount().getAccess().isLessThen(Account.Access.ADMIN))
-		{
-			LOG.warn("Flooding detected from {} ({}) [exceeded max. chat message size]",
-					client.getIp().getHostAddress(),
-					client.getAccount().getName());
-			client.sendLine(String.format(
-					"SERVERMSG Flooding detected - you have exceeded the"
-					+ " maximum allowed chat message size (%d bytes)."
-					+ " Your message has been ignored.",
-					getContext().getServer().getMaxChatMessageLength()));
-			getContext().getClients().sendToAllAdministrators(String.format(
-					"SERVERMSG [broadcast to all admins]: Flooding has been"
-					+ " detected from %s <%s> - exceeded maximum chat message"
-					+ " size. Ignoring ...",
-					client.getIp().getHostAddress(),
-					client.getAccount().getName()));
-			return false;
-		}
-		chan.sendLineToClients(String.format("SAID %s %s %s", chan.getName(),
+		channel.sendLineToClients(String.format("SAID %s %s %s",
+				channel.getName(),
 				client.getAccount().getName(), message));
 
 		return true;

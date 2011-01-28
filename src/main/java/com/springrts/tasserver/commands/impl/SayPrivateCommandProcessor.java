@@ -21,13 +21,10 @@ package com.springrts.tasserver.commands.impl;
 import com.springrts.tasserver.Account;
 import com.springrts.tasserver.Client;
 import com.springrts.tasserver.Misc;
-import com.springrts.tasserver.commands.AbstractCommandProcessor;
 import com.springrts.tasserver.commands.CommandProcessingException;
 import com.springrts.tasserver.commands.SupportedCommand;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Sent by client when he is trying to send a private message to some other
@@ -35,9 +32,7 @@ import org.slf4j.LoggerFactory;
  * @author hoijui
  */
 @SupportedCommand("SAYPRIVATE")
-public class SayPrivateCommandProcessor extends AbstractCommandProcessor {
-
-	private static final Logger LOG = LoggerFactory.getLogger(SayPrivateCommandProcessor.class);
+public class SayPrivateCommandProcessor extends AbstractSayCommandProcessor {
 
 	public SayPrivateCommandProcessor() {
 		super(2, ARGS_MAX_NOCHECK, Account.Access.ADMIN);
@@ -60,26 +55,7 @@ public class SayPrivateCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		// check for flooding:
-		if ((message.length() > getContext().getServer().getMaxChatMessageLength())
-				&& client.getAccount().getAccess().isLessThen(Account.Access.ADMIN))
-		{
-			LOG.warn("Flooding detected from {} ({}) [exceeded max. chat message size]",
-					client.getIp().getHostAddress(),
-					client.getAccount().getName());
-			client.sendLine(String.format(
-					"SERVERMSG Flooding detected - you have exceeded the"
-					+ " maximum allowed chat message size (%d bytes)."
-					+ " Your message has been ignored.",
-					getContext().getServer().getMaxChatMessageLength()));
-			getContext().getClients().sendToAllAdministrators(String.format(
-					"SERVERMSG [broadcast to all admins]: Flooding has been"
-					+ " detected from %s <%s> - exceeded maximum chat message"
-					+ " size. Ignoring ...",
-					client.getIp().getHostAddress(),
-					client.getAccount().getName()));
-			return false;
-		}
+		checkFlooding(client, message);
 
 		target.sendLine(String.format("SAIDPRIVATE %s %s",
 				client.getAccount().getName(), message));
