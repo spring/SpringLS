@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
  * @author Betalord
  * @author hoijui
  */
-public class IP2Country {
+public final class IP2Country {
 
 	private static final Logger LOG = LoggerFactory.getLogger(IP2Country.class);
 	private static final String DEFAULT_DATA_FILE = "ip2country.dat";
@@ -54,14 +54,41 @@ public class IP2Country {
 
 	private File dataFile;
 
-
-	private static IP2Country singleton = new IP2Country();
-
-	public static IP2Country getInstance() {
-		return singleton;
+	/**
+	 * This design is taken from http://c2.com/cgi/wiki?JavaSingleton
+	 * 
+	 * Quote (LloydBlythen):
+	 * Paraphrasing Scot, the point is that merely using a static to hold a
+	 * singleton will mean the singleton gets constructed if someone refers to
+	 * the containing class. This is especially significant if the singleton is
+	 * very heavyweight to construct. An embedded static final class can defer
+	 * this, as shown. If someone happens to refer to Singleton (or even
+	 * Singleton.class), the singleton will not be created unless there is a
+	 * call to getInstance(). At that time, SingletonHolder is referred to; its
+	 * class loads; and its static member (namely singleton) is instantiated.
+	 * Arguably, it is unlikely that code refers to Singleton without calling
+	 * getInstance(). But it will defer singleton construction until it is
+	 * absolutely required.
+	 * 
+	 * I asked Scot about thread-safety - note that the code doesn't use
+	 * synchronized anywhere - and he replied, "... this is all very thread
+	 * safe. Specifically, when the VM attempts to load a class, you are
+	 * guaranteed that while loading the class, no other thread will be
+	 * attempting to 'muck' with the class being loaded (nor will the same
+	 * class loader attempt to load the same class). This makes perfect sense
+	 * if you consider class loading to be of the same nature as object
+	 * instantiation."
+	 */
+	private static final class SingletonHolder {
+		private SingletonHolder() {}
+		static final IP2Country singleton = new IP2Country();
 	}
 
-	public IP2Country() {
+	public static IP2Country getInstance() {
+		return SingletonHolder.singleton;
+	}
+
+	private IP2Country() {
 
 		countries = new TreeSet<String>();
 		resolveTable = new TreeMap<IPRange, IPRange>();
@@ -70,6 +97,11 @@ public class IP2Country {
 		dataFile = new File(DEFAULT_DATA_FILE);
 	}
 
+
+	@Override
+	public Object clone() throws CloneNotSupportedException {
+		throw new CloneNotSupportedException("You may not clone a singleton");
+	}
 
 	public File getDataFile() {
 		return dataFile;
