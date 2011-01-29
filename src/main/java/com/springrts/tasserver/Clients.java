@@ -504,7 +504,7 @@ public class Clients implements ContextReceiver, Updateable {
 	/**
 	 * This will try to go through the list of clients that still have pending
 	 * data to be sent and will try to send it.
-	 * When it encounters first client that can't flush data, it will add
+	 * When it encounters the first client that can not flush data, it will add
 	 * him to the queues tail and break the loop.
 	 */
 	public void flushData() {
