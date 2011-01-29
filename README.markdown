@@ -9,6 +9,12 @@ manage battles.
 Historically seen, this was the first, and till 2010 also the main/official
 lobby server implementation.
 
+This repository also contained two other tiny applications, which were removed
+in 2010, because they were no longer of use alone or in combination with the
+lobby server:
+* TransferOldAccounts
+* WebServer
+
 
 ## Building
 
