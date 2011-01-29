@@ -1,20 +1,13 @@
-# TA Spring Server
+# Java Spring Lobby Server
 
 __README__
 
-This repository contains three Java applications:
+This software is a lobby server for the Spring RTS engine. You may think of it
+as something similar to an IRC server with additional protocol instructions to
+manage battles.
 
-* _TASServer_
-	Spring lobby server
-
-* _ChanServ_
-	Spring lobby bot
-
-* _TransferOldAccounts_
-	Small helper application for migration,
-	only really interesting for the online server admins
-
-The rest of this Readme is about TASServer only.
+Historically seen, this was the first, and till 2010 also the main/official
+lobby server implementation.
 
 
 ## Building
@@ -48,7 +41,7 @@ In case you already have it installed, skip this paragraph.
 		> sudo apt-get install maven2
 
 
-### TASServer build steps
+### Building the software
 
 1.	Make sure you have Maven 2 installed.
 	You can check that with the following command:
@@ -102,11 +95,11 @@ The latest version can be found
 
 ## Command line arguments
 
-Example of usage (main lobby server uses these arguments):
+Example of usage:
 
-	> java TASServer -debug 1 -natport 8201 -logmain -port 8200 | tee ./logs/TASServer.log
+	> java -jar tasserver-*.jar --port 8200 --nat-port 8201 --log-main
 
-Arguments are case in-sensitive.
+Arguments are case sensitive.
 For the full list of arguments, use `--help`.
 
 To stop the server, issue _[Ctrl]+[C]_.
@@ -134,15 +127,15 @@ _Windows:_
 Info about the default persistence provider for TASServer:
 [Hibernate configuration](http://docs.jboss.org/hibernate/stable/entitymanager/reference/en/html/configuration.html)
 
-When using MySQL, and having problems to authenticate on the DB,
-have a look [here](http://queuemetrics.com/faq.jsp#faq-009).
+When you are using MySQL, and you are experiencing problems to authenticate on
+the DB, have a look [here](http://queuemetrics.com/faq.jsp#faq-009).
 Instead of `localhost.localdomain`, you may face the same problem
 with `127.0.0.1`.
 
 
 ## Notes
 
-* Client may participate in only one battle at the same time. If he is hosting
+* A Client may participate in only one battle at the same time. If he is hosting
   a battle, he may not participate in other battles at the same time. The server
   checks for that automatically.
 

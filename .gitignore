@@ -1,4 +1,5 @@
 /target
+/README.html
 /accounts.txt
 /motd.txt
 /conf/META-INF/persistence.xml
