@@ -21,6 +21,7 @@ package com.springrts.tasserver;
 import com.springrts.tasserver.commands.CommandProcessors;
 import java.util.LinkedList;
 import java.util.List;
+import org.osgi.framework.launch.Framework;
 
 /**
  * Contains global instances, unique for per server instance.
@@ -31,6 +32,7 @@ public class Context implements LiveStateListener {
 	private final List<ContextReceiver> contextReceivers;
 	private final List<LiveStateListener> liveStateListeners;
 
+	private Framework framework;
 	private AccountsService accountsService = null;
 	private BanService banService = null;
 	private Battles battles = null;
@@ -54,6 +56,7 @@ public class Context implements LiveStateListener {
 		this.contextReceivers = new LinkedList<ContextReceiver>();
 		this.liveStateListeners = new LinkedList<LiveStateListener>();
 
+		this.framework = null;
 		this.accountsService = null;
 		this.banService = null;
 		this.accountsService = null;
@@ -144,6 +147,14 @@ public class Context implements LiveStateListener {
 		for (LiveStateListener liveStateListener : liveStateListeners) {
 			liveStateListener.stopped();
 		}
+	}
+
+	public Framework getFramework() {
+		return framework;
+	}
+
+	public void setFramework(Framework framework) {
+		this.framework = framework;
 	}
 
 	public AccountsService getAccountsService() {

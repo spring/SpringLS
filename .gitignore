@@ -6,3 +6,4 @@
 /conf/logback.xml
 /notifs
 /log
+/felix-cache

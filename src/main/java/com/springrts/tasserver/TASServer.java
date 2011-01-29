@@ -18,6 +18,13 @@
 package com.springrts.tasserver;
 
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.ServiceLoader;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.launch.Framework;
+import org.osgi.framework.launch.FrameworkFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +41,18 @@ public class TASServer {
 
 
 	public static void startServerInstance(Context context) {
+
+		Framework framework = createFramework();
+		if (framework == null) {
+			return;
+		}
+		context.setFramework(framework);
+		try {
+			framework.start();
+		} catch (BundleException ex) {
+			LOG.error("Failed to start the OSGi framework", ex);
+			return;
+		}
 
 		context.setAccountsService(createAccountsService(context));
 
@@ -82,6 +101,32 @@ public class TASServer {
 		context.getCommandProcessors().init();
 
 		context.getServerThread().run();
+	}
+
+	private static Framework createFramework() {
+
+		Framework framework = null;
+
+		Iterator<FrameworkFactory> frameworkFactoryIterator
+				= ServiceLoader.load(FrameworkFactory.class).iterator();
+		if (frameworkFactoryIterator.hasNext()) {
+			FrameworkFactory frameworkFactory = frameworkFactoryIterator.next();
+			framework = frameworkFactory.newFramework(createFrameworkConfig());
+		} else {
+			LOG.error("No OSGi framework implementation was found.");
+		}
+
+		return framework;
+	}
+
+	private static Map<String, Object> createFrameworkConfig() {
+
+		Map<String, Object> config = null;
+
+		config = new HashMap<String, Object>();
+		// TODO add some params to config ...
+
+		return config;
 	}
 
 	private static AccountsService createAccountsService(Context context) {
