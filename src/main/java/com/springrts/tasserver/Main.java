@@ -261,7 +261,7 @@ public class Main {
 		}
 
 		if (!exit) {
-			TASServer tasServer = new TASServer(context);
+			TASServer.startServerInstance(context);
 		}
 	}
 }

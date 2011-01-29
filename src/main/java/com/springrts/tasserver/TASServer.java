@@ -27,15 +27,13 @@ import org.slf4j.LoggerFactory;
  */
 public class TASServer {
 
-	/**
-	 * If true, the server will keep a log of all conversations from
-	 * the channel #main (in file "MainChanLog.log")
-	 */
-	//boolean logMainChannel = false;
-	//private List<String> whiteList = new LinkedList<String>();
 	private static final Logger LOG = LoggerFactory.getLogger(TASServer.class);
 
-	public TASServer(Context context) {
+
+	private TASServer() {}
+
+
+	public static void startServerInstance(Context context) {
 
 		context.setAccountsService(createAccountsService(context));
 
@@ -86,7 +84,7 @@ public class TASServer {
 		context.getServerThread().run();
 	}
 
-	private AccountsService createAccountsService(Context context) {
+	private static AccountsService createAccountsService(Context context) {
 
 		AccountsService accountsService = null;
 
@@ -101,7 +99,7 @@ public class TASServer {
 		return accountsService;
 	}
 
-	private BanService createBanService(Context context) {
+	private static BanService createBanService(Context context) {
 
 		BanService banService = null;
 
