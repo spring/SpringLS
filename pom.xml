@@ -24,6 +24,9 @@
 	<name>TASServer</name>
 	<description>A Spring RTS Lobby Server</description>
 	<!--<url>http://github.com/spring/TASServer</url>-->
+	<prerequisites>
+		<maven>2.1</maven>
+	</prerequisites>
 	<inceptionYear>2005</inceptionYear>
 
 	<licenses>
