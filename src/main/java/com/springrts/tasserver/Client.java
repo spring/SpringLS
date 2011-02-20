@@ -353,7 +353,7 @@ public class Client extends TeamController implements ContextReceiver {
 
 		sendLine(String.format("%s %s %s %d %d",
 				Server.getApplicationName(),
-				Misc.getAppVersion(),
+				Misc.getAppVersionNonNull(),
 				context.getEngine().getVersion(),
 				context.getNatHelpServer().getPort(),
 				context.getServer().isLanMode() ? 1 : 0));

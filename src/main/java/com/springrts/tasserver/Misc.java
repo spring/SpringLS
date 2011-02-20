@@ -64,6 +64,8 @@ public class Misc {
 	public static final String MAVEN_GROUP_ID = "com.springrts";
 	public static final String MAVEN_ARTIFACT_ID = "tasserver";
 
+	public static final String UNKNOWN_VERSION = "<unknown-version>";
+
 	/**
 	 * Concatenates a list of strings together, starting at a certain index,
 	 * using a single space character as separator.
@@ -521,6 +523,23 @@ public class Misc {
 
 		if (appVersion == null) {
 			LOG.warn("Failed getting the Applications version from the Maven properties file");
+		}
+
+		return appVersion;
+	}
+
+	/**
+	 * Returns this applications version, or {@link #UNKNOWN_VERSION}, if the
+	 * Maven properties can not be read.
+	 * @return this applications version, or {@link #UNKNOWN_VERSION}, if the
+	 *   Maven properties can not be read.
+	 */
+	public static String getAppVersionNonNull() {
+
+		String appVersion = getAppVersion();
+
+		if (appVersion == null) {
+			appVersion = UNKNOWN_VERSION;
 		}
 
 		return appVersion;

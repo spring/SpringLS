@@ -511,7 +511,7 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 		LOG.info("{} {} started on {}",
 				new Object[] {
 					Server.getApplicationName(),
-					Misc.getAppVersion(),
+					Misc.getAppVersionNonNull(),
 					dateTimeFormat.format(new Date())
 				});
 
