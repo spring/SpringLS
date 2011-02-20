@@ -29,6 +29,8 @@ import java.io.Writer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -377,103 +379,147 @@ public class Statistics implements ContextReceiver {
 	}
 
 	/**
-	 * Will return list of mods being played right now (top 5 mods only)
-	 * with frequencies.
-	 * format: [list-len] "modname1" [freq1] "modname2" [freq]" ...
-	 * Where delimiter is TAB (not SPACE).
-	 * An empty list is denoted by 0 value for list-len.
+	 * Returns the list of mods being played right now (top 5 mods only)
+	 * with frequencies (number of battles).
+	 * @return [list-len] "modname1" [numBattles1] "modname2" [numBattles2]" ...
+	 *   Where delimiter is TAB (not SPACE).
+	 *   An empty list is denoted by 0 value for list-len.
 	 */
 	private String currentlyPopularModsList() {
 
-		List<String> mods = new ArrayList<String>();
-		int[] freq = new int[0];
+		List<ModBattles> modBattles = new ArrayList<ModBattles>();
 
 		for (int i = 0; i < context.getBattles().getBattlesSize(); i++) {
 			Battle battle = context.getBattles().getBattleByIndex(i);
 			if (battle.inGame() && (battle.getClientsSize() >= 1)) {
 				// add to list or update in list:
 
-				boolean found = false;
-				for (int j = 0; j < mods.size(); j++) {
-					if (mods.get(j).equals(battle.getModName())) {
-						// mod already in the list. Just increase it's frequency
-						freq[j]++;
-						found = true;
-						break;
-					}
-				}
-
-				if (!found) {
-					mods.add(battle.getModName());
-					freq = (int[]) Misc.resizeArray(freq, freq.length + 1);
-					freq[freq.length - 1] = 1;
+				int modIndex = modBattles.indexOf(battle.getModName());
+				if (modIndex == -1) {
+					modBattles.add(new ModBattles(battle.getModName(), 1));
+				} else {
+					modBattles.get(modIndex).addBattles(1);
 				}
 			}
 		}
 
-		return createModPopularityString(mods, freq);
+		return createModPopularityString(modBattles);
+	}
+
+	private static class ModBattles implements Comparable<ModBattles> {
+
+		public static final Comparator<ModBattles> BATTLES_COMPARATOR
+				= new Comparator<ModBattles>() {
+			@Override
+			public int compare(ModBattles modBattles1, ModBattles modBattles2) {
+				return modBattles1.getBattles() - modBattles2.getBattles();
+			}
+		};
+
+		private final String name;
+		private int battles = 0;
+
+		ModBattles(String name, int battles) {
+
+			this.name = name;
+			this.battles = battles;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public int getBattles() {
+			return battles;
+		}
+
+		public void addBattles(int additionalBattles) {
+			this.battles += additionalBattles;
+		}
+
+		@Override
+		public int compareTo(ModBattles other) {
+			return getName().compareTo(other.getName());
+		}
+
+		@Override
+		public boolean equals(Object other) {
+
+			if (other instanceof String) {
+				return getName().equals((String) other);
+			} else if (other instanceof ModBattles) {
+				return getName().equals(((ModBattles) other).getName());
+			} else {
+				return false;
+			}
+		}
+
+		@Override
+		public int hashCode() {
+			int hash = 7;
+			hash = 23 * hash + (this.name != null ? this.name.hashCode() : 0);
+			return hash;
+		}
 	}
 
 	/**
-	 * This will return a list of popular mods for a certain date.
+	 * Returns a list of the top 5 popular mods for a certain date.
 	 * The date must be in the format "ddMMyy". It will take the first entry for
 	 * every new hour and add it to the list. Other entries for the same hour
 	 * will be ignored.
+	 * @return [list-len] "modname1" [numBattles1] "modname2" [numBattles2]" ...
+	 *   Where delimiter is TAB (not SPACE).
+	 *   An empty list is denoted by 0 value for list-len.
 	 * @see #currentlyPopularModList()
 	 */
 	private String getPopularModsList(String date) {
 
-		List<String> mods = new ArrayList<String>();
-		int[] freq = new int[0];
-		boolean found = false;
+		String popularModsList;
 
 		File file = new File(STATISTICS_FOLDER + date + ".dat");
 		Reader inF = null;
 		BufferedReader in = null;
 		try {
-			int lastHour = -1;
+			byte lastHour = -1;
 			String line;
-			String sHour;
 			inF = new FileReader(file);
 			in = new BufferedReader(inF);
+			List<ModBattles> modBattles = new ArrayList<ModBattles>();
 			while ((line = in.readLine()) != null) {
-				sHour = line.substring(0, 2); // 00 .. 23
-				if (lastHour == Integer.parseInt(sHour)) {
-					continue; // skip this line
+				byte sHour = Byte.parseByte(line.substring(0, 2)); // 00 .. 23
+				if (lastHour == sHour) {
+					continue; // skip this input line
 				}
-				lastHour = Integer.parseInt(sHour);
-				String temp = Misc.makeSentence(line.split(" "), 5);
-				String[] temp2 = temp.split("\t");
-				if (temp2.length % 2 != 1) {
+				lastHour = sHour;
+				String modFrequencyStr = Misc.makeSentence(line.split(" "), 5);
+				String[] modFrequenciesRaw = modFrequencyStr.split("\t");
+				if ((modFrequenciesRaw.length % 2) != 1) {
 					// the number of arguments must be odd
+					// -> numMods + (numMods * (modName + modFrequency))
 					throw new Exception("Bad mod list format");
 				}
-				int noMods = Integer.parseInt(temp2[0]);
-				if (temp2.length != noMods * 2 + 1) {
+				int numMods = Integer.parseInt(modFrequenciesRaw[0]);
+				if (modFrequenciesRaw.length != (1 + (numMods * 2))) {
 					throw new Exception("Bad mod list format");
 				}
-				for (int i = 0; i < noMods; i++) {
-					found = false;
-					for (int j = 0; j < mods.size(); j++) {
-						if (mods.get(j).equals(temp2[1 + i * 2])) {
-							// the mod is already in the list.
-							// just increase it's frequency:
-							freq[j] += Integer.parseInt(temp2[2 + i * 2]);
-							found = true;
-							break;
-						}
-					}
-					if (!found) {
-						mods.add(temp2[1 + i * 2]);
-						freq = (int[]) Misc.resizeArray(freq, freq.length + 1);
-						freq[freq.length - 1]
-								= Integer.parseInt(temp2[2 + i * 2]);
+				for (int i = 0; i < numMods; i++) {
+					int i2 = i * 2;
+					String name = modFrequenciesRaw[i2 + 1];
+					int battles = Integer.parseInt(modFrequenciesRaw[i2 + 2]);
+
+					int modIndex = modBattles.indexOf(name);
+					if (modIndex == -1) {
+						modBattles.add(new ModBattles(name, battles));
+					} else {
+						modBattles.get(modIndex).addBattles(battles);
 					}
 				}
 			}
+
+			popularModsList = createModPopularityString(modBattles);
 		} catch (Exception ex) {
 			LOG.error("Error in getPopularModsList(). Skipping ...", ex);
-			return "0";
+			popularModsList = "0";
 		} finally {
 			try {
 				if (in != null) {
@@ -487,22 +533,21 @@ public class Statistics implements ContextReceiver {
 			}
 		}
 
-		return createModPopularityString(mods, freq);
+		return popularModsList;
 	}
 
-	private static String createModPopularityString(List<String> modNames,
-			int[] numBattles)
+	private static String createModPopularityString(List<ModBattles> modBattles)
 	{
 		// now generate a list of top 5 mods with frequencies:
 		StringBuilder result = new StringBuilder(512);
-		int numMods = Math.min(5, modNames.size()); // return 5 or less mods
+		int numMods = Math.min(5, modBattles.size()); // return 5 or less mods
 		result.append(numMods);
 		// Note: do not cut the array by numMods,
 		//       or sorting will not have any effect!
-		Misc.bubbleSort(numBattles, modNames);
-		for (int m = 0; m < numMods; m++) {
-			result.append("\t").append(modNames.get(m)).append("\t")
-					.append(numBattles[m]);
+		Collections.sort(modBattles, ModBattles.BATTLES_COMPARATOR);
+		for (ModBattles mod : modBattles) {
+			result.append("\t").append(mod.getName());
+			result.append("\t").append(mod.getBattles());
 		}
 
 		return result.toString();
