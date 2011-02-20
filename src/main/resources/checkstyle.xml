@@ -199,12 +199,16 @@
 		<!-- See http://checkstyle.sf.net/config_misc.html -->
 		<module name="ArrayTypeStyle"/>
 		<!--<module name="FinalParameters"/>-->
-		<module name="TodoComment"/>
 		<module name="TodoComment">
 			<property name="format" value="FIXME"/>
 		</module>
 		<module name="TodoComment">
-			<property name="format" value="WARNING"/>
+			<property name="format" value="TODO"/>
+			<property name="severity" value="warning"/>
+		</module>
+		<module name="TodoComment">
+			<property name="format" value="XXX"/>
+			<property name="severity" value="warning"/>
 		</module>
 		<module name="UpperEll"/>
 
