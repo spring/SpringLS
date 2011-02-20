@@ -399,8 +399,8 @@ public class Misc {
 		int red   = springColor       & 255;
 		int green = springColor >> 8  & 255;
 		int blue  = springColor >> 16 & 255;
-		int alpha = springColor >> 24 & 255;
-		color = new Color(red, green, blue, alpha);
+//		int alpha = springColor >> 24 & 255;
+		color = new Color(red, green, blue/*, alpha*/);
 
 		return color;
 	}
@@ -413,7 +413,7 @@ public class Misc {
 
 		int springColor = 0;
 
-		springColor += color.getAlpha() << 24;
+//		springColor += color.getAlpha() << 24;
 		springColor += color.getBlue()  << 16;
 		springColor += color.getGreen() << 8;
 		springColor += color.getRed();
