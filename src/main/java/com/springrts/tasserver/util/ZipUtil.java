@@ -31,7 +31,7 @@ import java.util.zip.ZipInputStream;
  * Utility methods for un-zipping stuff from a simple zip file.
  * @author hoijui
  */
-public class ZipUtil {
+public final class ZipUtil {
 
 	private ZipUtil() {}
 

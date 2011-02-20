@@ -96,9 +96,6 @@ public class LanAccountsService extends AbstractAccountsService {
 	@Override
 	public void saveAccountsIfNeeded() {}
 
-	/**
-	 * WARNING: caller must check if username/password is valid etc. himself!
-	 */
 	@Override
 	public void addAccount(Account acc) {
 

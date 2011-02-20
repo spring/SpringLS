@@ -229,6 +229,7 @@ public class FSAccountsService extends AbstractAccountsService {
 	 */
 	@Override
 	public void saveAccounts(boolean block) {
+
 		if ((saveAccountsThread != null) && (saveAccountsThread.isAlive())) {
 			return; // already in progress. Let's just skip it ...
 		}
@@ -241,7 +242,7 @@ public class FSAccountsService extends AbstractAccountsService {
 
 		if (block) {
 			try {
-				saveAccountsThread.join(); // wait until thread returns
+				saveAccountsThread.join(); // wait for the thread to return
 			} catch (InterruptedException ex) {
 				// do nothing
 			}
@@ -251,8 +252,8 @@ public class FSAccountsService extends AbstractAccountsService {
 	}
 
 	/**
-	 * Will call saveAccounts() only if they haven't been saved for some time.
-	 * This method should be called periodically!
+	 * Will call saveAccounts() only if they have not been saved for some time.
+	 * {@inheritDoc}
 	 */
 	@Override
 	public void saveAccountsIfNeeded() {
@@ -264,10 +265,6 @@ public class FSAccountsService extends AbstractAccountsService {
 		}
 	}
 
-	/**
-	 * WARNING: The caller must check if username/password is valid etc.
-	 * himself!
-	 */
 	@Override
 	public void addAccount(Account acc) {
 		if (acc.getId() == Account.NEW_ACCOUNT_ID) {

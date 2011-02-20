@@ -32,7 +32,7 @@ import java.util.List;
  *
  * @author hoijui
  */
-public class AccountUtils {
+public final class AccountUtils {
 
 	private AccountUtils() {}
 

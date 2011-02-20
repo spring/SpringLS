@@ -52,7 +52,7 @@ import org.slf4j.LoggerFactory;
  * @author Betalord
  * @author hoijui
  */
-public class Misc {
+public final class Misc {
 
 	/** Make clear that this is an utility class */
 	private Misc() {}
@@ -224,11 +224,11 @@ public class Misc {
 	 * @param newSize   the new array size.
 	 * @return          A new array with the same contents.
 	 */
-	public static Object resizeArray(Object oldArray, int newSize) {
+	public static Object[] resizeArray(Object[] oldArray, int newSize) {
 
 		int oldSize = java.lang.reflect.Array.getLength(oldArray);
 		Class<?> elementType = oldArray.getClass().getComponentType();
-		Object newArray = java.lang.reflect.Array.newInstance(
+		Object[] newArray = (Object[]) java.lang.reflect.Array.newInstance(
 				elementType, newSize);
 		int preserveLength = Math.min(oldSize, newSize);
 		if (preserveLength > 0) {

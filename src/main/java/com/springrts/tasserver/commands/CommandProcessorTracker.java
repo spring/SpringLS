@@ -34,8 +34,7 @@ import org.osgi.util.tracker.ServiceTracker;
  * services and informing the application about the availability
  * of command-processors.
  */
-public class CommandProcessorTracker extends ServiceTracker
-{
+public class CommandProcessorTracker extends ServiceTracker {
 
     /**
      * Constructs a tracker that uses the specified bundle context to
@@ -43,8 +42,7 @@ public class CommandProcessorTracker extends ServiceTracker
      * changes.
      * @param context The bundle context to be used by the tracker.
      */
-    public CommandProcessorTracker(BundleContext context)
-    {
+    public CommandProcessorTracker(BundleContext context) {
         super(context, CommandProcessor.class.getName(), null);
     }
 
@@ -59,8 +57,8 @@ public class CommandProcessorTracker extends ServiceTracker
      * @return The service object to be used by the tracker.
      */
 	@Override
-    public Object addingService(ServiceReference ref)
-    {
+    public Object addingService(ServiceReference ref) {
+
 		String commandName = (String) ref.getProperty(CommandProcessor.NAME_PROPERTY);
 		CommandProcessor commandProcessor = (CommandProcessor) context.getService(ref);
         getTassContext().getCommandProcessors().add(commandName, commandProcessor);
@@ -74,8 +72,7 @@ public class CommandProcessorTracker extends ServiceTracker
 //     * @param svc The service object of the modified service.
 //     */
 //	@Override
-//    public void modifiedService(ServiceReference ref, Object svc)
-//    {
+//    public void modifiedService(ServiceReference ref, Object svc) {
 //        // do nothing
 //    }
 
@@ -86,8 +83,8 @@ public class CommandProcessorTracker extends ServiceTracker
      * @param svc The service object of the removed service.
      */
 	@Override
-    public void removedService(ServiceReference ref, Object svc)
-    {
+    public void removedService(ServiceReference ref, Object svc) {
+
 		String commandName = (String) ref.getProperty(CommandProcessor.NAME_PROPERTY);
         getTassContext().getCommandProcessors().remove(commandName);
     }

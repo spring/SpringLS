@@ -56,7 +56,7 @@ public final class IP2Country {
 
 	/**
 	 * This design is taken from http://c2.com/cgi/wiki?JavaSingleton
-	 * 
+	 *
 	 * Quote (LloydBlythen):
 	 * Paraphrasing Scot, the point is that merely using a static to hold a
 	 * singleton will mean the singleton gets constructed if someone refers to
@@ -69,7 +69,7 @@ public final class IP2Country {
 	 * Arguably, it is unlikely that code refers to Singleton without calling
 	 * getInstance(). But it will defer singleton construction until it is
 	 * absolutely required.
-	 * 
+	 *
 	 * I asked Scot about thread-safety - note that the code doesn't use
 	 * synchronized anywhere - and he replied, "... this is all very thread
 	 * safe. Specifically, when the VM attempts to load a class, you are
@@ -81,11 +81,11 @@ public final class IP2Country {
 	 */
 	private static final class SingletonHolder {
 		private SingletonHolder() {}
-		static final IP2Country singleton = new IP2Country();
+		static final IP2Country SINGLETON = new IP2Country();
 	}
 
 	public static IP2Country getInstance() {
-		return SingletonHolder.singleton;
+		return SingletonHolder.SINGLETON;
 	}
 
 	private IP2Country() {
@@ -256,7 +256,7 @@ public final class IP2Country {
 		{
 			// duplicate!
 			if (!prev.getCountryCode2().equals(ip.getCountryCode2())) {
-				// FIXME this poses a problem - what to do about it?
+				// XXX this poses a problem - what to do about it?
 				// We have two identical ranges, each pointing at
 				// a different country. Which one is correct?
 				// Current way: keep 1st entry and discharge 2nd,
@@ -278,7 +278,7 @@ public final class IP2Country {
 				&& (prev.getToIP() > ip.getToIP()))
 		{
 			if (!prev.getCountryCode2().equals(ip.getCountryCode2())) {
-				// FIXME this poses a problem - what to do about it?
+				// XXX this poses a problem - what to do about it?
 				// Currently, we simply discharge the 2nd entry,
 				// hoping that the 1st one is correct and the 2nd
 				// was not.
@@ -291,7 +291,7 @@ public final class IP2Country {
 				&& (prev.getToIP() < ip.getToIP()))
 		{
 			if (!prev.getCountryCode2().equals(ip.getCountryCode2())) {
-				// FIXME this poses a problem - what to do about it?
+				// XXX this poses a problem - what to do about it?
 				// Currently, we also add the second entry.
 				// Since the 1st is narrower, it will stay on top
 				// of 2nd one.
@@ -307,7 +307,7 @@ public final class IP2Country {
 				&& (prev.getToIP() >= ip.getToIP()))
 		{
 			if (!prev.getCountryCode2().equals(ip.getCountryCode2())) {
-				// FIXME this poses a problem - what to do about it?
+				// XXX this poses a problem - what to do about it?
 				// Currently, we simply discharge the 2nd entry,
 				// hoping that the 1st one is correct and the 2nd
 				// was not.
@@ -320,7 +320,7 @@ public final class IP2Country {
 				&& (prev.getToIP() > ip.getFromIP())
 				&& (prev.getToIP() < ip.getToIP()))
 		{
-			// FIXME this poses a problem - what to do about it?
+			// XXX this poses a problem - what to do about it?
 			// Currently we simply discharge the 2nd entry, hoping
 			// that the 1st one is correct (and 2nd wasn't)
 			hasDuplicate = true;
@@ -328,7 +328,7 @@ public final class IP2Country {
 				&& (next.getToIP() <= ip.getToIP()))
 		{
 			if (!next.getCountryCode2().equals(ip.getCountryCode2())) {
-				// FIXME this poses a problem - what to do about it?
+				// XXX this poses a problem - what to do about it?
 				// Currently, we also add the second entry.
 				// Since the 1st is narrower, it will stay on top
 				// of 2nd one.
@@ -343,7 +343,7 @@ public final class IP2Country {
 		} else if ((next.getFromIP() < ip.getToIP())
 				&& (next.getToIP() > ip.getToIP()))
 		{
-			// FIXME this poses a problem - what to do about it?
+			// XXX this poses a problem - what to do about it?
 			// Currently, we simply discharge the 2nd entry,
 			// hoping that the 1st one is correct and the 2nd
 			// was not.

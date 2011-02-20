@@ -536,7 +536,8 @@ public class Statistics implements ContextReceiver {
 		return popularModsList;
 	}
 
-	private static String createModPopularityString(List<ModBattles> modBattles)
+	private static String createModPopularityString(
+			List<ModBattles> modBattles)
 	{
 		// now generate a list of top 5 mods with frequencies:
 		StringBuilder result = new StringBuilder(512);

@@ -22,9 +22,9 @@ import java.net.InetAddress;
 import java.util.List;
 
 /**
- * Data Access Object (DAO) interface for Account's.
- * Used for retrieving, and storing accounts to permanent storage,
- * eg. in files or to a DB.
+ * Data Access Object (DAO) interface for <tt>Account</tt>s.
+ * Used for retrieving and storing accounts to permanent storage,
+ * for example in files or a DB.
  *
  * @author hoijui
  */
@@ -45,8 +45,8 @@ public interface AccountsService extends ContextReceiver, LiveStateListener,
 	/**
 	 * Returns the number of all active accounts.
 	 * An account has to full fill two criteria to be considered active:
-	 * * last login is not more then 1 week ago
-	 * * rank is higher then Newbie/Rank 1
+	 * - last login is not more then 1 week ago
+	 * - rank is higher then Newbie/Rank 1
 	 */
 	public int getActiveAccountsSize();
 
@@ -73,12 +73,14 @@ public interface AccountsService extends ContextReceiver, LiveStateListener,
 	public void saveAccountsIfNeeded();
 
 	/**
-	 * WARNING: caller must check if username/password is valid etc. himself!
+	 * Add an account to be persisted.
+	 * Note: The caller has to check if username/password is valid etc.!
 	 */
 	public void addAccount(Account acc);
 
 	/**
-	 * WARNING: caller must check if usernames/passwords are valid etc. himself!
+	 * Add accounts to be persisted.
+	 * Note: The caller has to check if usernames/passwords are valid etc.!
 	 */
 	public void addAccounts(Iterable<Account> accs);
 

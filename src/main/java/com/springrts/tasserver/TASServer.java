@@ -32,13 +32,11 @@ import org.slf4j.LoggerFactory;
  * @author Betalord
  * @author hoijui
  */
-public class TASServer {
+public final class TASServer {
 
 	private static final Logger LOG = LoggerFactory.getLogger(TASServer.class);
 
-
 	private TASServer() {}
-
 
 	public static void startServerInstance(Context context) {
 

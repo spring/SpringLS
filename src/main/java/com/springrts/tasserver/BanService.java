@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * Data Access Object (DAO) interface for BanEntry's.
  * Used for retrieving and storing bans to permanent storage,
- * eg. in files or to a DB.
+ * for example in files or a DB.
  *
  * @author hoijui
  */
@@ -41,7 +41,8 @@ public interface BanService {
 	public int getActiveBansSize();
 
 	/**
-	 * WARNING: caller must check if username/password is valid etc. himself!
+	 * Add a ban-entry to be persisted.
+	 * Note: caller must check if username/password is valid etc. himself!
 	 */
 	public void addBanEntry(BanEntry ban);
 
