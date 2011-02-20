@@ -113,17 +113,25 @@ public class Misc {
 		return res.toString();
 	}
 
-	public static byte boolToNumber(boolean b) {
-
-		if (b) {
-			return 1;
-		} else {
-			return 0;
-		}
+	/**
+	 * Converts a boolean to a number, according to the lobby protocol standard.
+	 * @param aBoolean to be converted into a numerical representation
+	 * @return <tt>1</tt> if <tt>aBoolean</tt> is <tt>true</tt>,
+	 *   <tt>false</tt> otherwise
+	 * @see #numberToBool(byte)
+	 */
+	public static byte boolToNumber(boolean aBoolean) {
+		return (aBoolean ? ((byte) 1) : ((byte) 0));
 	}
 
-	public static boolean numberToBool(byte number) {
-		return (number == 1);
+	/**
+	 * Converts a number to a boolean, according to the lobby protocol standard.
+	 * @param aNumber to be converted into a boolean
+	 * @return <tt>true</tt> if <tt>aNumber == 1</tt>, <tt>false</tt> otherwise
+	 * @see #boolToNumber(boolean)
+	 */
+	public static boolean numberToBool(byte aNumber) {
+		return (aNumber == 1);
 	}
 
 	/**
@@ -159,6 +167,13 @@ public class Misc {
 		return localIpAddress;
 	}
 
+	// TODO why long (64bit) and not int (32bit)? (IP v6 woudl be 128bit)
+	/**
+	 * Converts an IP v4 number to a 64bit (long) number, according to the lobby
+	 * protocol standard.
+	 * @param ip an IP v4 (<tt>Inet4Address</tt>)
+	 * @return a 64 bit number representing the supplied IP
+	 */
 	public static long ip2Long(InetAddress ip) {
 
 		long res;
@@ -220,40 +235,6 @@ public class Misc {
 		return newArray;
 	}
 
-	/**
-	 * Sorts an array of integers plus a parallel List of objects
-	 * using simple bubble sort. This is a generic method.
-	 * Documentation about
-	 * <a href="http://java.sun.com/docs/books/tutorial/extra/generics/methods.html">
-	 * Generic Methods</a>.
-	 */
-	public static <T> void bubbleSort(int[] data, List<T> list) {
-
-		boolean isSorted;
-		int tempInt;
-		T tempObj;
-		int numberOfTimesLooped = 0;
-
-		do {
-			isSorted = true;
-
-			for (int i = 1; i < data.length - numberOfTimesLooped; i++) {
-				if (data[i] > data[i - 1]) {
-					tempInt = data[i];
-					tempObj = list.get(i);
-					data[i] = data[i - 1];
-					list.set(i, list.get(i - 1));
-					data[i - 1] = tempInt;
-					list.set(i - 1, tempObj);
-
-					isSorted = false;
-				}
-			}
-
-			numberOfTimesLooped++;
-		} while (!isSorted);
-	}
-
 	public static byte[] getMD5(String plainText) throws NoSuchAlgorithmException {
 
 		byte[] md5Digest = null;
@@ -266,8 +247,8 @@ public class Misc {
 	}
 
 	/**
-	 * This method encodes plain-text passwords to MD5 hashed ones
-	 * in base-64 form.
+	 * This method encodes plain-text passwords to MD5 hashed ones in base-64
+	 * form.
 	 */
 	public static String encodePassword(String plainPassword) {
 

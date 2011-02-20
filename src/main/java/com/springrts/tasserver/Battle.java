@@ -140,7 +140,7 @@ public class Battle implements ContextReceiver {
 		this.mapHash = mapHash;
 		this.modName = modName;
 		this.disabledUnits = new ArrayList<String>();
-		// we assume this by default. Client must make sure it is unlocked.
+		// we assume this by default. The client must make sure it is unlocked.
 		this.locked = false;
 		this.scriptTags = new HashMap<String, String>();
 		this.replayScript = new ArrayList<String>();
