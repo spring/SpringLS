@@ -15,9 +15,10 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.springrts.springls;
+package com.springrts.springls.util;
 
 
+import com.springrts.springls.util.Misc;
 import java.util.Arrays;
 import java.util.List;
 import junit.framework.TestCase;

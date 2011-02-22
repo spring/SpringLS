@@ -17,6 +17,8 @@
 
 package com.springrts.springls;
 
+import com.springrts.springls.util.Misc;
+
 
 /**
  * The correct use of ServerNotification is to first create the object and then

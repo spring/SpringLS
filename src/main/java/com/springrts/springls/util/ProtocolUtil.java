@@ -18,7 +18,6 @@
 package com.springrts.springls.util;
 
 
-import com.springrts.springls.Misc;
 import java.awt.Color;
 import java.net.InetAddress;
 import java.security.NoSuchAlgorithmException;

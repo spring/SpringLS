@@ -21,7 +21,7 @@ package com.springrts.springls.commands.impl;
 import com.springrts.springls.Account;
 import com.springrts.springls.Battle;
 import com.springrts.springls.Client;
-import com.springrts.springls.Misc;
+import com.springrts.springls.util.Misc;
 import com.springrts.springls.commands.AbstractCommandProcessor;
 import com.springrts.springls.commands.CommandProcessingException;
 import com.springrts.springls.commands.InvalidNumberOfArgumentsCommandProcessingException;

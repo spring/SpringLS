@@ -22,7 +22,7 @@ import com.springrts.springls.Account;
 import com.springrts.springls.BanEntry;
 import com.springrts.springls.Client;
 import com.springrts.springls.FailedLoginAttempt;
-import com.springrts.springls.Misc;
+import com.springrts.springls.util.Misc;
 import com.springrts.springls.ServerNotification;
 import com.springrts.springls.commands.AbstractCommandProcessor;
 import com.springrts.springls.commands.CommandProcessingException;
