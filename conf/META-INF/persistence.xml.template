@@ -39,7 +39,7 @@
 			<property name="hibernate.dialect"                 value="org.hibernate.dialect.PostgreSQLDialect"/>
 			<property name="hibernate.cache.provider_class"    value="org.hibernate.cache.NoCacheProvider"/>
 			<property name="hibernate.hbm2ddl.auto"            value="update"/>
-			<!-- to prevent DB connection timeout -->
+			-- to prevent DB connection timeout --
 			<property name="hibernate.c3p0.acquire_increment" value="3" />
 			<property name="hibernate.c3p0.idle_test_period" value="14400" />
 			<property name="hibernate.c3p0.timeout" value="25200" />
