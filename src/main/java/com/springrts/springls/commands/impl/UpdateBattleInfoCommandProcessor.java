@@ -25,11 +25,12 @@ import com.springrts.springls.Misc;
 import com.springrts.springls.commands.AbstractCommandProcessor;
 import com.springrts.springls.commands.CommandProcessingException;
 import com.springrts.springls.commands.SupportedCommand;
+import com.springrts.springls.util.ProtocolUtil;
 import java.util.List;
 
 /**
  * Sent by server to all registered clients telling them some of the parameters
- * of the battle changed. Battle's inside changes, like starting metal, energy,
+ * of the battle changed. Battle internal changes, like starting metal, energy,
  * starting position etc., are sent only to clients.
  * @author hoijui
  */
@@ -62,7 +63,7 @@ public class UpdateBattleInfoCommandProcessor extends AbstractCommandProcessor {
 		int maphash;
 		try {
 			spectatorCount = Integer.parseInt(spectatorCountStr);
-			locked = Misc.numberToBool(Byte.parseByte(lockedStr));
+			locked = ProtocolUtil.numberToBool(Byte.parseByte(lockedStr));
 			maphash = Integer.decode(mapHashStr);
 		} catch (NumberFormatException ex) {
 			return false;
@@ -75,7 +76,7 @@ public class UpdateBattleInfoCommandProcessor extends AbstractCommandProcessor {
 				String.format("UPDATEBATTLEINFO %d %d %d %s %s",
 				battle.getId(),
 				spectatorCount,
-				Misc.boolToNumber(battle.isLocked()),
+				ProtocolUtil.boolToNumber(battle.isLocked()),
 				maphash,
 				battle.getMapName()));
 

@@ -26,6 +26,7 @@ import com.springrts.springls.Misc;
 import com.springrts.springls.commands.AbstractCommandProcessor;
 import com.springrts.springls.commands.CommandProcessingException;
 import com.springrts.springls.commands.SupportedCommand;
+import com.springrts.springls.util.ProtocolUtil;
 import java.awt.Color;
 import java.util.List;
 
@@ -62,7 +63,7 @@ public class AddBotCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		Color teamColor = Misc.colorSpringStringToJava(teamColorStr);
+		Color teamColor = ProtocolUtil.colorSpringStringToJava(teamColorStr);
 		if (teamColor == null) {
 			return false;
 		}

@@ -18,6 +18,7 @@
 package com.springrts.springls;
 
 
+import com.springrts.springls.util.ProtocolUtil;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -80,7 +81,7 @@ public final class AccountUtils {
 			localIp = null;
 		}
 
-		String userPasswd = Misc.encodePassword(userName);
+		String userPasswd = ProtocolUtil.encodePassword(userName);
 		return new Account(userName, userPasswd, localIp, countryCode2L);
 	}
 

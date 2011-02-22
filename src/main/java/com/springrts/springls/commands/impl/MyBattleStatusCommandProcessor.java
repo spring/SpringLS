@@ -22,11 +22,11 @@ import com.springrts.springls.Account;
 import com.springrts.springls.Battle;
 import com.springrts.springls.Client;
 import com.springrts.springls.util.Processor;
-import com.springrts.springls.Misc;
 import com.springrts.springls.TeamController;
 import com.springrts.springls.commands.AbstractCommandProcessor;
 import com.springrts.springls.commands.CommandProcessingException;
 import com.springrts.springls.commands.SupportedCommand;
+import com.springrts.springls.util.ProtocolUtil;
 import java.awt.Color;
 import java.util.List;
 
@@ -62,7 +62,7 @@ public class MyBattleStatusCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		Color newTeamColor = Misc.colorSpringStringToJava(teamColorStr);
+		Color newTeamColor = ProtocolUtil.colorSpringStringToJava(teamColorStr);
 		if (newTeamColor == null) {
 			return false;
 		}

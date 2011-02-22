@@ -19,6 +19,7 @@ package com.springrts.springls;
 
 
 import com.springrts.springls.util.Processor;
+import com.springrts.springls.util.ProtocolUtil;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -168,7 +169,7 @@ public class Battles implements ContextReceiver {
 			client.sendLine(String.format("UPDATEBATTLEINFO %d %d %d %d %s",
 					battle.getId(),
 					battle.spectatorCount(),
-					Misc.boolToNumber(battle.isLocked()),
+					ProtocolUtil.boolToNumber(battle.isLocked()),
 					battle.getMapHash(),
 					battle.getMapName()));
 			battle.applyToClients(new BattleJoiner(battle.getId()));

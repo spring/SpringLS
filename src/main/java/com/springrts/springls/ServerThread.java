@@ -20,6 +20,7 @@ package com.springrts.springls;
 
 import com.springrts.springls.commands.CommandProcessingException;
 import com.springrts.springls.commands.CommandProcessor;
+import com.springrts.springls.util.ProtocolUtil;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
@@ -554,7 +555,7 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 	 */
 	private static Account createAdmin(String username, String password) {
 
-		Account admin = new Account(username, Misc.encodePassword(password));
+		Account admin = new Account(username, ProtocolUtil.encodePassword(password));
 		admin.setAccess(Account.Access.ADMIN);
 		return admin;
 	}

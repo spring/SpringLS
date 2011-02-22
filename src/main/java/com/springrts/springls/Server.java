@@ -18,6 +18,7 @@
 package com.springrts.springls;
 
 
+import com.springrts.springls.util.ProtocolUtil;
 import java.net.InetAddress;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
@@ -108,7 +109,7 @@ public class Server implements ContextReceiver {
 		lanMode = false;
 		startTime = System.currentTimeMillis();
 		lanAdminUsername = DEFAULT_ADMIN_USERNAME;
-		lanAdminPassword = Misc.encodePassword(DEFAULT_ADMIN_PASSWORD);
+		lanAdminPassword = ProtocolUtil.encodePassword(DEFAULT_ADMIN_PASSWORD);
 		port = DEFAULT_PORT;
 		useUserDB = false;
 		loginEnabled = true;

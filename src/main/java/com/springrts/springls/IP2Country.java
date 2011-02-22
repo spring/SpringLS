@@ -18,6 +18,7 @@
 package com.springrts.springls;
 
 
+import com.springrts.springls.util.ProtocolUtil;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -396,7 +397,7 @@ public final class IP2Country {
 		String result = COUNTRY_UNKNOWN;
 
 		try {
-			long longIp = Misc.ip2Long(ip);
+			long longIp = ProtocolUtil.ip2Long(ip);
 			// +1 because headMap() returns keys that are strictly less than the
 			// given key
 			long longIpPlus = longIp + 1;

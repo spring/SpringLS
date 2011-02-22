@@ -21,10 +21,10 @@ package com.springrts.springls.commands.impl;
 import com.springrts.springls.Account;
 import com.springrts.springls.Battle;
 import com.springrts.springls.Client;
-import com.springrts.springls.Misc;
 import com.springrts.springls.commands.AbstractCommandProcessor;
 import com.springrts.springls.commands.CommandProcessingException;
 import com.springrts.springls.commands.SupportedCommand;
+import com.springrts.springls.util.ProtocolUtil;
 import java.awt.Color;
 import java.util.List;
 
@@ -56,7 +56,7 @@ public class ForceTeamColorCommandProcessor extends AbstractCommandProcessor {
 		String username = args.get(0);
 		String colorStr = args.get(1);
 
-		Color color = Misc.colorSpringStringToJava(colorStr);
+		Color color = ProtocolUtil.colorSpringStringToJava(colorStr);
 		if (color == null) {
 			return false;
 		}

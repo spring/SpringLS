@@ -20,10 +20,10 @@ package com.springrts.springls.commands.impl;
 
 import com.springrts.springls.Account;
 import com.springrts.springls.Client;
-import com.springrts.springls.Misc;
 import com.springrts.springls.commands.AbstractCommandProcessor;
 import com.springrts.springls.commands.CommandProcessingException;
 import com.springrts.springls.commands.SupportedCommand;
+import com.springrts.springls.util.ProtocolUtil;
 import java.util.List;
 
 /**
@@ -47,7 +47,7 @@ public class EnableRegisterCommandProcessor extends AbstractCommandProcessor {
 
 		if (args.size() == 1) {
 			boolean enableRegistration
-					= Misc.numberToBool(Byte.parseByte(args.get(0)));
+					= ProtocolUtil.numberToBool(Byte.parseByte(args.get(0)));
 			getContext().getAccountsService()
 					.setRegistrationEnabled(enableRegistration);
 		}

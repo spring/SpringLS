@@ -18,6 +18,7 @@
 package com.springrts.springls;
 
 
+import com.springrts.springls.util.ProtocolUtil;
 import java.net.InetAddress;
 import java.util.List;
 import javax.persistence.EntityManager;
@@ -181,7 +182,7 @@ public class JPABanService implements BanService {
 			em = open();
 			Query fetchQuery = em.createNamedQuery("ban_fetch");
 			fetchQuery.setParameter("username", username);
-			fetchQuery.setParameter("ip", Misc.ip2Long(ip));
+			fetchQuery.setParameter("ip", ProtocolUtil.ip2Long(ip));
 			fetchQuery.setParameter("userId", userId);
 			ban = (BanEntry) fetchQuery.getSingleResult();
 		} catch (Exception ex) {

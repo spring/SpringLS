@@ -19,6 +19,7 @@ package com.springrts.springls;
 
 
 import com.springrts.springls.util.Processor;
+import com.springrts.springls.util.ProtocolUtil;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -187,7 +188,7 @@ public class Battle implements ContextReceiver {
 				addr.getHostAddress(),
 				getPort(),
 				getMaxPlayers(),
-				Misc.boolToNumber(restricted()),
+				ProtocolUtil.boolToNumber(restricted()),
 				getRank(),
 				getMapHash(),
 				getMapName(),
@@ -209,7 +210,7 @@ public class Battle implements ContextReceiver {
 				client.sendLine(String.format("CLIENTBATTLESTATUS %s %d %d",
 						curClient.getAccount().getName(),
 						curClient.getBattleStatus(),
-						Misc.colorJavaToSpring(curClient.getTeamColor())));
+						ProtocolUtil.colorJavaToSpring(curClient.getTeamColor())));
 			}
 		}
 	}
@@ -231,7 +232,7 @@ public class Battle implements ContextReceiver {
 		sendToAllClients(String.format("CLIENTBATTLESTATUS %s %d %d",
 				client.getAccount().getName(),
 				client.getBattleStatus(),
-				Misc.colorJavaToSpring(client.getTeamColor())));
+				ProtocolUtil.colorJavaToSpring(client.getTeamColor())));
 	}
 
 	public void notifyClientJoined(Client client) {
@@ -471,7 +472,7 @@ public class Battle implements ContextReceiver {
 				bot.getName(),
 				bot.getOwnerName(),
 				bot.getBattleStatus(),
-				Misc.colorJavaToSpring(bot.getTeamColor()),
+				ProtocolUtil.colorJavaToSpring(bot.getTeamColor()),
 				bot.getSpecifier()));
 	}
 
@@ -516,7 +517,7 @@ public class Battle implements ContextReceiver {
 					bot.getName(),
 					bot.getOwnerName(),
 					bot.getBattleStatus(),
-					Misc.colorJavaToSpring(bot.getTeamColor()),
+					ProtocolUtil.colorJavaToSpring(bot.getTeamColor()),
 					bot.getSpecifier()));
 		}
 	}
