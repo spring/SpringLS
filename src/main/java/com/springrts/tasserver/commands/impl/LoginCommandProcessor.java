@@ -32,6 +32,7 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -205,16 +206,16 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		// do the notifying and all:
+		// do the notifying and all
 		client.sendLine("ACCEPTED " + client.getAccount().getName());
 		getContext().getMessageOfTheDay().sendTo(client);
 		getContext().getClients().sendListOfAllUsersToClient(client);
 		getContext().getBattles().sendInfoOnBattlesToClient(client);
 		getContext().getClients().sendInfoOnStatusesToClient(client);
-		// notify client that we've finished sending login info:
+		// notify the new client that we have finished sending login info
 		client.sendLine("LOGININFOEND");
 
-		// notify everyone about new client:
+		// notify everyone about the new client:
 		getContext().getClients().notifyClientsOfNewClientOnServer(client);
 		getContext().getClients().notifyClientsOfNewClientStatus(client);
 
@@ -355,16 +356,16 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 		@Override
 		public void run() {
 
-			// TODO use list-iterator
-			// purge list of failed login attempts:
-			for (int i = 0; i < failedLoginAttempts.size(); i++) {
-				FailedLoginAttempt attempt = failedLoginAttempts.get(i);
+			// purge list of failed login attempts
+			ListIterator<FailedLoginAttempt> attemptIterator
+					= failedLoginAttempts.listIterator();
+			while (attemptIterator.hasNext()) {
+				FailedLoginAttempt attempt = attemptIterator.next();
 				if ((System.currentTimeMillis()
 						- attempt.getTimeOfLastFailedAttempt())
 						> KEEP_FAILED_LOGIN_ATTEMPT_TIME)
 				{
-					failedLoginAttempts.remove(i);
-					i--;
+					attemptIterator.remove();
 				}
 			}
 		}
