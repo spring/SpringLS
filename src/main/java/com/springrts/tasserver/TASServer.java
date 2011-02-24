@@ -60,6 +60,8 @@ public class TASServer {
 
 		context.push();
 
+		framework.getBundleContext().registerService(Context.class.getName(), context, null);
+
 		// switch to LAN mode if user accounts information is not present
 		if (!context.getAccountsService().isReadyToOperate()) {
 			assert(context.getServer().isLanMode());

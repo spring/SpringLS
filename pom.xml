@@ -349,6 +349,12 @@
 			<version>4.2.0</version>
 			<type>jar</type>
 		</dependency>
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi</artifactId>
+			<version>3.0.0</version>
+			<type>jar</type>
+		</dependency>
 		<!-- OSGi - implementation: Apache Felix -->
 		<dependency>
 			<groupId>org.apache.felix</groupId>

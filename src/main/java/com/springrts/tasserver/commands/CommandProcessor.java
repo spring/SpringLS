@@ -30,6 +30,11 @@ import java.util.List;
 public interface CommandProcessor extends ContextReceiver {
 
 	/**
+	 * A property for the name of the shape.
+	 */
+	public static final String NAME_PROPERTY = "Command-Name";
+
+	/**
 	 * Process one call of the command.
 	 * This is invoked whenever a command with the name specified
 	 * in <code>SupportedCommand</code> is received from a client.

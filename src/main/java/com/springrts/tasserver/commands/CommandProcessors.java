@@ -20,112 +20,8 @@ package com.springrts.tasserver.commands;
 
 import com.springrts.tasserver.Context;
 import com.springrts.tasserver.ContextReceiver;
-import com.springrts.tasserver.commands.impl.AddBotCommandProcessor;
-import com.springrts.tasserver.commands.impl.AddNotificationCommandProcessor;
-import com.springrts.tasserver.commands.impl.AddStartRectCommandProcessor;
-import com.springrts.tasserver.commands.impl.AdminBroadcastCommandProcessor;
-import com.springrts.tasserver.commands.impl.BroadcastCommandProcessor;
-import com.springrts.tasserver.commands.impl.BroadcastExtendedCommandProcessor;
-import com.springrts.tasserver.commands.impl.ChangeAccountAccessCommandProcessor;
-import com.springrts.tasserver.commands.impl.ChangeAccountPasswordCommandProcessor;
-import com.springrts.tasserver.commands.impl.ChangeCharsetCommandProcessor;
-import com.springrts.tasserver.commands.impl.ChangePasswordCommandProcessor;
-import com.springrts.tasserver.commands.impl.ChannelMessageCommandProcessor;
-import com.springrts.tasserver.commands.impl.ChannelTopicCommandProcessor;
-import com.springrts.tasserver.commands.impl.ChannelsCommandProcessor;
-import com.springrts.tasserver.commands.impl.ConfirmAgreementCommandProcessor;
-import com.springrts.tasserver.commands.impl.CreateAccountCommandProcessor;
-import com.springrts.tasserver.commands.impl.DisableUnitsCommandProcessor;
-import com.springrts.tasserver.commands.impl.EnableAllUnitsCommandProcessor;
-import com.springrts.tasserver.commands.impl.EnableLoginCommandProcessor;
-import com.springrts.tasserver.commands.impl.EnableRegisterCommandProcessor;
-import com.springrts.tasserver.commands.impl.EnableUnitsCommandProcessor;
-import com.springrts.tasserver.commands.impl.FindIpCommandProcessor;
-import com.springrts.tasserver.commands.impl.FloodLevelCommandProcessor;
-import com.springrts.tasserver.commands.impl.ForceAllyNumberCommandProcessor;
-import com.springrts.tasserver.commands.impl.ForceCloseBattleCommandProcessor;
-import com.springrts.tasserver.commands.impl.ForceLeaveChannelCommandProcessor;
-import com.springrts.tasserver.commands.impl.ForceSpectatorModeCommandProcessor;
-import com.springrts.tasserver.commands.impl.ForceStopServerCommandProcessor;
-import com.springrts.tasserver.commands.impl.ForceTeamColorCommandProcessor;
-import com.springrts.tasserver.commands.impl.ForceTeamNumberCommandProcessor;
-import com.springrts.tasserver.commands.impl.ForgeMessageCommandProcessor;
-import com.springrts.tasserver.commands.impl.ForgeReverseMessageCommandProcessor;
-import com.springrts.tasserver.commands.impl.GarbageCollectorCommandProcessor;
-import com.springrts.tasserver.commands.impl.GenerateUserIdCommandProcessor;
-import com.springrts.tasserver.commands.impl.GetAccountAccessCommandProcessor;
-import com.springrts.tasserver.commands.impl.GetAccountCountCommandProcessor;
-import com.springrts.tasserver.commands.impl.GetAccountInfoCommandProcessor;
-import com.springrts.tasserver.commands.impl.GetInGameTimeCommandProcessor;
-import com.springrts.tasserver.commands.impl.GetIpCommandProcessor;
-import com.springrts.tasserver.commands.impl.GetLastIpCommandProcessor;
-import com.springrts.tasserver.commands.impl.GetLastLoginTimeCommandProcessor;
-import com.springrts.tasserver.commands.impl.GetLobbyVersionCommandProcessor;
-import com.springrts.tasserver.commands.impl.GetRegistrationDateCommandProcessor;
-import com.springrts.tasserver.commands.impl.GetSendBufferSizeCommandProcessor;
-import com.springrts.tasserver.commands.impl.GetUserIdCommandProcessor;
-import com.springrts.tasserver.commands.impl.HandicapCommandProcessor;
-import com.springrts.tasserver.commands.impl.Ip2CountryCommandProcessor;
-import com.springrts.tasserver.commands.impl.JoinBattleAcceptCommandProcessor;
-import com.springrts.tasserver.commands.impl.JoinBattleCommandProcessor;
-import com.springrts.tasserver.commands.impl.JoinBattleDenyCommandProcessor;
-import com.springrts.tasserver.commands.impl.JoinCommandProcessor;
-import com.springrts.tasserver.commands.impl.KickFromBattleCommandProcessor;
-import com.springrts.tasserver.commands.impl.KickUserCommandProcessor;
-import com.springrts.tasserver.commands.impl.KillAllCommandProcessor;
-import com.springrts.tasserver.commands.impl.KillCommandProcessor;
-import com.springrts.tasserver.commands.impl.KillIpCommandProcessor;
-import com.springrts.tasserver.commands.impl.LeaveBattleCommandProcessor;
-import com.springrts.tasserver.commands.impl.LeaveCommandProcessor;
-import com.springrts.tasserver.commands.impl.LoginCommandProcessor;
-import com.springrts.tasserver.commands.impl.LongTimeToDateCommandProcessor;
-import com.springrts.tasserver.commands.impl.MemoryAvailableCommandProcessor;
-import com.springrts.tasserver.commands.impl.MuteCommandProcessor;
-import com.springrts.tasserver.commands.impl.MuteListCommandProcessor;
-import com.springrts.tasserver.commands.impl.MyBattleStatusCommandProcessor;
-import com.springrts.tasserver.commands.impl.MyStatusCommandProcessor;
-import com.springrts.tasserver.commands.impl.OpenBattleCommandProcessor;
-import com.springrts.tasserver.commands.impl.PingCommandProcessor;
-import com.springrts.tasserver.commands.impl.ReInitializeIp2CountryCommandProcessor;
-import com.springrts.tasserver.commands.impl.RedirectCommandProcessor;
-import com.springrts.tasserver.commands.impl.RedirectOffCommandProcessor;
-import com.springrts.tasserver.commands.impl.RegisterCommandProcessor;
-import com.springrts.tasserver.commands.impl.ReloadUpdatePropertiesCommandProcessor;
-import com.springrts.tasserver.commands.impl.RemoveAccountCommandProcessor;
-import com.springrts.tasserver.commands.impl.RemoveBotCommandProcessor;
-import com.springrts.tasserver.commands.impl.RemoveScriptTagsCommandProcessor;
-import com.springrts.tasserver.commands.impl.RemoveStartRectCommandProcessor;
-import com.springrts.tasserver.commands.impl.RenameAccountCommandProcessor;
-import com.springrts.tasserver.commands.impl.RequestUpdateFileCommandProcessor;
-import com.springrts.tasserver.commands.impl.RingCommandProcessor;
-import com.springrts.tasserver.commands.impl.SaveAccountsServerCommandProcessor;
-import com.springrts.tasserver.commands.impl.SayBattleCommandProcessor;
-import com.springrts.tasserver.commands.impl.SayBattleExCommandProcessor;
-import com.springrts.tasserver.commands.impl.SayCommandProcessor;
-import com.springrts.tasserver.commands.impl.SayExCommandProcessor;
-import com.springrts.tasserver.commands.impl.SayPrivateCommandProcessor;
-import com.springrts.tasserver.commands.impl.ScriptCommandProcessor;
-import com.springrts.tasserver.commands.impl.ScriptEndCommandProcessor;
-import com.springrts.tasserver.commands.impl.ScriptStartCommandProcessor;
-import com.springrts.tasserver.commands.impl.SetBotModeCommandProcessor;
-import com.springrts.tasserver.commands.impl.SetChannelKeyCommandProcessor;
-import com.springrts.tasserver.commands.impl.SetLatestSpringVersionCommandProcessor;
-import com.springrts.tasserver.commands.impl.SetScriptTagsCommandProcessor;
-import com.springrts.tasserver.commands.impl.SetTimeOutCommandProcessor;
-import com.springrts.tasserver.commands.impl.StopServerCommandProcessor;
-import com.springrts.tasserver.commands.impl.TestLoginCommandProcessor;
-import com.springrts.tasserver.commands.impl.UnmuteCommandProcessor;
-import com.springrts.tasserver.commands.impl.UpTimeCommandProcessor;
-import com.springrts.tasserver.commands.impl.UpdateBattleInfoCommandProcessor;
-import com.springrts.tasserver.commands.impl.UpdateBotCommandProcessor;
-import com.springrts.tasserver.commands.impl.UpdateIp2CountryCommandProcessor;
-import com.springrts.tasserver.commands.impl.UpdateMotdCommandProcessor;
-import com.springrts.tasserver.commands.impl.UpdateStatisticsCommandProcessor;
-import com.springrts.tasserver.commands.impl.UserIdCommandProcessor;
-import java.lang.reflect.Constructor;
-import java.util.Collection;
+import com.springrts.tasserver.commands.impl.Activator;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -139,10 +35,10 @@ import org.slf4j.LoggerFactory;
 public class CommandProcessors implements ContextReceiver {
 
 	private final Logger log  = LoggerFactory.getLogger(CommandProcessors.class);
-
 	private Map<String, CommandProcessor> cmdNameToProcessor;
-	private Context context = null;
-
+	private Context context;
+	private CommandProcessorTracker commandProcessorTracker;
+	private Activator commandImplActivator;
 
 	/**
 	 * Extracts the name of the command supported by a command processor
@@ -173,7 +69,11 @@ public class CommandProcessors implements ContextReceiver {
 
 
 	public CommandProcessors() {
+
 		cmdNameToProcessor = new HashMap<String, CommandProcessor>();
+		context = null;
+		commandProcessorTracker = null;
+		commandImplActivator = null;
 	}
 
 
@@ -187,179 +87,34 @@ public class CommandProcessors implements ContextReceiver {
 	 */
 	public void init() {
 
-		Collection<Class<? extends CommandProcessor>> commandProcessorClasses =
-				new LinkedList<Class<? extends CommandProcessor>>();
-		commandProcessorClasses.add(PingCommandProcessor.class);
-		commandProcessorClasses.add(OpenBattleCommandProcessor.class);
-		commandProcessorClasses.add(CreateAccountCommandProcessor.class);
-		commandProcessorClasses.add(RegisterCommandProcessor.class);
-		commandProcessorClasses.add(KickUserCommandProcessor.class);
-		commandProcessorClasses.add(UpTimeCommandProcessor.class);
-		commandProcessorClasses.add(FloodLevelCommandProcessor.class);
-		commandProcessorClasses.add(KillCommandProcessor.class);
-		commandProcessorClasses.add(KillIpCommandProcessor.class);
-		commandProcessorClasses.add(EnableLoginCommandProcessor.class);
-		commandProcessorClasses.add(EnableRegisterCommandProcessor.class);
-		commandProcessorClasses.add(SetTimeOutCommandProcessor.class);
-		commandProcessorClasses.add(RemoveAccountCommandProcessor.class);
-		commandProcessorClasses.add(ForceStopServerCommandProcessor.class);
-		commandProcessorClasses.add(SaveAccountsServerCommandProcessor.class);
-		commandProcessorClasses.add(ChangeAccountPasswordCommandProcessor.class);
-		commandProcessorClasses.add(ChangeAccountAccessCommandProcessor.class);
-		commandProcessorClasses.add(GetAccountAccessCommandProcessor.class);
-		commandProcessorClasses.add(RedirectCommandProcessor.class);
-		commandProcessorClasses.add(RedirectOffCommandProcessor.class);
-		commandProcessorClasses.add(BroadcastCommandProcessor.class);
-		commandProcessorClasses.add(BroadcastExtendedCommandProcessor.class);
-		commandProcessorClasses.add(AdminBroadcastCommandProcessor.class);
-		commandProcessorClasses.add(GetAccountCountCommandProcessor.class);
-		commandProcessorClasses.add(FindIpCommandProcessor.class);
-		commandProcessorClasses.add(GetLastIpCommandProcessor.class);
-		commandProcessorClasses.add(GetAccountInfoCommandProcessor.class);
-		commandProcessorClasses.add(ForgeMessageCommandProcessor.class);
-		commandProcessorClasses.add(GetIpCommandProcessor.class);
-		commandProcessorClasses.add(GetInGameTimeCommandProcessor.class);
-		commandProcessorClasses.add(ForceCloseBattleCommandProcessor.class);
-		commandProcessorClasses.add(MuteCommandProcessor.class);
-		commandProcessorClasses.add(UnmuteCommandProcessor.class);
-		commandProcessorClasses.add(MuteListCommandProcessor.class);
-		commandProcessorClasses.add(ChannelMessageCommandProcessor.class);
-		commandProcessorClasses.add(Ip2CountryCommandProcessor.class);
-		commandProcessorClasses.add(ReInitializeIp2CountryCommandProcessor.class);
-		commandProcessorClasses.add(UpdateIp2CountryCommandProcessor.class);
-		commandProcessorClasses.add(ChangeCharsetCommandProcessor.class);
-		commandProcessorClasses.add(GetLobbyVersionCommandProcessor.class);
-		commandProcessorClasses.add(UpdateStatisticsCommandProcessor.class);
-		commandProcessorClasses.add(UpdateMotdCommandProcessor.class);
-		commandProcessorClasses.add(LongTimeToDateCommandProcessor.class);
-		commandProcessorClasses.add(GetLastLoginTimeCommandProcessor.class);
-		commandProcessorClasses.add(SetChannelKeyCommandProcessor.class);
-		commandProcessorClasses.add(ForceLeaveChannelCommandProcessor.class);
-		commandProcessorClasses.add(GetSendBufferSizeCommandProcessor.class);
-		commandProcessorClasses.add(MemoryAvailableCommandProcessor.class);
-		commandProcessorClasses.add(GarbageCollectorCommandProcessor.class);
-		commandProcessorClasses.add(AddNotificationCommandProcessor.class);
-		commandProcessorClasses.add(TestLoginCommandProcessor.class);
-		commandProcessorClasses.add(SetBotModeCommandProcessor.class);
-		commandProcessorClasses.add(GetRegistrationDateCommandProcessor.class);
-		commandProcessorClasses.add(SetLatestSpringVersionCommandProcessor.class);
-		commandProcessorClasses.add(GetUserIdCommandProcessor.class);
-		commandProcessorClasses.add(GenerateUserIdCommandProcessor.class);
-		commandProcessorClasses.add(KillAllCommandProcessor.class);
-		commandProcessorClasses.add(LoginCommandProcessor.class);
-		commandProcessorClasses.add(ConfirmAgreementCommandProcessor.class);
-		commandProcessorClasses.add(UserIdCommandProcessor.class);
-		commandProcessorClasses.add(RenameAccountCommandProcessor.class);
-		commandProcessorClasses.add(ChangePasswordCommandProcessor.class);
-		commandProcessorClasses.add(JoinCommandProcessor.class);
-		commandProcessorClasses.add(LeaveCommandProcessor.class);
-		commandProcessorClasses.add(ChannelTopicCommandProcessor.class);
-		commandProcessorClasses.add(SayCommandProcessor.class);
-		commandProcessorClasses.add(SayExCommandProcessor.class);
-		commandProcessorClasses.add(SayPrivateCommandProcessor.class);
-		commandProcessorClasses.add(SayBattleCommandProcessor.class);
-		commandProcessorClasses.add(SayBattleExCommandProcessor.class);
-		commandProcessorClasses.add(JoinBattleCommandProcessor.class);
-		commandProcessorClasses.add(JoinBattleAcceptCommandProcessor.class);
-		commandProcessorClasses.add(JoinBattleDenyCommandProcessor.class);
-		commandProcessorClasses.add(LeaveBattleCommandProcessor.class);
-		commandProcessorClasses.add(MyBattleStatusCommandProcessor.class);
-		commandProcessorClasses.add(MyStatusCommandProcessor.class);
-		commandProcessorClasses.add(UpdateBattleInfoCommandProcessor.class);
-		commandProcessorClasses.add(HandicapCommandProcessor.class);
-		commandProcessorClasses.add(ForceTeamNumberCommandProcessor.class);
-		commandProcessorClasses.add(ForceAllyNumberCommandProcessor.class);
-		commandProcessorClasses.add(ForceTeamColorCommandProcessor.class);
-		commandProcessorClasses.add(ForceSpectatorModeCommandProcessor.class);
-		commandProcessorClasses.add(AddBotCommandProcessor.class);
-		commandProcessorClasses.add(RemoveBotCommandProcessor.class);
-		commandProcessorClasses.add(UpdateBotCommandProcessor.class);
-		commandProcessorClasses.add(DisableUnitsCommandProcessor.class);
-		commandProcessorClasses.add(EnableUnitsCommandProcessor.class);
-		commandProcessorClasses.add(EnableAllUnitsCommandProcessor.class);
-		commandProcessorClasses.add(RingCommandProcessor.class);
-		commandProcessorClasses.add(AddStartRectCommandProcessor.class);
-		commandProcessorClasses.add(RemoveStartRectCommandProcessor.class);
-		commandProcessorClasses.add(ScriptStartCommandProcessor.class);
-		commandProcessorClasses.add(ScriptCommandProcessor.class);
-		commandProcessorClasses.add(ScriptEndCommandProcessor.class);
-		commandProcessorClasses.add(SetScriptTagsCommandProcessor.class);
-		commandProcessorClasses.add(RemoveScriptTagsCommandProcessor.class);
-		commandProcessorClasses.add(ChannelsCommandProcessor.class);
-		commandProcessorClasses.add(ForgeReverseMessageCommandProcessor.class);
-		commandProcessorClasses.add(ReloadUpdatePropertiesCommandProcessor.class);
-		commandProcessorClasses.add(RequestUpdateFileCommandProcessor.class);
-		commandProcessorClasses.add(KickFromBattleCommandProcessor.class);
-		commandProcessorClasses.add(StopServerCommandProcessor.class);
+		// TODO move this into a BundleActivator.start() method
+		commandProcessorTracker = new CommandProcessorTracker(context.getFramework().getBundleContext());
+		commandProcessorTracker.open();
+		// TODO move this into a BundleActivator.stop() method
+//		commandProcessorTracker.close();
 
-		try {
-			load(commandProcessorClasses);
-		} catch (Exception ex) {
-			log.error("Failed to load Command Processors", ex);
-			context.getServerThread().closeServerAndExit();
-		}
+		commandImplActivator = new Activator();
+		commandImplActivator.start(context.getFramework().getBundleContext());
 	}
 
 	/**
-	 * Adds a command processor.
-	 * @param cp to be added
-	 * @throws Exception if name extraction fails
+	 * Adds a command processor, responsible for handling the given
+	 * command-name.
+	 * @param commandName the name of the command to handle with the given
+	 *   processor
+	 * @param commandProcessor the processor to handle the given command-name
 	 */
-	private void add(CommandProcessor cp) throws Exception {
-
-		String cmdName = null;
-		try {
-			cmdName = extractCommandName(cp.getClass());
-		} catch (Exception ex) {
-			throw new RuntimeException("Failed extracting command name", ex);
-		}
-
-		cp.receiveContext(context);
-
-		cmdNameToProcessor.put(cmdName, cp);
+	public void add(String commandName, CommandProcessor commandProcessor) {
+		cmdNameToProcessor.put(commandName, commandProcessor);
 	}
 
 	/**
-	 * Instantiates a single CommandProcessor.
-	 * @param cmdName_processor where to store it
-	 * @param cpc the class to instantiate
-	 * @throws Exception if loading failed, for whatever reason
+	 * Removes a command processor, responsible for handling the given
+	 * command-name.
+	 * @param commandName the name for which to remove the command processor
 	 */
-	private static CommandProcessor load(Class<? extends CommandProcessor> cpc) throws Exception {
-
-		CommandProcessor cp = null;
-
-		Constructor<? extends CommandProcessor> noArgsCtor = null;
-		try {
-			noArgsCtor = cpc.getConstructor();
-		} catch (NoSuchMethodException ex) {
-			throw new RuntimeException(cpc.getCanonicalName()
-				+ " is not a valid CommandProcessor; "
-				+ "No-args constructor is missing.", ex);
-		}
-		try {
-			cp = noArgsCtor.newInstance();
-		} catch (Exception ex) {
-			throw new RuntimeException("Failed to instantiate "
-					+ cpc.getCanonicalName(), ex);
-		}
-
-		return cp;
-	}
-
-	/**
-	 * Loads instances for all supplied command processor classes.
-	 * @param cpcs classes of the command processors to be load
-	 * @return true, if the command was valid and successfully executed
-	 * @throws Exception if loading of any of the command processors failed,
-	 *                   for whatever reason
-	 */
-	private void load(Collection<Class<? extends CommandProcessor>> cpcs)
-			throws Exception
-	{
-		for (Class<? extends CommandProcessor> cpc : cpcs) {
-			add(load(cpc));
-		}
+	public void remove(String commandName) {
+		cmdNameToProcessor.remove(commandName);
 	}
 
 	/**
