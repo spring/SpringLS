@@ -25,12 +25,12 @@ REM
 REM * configure the DB:
 REM * > copy conf\META-INF\persistence.xml.template conf\META-INF\persistence.xml
 REM   > notepad conf\META-INF\persistence.xml
-REM   Info about the default persistence provider for TASServer (Hibernate):
+REM   Info about the default persistence provider for SpringLS (Hibernate):
 REM   http://docs.jboss.org/hibernate/stable/entitymanager/reference/en/html/configuration.html
 REM
 
-SET MY_MAIN_CLASS_main=com.springrts.tasserver.Main
-SET MY_MAIN_CLASS_accountUtils=com.springrts.tasserver.AccountUtils
+SET MY_MAIN_CLASS_main=com.springrts.springls.Main
+SET MY_MAIN_CLASS_accountUtils=com.springrts.springls.AccountUtils
 SET MY_MAIN_CLASS=%MY_MAIN_CLASS_main%
 
 IF {%1}=={normal} (
@@ -38,7 +38,7 @@ IF {%1}=={normal} (
 	SET MY_JAVA_ARGS=-cp "conf;target\*;target\dependency\*" %MY_MAIN_CLASS% %2 %3 %4 %5 %6 %7 %8 %9
 ) ELSE (
 	SET MY_ECHO=Starting LAN server, only minimal dependencies
-	REM SET MY_JAVA_ARGS=-jar target\tasserver-<version>.jar -LAN
+	REM SET MY_JAVA_ARGS=-jar target\springls-<version>.jar -LAN
 	SET MY_JAVA_ARGS=-cp "conf;target\*" %MY_MAIN_CLASS% -LAN %2 %3 %4 %5 %6 %7 %8 %9
 )
 

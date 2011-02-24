@@ -24,12 +24,12 @@
 # * configure the DB:
 #   > cp conf/META-INF/persistence.xml.template conf/META-INF/persistence.xml
 #   > ${EDITOR} conf/META-INF/persistence.xml
-#   Info about the default persistence provider for TASServer (Hibernate):
+#   Info about the default persistence provider for SpringLS (Hibernate):
 #   http://docs.jboss.org/hibernate/stable/entitymanager/reference/en/html/configuration.html
 #
 
-#MY_JAR_BARE=$(ls target/original-tasserver*)
-MY_JAR_BASE=$(ls target/tasserver*)
+#MY_JAR_BARE=$(ls target/original-springls*)
+MY_JAR_BASE=$(ls target/springls*)
 MY_DEPENDENCY_CP="target/dependency/*"
 # use this line for old JDKs
 #MY_DEPENDENCY_CP=$(ls -1 target/dependency/*.jar | awk 'BEGIN { cp="" } { if (cp != "") {cp = cp ":"} cp = cp $1 } END { print(cp) }')
@@ -41,8 +41,8 @@ else
 fi
 
 MY_FINAL_CP=conf:${MY_MAIN_CP}
-MY_MAIN_CLASS_main=com.springrts.tasserver.Main
-MY_MAIN_CLASS_accountUtils=com.springrts.tasserver.AccountUtils
+MY_MAIN_CLASS_main=com.springrts.springls.Main
+MY_MAIN_CLASS_accountUtils=com.springrts.springls.AccountUtils
 MY_MAIN_CLASS=${MY_MAIN_CLASS_main}
 
 MY_OPTIONAL_OPTS=""

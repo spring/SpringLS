@@ -13,8 +13,8 @@
 		<project.build.resourceEncoding>${project.build.encoding}</project.build.resourceEncoding>
 	</properties>
 
-	<groupId>com.springrts</groupId>
-	<artifactId>tasserver</artifactId>
+	<groupId>com.springrts.springls</groupId>
+	<artifactId>springls</artifactId>
 	<version>0.36-SNAPSHOT</version>
 
 	<packaging>jar</packaging>
@@ -23,9 +23,9 @@
 		<name>Spring RTS Community</name>
 		<url>http://springrts.com</url>
 	</organization>
-	<name>TASServer</name>
-	<description>A Spring RTS Lobby Server</description>
-	<!--<url>http://github.com/spring/TASServer</url>-->
+	<name>SpringLS</name>
+	<description>A Spring RTS lobby server, written in Java</description>
+	<!--<url>http://github.com/spring/SpringLS</url>-->
 	<prerequisites>
 		<maven>2.1</maven>
 	</prerequisites>
@@ -128,9 +128,9 @@
 	</contributors>
 
 	<scm>
-		<connection>scm:git:git://github.com/spring/TASServer.git</connection>
-		<developerConnection>scm:git:ssh://git@github.com:spring/TASServer.git</developerConnection>
-		<url>http://github.com/spring/TASServer</url>
+		<connection>scm:git:git://github.com/spring/SpringLS</connection>
+		<developerConnection>scm:git:ssh://git@github.com:spring/SpringLS</developerConnection>
+		<url>http://github.com/spring/SpringLS</url>
 	</scm>
 
 	<reporting>
@@ -258,8 +258,8 @@
 						<manifest>
 							<addClasspath>true</addClasspath>
 							<classpathPrefix>dependency</classpathPrefix>
-							<packageName>com.springrts.tasserver</packageName>
-							<mainClass>com.springrts.tasserver.Main</mainClass>
+							<packageName>com.springrts.springls</packageName>
+							<mainClass>com.springrts.springls.Main</mainClass>
 						</manifest>
 					</archive>
 				</configuration>

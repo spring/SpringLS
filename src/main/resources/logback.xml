@@ -56,7 +56,7 @@
 	</appender>
 
 
-	<logger name="com.springrts.tasserver" level="info">
+	<logger name="com.springrts.springls" level="info">
 		<appender-ref ref="MAIN" />
 		<appender-ref ref="ERROR" />
 	</logger>

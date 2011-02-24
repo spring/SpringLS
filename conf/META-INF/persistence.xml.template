@@ -4,16 +4,16 @@
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_1_0.xsd">
 
-	<persistence-unit name="tasserver" transaction-type="RESOURCE_LOCAL">
+	<persistence-unit name="springls" transaction-type="RESOURCE_LOCAL">
 		<provider>org.hibernate.ejb.HibernatePersistence</provider>
 
-		<class>com.springrts.tasserver.Account</class>
-		<class>com.springrts.tasserver.BanEntry</class>
+		<class>com.springrts.springls.Account</class>
+		<class>com.springrts.springls.BanEntry</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 
 		<!-- MySQL -->
 		<properties>
-			<property name="hibernate.connection.url"          value="jdbc:mysql://localhost:3306/tasserver"/>
+			<property name="hibernate.connection.url"          value="jdbc:mysql://localhost:3306/springLobbyServer"/>
 			<property name="hibernate.connection.username"     value="root"/>
 			<property name="hibernate.connection.password"     value="admin"/>
 			<property name="hibernate.connection.driver_class" value="com.mysql.jdbc.Driver"/>
@@ -32,7 +32,7 @@
 
 		<!-- Postgres -->
 		<!--<properties>
-			<property name="hibernate.connection.url"          value="jdbc:postgresql://localhost/tasserver"/>
+			<property name="hibernate.connection.url"          value="jdbc:postgresql://localhost/springLobbyServer"/>
 			<property name="hibernate.connection.username"     value="postgres"/>
 			<property name="hibernate.connection.password"     value=""/>
 			<property name="hibernate.connection.driver_class" value="org.postgresql.Driver"/>
