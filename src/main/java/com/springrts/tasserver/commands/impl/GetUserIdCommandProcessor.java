@@ -51,14 +51,13 @@ public class GetUserIdCommandProcessor extends AbstractCommandProcessor {
 
 		Account acc = getContext().getAccountsService().getAccount(username);
 		if (acc == null) {
-			client.sendLine(new StringBuilder("SERVERMSG User <")
-					.append(username).append("> not found!").toString());
+			client.sendLine(String.format("SERVERMSG User <%s> not found!",
+					username));
 			return false;
 		}
 
-		client.sendLine(new StringBuilder("SERVERMSG Last user ID for <")
-				.append(username).append("> was ")
-				.append(acc.getLastUserId()).toString());
+		client.sendLine(String.format("SERVERMSG Last user ID for <%s> was %d",
+				username, acc.getLastUserId()));
 
 		return true;
 	}

@@ -57,8 +57,8 @@ public class GetSendBufferSizeCommandProcessor extends AbstractCommandProcessor 
 
 		Client c = getContext().getClients().getClient(username);
 		if (c == null) {
-			client.sendLine(new StringBuilder("SERVERMSG Error: user <")
-					.append(username).append("> not found online!").toString());
+			client.sendLine(String.format(
+					"SERVERMSG Error: user <%s> not found online!", username));
 			return false;
 		}
 
@@ -67,14 +67,15 @@ public class GetSendBufferSizeCommandProcessor extends AbstractCommandProcessor 
 			size = c.getSockChan().socket().getSendBufferSize();
 		} catch (Exception e) {
 			// this could perhaps happen if user just disconnected or something
-			client.sendLine(new StringBuilder("SERVERMSG Error: exception raised while trying to get send buffer size for <")
-					.append(username).append(">!").toString());
+			client.sendLine(String.format(
+					"SERVERMSG Error while trying to get send buffer size for"
+					+ " <%s>!", username));
 			return false;
 		}
 
-		client.sendLine(new StringBuilder("SERVERMSG Send buffer size for <")
-				.append(c.getAccount().getName()).append("> is set to ")
-				.append(size).append(" bytes.").toString());
+		client.sendLine(String.format(
+				"SERVERMSG Send buffer size for <%s> is set to %d bytes.",
+				c.getAccount().getName(), size));
 
 		return true;
 	}

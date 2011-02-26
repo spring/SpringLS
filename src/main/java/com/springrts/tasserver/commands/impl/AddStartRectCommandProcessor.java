@@ -63,18 +63,22 @@ public class AddStartRectCommandProcessor extends AbstractCommandProcessor {
 			top = Integer.parseInt(args.get(2));
 			right = Integer.parseInt(args.get(3));
 			bottom = Integer.parseInt(args.get(4));
-		} catch (NumberFormatException e) {
-			client.sendLine(new StringBuilder("SERVERMSG Serious error: inconsistent data (")
-					.append(getCommandName()).append(" command). You will now be disconnected ...").toString());
-			getContext().getClients().killClient(client, "Quit: inconsistent data");
+		} catch (NumberFormatException ex) {
+			client.sendLine(String.format(
+					"SERVERMSG Error: inconsistent data (%s command)."
+					+ " You will now be disconnected ...", getCommandName()));
+			getContext().getClients().killClient(client,
+					"Quit: inconsistent data");
 			return false;
 		}
 
 		StartRect startRect = battle.getStartRects().get(allyno);
 		if (startRect.isEnabled()) {
-			client.sendLine(new StringBuilder("SERVERMSG Serious error: inconsistent data (")
-					.append(getCommandName()).append(" command). You will now be disconnected ...").toString());
-			getContext().getClients().killClient(client, "Quit: inconsistent data");
+			client.sendLine(String.format(
+					"SERVERMSG Error: inconsistent data (%s command)."
+					+ " You will now be disconnected ...", getCommandName()));
+			getContext().getClients().killClient(client,
+					"Quit: inconsistent data");
 			return false;
 		}
 
@@ -84,12 +88,9 @@ public class AddStartRectCommandProcessor extends AbstractCommandProcessor {
 		startRect.setRight(right);
 		startRect.setBottom(bottom);
 
-		battle.sendToAllExceptFounder(new StringBuilder("ADDSTARTRECT ")
-				.append(allyno).append(" ")
-				.append(left).append(" ")
-				.append(top).append(" ")
-				.append(right).append(" ")
-				.append(bottom).toString());
+		battle.sendToAllExceptFounder(String.format(
+				"ADDSTARTRECT %d %d %d %d %d",
+				allyno, left, top, right, bottom));
 
 		return true;
 	}

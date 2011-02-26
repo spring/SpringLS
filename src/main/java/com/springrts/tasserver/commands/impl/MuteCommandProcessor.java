@@ -24,6 +24,7 @@ import com.springrts.tasserver.Client;
 import com.springrts.tasserver.commands.AbstractCommandProcessor;
 import com.springrts.tasserver.commands.CommandProcessingException;
 import com.springrts.tasserver.commands.SupportedCommand;
+import java.net.InetAddress;
 import java.util.List;
 
 /**
@@ -50,18 +51,24 @@ public class MuteCommandProcessor extends AbstractCommandProcessor {
 
 		Channel chan = getContext().getChannels().getChannel(chanelName);
 		if (chan == null) {
-			client.sendLine(new StringBuilder("SERVERMSG MUTE failed: Channel #").append(chanelName).append(" does not exist!").toString());
+			client.sendLine(String.format(
+					"SERVERMSG %s failed: Channel #%s does not exist!",
+					getCommandName(), chanelName));
 			return false;
 		}
 
 		if (chan.getMuteList().isMuted(username)) {
-			client.sendLine(new StringBuilder("SERVERMSG MUTE failed: User <").append(username).append("> is already muted. Unmute first!").toString());
+			client.sendLine(String.format(
+					"SERVERMSG %s failed: User <%s> is already muted. Unmute first!",
+					getCommandName(), username));
 			return false;
 		}
 
 		Account targetAccount = getContext().getAccountsService().getAccount(username);
 		if (targetAccount == null) {
-			client.sendLine(new StringBuilder("SERVERMSG MUTE failed: User <").append(username).append("> does not exist").toString());
+			client.sendLine(String.format(
+					"SERVERMSG %s failed: User <%s> does not exist",
+					getCommandName(), username));
 			return false;
 		}
 
@@ -71,7 +78,9 @@ public class MuteCommandProcessor extends AbstractCommandProcessor {
 			if (option.toUpperCase().equals("IP")) {
 				muteByIP = true;
 			} else {
-				client.sendLine(new StringBuilder("SERVERMSG MUTE failed: Invalid argument: ").append(option).append("\"").toString());
+				client.sendLine(String.format(
+						"SERVERMSG %s failed: Invalid argument: \"%s\"",
+						getCommandName(), option));
 				return false;
 			}
 		}
@@ -79,19 +88,21 @@ public class MuteCommandProcessor extends AbstractCommandProcessor {
 		long minutes;
 		try {
 			minutes = Long.parseLong(args.get(2));
-		} catch (NumberFormatException e) {
-			client.sendLine("SERVERMSG MUTE failed: Invalid argument - should be an integer");
+		} catch (NumberFormatException ex) {
+			client.sendLine(String.format(
+					"SERVERMSG %s failed: Invalid argument - should be an integer",
+					getCommandName()));
 			return false;
 		}
 
-		chan.getMuteList().mute(username, minutes * 60, (muteByIP ? targetAccount.getLastIp() : null));
+		InetAddress muteIp = muteByIP ? targetAccount.getLastIp() : null;
+		chan.getMuteList().mute(username, minutes * 60, muteIp);
 
-		client.sendLine(new StringBuilder("SERVERMSG You have muted <")
-				.append(username).append("> on channel #")
-				.append(chan.getName()).append(".").toString());
-		chan.broadcast(new StringBuilder("<")
-				.append(client.getAccount().getName()).append("> has muted <")
-				.append(username).append(">").toString());
+		client.sendLine(String.format(
+				"SERVERMSG You have muted <%s> on channel #%s.",
+				username, chan.getName()));
+		chan.broadcast(String.format("<%s> has muted <%s>",
+				client.getAccount().getName(), username));
 
 		return true;
 	}

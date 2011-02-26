@@ -54,11 +54,15 @@ public class ReloadUpdatePropertiesCommandProcessor extends AbstractCommandProce
 		}
 
 		if (getContext().getUpdateProperties().read(UpdateProperties.DEFAULT_FILENAME)) {
-			LOG.info("\"Update properties\" read from {}", UpdateProperties.DEFAULT_FILENAME);
-			client.sendLine("SERVERMSG \"Update properties\" have been successfully loaded from " + UpdateProperties.DEFAULT_FILENAME);
+			LOG.info("\"Update properties\" read from {}",
+					UpdateProperties.DEFAULT_FILENAME);
+			client.sendLine(String.format(
+					"SERVERMSG \"Update properties\" have been successfully loaded from %s",
+					UpdateProperties.DEFAULT_FILENAME));
 		} else {
-			client.sendLine(new StringBuilder("SERVERMSG Unable to load \"Update properties\" from ")
-					.append(UpdateProperties.DEFAULT_FILENAME).append("!").toString());
+			client.sendLine(String.format(
+					"SERVERMSG Unable to load \"Update properties\" from %s!",
+					UpdateProperties.DEFAULT_FILENAME));
 		}
 
 		return true;

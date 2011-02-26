@@ -46,8 +46,8 @@ public class SetTimeOutCommandProcessor extends AbstractCommandProcessor {
 
 		int newTimeOut = Integer.parseInt(args.get(0));
 		getContext().getServer().setTimeoutLength(newTimeOut * 1000);
-		client.sendLine(new StringBuilder("SERVERMSG Timeout length is now ")
-				.append(newTimeOut).append(" seconds.").toString());
+		client.sendLine(String.format(
+				"SERVERMSG Timeout length is now %d seconds.", newTimeOut));
 
 		return true;
 	}

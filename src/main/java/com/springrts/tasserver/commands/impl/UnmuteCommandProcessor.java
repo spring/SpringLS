@@ -50,22 +50,25 @@ public class UnmuteCommandProcessor extends AbstractCommandProcessor {
 
 		Channel chan = getContext().getChannels().getChannel(chanelName);
 		if (chan == null) {
-			client.sendLine(new StringBuilder("SERVERMSG UNMUTE failed: Channel #").append(chanelName).append(" does not exist!").toString());
+			client.sendLine(String.format(
+					"SERVERMSG %s failed: Channel #%s does not exist!",
+					getCommandName(), chanelName));
 			return false;
 		}
 
 		if (!chan.getMuteList().isMuted(username)) {
-			client.sendLine(new StringBuilder("SERVERMSG UNMUTE failed: User <").append(username).append("> is not on the mute list!").toString());
+			client.sendLine(String.format(
+					"SERVERMSG %s failed: User <%s> is not on the mute list!",
+					getCommandName(), username));
 			return false;
 		}
 
 		chan.getMuteList().unmute(username);
-		client.sendLine(new StringBuilder("SERVERMSG You have unmuted <")
-				.append(username).append("> on channel #")
-				.append(chan.getName()).append(".").toString());
-		chan.broadcast(new StringBuilder("<")
-				.append(client.getAccount().getName()).append("> has unmuted <")
-				.append(username).append(">").toString());
+		client.sendLine(String.format(
+				"SERVERMSG You have unmuted <%s> on channel #%s.",
+				username, chan.getName()));
+		chan.broadcast(String.format("<%s> has unmuted <%s>",
+				client.getAccount().getName(), username));
 
 		return true;
 	}

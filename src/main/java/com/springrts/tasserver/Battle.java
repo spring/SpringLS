@@ -178,20 +178,21 @@ public class Battle implements ContextReceiver {
 			addr = getFounder().getIp();
 		}
 
-		return new StringBuilder("BATTLEOPENED ")
-				.append(getId()).append(" ")
-				.append(getType()).append(" ")
-				.append(getNatType()).append(" ")
-				.append(getFounder().getAccount().getName()).append(" ")
-				.append(addr.getHostAddress()).append(" ")
-				.append(getPort()).append(" ")
-				.append(getMaxPlayers()).append(" ")
-				.append(Misc.boolToStr(restricted())).append(" ")
-				.append(getRank()).append(" ")
-				.append(getMapHash()).append(" ")
-				.append(getMapName()).append("\t")
-				.append(getTitle()).append("\t")
-				.append(getModName()).toString();
+		return String.format(
+				"BATTLEOPENED %d %d %d %s %s %d %d %s %d %d %s\t%s\t%s",
+				getId(),
+				getType(),
+				getNatType(),
+				getFounder().getAccount().getName(),
+				addr.getHostAddress(),
+				getPort(),
+				getMaxPlayers(),
+				Misc.boolToStr(restricted()),
+				getRank(),
+				getMapHash(),
+				getMapName(),
+				getTitle(),
+				getModName());
 	}
 
 	private static class BattleStatusNotifyer implements Processor<Client> {
@@ -485,13 +486,13 @@ public class Battle implements ContextReceiver {
 
 		bots.add(bot);
 
-		sendToAllClients(new StringBuilder("ADDBOT ")
-				.append(getId()).append(" ")
-				.append(bot.getName()).append(" ")
-				.append(bot.getOwnerName()).append(" ")
-				.append(bot.getBattleStatus()).append(" ")
-				.append(bot.getTeamColor()).append(" ")
-				.append(bot.getSpecifier()).toString());
+		sendToAllClients(String.format("ADDBOT %d %s %s %d %d %s",
+				getId(),
+				bot.getName(),
+				bot.getOwnerName(),
+				bot.getBattleStatus(),
+				Misc.colorJavaToSpring(bot.getTeamColor()),
+				bot.getSpecifier()));
 	}
 
 	/**

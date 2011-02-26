@@ -20,24 +20,19 @@ package com.springrts.tasserver.commands.impl;
 
 import com.springrts.tasserver.Account;
 import com.springrts.tasserver.Client;
+import com.springrts.tasserver.Misc;
 import com.springrts.tasserver.ServerNotification;
 import com.springrts.tasserver.commands.AbstractCommandProcessor;
 import com.springrts.tasserver.commands.CommandProcessingException;
 import com.springrts.tasserver.commands.SupportedCommand;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author hoijui
  */
 @SupportedCommand("REDIRECT")
 public class RedirectCommandProcessor extends AbstractCommandProcessor {
-
-	private static final Logger LOG = LoggerFactory.getLogger(RedirectCommandProcessor.class);
 
 	public RedirectCommandProcessor() {
 		super(1, 1, Account.Access.ADMIN);
@@ -53,17 +48,20 @@ public class RedirectCommandProcessor extends AbstractCommandProcessor {
 		}
 
 		String redirectIpStr = args.get(0);
-		try {
-			getContext().getServer().setRedirectAddress(InetAddress.getByName(redirectIpStr));
-		} catch (UnknownHostException ex) {
-			LOG.debug("Invalid redirect IP supplied", ex);
+		InetAddress redirectIp = Misc.parseIp(redirectIpStr);
+		if (redirectIp == null) {
 			return false;
 		}
-		getContext().getClients().sendToAllRegisteredUsers("BROADCAST Server has entered redirection mode");
+		getContext().getServer().setRedirectAddress(redirectIp);
+		getContext().getClients().sendToAllRegisteredUsers(
+				"BROADCAST Server has entered redirection mode");
 
 		// add server notification:
-		ServerNotification sn = new ServerNotification("Entered redirection mode");
-		sn.addLine(new StringBuilder("Admin <").append(client.getAccount().getName()).append("> has enabled redirection mode. New address: ").append(redirectIpStr).toString());
+		ServerNotification sn = new ServerNotification(
+				"Entered redirection mode");
+		sn.addLine(String.format(
+				"Admin <%s> has enabled redirection mode. New address: %s",
+				client.getAccount().getName(), redirectIpStr));
 		getContext().getServerNotifications().addNotification(sn);
 
 		return true;

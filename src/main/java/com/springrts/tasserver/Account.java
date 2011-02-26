@@ -305,18 +305,19 @@ public class Account implements Serializable, Cloneable {
 
 	@Override
 	public String toString() {
-		return new StringBuilder(getName()).append(" ")
-				.append(getPassword()).append(" ")
-				.append(getAccess()).append(" ")
-				.append(getLastUserId()).append(" ")
-				.append(getLastLogin()).append(" ")
-				.append(getLastIp().getHostAddress()).append(" ")
-				.append(getRegistrationDate()).append(" ")
-				.append(getLastCountry()).append(" ")
-				.append(getId()).append(" ")
-				.append(isBot()).append(" ")
-				.append(getInGameTime()).append(" ")
-				.append(isAgreementAccepted()).toString();
+		return String.format("%s %s %s %d %d %s %d %s %d %s %d %s",
+				getName(),
+				getPassword(),
+				getAccess().toString(),
+				getLastUserId(),
+				getLastLogin(),
+				getLastIp().getHostAddress(),
+				getRegistrationDate(),
+				getLastCountry(),
+				getId(),
+				isBot(),
+				getInGameTime(),
+				isAgreementAccepted());
 	}
 
 

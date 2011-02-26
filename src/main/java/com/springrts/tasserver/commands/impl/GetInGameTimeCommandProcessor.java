@@ -46,26 +46,30 @@ public class GetInGameTimeCommandProcessor extends AbstractCommandProcessor {
 		}
 
 		if (args.isEmpty()) {
-			client.sendLine(new StringBuilder("SERVERMSG Your in-game time is ")
-					.append(client.getAccount().getInGameTimeInMins()).append(" minutes.").toString());
+			client.sendLine(String.format(
+					"SERVERMSG Your in-game time is %d minutes.",
+					client.getAccount().getInGameTimeInMins()));
 		} else {
 			if (client.getAccount().getAccess().isLessThen(Account.Access.PRIVILEGED)) {
 				client.sendLine("SERVERMSG You have no access to see other player's in-game time!");
-				throw new InsufficientAccessCommandProcessingException(getCommandName(), Account.Access.PRIVILEGED, client.getAccount().getAccess());
+				throw new InsufficientAccessCommandProcessingException(
+						getCommandName(), Account.Access.PRIVILEGED,
+						client.getAccount().getAccess());
 			}
 
 			String username = args.get(0);
 
 			Account acc = getContext().getAccountsService().getAccount(username);
 			if (acc == null) {
-				client.sendLine(new StringBuilder("SERVERMSG GETINGAMETIME failed: user ")
-						.append(username).append(" not found!").toString());
+				client.sendLine(String.format(
+						"SERVERMSG %s failed: user %s not found!",
+						getCommandName(), username));
 				return false;
 			}
 
-			client.sendLine(new StringBuilder("SERVERMSG ")
-					.append(acc.getName()).append("'s in-game time is ")
-					.append(acc.getInGameTimeInMins()).append(" minutes.").toString());
+			client.sendLine(String.format(
+					"SERVERMSG %s's in-game time is %d minutes.",
+					acc.getName(), acc.getInGameTimeInMins()));
 		}
 
 		return true;

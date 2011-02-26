@@ -20,6 +20,7 @@ package com.springrts.tasserver.commands.impl;
 
 import com.springrts.tasserver.Account;
 import com.springrts.tasserver.Client;
+import com.springrts.tasserver.Misc;
 import com.springrts.tasserver.commands.AbstractCommandProcessor;
 import com.springrts.tasserver.commands.CommandProcessingException;
 import com.springrts.tasserver.commands.SupportedCommand;
@@ -45,11 +46,13 @@ public class EnableRegisterCommandProcessor extends AbstractCommandProcessor {
 		}
 
 		if (args.size() == 1) {
-			boolean enableRegistration = args.get(0).equals("1");
-			getContext().getAccountsService().setRegistrationEnabled(enableRegistration);
+			boolean enableRegistration = Misc.strToBool(args.get(0));
+			getContext().getAccountsService()
+					.setRegistrationEnabled(enableRegistration);
 		}
-		client.sendLine(new StringBuilder("SERVERMSG The REGISTER command is ")
-				.append((getContext().getAccountsService().isRegistrationEnabled() ? "enabled" : "disabled")).toString());
+		client.sendLine(String.format("SERVERMSG The REGISTER command is %s",
+				getContext().getAccountsService().isRegistrationEnabled()
+				? "enabled" : "disabled"));
 
 		return true;
 	}

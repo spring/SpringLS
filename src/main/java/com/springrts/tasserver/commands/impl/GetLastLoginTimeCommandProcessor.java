@@ -52,21 +52,25 @@ public class GetLastLoginTimeCommandProcessor extends AbstractCommandProcessor {
 
 		Account acc = getContext().getAccountsService().getAccount(username);
 		if (acc == null) {
-			client.sendLine(new StringBuilder("SERVERMSG GETLASTLOGINTIME failed: <")
-					.append(username).append("> not found!").toString());
+			client.sendLine(String.format(
+					"SERVERMSG %s failed: <%s> not found!",
+					getCommandName(),
+					username));
 			return false;
 		}
 
 		if (getContext().getClients().getClient(acc.getName()) == null) {
 			// As DateFormats are generally not-thread save,
 			// we always create a new one.
-			DateFormat dateTimeFormat = new SimpleDateFormat("d MMM yyyy HH:mm:ss z");
-			client.sendLine(new StringBuilder("SERVERMSG <")
-					.append(acc.getName()).append(">'s last login was on ")
-					.append(dateTimeFormat.format(new Date(acc.getLastLogin()))).toString());
+			DateFormat dateTimeFormat = new SimpleDateFormat(
+					"d MMM yyyy HH:mm:ss z");
+			client.sendLine(String.format(
+					"SERVERMSG <%s>'s last login was on %s",
+					acc.getName(),
+					dateTimeFormat.format(new Date(acc.getLastLogin()))));
 		} else {
-			client.sendLine(new StringBuilder("SERVERMSG <")
-					.append(acc.getName()).append("> is currently online").toString());
+			client.sendLine(String.format("SERVERMSG <%s> is currently online",
+					acc.getName()));
 		}
 
 		return true;

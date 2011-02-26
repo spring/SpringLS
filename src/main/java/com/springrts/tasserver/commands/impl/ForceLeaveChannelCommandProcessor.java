@@ -33,8 +33,9 @@ import java.util.List;
  * @author hoijui
  */
 @SupportedCommand("FORCELEAVECHANNEL")
-public class ForceLeaveChannelCommandProcessor extends AbstractCommandProcessor {
-
+public class ForceLeaveChannelCommandProcessor
+		extends AbstractCommandProcessor
+{
 	public ForceLeaveChannelCommandProcessor() {
 		super(2, ARGS_MAX_NOCHECK, Account.Access.PRIVILEGED);
 	}
@@ -47,7 +48,8 @@ public class ForceLeaveChannelCommandProcessor extends AbstractCommandProcessor 
 		try {
 			checksOk = super.process(client, args);
 		} catch (InvalidNumberOfArgumentsCommandProcessingException ex) {
-			client.sendLine("SERVERMSG Bad arguments (command FORCELEAVECHANNEL)");
+			client.sendLine(String.format(
+					"SERVERMSG Bad arguments (command %s)", getCommandName()));
 			throw ex;
 		}
 		if (!checksOk) {
@@ -59,20 +61,23 @@ public class ForceLeaveChannelCommandProcessor extends AbstractCommandProcessor 
 
 		Channel chan = getContext().getChannels().getChannel(channelName);
 		if (chan == null) {
-			client.sendLine(new StringBuilder("SERVERMSG Error: Channel does not exist: ").append(channelName).toString());
+			client.sendLine(String.format(
+					"SERVERMSG Error: Channel does not exist: %s",
+					channelName));
 			return false;
 		}
 
 		Client target = getContext().getClients().getClient(username);
 		if (target == null) {
-			client.sendLine(new StringBuilder("SERVERMSG Error: <").append(username).append("> not found!").toString());
+			client.sendLine(String.format(
+					"SERVERMSG Error: <%s> not found!", username));
 			return false;
 		}
 
 		if (!chan.isClientInThisChannel(target)) {
-			client.sendLine(new StringBuilder("SERVERMSG Error: <")
-					.append(username).append("> is not in the channel #")
-					.append(chan.getName()).append("!").toString());
+			client.sendLine(String.format(
+					"SERVERMSG Error: <%s> is not in the channel #%s!",
+					username, chan.getName()));
 			return false;
 		}
 
@@ -81,13 +86,14 @@ public class ForceLeaveChannelCommandProcessor extends AbstractCommandProcessor 
 			reason = Misc.makeSentence(args, 2);
 		}
 
-		chan.broadcast(new StringBuilder("<")
-				.append(client.getAccount().getName()).append("> has kicked <")
-				.append(target.getAccount().getName()).append("> from the channel")
-				.append((reason == null) ? "" : " (reason: ").append(reason).append(")").toString());
-		target.sendLine(new StringBuilder("FORCELEAVECHANNEL ")
-				.append(chan.getName()).append(" ")
-				.append(client.getAccount().getName()).append(reason).toString());
+		chan.broadcast(String.format("<%s> has kicked <%s> from the channel%s",
+				client.getAccount().getName(),
+				target.getAccount().getName(),
+				(reason == null) ? "" : " (reason: " + reason + ")"));
+		target.sendLine(String.format("FORCELEAVECHANNEL %s %s%s",
+				chan.getName(),
+				client.getAccount().getName(),
+				(reason == null) ? "" : " " + reason));
 		target.leaveChannel(chan, "kicked from channel");
 
 		return true;

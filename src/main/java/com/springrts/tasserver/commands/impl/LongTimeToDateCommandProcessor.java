@@ -61,8 +61,8 @@ public class LongTimeToDateCommandProcessor extends AbstractCommandProcessor {
 		// we always create a new one.
 		DateFormat dateTimeFormat = new SimpleDateFormat("d MMM yyyy HH:mm:ss z");
 
-		client.sendLine(new StringBuilder("SERVERMSG LONGTIMETODATE result: ")
-				.append(dateTimeFormat.format(new Date(time))).toString());
+		client.sendLine(String.format("SERVERMSG LONGTIMETODATE result: %s",
+				dateTimeFormat.format(new Date(time))));
 
 		return true;
 	}

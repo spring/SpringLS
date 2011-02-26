@@ -30,9 +30,6 @@ import java.util.TreeMap;
  */
 public class LanAccountsService extends AbstractAccountsService {
 
-	// NOTE ArrayList is not synchronized!
-	// Use Collections.synchronizedList(...) instead,
-	// if multiple threads are going to access it.
 	private List<Account> accounts;
 	private int biggestAccountId;
 
@@ -53,7 +50,8 @@ public class LanAccountsService extends AbstractAccountsService {
 	 * Same as 'map', only that this ignores case.
 	 * @see map
 	 */
-	private static TreeMap<String, Account> mapNoCase = new TreeMap<String, Account>(
+	private static TreeMap<String, Account> mapNoCase
+			= new TreeMap<String, Account>(
 			new java.util.Comparator<String>() {
 
 				public int compare(String s1, String s2) {
@@ -64,6 +62,9 @@ public class LanAccountsService extends AbstractAccountsService {
 
 	public LanAccountsService() {
 
+		// NOTE ArrayList is not synchronized!
+		// Use Collections.synchronizedList(...) instead,
+		// if multiple threads are going to access it.
 		accounts = new ArrayList<Account>();
 		biggestAccountId = 1000;
 	}

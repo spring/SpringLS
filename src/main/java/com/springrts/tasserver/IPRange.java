@@ -92,10 +92,8 @@ public class IPRange implements Comparable<IPRange> {
 
 	@Override
 	public String toString() {
-		return new StringBuilder()
-				.append(getFromIP()).append(",")
-				.append(getToIP()).append(",")
-				.append(getCountryCode2()).toString();
+		return String.format("%d,%d,%s",
+				getFromIP(), getToIP(), getCountryCode2());
 	}
 
 	public long getFromIP() {

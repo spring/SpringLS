@@ -67,18 +67,22 @@ public class SayBattleCommandProcessor extends AbstractCommandProcessor {
 			LOG.warn("Flooding detected from {} ({}) [exceeded max. chat message size]",
 					client.getIp().getHostAddress(),
 					client.getAccount().getName());
-			client.sendLine(new StringBuilder("SERVERMSG Flooding detected - you have exceeded maximum allowed chat message size (")
-					.append(getContext().getServer().getMaxChatMessageLength()).append(" bytes). Your message has been ignored.").toString());
-			getContext().getClients().sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: Flooding has been detected from ")
-					.append(client.getIp().getHostAddress()).append(" (")
-					.append(client.getAccount().getName())
-					.append(") - exceeded maximum chat message size. Ignoring ...").toString());
+			client.sendLine(String.format(
+					"SERVERMSG Flooding detected - you have exceeded the"
+					+ " maximum allowed chat message size (%d bytes)."
+					+ " Your message has been ignored.",
+					getContext().getServer().getMaxChatMessageLength()));
+			getContext().getClients().sendToAllAdministrators(String.format(
+					"SERVERMSG [broadcast to all admins]: Flooding has been"
+					+ " detected from %s <%s> - exceeded maximum chat message"
+					+ " size. Ignoring ...",
+					client.getIp().getHostAddress(),
+					client.getAccount().getName()));
 			return false;
 		}
 
-		battle.sendToAllClients(new StringBuilder("SAIDBATTLE ")
-				.append(client.getAccount().getName()).append(" ")
-				.append(message).toString());
+		battle.sendToAllClients(String.format("SAIDBATTLE %s %s",
+				client.getAccount().getName(), message));
 
 		return true;
 	}

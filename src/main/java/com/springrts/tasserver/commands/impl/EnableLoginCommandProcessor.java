@@ -20,6 +20,7 @@ package com.springrts.tasserver.commands.impl;
 
 import com.springrts.tasserver.Account;
 import com.springrts.tasserver.Client;
+import com.springrts.tasserver.Misc;
 import com.springrts.tasserver.commands.AbstractCommandProcessor;
 import com.springrts.tasserver.commands.CommandProcessingException;
 import com.springrts.tasserver.commands.SupportedCommand;
@@ -45,12 +46,13 @@ public class EnableLoginCommandProcessor extends AbstractCommandProcessor {
 		}
 
 		if (args.size() == 1) {
-			boolean enableLogin = (args.get(0).equals("1"));
+			boolean enableLogin = Misc.strToBool(args.get(0));
 			getContext().getServer().setLoginEnabled(enableLogin);
 		}
-		client.sendLine(new StringBuilder("SERVERMSG The LOGIN command is ")
-				.append((getContext().getServer().isLoginEnabled() ? "enabled" : "disabled"))
-				.append(" for non-moderators").toString());
+		client.sendLine(String.format(
+				"SERVERMSG The LOGIN command is %s for non-moderators",
+				getContext().getServer().isLoginEnabled()
+				? "enabled" : "disabled"));
 
 		return true;
 	}

@@ -51,13 +51,16 @@ public class GenerateUserIdCommandProcessor extends AbstractCommandProcessor {
 
 		Client targetClient = getContext().getClients().getClient(username);
 		if (targetClient == null) {
-			client.sendLine(new StringBuilder("SERVERMSG <").append(username)
-					.append("> not found or is not currently online!").toString());
+			client.sendLine(String.format(
+					"SERVERMSG <%s> not found or is not currently online!",
+					username));
 			return false;
 		}
 		targetClient.sendLine("ACQUIREUSERID");
 
-		client.sendLine("SERVERMSG ACQUIREUSERID command was dispatched. Server will notify of response via notification system.");
+		client.sendLine("SERVERMSG ACQUIREUSERID command was dispatched."
+				+ " The server will notify of response via the notification"
+				+ " system.");
 
 		return true;
 	}

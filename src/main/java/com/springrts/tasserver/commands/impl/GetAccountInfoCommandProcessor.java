@@ -48,14 +48,15 @@ public class GetAccountInfoCommandProcessor extends AbstractCommandProcessor {
 
 		Account acc = getContext().getAccountsService().getAccount(username);
 		if (acc == null) {
-			client.sendLine(new StringBuilder("SERVERMSG Account <")
-					.append(username).append("> does not exist.").toString());
+			client.sendLine(String.format(
+					"SERVERMSG Account <%s> does not exist.",
+					username));
 			return false;
 		}
 
-		client.sendLine(new StringBuilder("SERVERMSG Full account info for <")
-				.append(acc.getName()).append(">: ")
-				.append(acc.toString()).toString());
+		client.sendLine(String.format(
+				"SERVERMSG Full account info for <%s>: %s",
+				acc.getName(), acc.toString()));
 
 		return true;
 	}

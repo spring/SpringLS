@@ -52,7 +52,9 @@ public class SetChannelKeyCommandProcessor extends AbstractCommandProcessor {
 
 		Channel chan = getContext().getChannels().getChannel(channelName);
 		if (chan == null) {
-			client.sendLine(new StringBuilder("SERVERMSG Error: Channel does not exist: ").append(channelName).toString());
+			client.sendLine(String.format(
+					"SERVERMSG Error: Channel does not exist: %s",
+					channelName));
 			return false;
 		}
 
@@ -62,18 +64,20 @@ public class SetChannelKeyCommandProcessor extends AbstractCommandProcessor {
 				return false;
 			}
 			chan.setKey(Channel.KEY_NONE);
-			chan.broadcast(new StringBuilder("<")
-					.append(client.getAccount().getName()).append("> has just unlocked #")
-					.append(chan.getName()).toString());
+			chan.broadcast(String.format("<%s> has just unlocked #%s",
+					client.getAccount().getName(),
+					chan.getName()));
 		} else {
 			if (!key.matches("^[A-Za-z0-9_]+$")) {
-				client.sendLine(new StringBuilder("SERVERMSG Error: Invalid key: ").append(key).toString());
+				client.sendLine(String.format(
+						"SERVERMSG Error: Invalid key: %s", key));
 				return false;
 			}
 			chan.setKey(key);
-			chan.broadcast(new StringBuilder("<")
-					.append(client.getAccount().getName()).append("> has just locked #")
-					.append(chan.getName()).append(" with private key").toString());
+			chan.broadcast(String.format(
+					"<%s> has just locked #%s with private key",
+					client.getAccount().getName(),
+					chan.getName()));
 		}
 
 		return true;

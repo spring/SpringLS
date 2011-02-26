@@ -49,11 +49,11 @@ public class SetBotModeCommandProcessor extends AbstractCommandProcessor {
 		try {
 			mode = Integer.parseInt(args.get(1));
 		} catch (NumberFormatException e) {
-			client.sendLine("SERVERMSG Invalid 'mode' parameter (must be 0 or 1)!");
+			client.sendLine("SERVERMSG Invalid 'mode' parameter (has to be 0 or 1)!");
 			return false;
 		}
 		if ((mode != 0) && (mode != 1)) {
-			client.sendLine("SERVERMSG Invalid 'mode' parameter (must be 0 or 1)!");
+			client.sendLine("SERVERMSG Invalid 'mode' parameter (has to be 0 or 1)!");
 			return false;
 		}
 
@@ -61,22 +61,26 @@ public class SetBotModeCommandProcessor extends AbstractCommandProcessor {
 
 		Account acc = getContext().getAccountsService().getAccount(userName);
 		if (acc == null) {
-			client.sendLine(new StringBuilder("SERVERMSG User <").append(userName).append("> not found!").toString());
+			client.sendLine(String.format("SERVERMSG User <%s> not found!",
+					userName));
 			return false;
 		}
 
 		final boolean wasBot = acc.isBot();
 		acc.setBot((mode == 0) ? false : true);
-		final boolean mergeOk = getContext().getAccountsService().mergeAccountChanges(acc, acc.getName());
+		final boolean mergeOk = getContext().getAccountsService()
+				.mergeAccountChanges(acc, acc.getName());
 		if (!mergeOk) {
 			acc.setBot(wasBot);
-			client.sendLine("SERVERMSG SETBOTMODE failed: Failed saving to persistent storage.");
+			client.sendLine(String.format(
+					"SERVERMSG %s failed: Failed saving to persistent storage.",
+					getCommandName()));
 			return false;
 		}
 
-		client.sendLine(new StringBuilder("SERVERMSG Bot mode set to ")
-				.append(mode).append(" for user <")
-				.append(acc.getName()).append(">").toString());
+		client.sendLine(String.format(
+				"SERVERMSG Bot mode set to %d for user <%s>",
+				mode, acc.getName()));
 
 		return true;
 	}

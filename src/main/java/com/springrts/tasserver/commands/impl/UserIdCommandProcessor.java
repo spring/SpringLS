@@ -75,10 +75,8 @@ public class UserIdCommandProcessor extends AbstractCommandProcessor {
 
 		// add server notification:
 		ServerNotification sn = new ServerNotification("User ID received");
-		sn.addLine(new StringBuilder("<")
-				.append(client.getAccount().getName()).append("> has generated a new user ID: ")
-				.append(userIdStr).append("(")
-				.append(userId).append(")").toString());
+		sn.addLine(String.format("<%s> has generated a new user ID: %s(%d)",
+				client.getAccount().getName(), userIdStr, userId));
 		getContext().getServerNotifications().addNotification(sn);
 
 		return true;

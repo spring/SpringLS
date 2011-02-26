@@ -46,12 +46,14 @@ public class RedirectOffCommandProcessor extends AbstractCommandProcessor {
 		}
 
 		getContext().getServer().disableRedirect();
-		getContext().getClients().sendToAllRegisteredUsers("BROADCAST Server has left redirection mode");
+		getContext().getClients().sendToAllRegisteredUsers(
+				"BROADCAST Server has left redirection mode");
 
 		// add server notification:
-		ServerNotification sn = new ServerNotification("Redirection mode disabled");
-		sn.addLine(new StringBuilder("Admin <").append(client.getAccount().getName())
-				.append("> has disabled redirection mode.").toString());
+		ServerNotification sn = new ServerNotification(
+				"Redirection mode disabled");
+		sn.addLine(String.format("Admin <%s> has disabled redirection mode.",
+				client.getAccount().getName()));
 		getContext().getServerNotifications().addNotification(sn);
 
 		return true;

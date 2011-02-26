@@ -47,7 +47,9 @@ public class RenameAccountCommandProcessor extends AbstractCommandProcessor {
 		try {
 			checksOk = super.process(client, args);
 		} catch (InvalidNumberOfArgumentsCommandProcessingException ex) {
-			client.sendLine("SERVERMSG Bad RENAMEACCOUNT command - too many or too few parameters");
+			client.sendLine(String.format(
+					"SERVERMSG Bad %s command - too many or too few parameters",
+					getCommandName()));
 			throw ex;
 		}
 		if (!checksOk) {
@@ -57,20 +59,27 @@ public class RenameAccountCommandProcessor extends AbstractCommandProcessor {
 		String newUsername = Misc.makeSentence(args, 0);
 
 		if (getContext().getServer().isLanMode()) {
-			client.sendLine("SERVERMSG RENAMEACCOUNT failed: You cannot rename your account while the server is running in LAN mode, since you have no persistent account!");
+			client.sendLine(String.format(
+					"SERVERMSG %s failed: You cannot rename your account while"
+					+ " the server is running in LAN mode, since you have no"
+					+ " persistent account!", getCommandName()));
 			return false;
 		}
 
 		// validate new user name
 		String valid = Account.isOldUsernameValid(newUsername);
 		if (valid != null) {
-			client.sendLine(new StringBuilder("SERVERMSG RENAMEACCOUNT failed: Invalid username (reason: ").append(valid).append(")").toString());
+			client.sendLine(String.format(
+					"SERVERMSG %s failed: Invalid username (reason: %s)",
+					getCommandName(), valid));
 			return false;
 		}
 
-		Account acc = getContext().getAccountsService().findAccountNoCase(newUsername);
-		if ((acc != null) && (acc != client.getAccount())) {
-			client.sendLine("SERVERMSG RENAMEACCOUNT failed: Account with same username already exists!");
+		Account account = getContext().getAccountsService().findAccountNoCase(newUsername);
+		if ((account != null) && (account != client.getAccount())) {
+			client.sendLine(String.format(
+					"SERVERMSG %s failed: Account with same username already exists!",
+					getCommandName()));
 			return false;
 		}
 
@@ -79,7 +88,8 @@ public class RenameAccountCommandProcessor extends AbstractCommandProcessor {
 		accountNew.setName(newUsername);
 		accountNew.setLastLogin(System.currentTimeMillis());
 		accountNew.setLastIp(client.getIp());
-		final boolean mergeOk = getContext().getAccountsService().mergeAccountChanges(accountNew, client.getAccount().getName());
+		final boolean mergeOk = getContext().getAccountsService()
+				.mergeAccountChanges(accountNew, client.getAccount().getName());
 		if (mergeOk) {
 			client.setAccount(accountNew);
 		} else {
@@ -89,23 +99,27 @@ public class RenameAccountCommandProcessor extends AbstractCommandProcessor {
 
 		// make sure all mutes are accordingly adjusted to the new userName:
 		for (int i = 0; i < getContext().getChannels().getChannelsSize(); i++) {
-			getContext().getChannels().getChannel(i).getMuteList().rename(client.getAccount().getName(), newUsername);
+			getContext().getChannels().getChannel(i).getMuteList().rename(
+					client.getAccount().getName(), newUsername);
 		}
 
-		client.sendLine(new StringBuilder("SERVERMSG Your account has been renamed to <")
-				.append(accountNew.getName())
-				.append(">. Reconnect with new account (you will now be automatically disconnected)!").toString());
+		client.sendLine(String.format(
+				"SERVERMSG Your account has been renamed to <%s>."
+				+ " Reconnect with the new account."
+				+ " You will now be automatically disconnected!",
+				accountNew.getName()));
 		getContext().getClients().killClient(client, "Quit: renaming account");
-		getContext().getAccountsService().saveAccounts(false); // let's save new accounts info to disk
-		getContext().getClients().sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: User <")
-				.append(oldName).append("> has just renamed his account to <")
-				.append(client.getAccount().getName()).append(">").toString());
+		// let's save new accounts info to disc
+		getContext().getAccountsService().saveAccounts(false);
+		getContext().getClients().sendToAllAdministrators(String.format(
+				"SERVERMSG [broadcast to all admins]:"
+				+ " User <%s> has just renamed his account to <%s>",
+				oldName, client.getAccount().getName()));
 
 		// add server notification:
 		ServerNotification sn = new ServerNotification("Account renamed");
-		sn.addLine(new StringBuilder("User <")
-				.append(oldName).append("> has renamed his account to <")
-				.append(client.getAccount().getName()).append(">").toString());
+		sn.addLine(String.format("User <%s> has renamed his account to <%s>",
+				oldName, client.getAccount().getName()));
 		getContext().getServerNotifications().addNotification(sn);
 
 		return true;

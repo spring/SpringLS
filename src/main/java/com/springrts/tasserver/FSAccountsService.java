@@ -123,14 +123,15 @@ public class FSAccountsService extends AbstractAccountsService {
 	 * Only change this if you know what you are doing!
 	 */
 	public static String toPersistentString(final Account account) {
-		return new StringBuilder(account.getName()).append(" ")
-				.append(account.getPassword()).append(" ")
-				.append(Integer.toString(account.getAccessBitField(), 2)).append(" ")
-				.append(account.getLastUserId()).append(" ")
-				.append(account.getLastLogin()).append(" ")
-				.append(account.getLastIpAsString()).append(" ")
-				.append(account.getRegistrationDate()).append(" ")
-				.append(account.getLastCountry()).toString();
+		return String.format("%s %s %s %d %d %s %d %s",
+				account.getName(),
+				account.getPassword(),
+				Integer.toString(account.getAccessBitField(), 2),
+				account.getLastUserId(),
+				account.getLastLogin(),
+				account.getLastIpAsString(),
+				account.getRegistrationDate(),
+				account.getLastCountry());
 	}
 	/**
 	 * Used to load a persistent Account from file storage.

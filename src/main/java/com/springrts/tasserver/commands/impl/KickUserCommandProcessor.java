@@ -48,25 +48,28 @@ public class KickUserCommandProcessor extends AbstractCommandProcessor {
 		String username = args.get(0);
 
 		Client target = getContext().getClients().getClient(username);
-		String reason = "";
+		String reason;
 		if (args.size() > 1) {
-			reason = new StringBuilder(" (reason: ").append(Misc.makeSentence(args, 1)).append(")").toString();
+			reason = String.format(" (reason: %s)", Misc.makeSentence(args, 1));
+		} else {
+			reason = "";
 		}
 		if (target == null) {
 			return false;
 		}
-		final String broadcastMsg = new StringBuilder("<")
-				.append(client.getAccount().getName()).append("> has kicked <")
-				.append(target.getAccount().getName()).append("> from server")
-				.append(reason).toString();
+		final String broadcastMsg = String.format(
+				"<%s> has kicked <%s> from server%s",
+				client.getAccount().getName(),
+				target.getAccount().getName(),
+				reason);
 		for (int i = 0; i < getContext().getChannels().getChannelsSize(); i++) {
 			if (getContext().getChannels().getChannel(i).isClientInThisChannel(target)) {
 				getContext().getChannels().getChannel(i).broadcast(broadcastMsg);
 			}
 		}
-		target.sendLine(new StringBuilder("SERVERMSG You've been kicked from server by <")
-				.append(client.getAccount().getName()).append(">")
-				.append(reason).toString());
+		target.sendLine(String.format(
+				"SERVERMSG You have been kicked from the server by <%s>%s",
+				client.getAccount().getName(), reason));
 		getContext().getClients().killClient(target, "Quit: kicked from server");
 		return true;
 	}

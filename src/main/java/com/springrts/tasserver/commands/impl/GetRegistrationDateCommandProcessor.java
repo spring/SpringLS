@@ -33,8 +33,9 @@ import java.util.List;
  * @author hoijui
  */
 @SupportedCommand("GETREGISTRATIONDATE")
-public class GetRegistrationDateCommandProcessor extends AbstractCommandProcessor {
-
+public class GetRegistrationDateCommandProcessor
+		extends AbstractCommandProcessor
+{
 	public GetRegistrationDateCommandProcessor() {
 		super(1, 1, Account.Access.ADMIN);
 	}
@@ -52,18 +53,19 @@ public class GetRegistrationDateCommandProcessor extends AbstractCommandProcesso
 
 		Account acc = getContext().getAccountsService().getAccount(userName);
 		if (acc == null) {
-			client.sendLine(new StringBuilder("SERVERMSG User <").append(userName).append("> not found!").toString());
+			client.sendLine(String.format("SERVERMSG User <%s> not found!",
+					userName));
 			return false;
 		}
 
 		// As DateFormats are generally not-thread save,
 		// we always create a new one.
-		DateFormat dateTimeFormat = new SimpleDateFormat("d MMM yyyy HH:mm:ss z");
-		client.sendLine(new StringBuilder("SERVERMSG Registration timestamp for <")
-				.append(userName).append("> is ")
-				.append(acc.getRegistrationDate()).append(" (")
-				.append(dateTimeFormat.format(new Date(acc.getRegistrationDate())))
-				.append(")").toString());
+		DateFormat dateTimeFormat = new SimpleDateFormat(
+				"d MMM yyyy HH:mm:ss z");
+		client.sendLine(String.format(
+				"SERVERMSG Registration timestamp for <%s> is %d (%s)",
+				userName, acc.getRegistrationDate(),
+				dateTimeFormat.format(new Date(acc.getRegistrationDate()))));
 
 		return true;
 	}

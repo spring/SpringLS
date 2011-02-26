@@ -51,9 +51,9 @@ public class GetIpCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		client.sendLine(new StringBuilder("SERVERMSG ")
-				.append(targetClient.getAccount().getName()).append("'s IP is ")
-				.append(targetClient.getIp().getHostAddress()).toString());
+		client.sendLine(String.format("SERVERMSG %s's IP is %s",
+				targetClient.getAccount().getName(),
+				targetClient.getIp().getHostAddress()));
 
 		return true;
 	}

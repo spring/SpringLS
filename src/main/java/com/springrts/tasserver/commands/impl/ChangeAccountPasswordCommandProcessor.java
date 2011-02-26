@@ -30,8 +30,9 @@ import java.util.List;
  * @author hoijui
  */
 @SupportedCommand("CHANGEACCOUNTPASS")
-public class ChangeAccountPasswordCommandProcessor extends AbstractCommandProcessor {
-
+public class ChangeAccountPasswordCommandProcessor
+		extends AbstractCommandProcessor
+{
 	public ChangeAccountPasswordCommandProcessor() {
 		super(2, 2, Account.Access.ADMIN);
 	}
@@ -59,20 +60,24 @@ public class ChangeAccountPasswordCommandProcessor extends AbstractCommandProces
 
 		final String oldPasswd = acc.getPassword();
 		acc.setPassword(password);
-		final boolean mergeOk = getContext().getAccountsService().mergeAccountChanges(acc, acc.getName());
+		final boolean mergeOk = getContext().getAccountsService()
+				.mergeAccountChanges(acc, acc.getName());
 		if (!mergeOk) {
 			acc.setPassword(oldPasswd);
-			client.sendLine("SERVERMSG CHANGEACCOUNTPASS failed: Failed saving to persistent storage.");
+			client.sendLine(String.format(
+					"SERVERMSG %s failed: Failed saving to persistent storage.",
+					getCommandName()));
 			return false;
 		}
 
 		getContext().getAccountsService().saveAccounts(false); // save changes
 
 		// add server notification:
-		ServerNotification sn = new ServerNotification("Account password changed by admin");
-		sn.addLine(new StringBuilder("Admin <")
-				.append(client.getAccount().getName()).append("> has changed password for account <")
-				.append(acc.getName()).append(">").toString());
+		ServerNotification sn = new ServerNotification(
+				"Account password changed by admin");
+		sn.addLine(String.format(
+				"Admin <%s> has changed password for account <%s>",
+				client.getAccount().getName(), acc.getName()));
 		getContext().getServerNotifications().addNotification(sn);
 
 		return true;

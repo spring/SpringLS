@@ -70,8 +70,9 @@ public class ChangeAccountAccessCommandProcessor extends AbstractCommandProcesso
 		if (mergeOk) {
 			acc = accountNew;
 		} else {
-			client.sendLine(new StringBuilder("SERVERMSG Changing ACCESS for account <")
-					.append(acc.getName()).append("> failed.").toString());
+			client.sendLine(String.format(
+					"SERVERMSG Changing ACCESS for account <%s> failed.",
+					acc.getName()));
 			return false;
 		}
 
@@ -82,17 +83,18 @@ public class ChangeAccountAccessCommandProcessor extends AbstractCommandProcesso
 		//if(target.alive)
 		//	context.getClients().notifyClientsOfNewClientStatus(target);
 
-		client.sendLine(new StringBuilder("SERVERMSG You have changed ACCESS for <")
-				.append(acc.getName()).append("> successfully.").toString());
+		client.sendLine(String.format(
+				"SERVERMSG You have changed ACCESS for <%s> successfully.",
+				acc.getName()));
 
 		// add server notification:
-		ServerNotification sn = new ServerNotification("Account access changed by admin");
-		sn.addLine(new StringBuilder("Admin <")
-				.append(client.getAccount().getName()).append("> has changed access/status bits for account <")
-				.append(acc.getName()).append(">.").toString());
-		sn.addLine(new StringBuilder("Old access code: ")
-				.append(oldAccessBitField).append(". New code: ")
-				.append(newAccessBifField).toString());
+		ServerNotification sn = new ServerNotification(
+				"Account access changed by admin");
+		sn.addLine(String.format(
+				"Admin <%s> has changed access/status bits for account <%s>.",
+				client.getAccount().getName(), acc.getName()));
+		sn.addLine(String.format("Old access code: %d. New code: %d",
+				oldAccessBitField, newAccessBifField));
 		getContext().getServerNotifications().addNotification(sn);
 
 		return true;

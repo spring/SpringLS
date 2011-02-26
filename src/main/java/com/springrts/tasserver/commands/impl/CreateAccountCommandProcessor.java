@@ -56,16 +56,16 @@ public class CreateAccountCommandProcessor extends AbstractCommandProcessor {
 
 		String valid = Account.isOldUsernameValid(username);
 		if (valid != null) {
-			client.sendLine(new StringBuilder("SERVERMSG Invalid username (reason: ")
-					.append(valid).append(")").toString());
+			client.sendLine(String.format(
+					"SERVERMSG Invalid username (reason: %s)", valid));
 			return false;
 		}
 
 		// validate password:
 		valid = Account.isPasswordValid(password);
 		if (valid != null) {
-			client.sendLine(new StringBuilder("SERVERMSG Invalid password (reason: ")
-					.append(valid).append(")").toString());
+			client.sendLine(String.format(
+					"SERVERMSG Invalid password (reason: %s)", valid));
 			return false;
 		}
 		Account acc = getContext().getAccountsService().findAccountNoCase(username);
@@ -74,12 +74,14 @@ public class CreateAccountCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 		if (Account.RESERVED_NAMES.contains(username)) {
-			client.sendLine("SERVERMSG Invalid account name - you are trying to register a reserved account name");
+			client.sendLine("SERVERMSG Invalid account name - you are trying"
+					+ " to register a reserved account name");
 			return false;
 		}
 		acc = new Account(username, password, client.getIp(), client.getCountry());
 		getContext().getAccountsService().addAccount(acc);
-		getContext().getAccountsService().saveAccounts(false); // let's save new accounts info to disk
+		// let's save new accounts info to disk
+		getContext().getAccountsService().saveAccounts(false);
 		client.sendLine("SERVERMSG Account created.");
 		return true;
 	}

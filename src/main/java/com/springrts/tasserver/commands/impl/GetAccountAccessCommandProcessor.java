@@ -48,14 +48,13 @@ public class GetAccountAccessCommandProcessor extends AbstractCommandProcessor {
 
 		Account acc = getContext().getAccountsService().getAccount(username);
 		if (acc == null) {
-			client.sendLine(new StringBuilder("SERVERMSG User <")
-					.append(username).append("> not found!").toString());
+			client.sendLine(String.format("SERVERMSG User <%s> not found!",
+					username));
 			return false;
 		}
 
-		client.sendLine(new StringBuilder("SERVERMSG ")
-				.append(username).append("'s access code is ")
-				.append(acc.getAccessBitField()).toString());
+		client.sendLine(String.format("SERVERMSG %s's access code is %d",
+				username, acc.getAccessBitField()));
 
 		return true;
 	}

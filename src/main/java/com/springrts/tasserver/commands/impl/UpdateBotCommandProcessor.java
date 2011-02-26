@@ -89,11 +89,11 @@ public class UpdateBotCommandProcessor extends AbstractCommandProcessor {
 		// TODO force ally and color number if someone else is using his team
 		// number already
 
-		battle.sendToAllClients(new StringBuilder("UPDATEBOT ")
-				.append(battle.getId()).append(" ")
-				.append(bot.getName()).append(" ")
-				.append(bot.getBattleStatus()).append(" ")
-				.append(Misc.colorJavaToSpring(bot.getTeamColor())).toString());
+		battle.sendToAllClients(String.format("UPDATEBOT %d %s %d %d",
+				battle.getId(),
+				bot.getName(),
+				bot.getBattleStatus(),
+				Misc.colorJavaToSpring(bot.getTeamColor())));
 
 		return true;
 	}

@@ -169,7 +169,8 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 					continue;
 				}
 
-				Client client = getContext().getClients().addNewClient(clientChannel, readSelector, SEND_BUFFER_SIZE);
+				Client client = getContext().getClients().addNewClient(
+						clientChannel, readSelector, SEND_BUFFER_SIZE);
 				if (client == null) {
 					continue;
 				}
@@ -191,7 +192,9 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 			return false;
 		}
 		try {
-			(new PrintWriter(socket.getOutputStream(), true)).println("REDIRECT " + context.getServer().getRedirectAddress().getHostAddress());
+			(new PrintWriter(socket.getOutputStream(), true)).println(
+					String.format("REDIRECT %s",
+					context.getServer().getRedirectAddress().getHostAddress()));
 			socket.close();
 		} catch (IOException ex) {
 			return false;
@@ -204,7 +207,8 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 		Client client = null;
 
 		try {
-			// non-blocking select, returns immediately regardless of how many keys are ready
+			// non-blocking select, returns immediately regardless of
+			// how many keys are ready
 			readSelector.selectNow();
 
 			// fetch the keys
@@ -232,16 +236,23 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 					LOG.warn("Flooding detected from {} ({})",
 							client.getIp().getHostAddress(),
 							client.getAccount().getName());
-					getContext().getClients().sendToAllAdministrators(new StringBuilder("SERVERMSG [broadcast to all admins]: Flooding has been detected from ")
-							.append(client.getIp().getHostAddress()).append(" (")
-							.append(client.getAccount().getName()).append("). User has been kicked.").toString());
-					getContext().getClients().killClient(client, "Disconnected due to excessive flooding");
+					getContext().getClients().sendToAllAdministrators(
+							String.format(
+							"SERVERMSG [broadcast to all admins]:"
+							+ " Flooding has been detected from %s <%s>."
+							+ " User has been kicked.",
+							client.getIp().getHostAddress(),
+							client.getAccount().getName()));
+					getContext().getClients().killClient(client,
+							"Disconnected due to excessive flooding");
 
 					// add server notification:
-					ServerNotification sn = new ServerNotification("Flooding detected");
-					sn.addLine(new StringBuilder("Flooding detected from ")
-							.append(client.getIp().getHostAddress()).append(" (")
-							.append(client.getAccount().getName()).append(").").toString());
+					ServerNotification sn = new ServerNotification(
+							"Flooding detected");
+					sn.addLine(String.format(
+							"Flooding detected from %s (%s).",
+							client.getIp().getHostAddress(),
+							client.getAccount().getName()));
 					sn.addLine("User has been kicked from the server.");
 					getContext().getServerNotifications().addNotification(sn);
 

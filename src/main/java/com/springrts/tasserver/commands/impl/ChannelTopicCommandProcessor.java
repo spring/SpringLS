@@ -52,25 +52,28 @@ public class ChannelTopicCommandProcessor extends AbstractCommandProcessor {
 
 		Channel chan = getContext().getChannels().getChannel(channelName);
 		if (chan == null) {
-			client.sendLine("SERVERMSG Error: Channel does not exist: " + channelName);
+			client.sendLine("SERVERMSG Error: Channel does not exist: "
+					+ channelName);
 			return false;
 		}
 
 		if (!chan.setTopic(channelTopic, client.getAccount().getName())) {
-			client.sendLine("SERVERMSG You've just disabled the topic for channel #" + chan.getName());
-			chan.broadcast(new StringBuilder("<")
-					.append(client.getAccount().getName()).append("> has just disabled topic for #")
-					.append(chan.getName()).toString());
+			client.sendLine(
+					"SERVERMSG You have just disabled the topic for channel #"
+					+ chan.getName());
+			chan.broadcast(String.format("<%s> has just disabled topic for #%s",
+					client.getAccount().getName(), chan.getName()));
 		} else {
-			client.sendLine("SERVERMSG You've just changed the topic for channel #" + chan.getName());
-			chan.broadcast(new StringBuilder("<")
-					.append(client.getAccount().getName()).append("> has just changed topic for #")
-					.append(chan.getName()).toString());
-			chan.sendLineToClients(new StringBuilder("CHANNELTOPIC ")
-					.append(chan.getName()).append(" ")
-					.append(chan.getTopicAuthor()).append(" ")
-					.append(chan.getTopicChangedTime()).append(" ")
-					.append(chan.getTopic()).toString());
+			client.sendLine(
+					"SERVERMSG You have just changed the topic for channel #"
+					+ chan.getName());
+			chan.broadcast(String.format("<%s> has just changed topic for #%s",
+					client.getAccount().getName(), chan.getName()));
+			chan.sendLineToClients(String.format("CHANNELTOPIC %s %s %d %s",
+					chan.getName(),
+					chan.getTopicAuthor(),
+					chan.getTopicChangedTime(),
+					chan.getTopic()));
 		}
 
 		return true;

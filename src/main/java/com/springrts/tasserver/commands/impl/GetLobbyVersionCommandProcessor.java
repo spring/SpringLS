@@ -49,14 +49,13 @@ public class GetLobbyVersionCommandProcessor extends AbstractCommandProcessor {
 
 		Client targetClient = getContext().getClients().getClient(username);
 		if (targetClient == null) {
-			client.sendLine(new StringBuilder("SERVERMSG <")
-					.append(username).append("> not found!").toString());
+			client.sendLine(String.format("SERVERMSG <%s> not found!",
+					username));
 			return false;
 		}
 
-		client.sendLine(new StringBuilder("SERVERMSG <")
-				.append(username).append("> is using \"")
-				.append(targetClient.getLobbyVersion()).append("\"").toString());
+		client.sendLine(String.format("SERVERMSG <%s> is using \"%s\"",
+				username, targetClient.getLobbyVersion()));
 
 		return true;
 	}

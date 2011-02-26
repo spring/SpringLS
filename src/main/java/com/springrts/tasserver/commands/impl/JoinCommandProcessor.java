@@ -53,9 +53,9 @@ public class JoinCommandProcessor extends AbstractCommandProcessor {
 		// check if channel name is OK:
 		String valid = getContext().getChannels().isChanNameValid(channelName);
 		if (valid != null) {
-			client.sendLine(new StringBuilder("JOINFAILED Bad channel name (\"#")
-					.append(channelName).append("\"). Reason: ")
-					.append(valid).toString());
+			client.sendLine(String.format(
+					"JOINFAILED Bad channel name (\"#%s\"). Reason: %s",
+					channelName, valid));
 			return false;
 		}
 
@@ -66,16 +66,19 @@ public class JoinCommandProcessor extends AbstractCommandProcessor {
 				&& client.getAccount().getAccess().isLessThen(Account.Access.ADMIN)
 				&& !channelKey.equals(chan.getKey()))
 		{
-			client.sendLine(new StringBuilder("JOINFAILED ").append(channelName).append(" Wrong key (this channel is locked)!").toString());
+			client.sendLine(String.format(
+					"JOINFAILED %s Wrong key (this channel is locked)!",
+					channelName));
 			return false;
 		}
 
 		chan = client.joinChannel(channelName);
 		if (chan == null) {
-			client.sendLine(new StringBuilder("JOINFAILED ").append(channelName).append(" Already in the channel!").toString());
+			client.sendLine(String.format(
+					"JOINFAILED %s Already in the channel!", channelName));
 			return false;
 		}
-		client.sendLine(new StringBuilder("JOIN ").append(channelName).toString());
+		client.sendLine(String.format("JOIN %s", channelName));
 		getContext().getChannels().sendChannelInfoToClient(chan, client);
 		getContext().getChannels().notifyClientsOfNewClientInChannel(chan, client);
 

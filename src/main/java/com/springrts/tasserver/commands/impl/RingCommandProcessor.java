@@ -60,7 +60,10 @@ public class RingCommandProcessor extends AbstractCommandProcessor {
 			}
 
 			if (client.getBattleID() == Battle.NO_BATTLE_ID) {
-				client.sendLine("SERVERMSG RING command failed: You can only ring players participating in your own battle!");
+				client.sendLine(String.format(
+						"SERVERMSG %s command failed: You can only ring players"
+						+ " participating in your own battle!",
+						getCommandName()));
 				return false;
 			}
 
@@ -68,17 +71,28 @@ public class RingCommandProcessor extends AbstractCommandProcessor {
 			getContext().getBattles().verify(battle);
 
 			if (!battle.isClientInBattle(target)) {
-				client.sendLine("SERVERMSG RING command failed: You don't have permission to ring players other than those participating in your battle!");
+				client.sendLine(String.format(
+						"SERVERMSG %s command failed: You do not have"
+						+ " permission to ring players other than those"
+						+ " participating in your battle!", getCommandName()));
 				return false;
 			}
 
-			// only host can ring players participating in his own battle, unless target is host himself:
-			if ((client != battle.getFounder()) && (target != battle.getFounder())) {
-				client.sendLine("SERVERMSG RING command failed: You can ring only battle host, or if you are the battle host, only players participating in your own battle!");
+			// only host can ring players participating in his own battle,
+			// unless target is host himself:
+			if ((client != battle.getFounder())
+					&& (target != battle.getFounder()))
+			{
+				client.sendLine(String.format(
+						"SERVERMSG %s command failed: You can ring only battle"
+						+ " host, or if you are the battle host, only players"
+						+ " participating in your own battle!",
+						getCommandName()));
 				return false;
 			}
 
-			target.sendLine(new StringBuilder("RING ").append(client.getAccount().getName()).toString());
+			target.sendLine(String.format("RING %s",
+					client.getAccount().getName()));
 		} else {
 			// privileged users can ring anyone
 			Client target = getContext().getClients().getClient(username);
@@ -86,7 +100,8 @@ public class RingCommandProcessor extends AbstractCommandProcessor {
 				return false;
 			}
 
-			target.sendLine(new StringBuilder("RING ").append(client.getAccount().getName()).toString());
+			target.sendLine(String.format("RING %s",
+					client.getAccount().getName()));
 		}
 
 		return true;

@@ -201,14 +201,11 @@ public class UpdateIP2CountryThread implements Runnable, ContextReceiver {
 					}
 
 					String[] tokens = inLine.split(",");
-					StringBuilder outLine = new StringBuilder();
-
-					// IP FROM field
-					outLine.append(stripQuotes(tokens[0])).append(",");
-					// IP TO field
-					outLine.append(stripQuotes(tokens[1])).append(",");
-					// COUNTRY_CHAR2 field
-					outLine.append(stripQuotes(tokens[2]));
+					String outLine = String.format("%s,%s,%s",
+							stripQuotes(tokens[0]), // IP FROM field
+							stripQuotes(tokens[1]), // IP TO field
+							stripQuotes(tokens[2])  // COUNTRY_CHAR2 field
+							);
 
 					combinedDataOut.println(outLine);
 				}

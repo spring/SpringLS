@@ -53,24 +53,29 @@ public class RemoveStartRectCommandProcessor extends AbstractCommandProcessor {
 		int allyno;
 		try {
 			allyno = Integer.parseInt(args.get(0));
-		} catch (NumberFormatException e) {
-			client.sendLine(new StringBuilder("SERVERMSG Serious error: inconsistent data (")
-					.append(getCommandName()).append(" command). You will now be disconnected ...").toString());
-			getContext().getClients().killClient(client, "Quit: inconsistent data");
+		} catch (NumberFormatException ex) {
+			client.sendLine(String.format(
+					"SERVERMSG Serious error: inconsistent data (%s command)."
+					+ " You will now be disconnected ...", getCommandName()));
+			getContext().getClients().killClient(client,
+					"Quit: inconsistent data");
 			return false;
 		}
 
 		StartRect startRect = battle.getStartRects().get(allyno);
 		if (!startRect.isEnabled()) {
-			client.sendLine(new StringBuilder("SERVERMSG Serious error: inconsistent data (")
-					.append(getCommandName()).append(" command). You will now be disconnected ...").toString());
-			getContext().getClients().killClient(client, "Quit: inconsistent data");
+			client.sendLine(String.format(
+					"SERVERMSG Serious error: inconsistent data (%s command)."
+					+ " You will now be disconnected ...", getCommandName()));
+			getContext().getClients().killClient(client,
+					"Quit: inconsistent data");
 			return false;
 		}
 
 		startRect.setEnabled(false);
 
-		battle.sendToAllExceptFounder(new StringBuilder("REMOVESTARTRECT ").append(allyno).toString());
+		battle.sendToAllExceptFounder(String.format("REMOVESTARTRECT %d",
+				allyno));
 
 		return true;
 	}

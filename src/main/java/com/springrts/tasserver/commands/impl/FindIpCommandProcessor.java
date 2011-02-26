@@ -69,24 +69,27 @@ public class FindIpCommandProcessor extends AbstractCommandProcessor {
 			}
 
 			found = true;
-			client.sendLine(new StringBuilder("SERVERMSG ")
-					.append(ip).append(" is bound to: ")
-					.append(curClient.getAccount().getName()).toString());
+			client.sendLine(String.format("SERVERMSG %s is bound to: %s",
+					ip, curClient.getAccount().getName()));
 		}
 
 		// now let's check if this IP matches any recently used IP:
-		Account lastAct = getContext().getAccountsService().findAccountByLastIP(addr);
-		if ((lastAct != null) && !getContext().getClients().isUserLoggedIn(lastAct)) {
+		Account lastAccount = getContext().getAccountsService()
+				.findAccountByLastIP(addr);
+		if ((lastAccount != null)
+				&& !getContext().getClients().isUserLoggedIn(lastAccount))
+		{
 			found = true;
-			client.sendLine(new StringBuilder("SERVERMSG ")
-					.append(ip).append(" was recently bound to: ")
-					.append(lastAct.getName()).append(" (offline)").toString());
+			client.sendLine(String.format(
+					"SERVERMSG %s was recently bound to: %s (offline)",
+					ip, lastAccount.getName()));
 		}
 
 		if (!found) {
 			// TODO perhaps add an explanation like
 			// "(note that server only keeps track of last used IP addresses)"?
-			client.sendLine("SERVERMSG No client is/was recently using IP: " + ip);
+			client.sendLine("SERVERMSG No client is/was recently using IP: "
+					+ ip);
 		}
 
 		return true;

@@ -52,20 +52,23 @@ public class RegisterCommandProcessor extends AbstractCommandProcessor {
 		}
 
 		if (!getContext().getAccountsService().isRegistrationEnabled()) {
-			client.sendLine("REGISTRATIONDENIED Sorry, account registration is currently disabled");
+			client.sendLine("REGISTRATIONDENIED Sorry, account registration is"
+					+ " currently disabled");
 			return false;
 		}
 
 		if (client.getAccount().getAccess() != Account.Access.NONE) {
 			// only clients which are not logged-in can register
-			client.sendLine("REGISTRATIONDENIED You are already logged-in, no need to register new account");
+			client.sendLine("REGISTRATIONDENIED You are already logged-in,"
+					+ " no need to register a new account");
 			return false;
 		}
 
 		if (getContext().getServer().isLanMode()) {
 			// no need to register an account in LAN mode, since it accepts any
 			// userName
-			client.sendLine("REGISTRATIONDENIED Can not register in LAN-mode. Login with any username and password to proceed");
+			client.sendLine("REGISTRATIONDENIED Can not register in LAN-mode."
+					+ " Login with any username and password to proceed");
 			return false;
 		}
 
@@ -75,28 +78,30 @@ public class RegisterCommandProcessor extends AbstractCommandProcessor {
 		// validate userName:
 		String valid = Account.isOldUsernameValid(username);
 		if (valid != null) {
-			client.sendLine(new StringBuilder("REGISTRATIONDENIED Invalid username (reason: ")
-					.append(valid).append(")").toString());
+			client.sendLine(String.format(
+					"REGISTRATIONDENIED Invalid username (reason: %s)", valid));
 			return false;
 		}
 
 		// validate password:
 		valid = Account.isPasswordValid(password);
 		if (valid != null) {
-			client.sendLine(new StringBuilder("REGISTRATIONDENIED Invalid password (reason: ")
-					.append(valid).append(")").toString());
+			client.sendLine(String.format(
+					"REGISTRATIONDENIED Invalid password (reason: %s)", valid));
 			return false;
 		}
-		Account acc = getContext().getAccountsService().findAccountNoCase(username);
-		if (acc != null) {
+		Account account = getContext().getAccountsService()
+				.findAccountNoCase(username);
+		if (account != null) {
 			client.sendLine("REGISTRATIONDENIED Account already exists");
 			return false;
 		}
 
 		// check for reserved names:
 		if (Account.RESERVED_NAMES.contains(username)) {
-			client.sendLine("REGISTRATIONDENIED Invalid account name - you are trying to register a reserved account name");
-				return false;
+			client.sendLine("REGISTRATIONDENIED Invalid account name - you are"
+					+ " trying to register a reserved account name");
+			return false;
 		}
 		/*if (!getContext().whiteList.contains(client.getIp())) {
 			if (registrationTimes.containsKey(client.ip)
@@ -119,12 +124,12 @@ public class RegisterCommandProcessor extends AbstractCommandProcessor {
 			} catch (UnknownHostException e) {
 			}
 		}*/
-		getContext().getClients().sendToAllAdministrators(new StringBuilder("SERVERMSG New registration of <")
-				.append(username).append("> at ")
-				.append(client.getIp().getHostAddress()).toString());
-		acc = new Account(username, password, client.getIp(),
+		getContext().getClients().sendToAllAdministrators(String.format(
+				"SERVERMSG New registration of <%s> at %s", username,
+				client.getIp().getHostAddress()));
+		account = new Account(username, password, client.getIp(),
 				client.getCountry());
-		getContext().getAccountsService().addAccount(acc);
+		getContext().getAccountsService().addAccount(account);
 
 		// let's save new accounts info to disk
 		getContext().getAccountsService().saveAccounts(false);

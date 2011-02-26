@@ -45,7 +45,10 @@ public class ChangePasswordCommandProcessor extends AbstractCommandProcessor {
 		try {
 			checksOk = super.process(client, args);
 		} catch (InvalidNumberOfArgumentsCommandProcessingException ex) {
-					client.sendLine("SERVERMSG Bad CHANGEPASSWORD command - Too many or too few parameters have been supplied");
+			client.sendLine(String.format(
+					"SERVERMSG Bad %s command:"
+					+ " Too many or too few parameters have been supplied",
+					getCommandName()));
 			throw ex;
 		}
 		if (!checksOk) {
@@ -56,19 +59,26 @@ public class ChangePasswordCommandProcessor extends AbstractCommandProcessor {
 		String newPassword = args.get(1);
 
 		if (getContext().getServer().isLanMode()) {
-			client.sendLine("SERVERMSG CHANGEPASSWORD failed: You can not change your password while the server is running in LAN mode!");
+			client.sendLine(String.format(
+					"SERVERMSG %s failed: You can not change your password"
+					+ " while the server is running in LAN mode!",
+					getCommandName()));
 			return false;
 		}
 
 		if (!oldPassword.equals(client.getAccount().getPassword())) {
-			client.sendLine("SERVERMSG CHANGEPASSWORD failed: The old password is incorrect!");
+			client.sendLine(String.format(
+					"SERVERMSG %s failed: The old password is incorrect!",
+					getCommandName()));
 			return false;
 		}
 
 		// validate password:
 		String valid = Account.isPasswordValid(newPassword);
 		if (valid != null) {
-			client.sendLine(new StringBuilder("SERVERMSG CHANGEPASSWORD failed: Invalid password (reason: ").append(valid).append(")").toString());
+			client.sendLine(String.format(
+					"SERVERMSG %s failed: Invalid password (reason: %s)",
+					getCommandName(), valid));
 			return false;
 		}
 
@@ -79,13 +89,16 @@ public class ChangePasswordCommandProcessor extends AbstractCommandProcessor {
 				client.getAccount().getName());
 		if (!mergeOk) {
 			client.getAccount().setPassword(oldPasswd);
-			client.sendLine("SERVERMSG CHANGEPASSWORD failed: Failed saving to persistent storage.");
+			client.sendLine(String.format(
+					"SERVERMSG %s failed: Failed saving to persistent storage.",
+					getCommandName()));
 			return false;
 		}
 
 		// let's save new accounts info to disk
 		getContext().getAccountsService().saveAccounts(false);
-		client.sendLine("SERVERMSG Your password has been successfully updated!");
+		client.sendLine("SERVERMSG Your password has been successfully updated!"
+				);
 
 		return true;
 	}

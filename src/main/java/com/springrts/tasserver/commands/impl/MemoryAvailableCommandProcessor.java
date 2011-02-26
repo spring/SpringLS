@@ -46,8 +46,9 @@ public class MemoryAvailableCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		client.sendLine(new StringBuilder("SERVERMSG Amount of free memory in Java Virtual Machine: ")
-				.append(Runtime.getRuntime().freeMemory()).append(" bytes").toString());
+		client.sendLine(String.format(
+				"SERVERMSG Amount of free memory in the Java Virtual Machine:"
+				+ " %d bytes", Runtime.getRuntime().freeMemory()));
 
 		return true;
 	}

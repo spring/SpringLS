@@ -48,16 +48,17 @@ public class GetLastIpCommandProcessor extends AbstractCommandProcessor {
 
 		Account acc = getContext().getAccountsService().getAccount(username);
 		if (acc == null) {
-			client.sendLine(new StringBuilder("SERVERMSG User ")
-					.append(username).append(" not found!").toString());
+			client.sendLine(String.format("SERVERMSG User %s not found!",
+					username));
 			return false;
 		}
 
 		boolean online = getContext().getClients().isUserLoggedIn(acc);
-		client.sendLine(new StringBuilder("SERVERMSG ")
-				.append(username).append("'s last IP was ")
-				.append(acc.getLastIpAsString()).append(" (")
-				.append((online ? "online)" : "offline)")).toString());
+		client.sendLine(String.format(
+				"SERVERMSG %s's last IP was %s (%s)",
+				username,
+				acc.getLastIpAsString(),
+				(online ? "online" : "offline")));
 
 		return true;
 	}

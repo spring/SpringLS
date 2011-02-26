@@ -49,8 +49,9 @@ public class UpdateStatisticsCommandProcessor extends AbstractCommandProcessor {
 		if (taken == -1) {
 			client.sendLine("SERVERMSG Unable to update statistics!");
 		} else {
-			client.sendLine(new StringBuilder("SERVERMSG Statistics have been updated. Time taken to calculate: ")
-					.append(taken).append(" ms.").toString());
+			client.sendLine(String.format(
+					"SERVERMSG Statistics have been updated."
+					+ " Time taken to calculate: %d ms.", taken));
 		}
 
 		return true;

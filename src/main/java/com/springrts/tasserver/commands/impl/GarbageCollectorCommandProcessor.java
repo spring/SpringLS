@@ -50,9 +50,9 @@ public class GarbageCollectorCommandProcessor extends AbstractCommandProcessor {
 		System.gc();
 		time = (System.nanoTime() - time) / 1000000;
 
-		client.sendLine(new StringBuilder(
-				"SERVERMSG Garbage collector invoked (time taken: ")
-				.append(time).append(" ms)").toString());
+		client.sendLine(String.format(
+				"SERVERMSG Garbage collector invoked (time taken: %d ms)",
+				time));
 
 		return true;
 	}

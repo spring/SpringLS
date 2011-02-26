@@ -56,24 +56,25 @@ public class MuteListCommandProcessor extends AbstractCommandProcessor {
 
 		Channel chan = getContext().getChannels().getChannel(chanelName);
 		if (chan == null) {
-			client.sendLine(new StringBuilder("SERVERMSG MUTELIST failed: Channel #")
-					.append(chanelName).append(" does not exist!").toString());
+			client.sendLine(String.format(
+					"SERVERMSG MUTELIST failed: Channel #%s does not exist!",
+					chanelName));
 			return false;
 		}
 
-		client.sendLine(new StringBuilder("MUTELISTBEGIN ").append(chan.getName()).toString());
+		client.sendLine(String.format("MUTELISTBEGIN %s", chan.getName()));
 
 		int size = chan.getMuteList().size(); // we mustn't call muteList.size() in for loop since it will purge expired records each time and so we could have ArrayOutOfBounds exception
 		for (int i = 0; i < size; i++) {
 			if (chan.getMuteList().getRemainingSeconds(i) == 0) {
-				client.sendLine(new StringBuilder("MUTELIST ")
-						.append(chan.getMuteList().getUsername(i))
-						.append(", indefinite time remaining").toString());
+				client.sendLine(String.format(
+						"MUTELIST %s, indefinite time remaining",
+						chan.getMuteList().getUsername(i)));
 			} else {
-				client.sendLine(new StringBuilder("MUTELIST ")
-						.append(chan.getMuteList().getUsername(i)).append(", ")
-						.append(chan.getMuteList().getRemainingSeconds(i))
-						.append(" seconds remaining").toString());
+				client.sendLine(String.format(
+						"MUTELIST %s, %d seconds remaining",
+						chan.getMuteList().getUsername(i),
+						chan.getMuteList().getRemainingSeconds(i)));
 			}
 		}
 

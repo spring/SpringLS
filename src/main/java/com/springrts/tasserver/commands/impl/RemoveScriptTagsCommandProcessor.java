@@ -47,10 +47,11 @@ public class RemoveScriptTagsCommandProcessor extends AbstractCommandProcessor {
 			checksOk = super.process(client, args);
 		} catch (InvalidNumberOfArgumentsCommandProcessingException ex) {
 			// kill client since it is not using this command correctly
-			client.sendLine(new StringBuilder("SERVERMSG Serious error: inconsistent data (")
-					.append(getCommandName())
-					.append(" command). You will now be disconnected ...").toString());
-			getContext().getClients().killClient(client, "Quit: inconsistent data");
+			client.sendLine(String.format(
+					"SERVERMSG Serious error: inconsistent data (%s command)."
+					+ " You will now be disconnected ...", getCommandName()));
+			getContext().getClients().killClient(client,
+					"Quit: inconsistent data");
 			return false;
 		}
 		if (!checksOk) {

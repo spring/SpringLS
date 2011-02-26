@@ -49,18 +49,21 @@ public class FloodLevelCommandProcessor extends AbstractCommandProcessor {
 		if (type.equals("PERIOD")) {
 			int seconds = Integer.parseInt(args.get(1));
 			getContext().getFloodProtection().setReceivedRecordPeriod(seconds);
-			client.sendLine(new StringBuilder("SERVERMSG The antiflood period is now ")
-					.append(seconds).append(" seconds.").toString());
+			client.sendLine(String.format(
+					"SERVERMSG The antiflood period is now %d seconds.",
+					seconds));
 		} else if (type.equals("USER")) {
 			int bytes = Integer.parseInt(args.get(1));
 			getContext().getFloodProtection().setMaxBytesAlert(bytes);
-			client.sendLine(new StringBuilder("SERVERMSG The antiflood amount for a normal user is now ")
-					.append(bytes).append(" bytes.").toString());
+			client.sendLine(String.format(
+					"SERVERMSG The antiflood amount for a normal user is now %d"
+					+ " bytes.", bytes));
 		} else if (type.equals("BOT")) {
 			int bytes = Integer.parseInt(args.get(1));
 			getContext().getFloodProtection().setMaxBytesAlertForBot(bytes);
-			client.sendLine(new StringBuilder("SERVERMSG The antiflood amount for a bot is now ")
-					.append(bytes).append(" bytes.").toString());
+			client.sendLine(String.format(
+					"SERVERMSG The antiflood amount for a bot is now %d bytes.",
+					bytes));
 		}
 
 		return true;

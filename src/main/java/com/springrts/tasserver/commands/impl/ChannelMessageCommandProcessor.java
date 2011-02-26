@@ -50,8 +50,9 @@ public class ChannelMessageCommandProcessor extends AbstractCommandProcessor {
 
 		Channel chan = getContext().getChannels().getChannel(channelName);
 		if (chan == null) {
-			client.sendLine(new StringBuilder("SERVERMSG CHANNELMESSAGE failed: Channel #")
-					.append(channelName).append(" does not exist!").toString());
+			client.sendLine(String.format(
+					"SERVERMSG %s failed: Channel #%s does not exist!",
+					getCommandName(), channelName));
 			return false;
 		}
 

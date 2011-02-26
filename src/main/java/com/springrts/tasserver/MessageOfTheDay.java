@@ -91,15 +91,24 @@ public class MessageOfTheDay implements ContextReceiver {
 	public boolean sendTo(Client client) {
 
 		client.beginFastWrite();
-		client.sendLine(new StringBuilder("MOTD Welcome, ").append(client.getAccount().getName()).append("!").toString());
-		client.sendLine(new StringBuilder("MOTD There are currently ").append((getContext().getClients().getClientsSize() - 1)).append(" clients connected").toString()); // -1 is because we should not count the client to which we are sending MOTD
-		client.sendLine(new StringBuilder("MOTD to server talking in ").append(getContext().getChannels().getChannelsSize()).append(" open channels and").toString());
-		client.sendLine(new StringBuilder("MOTD participating in ").append(getContext().getBattles().getBattlesSize()).append(" battles.").toString());
-		client.sendLine(new StringBuilder("MOTD Server's uptime is ").append(Misc.timeToDHM(System.currentTimeMillis() - context.getServer().getStartTime())).append(".").toString());
+		client.sendLine(String.format("MOTD Welcome, %s!",
+				client.getAccount().getName()));
+		// -1 is because we should not count the client to which we are sending
+		// the MOTD
+		client.sendLine(String.format(
+				"MOTD There are currently %d clients connected",
+				getContext().getClients().getClientsSize() - 1));
+		client.sendLine(String.format(
+				"MOTD to the server, talking in %d open channels and",
+				getContext().getChannels().getChannelsSize()));
+		client.sendLine(String.format("MOTD participating in %d battles.",
+				getContext().getBattles().getBattlesSize()));
+		client.sendLine(String.format("MOTD Server's uptime is %s.",
+				Misc.timeToDHM(context.getServer().getUpTime())));
 		client.sendLine("MOTD");
 		String[] sl = message.split(Misc.EOL);
 		for (int i = 0; i < sl.length; i++) {
-			client.sendLine(new StringBuilder("MOTD ").append(sl[i]).toString());
+			client.sendLine(String.format("MOTD %s", sl[i]));
 		}
 		client.endFastWrite();
 

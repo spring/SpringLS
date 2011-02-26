@@ -44,8 +44,8 @@ public class GetAccountCountCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		client.sendLine(new StringBuilder("SERVERMSG ")
-				.append(getContext().getAccountsService().getAccountsSize()).toString());
+		client.sendLine(String.format("SERVERMSG %d",
+				getContext().getAccountsService().getAccountsSize()));
 
 		return true;
 	}
