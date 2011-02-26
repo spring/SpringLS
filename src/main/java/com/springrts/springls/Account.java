@@ -642,7 +642,7 @@ public class Account implements Serializable, Cloneable {
 	 * registered in some early version, when this field was not yet present.
 	 * Note that this field was first introduced with Spring 0.67b3,
 	 * Dec 18 2005.
-	 * @return the registrationDate
+	 * @return the date of registration as a Unix time-stamp
 	 */
 	@Column(
 		name       = "register_date",
