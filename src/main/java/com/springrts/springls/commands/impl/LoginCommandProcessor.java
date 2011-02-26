@@ -19,7 +19,7 @@ package com.springrts.springls.commands.impl;
 
 
 import com.springrts.springls.Account;
-import com.springrts.springls.BanEntry;
+import com.springrts.springls.bans.BanEntry;
 import com.springrts.springls.Client;
 import com.springrts.springls.FailedLoginAttempt;
 import com.springrts.springls.util.Misc;

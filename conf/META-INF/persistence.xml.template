@@ -8,7 +8,7 @@
 		<provider>org.hibernate.ejb.HibernatePersistence</provider>
 
 		<class>com.springrts.springls.Account</class>
-		<class>com.springrts.springls.BanEntry</class>
+		<class>com.springrts.springls.bans.BanEntry</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 
 		<!-- MySQL -->

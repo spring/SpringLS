@@ -18,6 +18,7 @@
 package com.springrts.springls;
 
 
+import com.springrts.springls.bans.BanService;
 import com.springrts.springls.commands.CommandProcessors;
 import java.util.LinkedList;
 import java.util.List;

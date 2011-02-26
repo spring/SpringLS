@@ -52,13 +52,13 @@ public final class TASServer {
 			return;
 		}
 
+		framework.getBundleContext().registerService(Context.class.getName(), context, null);
+
 		context.setAccountsService(createAccountsService(context));
 
-		context.setBanService(createBanService(context));
+		new com.springrts.springls.bans.Activator().start(context.getFramework().getBundleContext());
 
 		context.push();
-
-		framework.getBundleContext().registerService(Context.class.getName(), context, null);
 
 		// switch to LAN mode if user accounts information is not present
 		if (!context.getAccountsService().isReadyToOperate()) {
@@ -138,24 +138,5 @@ public final class TASServer {
 		}
 
 		return accountsService;
-	}
-
-	private static BanService createBanService(Context context) {
-
-		BanService banService = null;
-
-		if (!context.getServer().isLanMode()) {
-			try {
-				banService = new JPABanService();
-			} catch (Exception pex) {
-				LOG.warn("Failed to access database for ban entries, bans are not supported!", pex);
-			}
-		}
-
-		if (banService == null) {
-			banService = new DummyBanService();
-		}
-
-		return banService;
 	}
 }

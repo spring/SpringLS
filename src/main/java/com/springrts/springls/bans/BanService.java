@@ -15,7 +15,7 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.springrts.springls;
+package com.springrts.springls.bans;
 
 
 import java.net.InetAddress;
@@ -40,6 +40,8 @@ public interface BanService {
 	 */
 	public int getActiveBansSize();
 
+	// TODO Add a CommandProcessor to be able to register bans.
+	// This was done through ChanServ or a web interface in the past.
 	/**
 	 * Add a ban-entry to be persisted.
 	 * Note: caller must check if username/password is valid etc. himself!
