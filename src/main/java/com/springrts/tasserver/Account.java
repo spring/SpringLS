@@ -29,6 +29,7 @@ import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +52,7 @@ import org.slf4j.LoggerFactory;
 	@NamedQuery(name = "acc_list",             query = "SELECT a FROM Account a"),
 	@NamedQuery(name = "acc_fetchByName",      query = "SELECT a FROM Account a WHERE a.name = :name"),
 	@NamedQuery(name = "acc_fetchByLowerName", query = "SELECT a FROM Account a WHERE (LOWER(a.name) = :lowerName)"),
-	@NamedQuery(name = "acc_fetchByLastIP",    query = "SELECT a FROM Account a WHERE a.lastIP = :ip")
+	@NamedQuery(name = "acc_fetchByLastIP",    query = "SELECT a FROM Account a WHERE a.lastIp = :ip")
 })
 public class Account implements Serializable, Cloneable {
 
@@ -373,6 +374,7 @@ public class Account implements Serializable, Cloneable {
 	 * * bits 25 - 30 (6 bits): reserved for future use.
 	 * * bit 31: unused (integer sign)
 	 */
+	@Transient
 	public int getAccessBitField() {
 
 		int bf = 0;
@@ -506,11 +508,12 @@ public class Account implements Serializable, Cloneable {
 		}
 	}
 
-
+	@Transient
 	public long getInGameTimeInMins() {
-		return (getInGameTime() / 60);
+		return (getInGameTime() / 60L);
 	}
 
+	@Transient
 	public Rank getRank() {
 
 		final long igtSeconds = getInGameTime();
@@ -626,7 +629,7 @@ public class Account implements Serializable, Cloneable {
 	 * registration date is unknown. This applies to users that registered in
 	 * some early version, when this field was not yet present. Note that this
 	 * field was first introduced with Spring 0.67b3, Dec 18 2005.
-	 * @return the registrationDate
+	 * @return the date of registration as a Unix time-stamp
 	 */
 	@Column(
 		name       = "register_date",
@@ -637,6 +640,20 @@ public class Account implements Serializable, Cloneable {
 		)
 	public long getRegistrationDate() {
 		return registrationDate;
+	}
+
+	/**
+	 * Date of when the name registered this account.
+	 * In milliseconds (refers to {@link java.lang.System#currentTimeMillis()}).
+	 * 0 means the registration date is unknown. This applies to users that
+	 * registered in some early version, when this field was not yet present.
+	 * Note that this field was first introduced with Spring 0.67b3,
+	 * Dec 18 2005.
+	 * Note: required for JPA only
+	 * @param registrationDate the date of registration as a Unix time-stamp
+	 */
+	protected void setRegistrationDate(long registrationDate) {
+		this.registrationDate = registrationDate;
 	}
 
 	/**
@@ -814,7 +831,13 @@ public class Account implements Serializable, Cloneable {
 	 * use any binary complement conversions).
 	 * @return the accessType
 	 */
-	// FIXME why is this not persisted?
+	@Column(
+		name       = "access",
+		unique     = false,
+		nullable   = false,
+		insertable = true,
+		updatable  = true
+		)
 	public Access getAccess() {
 		return access;
 	}
