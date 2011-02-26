@@ -615,9 +615,7 @@ public class Battle implements ContextReceiver {
 	 * This method is called when SCRIPTEND command is received.
 	 */
 	public void ratifyTempScript() {
-
-		replayScript = new ArrayList<String>(getTempReplayScript().size());
-		Collections.copy(getReplayScript(), getTempReplayScript());
+		replayScript = new ArrayList<String>(getTempReplayScript());
 	}
 
 	/**

@@ -232,8 +232,7 @@ public class FSAccountsService extends AbstractAccountsService {
 			return; // already in progress. Let's just skip it ...
 		}
 		lastSaveAccountsTime = System.currentTimeMillis();
-		List<Account> accountsCopy = new ArrayList<Account>(accounts.size());
-		Collections.copy(accountsCopy, accounts);
+		List<Account> accountsCopy = new ArrayList<Account>(accounts);
 		File accsFile = new File(ACCOUNTS_INFO_FILEPATH);
 		saveAccountsThread = new FSSaveAccountsThread(accsFile, accountsCopy);
 		saveAccountsThread.receiveContext(getContext());
