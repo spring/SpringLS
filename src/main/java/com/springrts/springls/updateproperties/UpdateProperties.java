@@ -15,9 +15,11 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.springrts.springls;
+package com.springrts.springls.updateproperties;
 
 
+import com.springrts.springls.Context;
+import com.springrts.springls.ContextReceiver;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;

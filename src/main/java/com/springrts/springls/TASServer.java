@@ -70,9 +70,7 @@ public final class TASServer {
 		context.getMessageOfTheDay().read();
 		context.getServer().setStartTime(System.currentTimeMillis());
 
-		if (context.getUpdateProperties().read(UpdateProperties.DEFAULT_FILENAME)) {
-			LOG.info("\"Update properties\" read from {}", UpdateProperties.DEFAULT_FILENAME);
-		}
+		new com.springrts.springls.updateproperties.Activator().start(context.getFramework().getBundleContext());
 
 		new com.springrts.springls.ip2country.Activator().start(context.getFramework().getBundleContext());
 

@@ -186,8 +186,6 @@ public class Activator implements BundleActivator {
 		commandProcessorClasses.add(RemoveScriptTagsCommandProcessor.class);
 		commandProcessorClasses.add(ChannelsCommandProcessor.class);
 		commandProcessorClasses.add(ForgeReverseMessageCommandProcessor.class);
-		commandProcessorClasses.add(ReloadUpdatePropertiesCommandProcessor.class);
-		commandProcessorClasses.add(RequestUpdateFileCommandProcessor.class);
 		commandProcessorClasses.add(KickFromBattleCommandProcessor.class);
 		commandProcessorClasses.add(StopServerCommandProcessor.class);
 

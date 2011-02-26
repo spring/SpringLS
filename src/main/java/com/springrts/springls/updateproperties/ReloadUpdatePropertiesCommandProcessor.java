@@ -15,12 +15,11 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.springrts.springls.commands.impl;
+package com.springrts.springls.updateproperties;
 
 
 import com.springrts.springls.Account;
 import com.springrts.springls.Client;
-import com.springrts.springls.UpdateProperties;
 import com.springrts.springls.commands.AbstractCommandProcessor;
 import com.springrts.springls.commands.CommandProcessingException;
 import com.springrts.springls.commands.SupportedCommand;
@@ -53,7 +52,9 @@ public class ReloadUpdatePropertiesCommandProcessor extends AbstractCommandProce
 			return false;
 		}
 
-		if (getContext().getUpdateProperties().read(UpdateProperties.DEFAULT_FILENAME)) {
+		UpdateProperties updateProperties = getService(UpdateProperties.class);
+		if (updateProperties.read(UpdateProperties.DEFAULT_FILENAME))
+		{
 			LOG.info("\"Update properties\" read from {}",
 					UpdateProperties.DEFAULT_FILENAME);
 			client.sendLine(String.format(

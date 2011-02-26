@@ -50,7 +50,6 @@ public class Context implements LiveStateListener {
 	private MessageOfTheDay messageOfTheDay = null;
 	private Agreement agreement = null;
 	private CommandProcessors commandProcessors = null;
-	private UpdateProperties updateProperties = null;
 	private ServerThread serverThread = null;
 	private FloodProtection floodProtection = null;
 
@@ -76,7 +75,6 @@ public class Context implements LiveStateListener {
 		this.messageOfTheDay = null;
 		this.agreement = null;
 		this.commandProcessors = null;
-		this.updateProperties = null;
 		this.serverThread = null;
 		this.floodProtection = null;
 	}
@@ -96,7 +94,6 @@ public class Context implements LiveStateListener {
 		setMessageOfTheDay(new MessageOfTheDay());
 		setAgreement(new Agreement());
 		setCommandProcessors(new CommandProcessors());
-		setUpdateProperties(new UpdateProperties());
 		setServerThread(new ServerThread());
 		setFloodProtection(new FloodProtection());
 	}
@@ -309,16 +306,6 @@ public class Context implements LiveStateListener {
 
 		this.commandProcessors = commandProcessors;
 		addContextReceiver(commandProcessors);
-	}
-
-	public UpdateProperties getUpdateProperties() {
-		return updateProperties;
-	}
-
-	public void setUpdateProperties(UpdateProperties updateProperties) {
-
-		this.updateProperties = updateProperties;
-		addContextReceiver(updateProperties);
 	}
 
 	public ServerThread getServerThread() {

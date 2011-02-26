@@ -15,7 +15,7 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.springrts.springls.commands.impl;
+package com.springrts.springls.updateproperties;
 
 
 import com.springrts.springls.Client;
@@ -48,7 +48,8 @@ public class RequestUpdateFileCommandProcessor extends AbstractCommandProcessor 
 		}
 
 		String version = Misc.makeSentence(args, 0);
-		String response = getContext().getUpdateProperties().getResponse(version);
+		UpdateProperties updateProperties = getService(UpdateProperties.class);
+		String response = updateProperties.getResponse(version);
 
 		// send a response to the client:
 		client.sendLine(response);
