@@ -32,7 +32,7 @@ public class ServerNotification {
 
 	/**
 	 * Milliseconds passed since 1st Jan 1970
-	 * @see System.currentTimeMillis()
+	 * @see java.lang.System#currentTimeMillis()
 	 */
 	private long time = 0;
 	private String title;

@@ -54,7 +54,7 @@ public class MuteList {
 		 * Time (in milliseconds) when it will expire.
 		 * Expired records are automatically removed in certain methods.
 		 * Use 0 to mute user for indefinite time.
-		 * @see System.currentTimeMillis()
+		 * @see java.lang.System#currentTimeMillis()
 		 */
 		public long getExpireTime() {
 			return expireTime;

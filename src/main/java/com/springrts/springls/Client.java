@@ -131,7 +131,7 @@ public class Client extends TeamController implements ContextReceiver {
 	/**
 	 * In milliseconds.
 	 * Used internally to remember time when the user entered the game.
-	 * @see System.currentTimeMillis()
+	 * @see java.lang.System#currentTimeMillis()
 	 */
 	private long inGameTime;
 	/**
@@ -155,7 +155,7 @@ public class Client extends TeamController implements ContextReceiver {
 	/**
 	 * Time (in milli-seconds) when we last heard from client
 	 * (last data received).
-	 * @see System.currentTimeMillis()
+	 * @see java.lang.System#currentTimeMillis()
 	 */
 	private long timeOfLastReceive;
 	/**

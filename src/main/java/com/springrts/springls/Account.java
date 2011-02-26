@@ -634,13 +634,15 @@ public class Account implements Serializable, Cloneable {
 		this.password = password;
 	}
 
+	// TODO convert to Date
 	/**
 	 * Date of when the name registered this account.
-	 * In milliseconds (refers to System.currentTimeMillis()). 0 means
-	 * registration date is unknown. This applies to users that registered in
-	 * some early version, when this field was not yet present. Note that this
-	 * field was first introduced with Spring 0.67b3, Dec 18 2005.
-	 * @return the date of registration as a Unix time-stamp
+	 * In milliseconds (refers to {@link java.lang.System#currentTimeMillis()}).
+	 * 0 means the registration date is unknown. This applies to users that
+	 * registered in some early version, when this field was not yet present.
+	 * Note that this field was first introduced with Spring 0.67b3,
+	 * Dec 18 2005.
+	 * @return the registrationDate
 	 */
 	@Column(
 		name       = "register_date",
@@ -667,8 +669,9 @@ public class Account implements Serializable, Cloneable {
 		this.registrationDate = registrationDate;
 	}
 
+	// TODO convert to Date
 	/**
-	 * Time (System.currentTimeMillis()) of the last login.
+	 * Time ({@link java.lang.System#currentTimeMillis()}) of the last login.
 	 * @return the lastLogin
 	 */
 	@Column(
@@ -683,7 +686,7 @@ public class Account implements Serializable, Cloneable {
 	}
 
 	/**
-	 * Time (System.currentTimeMillis()) of the last login.
+	 * Time ({@link java.lang.System#currentTimeMillis()}) of the last login.
 	 * @param lastLogin the lastLogin to set
 	 */
 	public void setLastLogin(long lastLogin) {

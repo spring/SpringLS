@@ -46,7 +46,7 @@ public class Server implements ContextReceiver {
 
 	/**
 	 * When the server instance was started.
-	 * @see System.currentTimeMillis()
+	 * @see java.lang.System#currentTimeMillis()
 	 */
 	private long startTime;
 

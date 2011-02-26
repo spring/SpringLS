@@ -54,7 +54,7 @@ public class FSAccountsService extends AbstractAccountsService {
 
 	/**
 	 * Time we last saved accounts info to disk.
-	 * @see System.currentTimeMillis()
+	 * @see java.lang.System#currentTimeMillis()
 	 */
 	private long lastSaveAccountsTime = System.currentTimeMillis();
 

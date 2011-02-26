@@ -40,7 +40,7 @@ public class Channels implements ContextReceiver, LiveStateListener, Updateable
 	private long purgeMutesInterval = 1000 * 3;
 	/**
 	 * Time when we last purged mute lists of all channels.
-	 * @see System.currentTimeMillis()
+	 * @see java.lang.System#currentTimeMillis()
 	 */
 	private long lastMutesPurgeTime = System.currentTimeMillis();
 
