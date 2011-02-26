@@ -42,7 +42,7 @@ fi
 
 MY_FINAL_CP=conf:${MY_MAIN_CP}
 MY_MAIN_CLASS_main=com.springrts.springls.Main
-MY_MAIN_CLASS_accountUtils=com.springrts.springls.AccountUtils
+MY_MAIN_CLASS_accountUtils=com.springrts.springls.accounts.AccountUtils
 MY_MAIN_CLASS=${MY_MAIN_CLASS_main}
 
 MY_OPTIONAL_OPTS=""

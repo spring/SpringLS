@@ -15,9 +15,13 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.springrts.springls;
+package com.springrts.springls.accounts;
 
 
+import com.springrts.springls.Account;
+import com.springrts.springls.ContextReceiver;
+import com.springrts.springls.LiveStateListener;
+import com.springrts.springls.Updateable;
 import java.net.InetAddress;
 import java.util.List;
 
@@ -34,6 +38,9 @@ public interface AccountsService extends ContextReceiver, LiveStateListener,
 
 	/**
 	 * Checks resources required for the service to operate.
+	 * This may return false if the environment is missing resources, like a
+	 * storage file not available, or a DB system not running.
+	 * @return true if this service is ready to be initialize, false otherwise.
 	 */
 	public boolean isReadyToOperate();
 

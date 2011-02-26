@@ -227,6 +227,7 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 	private boolean validateAccount(Client client, int userId, String username,
 			String password)
 	{
+		// FIXME here an int other places: use a method like AccountService.isPersistent()
 		if (!getContext().getServer().isLanMode()) { // "normal", non-LAN mode
 			// protection from brute-forcing the account:
 			FailedLoginAttempt attempt = findFailedLoginAttempt(username);

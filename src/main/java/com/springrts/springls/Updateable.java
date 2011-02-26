@@ -20,7 +20,7 @@ package com.springrts.springls;
 /**
  * @author hoijui
  */
-interface Updateable {
+public interface Updateable {
 
 	/**
 	 * Gets called once every update loop run-through.

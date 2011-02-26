@@ -253,7 +253,7 @@ public class Account implements Serializable, Cloneable {
 	/**
 	 * Only used by 'FSAccountsService'.
 	 */
-	Account(String name, String password, Access access, int lastUserId,
+	public Account(String name, String password, Access access, int lastUserId,
 			long lastLogin, InetAddress lastIp, long registrationDate,
 			String lastCountry, int id, boolean bot, long inGameTime,
 			boolean agreementAccepted)
@@ -568,7 +568,7 @@ public class Account implements Serializable, Cloneable {
 		insertable = true,
 		updatable  = false
 		)
-	protected int getId() {
+	public int getId() {
 		return id;
 	}
 
@@ -578,7 +578,7 @@ public class Account implements Serializable, Cloneable {
 	 * @see #getLastUserId()
 	 * @param id the id to set
 	 */
-	protected void setId(int id) {
+	public void setId(int id) {
 		this.id = id;
 	}
 

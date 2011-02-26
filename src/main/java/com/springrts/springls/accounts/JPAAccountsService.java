@@ -15,9 +15,10 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.springrts.springls;
+package com.springrts.springls.accounts;
 
 
+import com.springrts.springls.Account;
 import java.net.InetAddress;
 import java.util.List;
 import javax.persistence.EntityManager;
