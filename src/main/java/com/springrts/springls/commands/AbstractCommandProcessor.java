@@ -23,6 +23,7 @@ import com.springrts.springls.Battle;
 import com.springrts.springls.Client;
 import com.springrts.springls.Context;
 import java.util.List;
+import org.osgi.framework.BundleContext;
 
 /**
  * Utility base class for command processors.
@@ -88,6 +89,12 @@ public abstract class AbstractCommandProcessor implements CommandProcessor {
 	}
 	protected Context getContext() {
 		return context;
+	}
+	protected BundleContext getBundleContext() {
+		return context.getFramework().getBundleContext();
+	}
+	public <T> T getService(Class<T> serviceClass) {
+		return Context.getService(getBundleContext(), serviceClass);
 	}
 
 	/**
