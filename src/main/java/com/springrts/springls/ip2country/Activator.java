@@ -50,7 +50,7 @@ public class Activator implements BundleActivator {
 			CommandProcessors.add(context, CommandProcessors.load(UpdateIp2CountryCommandProcessor.class));
 		} catch (Exception ex) {
 			log.error("Failed to install the IP2Country command-processors."
-					+ " These commadns will not be available.", ex);
+					+ " These commands will not be available.", ex);
 		}
 	}
 

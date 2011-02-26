@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
  * This class implements a simple bundle activator for the default
  * <tt>CommandProcessor</tt> service. This activator simply creates instances
  * of the command-processor service object and registers them with the service
- * registry along with the service properties indicating the service's name.
+ * registry along with the service properties indicating the services name.
  */
 public class Activator implements BundleActivator {
 
