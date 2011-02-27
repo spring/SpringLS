@@ -15,9 +15,10 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.springrts.springls;
+package com.springrts.springls.agreement;
 
 
+import com.springrts.springls.Client;
 import com.springrts.springls.util.Misc;
 import java.io.File;
 import java.io.IOException;
@@ -32,11 +33,9 @@ import org.slf4j.LoggerFactory;
  * See LOGIN command implementation for more details.
  * @author hoijui
  */
-public class Agreement implements ContextReceiver {
+public class Agreement {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Agreement.class);
-
-	private Context context;
 
 	private String content;
 	private static final String DEFAULT_FILE_NAME = "agreement.rtf";
@@ -46,17 +45,8 @@ public class Agreement implements ContextReceiver {
 		content = null;
 	}
 
-	@Override
-	public void receiveContext(Context context) {
-
-		this.context = context;
-	}
-	protected Context getContext() {
-		return context;
-	}
-
 	/** Reads agreement from disk (if file is found) */
-	public boolean read() {
+	boolean read() {
 
 		boolean success = false;
 
@@ -89,9 +79,5 @@ public class Agreement implements ContextReceiver {
 		}
 		client.sendLine("AGREEMENTEND");
 		client.endFastWrite();
-	}
-
-	public boolean isSet() {
-		return (content != null);
 	}
 }

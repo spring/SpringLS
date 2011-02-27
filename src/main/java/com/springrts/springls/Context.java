@@ -48,7 +48,6 @@ public class Context implements LiveStateListener {
 	private Statistics statistics = null;
 	private NatHelpServer natHelpServer = null;
 	private MessageOfTheDay messageOfTheDay = null;
-	private Agreement agreement = null;
 	private CommandProcessors commandProcessors = null;
 	private ServerThread serverThread = null;
 	private FloodProtection floodProtection = null;
@@ -73,7 +72,6 @@ public class Context implements LiveStateListener {
 		this.statistics = null;
 		this.natHelpServer = null;
 		this.messageOfTheDay = null;
-		this.agreement = null;
 		this.commandProcessors = null;
 		this.serverThread = null;
 		this.floodProtection = null;
@@ -92,7 +90,6 @@ public class Context implements LiveStateListener {
 		setStatistics(new Statistics());
 		setNatHelpServer(new NatHelpServer());
 		setMessageOfTheDay(new MessageOfTheDay());
-		setAgreement(new Agreement());
 		setCommandProcessors(new CommandProcessors());
 		setServerThread(new ServerThread());
 		setFloodProtection(new FloodProtection());
@@ -286,16 +283,6 @@ public class Context implements LiveStateListener {
 
 		this.messageOfTheDay = messageOfTheDay;
 		addContextReceiver(messageOfTheDay);
-	}
-
-	public Agreement getAgreement() {
-		return agreement;
-	}
-
-	public void setAgreement(Agreement agreement) {
-
-		this.agreement = agreement;
-		addContextReceiver(agreement);
 	}
 
 	public CommandProcessors getCommandProcessors() {

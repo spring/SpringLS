@@ -24,6 +24,7 @@ import com.springrts.springls.Client;
 import com.springrts.springls.FailedLoginAttempt;
 import com.springrts.springls.util.Misc;
 import com.springrts.springls.ServerNotification;
+import com.springrts.springls.agreement.Agreement;
 import com.springrts.springls.commands.AbstractCommandProcessor;
 import com.springrts.springls.commands.CommandProcessingException;
 import com.springrts.springls.commands.InvalidNumberOfArgumentsCommandProcessingException;
@@ -277,11 +278,13 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 				return false;
 			}
 			if (!acc.isAgreementAccepted()
-					&& !client.getAccount().isAgreementAccepted()
-					&& getContext().getAgreement().isSet())
+					&& !client.getAccount().isAgreementAccepted())
 			{
-				getContext().getAgreement().sendToClient(client);
-				return false;
+				Agreement agreement = getContext().getService(Agreement.class);
+				if (agreement != null) {
+					agreement.sendToClient(client);
+					return false;
+				}
 			}
 			// everything is OK so far!
 			if (!acc.isAgreementAccepted()) {

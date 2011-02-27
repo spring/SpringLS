@@ -58,12 +58,12 @@ public final class TASServer {
 
 		new com.springrts.springls.bans.Activator().start(context.getFramework().getBundleContext());
 
+		new com.springrts.springls.agreement.Activator().start(context.getFramework().getBundleContext());
+
 		context.push();
 
 		// TODO needs adjusting due to new LAN mode accounts service
-		if (!context.getServer().isLanMode()) {
-			context.getAgreement().read();
-		} else {
+		if (context.getServer().isLanMode()) {
 			LOG.info("LAN mode enabled");
 		}
 
