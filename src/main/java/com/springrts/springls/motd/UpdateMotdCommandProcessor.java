@@ -15,7 +15,7 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.springrts.springls.commands.impl;
+package com.springrts.springls.motd;
 
 
 import com.springrts.springls.Account;
@@ -25,6 +25,9 @@ import com.springrts.springls.commands.CommandProcessingException;
 import com.springrts.springls.commands.SupportedCommand;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Lets an administrator update the "message of the day" (MOTD) from a server
  * local text file.
@@ -32,6 +35,9 @@ import java.util.List;
  */
 @SupportedCommand("UPDATEMOTD")
 public class UpdateMotdCommandProcessor extends AbstractCommandProcessor {
+
+	private static final Logger LOG
+			= LoggerFactory.getLogger(UpdateMotdCommandProcessor.class);
 
 	public UpdateMotdCommandProcessor() {
 		super(1, 1, Account.Access.ADMIN);
@@ -48,11 +54,22 @@ public class UpdateMotdCommandProcessor extends AbstractCommandProcessor {
 
 		String motdFileName = args.get(0);
 
-		if (!getContext().getMessageOfTheDay().read(motdFileName)) {
-			client.sendLine("SERVERMSG Error: unable to read MOTD from " + motdFileName);
-			return false;
+		MessageOfTheDay messageOfTheDay
+				= getContext().getService(MessageOfTheDay.class);
+		if (messageOfTheDay != null) {
+			if (!messageOfTheDay.read(motdFileName)) {
+				client.sendLine(String.format(
+						"SERVERMSG Error: unable to read MOTD from %s",
+						motdFileName));
+				return false;
+			} else {
+				client.sendLine(String.format(
+						"SERVERMSG MOTD has been successfully updated from %s",
+						motdFileName));
+			}
 		} else {
-			client.sendLine("SERVERMSG MOTD has been successfully updated from " + motdFileName);
+			client.sendLine("SERVERMSG MOTD Error: service is not available");
+			LOG.error("MessageOfTheDay service not available");
 		}
 
 		return true;

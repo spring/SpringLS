@@ -129,7 +129,6 @@ public class Activator implements BundleActivator {
 		commandProcessorClasses.add(ChangeCharsetCommandProcessor.class);
 		commandProcessorClasses.add(GetLobbyVersionCommandProcessor.class);
 		commandProcessorClasses.add(UpdateStatisticsCommandProcessor.class);
-		commandProcessorClasses.add(UpdateMotdCommandProcessor.class);
 		commandProcessorClasses.add(LongTimeToDateCommandProcessor.class);
 		commandProcessorClasses.add(GetLastLoginTimeCommandProcessor.class);
 		commandProcessorClasses.add(SetChannelKeyCommandProcessor.class);

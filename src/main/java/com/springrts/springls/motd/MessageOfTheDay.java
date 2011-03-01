@@ -15,9 +15,12 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.springrts.springls;
+package com.springrts.springls.motd;
 
 
+import com.springrts.springls.Client;
+import com.springrts.springls.Context;
+import com.springrts.springls.ContextReceiver;
 import com.springrts.springls.util.Misc;
 import java.io.File;
 import java.io.IOException;

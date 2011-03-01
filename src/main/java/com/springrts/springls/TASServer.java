@@ -60,6 +60,8 @@ public final class TASServer {
 
 		new com.springrts.springls.agreement.Activator().start(context.getFramework().getBundleContext());
 
+		new com.springrts.springls.motd.Activator().start(context.getFramework().getBundleContext());
+
 		context.push();
 
 		// TODO needs adjusting due to new LAN mode accounts service
@@ -67,7 +69,6 @@ public final class TASServer {
 			LOG.info("LAN mode enabled");
 		}
 
-		context.getMessageOfTheDay().read();
 		context.getServer().setStartTime(System.currentTimeMillis());
 
 		new com.springrts.springls.updateproperties.Activator().start(context.getFramework().getBundleContext());

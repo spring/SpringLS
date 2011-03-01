@@ -29,6 +29,7 @@ import com.springrts.springls.commands.AbstractCommandProcessor;
 import com.springrts.springls.commands.CommandProcessingException;
 import com.springrts.springls.commands.InvalidNumberOfArgumentsCommandProcessingException;
 import com.springrts.springls.commands.SupportedCommand;
+import com.springrts.springls.motd.MessageOfTheDay;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -209,7 +210,11 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 
 		// do the notifying and all
 		client.sendLine("ACCEPTED " + client.getAccount().getName());
-		getContext().getMessageOfTheDay().sendTo(client);
+		MessageOfTheDay messageOfTheDay
+				= getContext().getService(MessageOfTheDay.class);
+		if (messageOfTheDay != null) {
+			messageOfTheDay.sendTo(client);
+		}
 		getContext().getClients().sendListOfAllUsersToClient(client);
 		getContext().getBattles().sendInfoOnBattlesToClient(client);
 		getContext().getClients().sendInfoOnStatusesToClient(client);
