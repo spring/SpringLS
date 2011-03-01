@@ -143,7 +143,7 @@ public class FloodProtection {
 
 		int maxBytes = client.getAccount().isBot() ? getMaxBytesAlertForBot()
 				: getMaxBytesAlert();
-		return client.getAccount().getAccess().isAtLeast(Account.Access.ADMIN)
+		return client.getAccount().getAccess().isLessThen(Account.Access.ADMIN)
 				&& (client.getDataOverLastTimePeriod() > maxBytes);
 	}
 
