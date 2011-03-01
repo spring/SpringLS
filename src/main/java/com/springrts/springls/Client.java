@@ -18,7 +18,9 @@
 package com.springrts.springls;
 
 
+import com.springrts.springls.ip2country.IP2CountryService;
 import com.springrts.springls.util.Misc;
+import com.springrts.springls.util.ProtocolUtil;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
@@ -207,7 +209,7 @@ public class Client extends TeamController implements ContextReceiver {
 		recvBuf = new StringBuilder();
 		inGame = false;
 		away = false;
-		locale = IP2Country.getInstance().getLocale(ip);
+		locale = ProtocolUtil.countryToLocale(ProtocolUtil.COUNTRY_UNKNOWN);
 		inGameTime = 0;
 		battleID = Battle.NO_BATTLE_ID;
 		requestedBattleID = Battle.NO_BATTLE_ID;
@@ -221,7 +223,14 @@ public class Client extends TeamController implements ContextReceiver {
 
 	@Override
 	public void receiveContext(Context context) {
+
 		this.context = context;
+
+		// TODO when bundle-context is available in ctor, move this code there
+		IP2CountryService ip2CountryService = context.getService(IP2CountryService.class);
+		if (ip2CountryService != null) {
+			setLocale(ip2CountryService.getLocale(ip));
+		}
 	}
 
 	@Override
@@ -881,7 +890,7 @@ public class Client extends TeamController implements ContextReceiver {
 	public String getCountry() {
 
 		if ((locale == null) || locale.getCountry().isEmpty()) {
-			return IP2Country.COUNTRY_UNKNOWN;
+			return ProtocolUtil.COUNTRY_UNKNOWN;
 		} else {
 			return locale.getCountry();
 		}
@@ -893,7 +902,7 @@ public class Client extends TeamController implements ContextReceiver {
 	 * @param country the country to set
 	 */
 	public void setCountry(String country) {
-		IP2Country.countryToLocale(country);
+		ProtocolUtil.countryToLocale(country);
 	}
 
 	/**

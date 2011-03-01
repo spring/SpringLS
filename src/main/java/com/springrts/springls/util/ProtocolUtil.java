@@ -21,6 +21,7 @@ package com.springrts.springls.util;
 import java.awt.Color;
 import java.net.InetAddress;
 import java.security.NoSuchAlgorithmException;
+import java.util.Locale;
 
 import net.iharder.Base64;
 
@@ -32,6 +33,8 @@ import org.slf4j.LoggerFactory;
  * @author hoijui
  */
 public final class ProtocolUtil {
+
+	public static final String COUNTRY_UNKNOWN = "XX";
 
 	private static final Logger LOG = LoggerFactory.getLogger(ProtocolUtil.class);
 
@@ -151,5 +154,11 @@ public final class ProtocolUtil {
 		springColor += color.getRed();
 
 		return springColor;
+	}
+
+	public static Locale countryToLocale(String country) {
+
+		String isoCountry = country.equals(COUNTRY_UNKNOWN) ? "" : country;
+		return new Locale("", isoCountry);
 	}
 }

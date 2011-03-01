@@ -84,11 +84,7 @@ public final class TASServer {
 			LOG.info("\"Update properties\" read from {}", UpdateProperties.DEFAULT_FILENAME);
 		}
 
-		long tempTime = System.currentTimeMillis();
-		if (IP2Country.getInstance().initializeAll()) {
-			tempTime = System.currentTimeMillis() - tempTime;
-			LOG.info("<IP2Country> loaded in {} ms.", tempTime);
-		}
+		new com.springrts.springls.ip2country.Activator().start(context.getFramework().getBundleContext());
 
 		// start "help UDP" server:
 		context.getNatHelpServer().startServer();

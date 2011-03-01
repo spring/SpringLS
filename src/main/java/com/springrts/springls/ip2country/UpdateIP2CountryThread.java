@@ -15,9 +15,12 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.springrts.springls;
+package com.springrts.springls.ip2country;
 
 
+import com.springrts.springls.Context;
+import com.springrts.springls.ContextReceiver;
+import com.springrts.springls.ServerNotification;
 import com.springrts.springls.util.Misc;
 import com.springrts.springls.util.ZipUtil;
 import java.io.BufferedReader;
@@ -58,18 +61,16 @@ import org.slf4j.LoggerFactory;
 public class UpdateIP2CountryThread implements Runnable, ContextReceiver {
 
 	private static final Logger LOG = LoggerFactory.getLogger(UpdateIP2CountryThread.class);
-
-	/** true if updating is already in progress */
-	private AtomicBoolean inProgress;
 	/**
 	 * This is the maximum speed at which this thread will attempt
 	 * to download files from the Internet in bytes per second.
 	 */
 	private static final int DOWNLOAD_LIMIT = 1024 * 128;
 
+	/** true if updating is already in progress */
+	private final AtomicBoolean inProgress;
+	private final IP2Country ip2Country;
 	private Context context = null;
-
-	private IP2Country ip2Country = null;
 
 
 	public UpdateIP2CountryThread(IP2Country ip2Country) {

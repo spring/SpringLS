@@ -19,6 +19,7 @@ package com.springrts.springls;
 
 
 import com.springrts.springls.util.Misc;
+import com.springrts.springls.util.ProtocolUtil;
 import java.io.Serializable;
 import java.net.InetAddress;
 import java.util.Arrays;
@@ -243,7 +244,7 @@ public class Account implements Serializable, Cloneable {
 		this.lastLogin         = 0;
 		this.lastUserId        = NO_ACCOUNT_ID;
 		this.lastIp            = null;
-		this.lastCountry       = IP2Country.COUNTRY_UNKNOWN;
+		this.lastCountry       = ProtocolUtil.COUNTRY_UNKNOWN;
 		this.inGameTime        = 0;
 		this.access            = Access.NONE;
 		this.bot               = false;
@@ -293,7 +294,7 @@ public class Account implements Serializable, Cloneable {
 	 * Used when logging in on a server in LAN mode.
 	 */
 	public Account(String name, String password) {
-		this(name, password, null, IP2Country.COUNTRY_UNKNOWN);
+		this(name, password, null, ProtocolUtil.COUNTRY_UNKNOWN);
 	}
 
 	private Account(Account acc) {

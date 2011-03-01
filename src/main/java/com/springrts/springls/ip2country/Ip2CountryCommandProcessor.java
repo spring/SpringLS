@@ -15,29 +15,28 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.springrts.springls.commands.impl;
+package com.springrts.springls.ip2country;
 
 
 import com.springrts.springls.Account;
 import com.springrts.springls.Client;
-import com.springrts.springls.IP2Country;
 import com.springrts.springls.util.Misc;
 import com.springrts.springls.commands.AbstractCommandProcessor;
 import com.springrts.springls.commands.CommandProcessingException;
 import com.springrts.springls.commands.SupportedCommand;
-import java.io.File;
+import com.springrts.springls.util.ProtocolUtil;
+import java.net.InetAddress;
 import java.util.List;
 
 /**
- * Lets an administrator re-initialize the internal IP2Country database from a
- * specified data-source file.
+ * Lets an administrator convert an IP into a (2-chars wide) country code.
  * @author hoijui
  */
-@SupportedCommand("REINITIP2COUNTRY")
-public class ReInitializeIp2CountryCommandProcessor extends AbstractCommandProcessor {
+@SupportedCommand("IP2COUNTRY")
+public class Ip2CountryCommandProcessor extends AbstractCommandProcessor {
 
-	public ReInitializeIp2CountryCommandProcessor() {
-		super(1, ARGS_MAX_NOCHECK, Account.Access.ADMIN);
+	public Ip2CountryCommandProcessor() {
+		super(1, 1, Account.Access.ADMIN);
 	}
 
 	@Override
@@ -49,14 +48,21 @@ public class ReInitializeIp2CountryCommandProcessor extends AbstractCommandProce
 			return false;
 		}
 
-		String dataFileName = Misc.makeSentence(args, 0);
+		String ip = args.get(0);
 
-		IP2Country.getInstance().setDataFile(new File(dataFileName));
-		if (IP2Country.getInstance().initializeAll()) {
-			client.sendLine("SERVERMSG IP2COUNTRY database initialized successfully!");
-		} else {
-			client.sendLine("SERVERMSG Error while initializing IP2COUNTRY database!");
+		InetAddress addr = Misc.parseIp(ip);
+		if (addr == null) {
+			client.sendLine("SERVERMSG Invalid IP address/range: " + ip);
+			return false;
 		}
+
+		String country = ProtocolUtil.COUNTRY_UNKNOWN;
+		IP2Country service = getContext().getService(IP2Country.class);
+		if (service != null) {
+			country = service.getCountryCode(addr);
+		}
+
+		client.sendLine("SERVERMSG Country = " + country);
 
 		return true;
 	}

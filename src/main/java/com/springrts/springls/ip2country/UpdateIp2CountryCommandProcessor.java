@@ -15,28 +15,26 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.springrts.springls.commands.impl;
+package com.springrts.springls.ip2country;
 
 
 import com.springrts.springls.Account;
 import com.springrts.springls.Client;
-import com.springrts.springls.IP2Country;
-import com.springrts.springls.util.Misc;
 import com.springrts.springls.commands.AbstractCommandProcessor;
 import com.springrts.springls.commands.CommandProcessingException;
 import com.springrts.springls.commands.SupportedCommand;
-import java.net.InetAddress;
 import java.util.List;
 
 /**
- * Lets an administrator convert an IP into a (2-chars wide) country code.
+ * Lets an administrator re-initialize the internal IP2Country database from a
+ * specified data-source file.
  * @author hoijui
  */
-@SupportedCommand("IP2COUNTRY")
-public class Ip2CountryCommandProcessor extends AbstractCommandProcessor {
+@SupportedCommand("UPDATEIP2COUNTRY")
+public class UpdateIp2CountryCommandProcessor extends AbstractCommandProcessor {
 
-	public Ip2CountryCommandProcessor() {
-		super(1, 1, Account.Access.ADMIN);
+	public UpdateIp2CountryCommandProcessor() {
+		super(0, 0, Account.Access.ADMIN);
 	}
 
 	@Override
@@ -48,17 +46,21 @@ public class Ip2CountryCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		String ip = args.get(0);
+		IP2Country service = getContext().getService(IP2Country.class);
+		if (service == null) {
+			client.sendLine("SERVERMSG IP2Country service not available!");
+		} else {
+			if (service.updateInProgress()) {
+				client.sendLine("SERVERMSG IP2Country database update is"
+						+ " already in progress, try again later.");
+				return false;
+			}
 
-		InetAddress addr = Misc.parseIp(ip);
-		if (addr == null) {
-			client.sendLine("SERVERMSG Invalid IP address/range: " + ip);
-			return false;
+			client.sendLine("SERVERMSG Updating IP2Country database."
+					+ " The server will notify of success via the server"
+					+ " notification system.");
+			service.updateDatabase();
 		}
-
-		String country = IP2Country.getInstance().getCountryCode(addr);
-
-		client.sendLine("SERVERMSG Country = " + country);
 
 		return true;
 	}

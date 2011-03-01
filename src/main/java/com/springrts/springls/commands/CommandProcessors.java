@@ -20,9 +20,12 @@ package com.springrts.springls.commands;
 
 import com.springrts.springls.Context;
 import com.springrts.springls.ContextReceiver;
-import com.springrts.springls.commands.impl.Activator;
+import java.lang.reflect.Constructor;
+import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Map;
+import org.osgi.framework.BundleContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +41,6 @@ public class CommandProcessors implements ContextReceiver {
 	private Map<String, CommandProcessor> cmdNameToProcessor;
 	private Context context;
 	private CommandProcessorTracker commandProcessorTracker;
-	private Activator commandImplActivator;
 
 	/**
 	 * Extracts the name of the command supported by a command processor
@@ -73,7 +75,6 @@ public class CommandProcessors implements ContextReceiver {
 		cmdNameToProcessor = new HashMap<String, CommandProcessor>();
 		context = null;
 		commandProcessorTracker = null;
-		commandImplActivator = null;
 	}
 
 
@@ -93,8 +94,7 @@ public class CommandProcessors implements ContextReceiver {
 		// TODO move this into a BundleActivator.stop() method
 //		commandProcessorTracker.close();
 
-		commandImplActivator = new Activator();
-		commandImplActivator.start(context.getFramework().getBundleContext());
+		new com.springrts.springls.commands.impl.Activator().start(context.getFramework().getBundleContext());
 	}
 
 	/**
@@ -125,5 +125,54 @@ public class CommandProcessors implements ContextReceiver {
 	 */
 	public CommandProcessor get(String commandName) {
 		return cmdNameToProcessor.get(commandName);
+	}
+
+	/**
+	 * Instantiates a single CommandProcessor.
+	 * @param cmdName_processor where to store it
+	 * @param cpc the class to instantiate
+	 * @throws Exception if loading failed, for whatever reason
+	 */
+	public static CommandProcessor load(Class<? extends CommandProcessor> cpc) throws Exception {
+
+		CommandProcessor cp = null;
+
+		Constructor<? extends CommandProcessor> noArgsCtor = null;
+		try {
+			noArgsCtor = cpc.getConstructor();
+		} catch (NoSuchMethodException ex) {
+			throw new RuntimeException(cpc.getCanonicalName()
+				+ " is not a valid CommandProcessor; "
+				+ "No-args constructor is missing.", ex);
+		}
+		try {
+			cp = noArgsCtor.newInstance();
+		} catch (Exception ex) {
+			throw new RuntimeException("Failed to instantiate "
+					+ cpc.getCanonicalName(), ex);
+		}
+
+		return cp;
+	}
+
+	/**
+	 * Adds a command processor.
+	 * @param cp to be added
+	 * @throws Exception if name extraction fails
+	 */
+	public static void add(BundleContext bundleContext, CommandProcessor cp) throws Exception {
+
+		String cmdName = null;
+		try {
+			cmdName = CommandProcessors.extractCommandName(cp.getClass());
+		} catch (Exception ex) {
+			throw new RuntimeException("Failed extracting command name", ex);
+		}
+
+		cp.receiveContext(Context.getService(bundleContext, Context.class));
+
+        Dictionary dict = new Hashtable();
+        dict.put(CommandProcessor.NAME_PROPERTY, cmdName);
+        bundleContext.registerService(CommandProcessor.class.getName(), cp, dict);
 	}
 }

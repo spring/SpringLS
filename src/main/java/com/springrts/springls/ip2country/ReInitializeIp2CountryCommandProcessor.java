@@ -15,15 +15,17 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.springrts.springls.commands.impl;
+package com.springrts.springls.ip2country;
 
 
 import com.springrts.springls.Account;
 import com.springrts.springls.Client;
-import com.springrts.springls.IP2Country;
+import com.springrts.springls.ip2country.IP2Country;
+import com.springrts.springls.util.Misc;
 import com.springrts.springls.commands.AbstractCommandProcessor;
 import com.springrts.springls.commands.CommandProcessingException;
 import com.springrts.springls.commands.SupportedCommand;
+import java.io.File;
 import java.util.List;
 
 /**
@@ -31,11 +33,11 @@ import java.util.List;
  * specified data-source file.
  * @author hoijui
  */
-@SupportedCommand("UPDATEIP2COUNTRY")
-public class UpdateIp2CountryCommandProcessor extends AbstractCommandProcessor {
+@SupportedCommand("REINITIP2COUNTRY")
+public class ReInitializeIp2CountryCommandProcessor extends AbstractCommandProcessor {
 
-	public UpdateIp2CountryCommandProcessor() {
-		super(0, 0, Account.Access.ADMIN);
+	public ReInitializeIp2CountryCommandProcessor() {
+		super(1, ARGS_MAX_NOCHECK, Account.Access.ADMIN);
 	}
 
 	@Override
@@ -47,13 +49,19 @@ public class UpdateIp2CountryCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		if (IP2Country.getInstance().updateInProgress()) {
-			client.sendLine("SERVERMSG IP2Country database update is already in progress, try again later.");
-			return false;
-		}
+		String dataFileName = Misc.makeSentence(args, 0);
 
-		client.sendLine("SERVERMSG Updating IP2country database ... Server will notify of success via server notification system.");
-		IP2Country.getInstance().updateDatabase();
+		IP2Country service = getContext().getService(IP2Country.class);
+		if (service == null) {
+			client.sendLine("SERVERMSG IP2Country service not available!");
+		} else {
+			service.setDataFile(new File(dataFileName));
+			if (service.initializeAll()) {
+				client.sendLine("SERVERMSG IP2Country database initialized successfully!");
+			} else {
+				client.sendLine("SERVERMSG Error while initializing IP2Country database!");
+			}
+		}
 
 		return true;
 	}

@@ -15,7 +15,7 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.springrts.springls;
+package com.springrts.springls.ip2country;
 
 
 import com.springrts.springls.util.ProtocolUtil;
@@ -40,12 +40,10 @@ import org.slf4j.LoggerFactory;
  * @author Betalord
  * @author hoijui
  */
-public final class IP2Country {
+final class IP2Country implements IP2CountryService {
 
 	private static final Logger LOG = LoggerFactory.getLogger(IP2Country.class);
 	private static final String DEFAULT_DATA_FILE = "ip2country.dat";
-
-	public static final String COUNTRY_UNKNOWN = "XX";
 
 	private TreeSet<String> countries;
 	private TreeMap<IPRange, IPRange> resolveTable;
@@ -55,41 +53,41 @@ public final class IP2Country {
 
 	private File dataFile;
 
-	/**
-	 * This design is taken from http://c2.com/cgi/wiki?JavaSingleton
-	 *
-	 * Quote (LloydBlythen):
-	 * Paraphrasing Scot, the point is that merely using a static to hold a
-	 * singleton will mean the singleton gets constructed if someone refers to
-	 * the containing class. This is especially significant if the singleton is
-	 * very heavyweight to construct. An embedded static final class can defer
-	 * this, as shown. If someone happens to refer to Singleton (or even
-	 * Singleton.class), the singleton will not be created unless there is a
-	 * call to getInstance(). At that time, SingletonHolder is referred to; its
-	 * class loads; and its static member (namely singleton) is instantiated.
-	 * Arguably, it is unlikely that code refers to Singleton without calling
-	 * getInstance(). But it will defer singleton construction until it is
-	 * absolutely required.
-	 *
-	 * I asked Scot about thread-safety - note that the code doesn't use
-	 * synchronized anywhere - and he replied, "... this is all very thread
-	 * safe. Specifically, when the VM attempts to load a class, you are
-	 * guaranteed that while loading the class, no other thread will be
-	 * attempting to 'muck' with the class being loaded (nor will the same
-	 * class loader attempt to load the same class). This makes perfect sense
-	 * if you consider class loading to be of the same nature as object
-	 * instantiation."
-	 */
-	private static final class SingletonHolder {
-		private SingletonHolder() {}
-		static final IP2Country SINGLETON = new IP2Country();
-	}
+//	/**
+//	 * This design is taken from http://c2.com/cgi/wiki?JavaSingleton
+//	 *
+//	 * Quote (LloydBlythen):
+//	 * Paraphrasing Scot, the point is that merely using a static to hold a
+//	 * singleton will mean the singleton gets constructed if someone refers to
+//	 * the containing class. This is especially significant if the singleton is
+//	 * very heavyweight to construct. An embedded static final class can defer
+//	 * this, as shown. If someone happens to refer to Singleton (or even
+//	 * Singleton.class), the singleton will not be created unless there is a
+//	 * call to getInstance(). At that time, SingletonHolder is referred to; its
+//	 * class loads; and its static member (namely singleton) is instantiated.
+//	 * Arguably, it is unlikely that code refers to Singleton without calling
+//	 * getInstance(). But it will defer singleton construction until it is
+//	 * absolutely required.
+//	 *
+//	 * I asked Scot about thread-safety - note that the code doesn't use
+//	 * synchronized anywhere - and he replied, "... this is all very thread
+//	 * safe. Specifically, when the VM attempts to load a class, you are
+//	 * guaranteed that while loading the class, no other thread will be
+//	 * attempting to 'muck' with the class being loaded (nor will the same
+//	 * class loader attempt to load the same class). This makes perfect sense
+//	 * if you consider class loading to be of the same nature as object
+//	 * instantiation."
+//	 */
+//	private static final class SingletonHolder {
+//		private SingletonHolder() {}
+//		static final IP2Country SINGLETON = new IP2Country();
+//	}
+//
+//	public static IP2Country getInstance() {
+//		return SingletonHolder.SINGLETON;
+//	}
 
-	public static IP2Country getInstance() {
-		return SingletonHolder.SINGLETON;
-	}
-
-	private IP2Country() {
+	public IP2Country() {
 
 		countries = new TreeSet<String>();
 		resolveTable = new TreeMap<IPRange, IPRange>();
@@ -237,12 +235,12 @@ public final class IP2Country {
 			// +1 because headMap() returns keys that are strictly less
 			// than given key, but we want equals as well
 			prev = resolveTable.headMap(new IPRange(ip.getFromIP() + 1,
-					ip.getToIP() + 1, COUNTRY_UNKNOWN)).lastKey();
+					ip.getToIP() + 1, ProtocolUtil.COUNTRY_UNKNOWN)).lastKey();
 
 			// +1 because tailMap() returns keys that are bigger or
 			// equal to given key, but we want strictly bigger ones
 			next = resolveTable.tailMap(new IPRange(ip.getFromIP() + 1,
-					ip.getToIP() + 1, COUNTRY_UNKNOWN)).firstKey();
+					ip.getToIP() + 1, ProtocolUtil.COUNTRY_UNKNOWN)).firstKey();
 		} catch (NoSuchElementException ex) {
 			LOG.debug("Failed to check if IP range overlaps with any other: "
 					+ ip, ex);
@@ -380,12 +378,6 @@ public final class IP2Country {
 		countries = newCountries;
 	}
 
-	public static Locale countryToLocale(String country) {
-
-		String isoCountry = country.equals(COUNTRY_UNKNOWN) ? "" : country;
-		return new Locale("", isoCountry);
-	}
-
 	/**
 	 * Converts an IP address into the corresponding country code in the
 	 * lobby protocol standard.
@@ -394,7 +386,7 @@ public final class IP2Country {
 	 */
 	public String getCountryCode(InetAddress ip) {
 
-		String result = COUNTRY_UNKNOWN;
+		String result = ProtocolUtil.COUNTRY_UNKNOWN;
 
 		try {
 			long longIp = ProtocolUtil.ip2Long(ip);
@@ -402,7 +394,7 @@ public final class IP2Country {
 			// given key
 			long longIpPlus = longIp + 1;
 			IPRange x = resolveTable.headMap(new IPRange(longIpPlus, longIpPlus,
-					COUNTRY_UNKNOWN)).lastKey();
+					ProtocolUtil.COUNTRY_UNKNOWN)).lastKey();
 			if ((x.getFromIP() <= longIp) && (x.getToIP() >= longIp)) {
 				result = x.getCountryCode2();
 			}
@@ -427,6 +419,6 @@ public final class IP2Country {
 	 * @see #getCountryCode(InetAddress)
 	 */
 	public Locale getLocale(InetAddress ip) {
-		return countryToLocale(getCountryCode(ip));
+		return ProtocolUtil.countryToLocale(getCountryCode(ip));
 	}
 }

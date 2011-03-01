@@ -21,6 +21,8 @@ package com.springrts.springls;
 import com.springrts.springls.commands.CommandProcessors;
 import java.util.LinkedList;
 import java.util.List;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 import org.osgi.framework.launch.Framework;
 
 /**
@@ -97,6 +99,24 @@ public class Context implements LiveStateListener {
 		setFloodProtection(new FloodProtection());
 	}
 
+
+	public static <T> T getService(BundleContext bundleContext, Class<T> serviceClass) {
+
+		T service = null;
+
+		ServiceReference serviceReference
+				= bundleContext.getServiceReference(serviceClass.getName());
+
+		if (serviceReference != null) {
+			service = (T) bundleContext.getService(serviceReference);
+		}
+
+		return service;
+	}
+
+	public <T> T getService(Class<T> serviceClass) {
+		return getService(getFramework().getBundleContext(), serviceClass);
+	}
 
 	public void push() {
 

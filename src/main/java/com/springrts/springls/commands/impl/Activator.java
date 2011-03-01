@@ -22,13 +22,11 @@
 
 package com.springrts.springls.commands.impl;
 
+
 import com.springrts.springls.Context;
 import com.springrts.springls.commands.CommandProcessor;
 import com.springrts.springls.commands.CommandProcessors;
-import java.lang.reflect.Constructor;
 import java.util.Collection;
-import java.util.Dictionary;
-import java.util.Hashtable;
 import java.util.LinkedList;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -49,7 +47,7 @@ public class Activator implements BundleActivator {
 
 	/**
 	 * Implements the <tt>BundleActivator.start()</tt> method, which
-	 * registers the circle <tt>SimpleShape</tt> service.
+	 * registers the standard <tt>CommandProcessor</tt> services.
 	 * @param context The context for the bundle.
 	 */
 	@Override
@@ -60,7 +58,7 @@ public class Activator implements BundleActivator {
 			load(getCommandProcessorClasses());
 		} catch (Exception ex) {
 			log.error("Failed to load Command Processors", ex);
-			getSpringContext().getServerThread().closeServerAndExit();
+			Context.getService(context, Context.class).getServerThread().closeServerAndExit();
 		}
 	}
 
@@ -84,62 +82,8 @@ public class Activator implements BundleActivator {
 			throws Exception
 	{
 		for (Class<? extends CommandProcessor> cpc : cpcs) {
-			add(load(cpc));
+			CommandProcessors.add(context, CommandProcessors.load(cpc));
 		}
-	}
-
-	/**
-	 * Instantiates a single CommandProcessor.
-	 * @param cmdName_processor where to store it
-	 * @param cpc the class to instantiate
-	 * @throws Exception if loading failed, for whatever reason
-	 */
-	private static CommandProcessor load(Class<? extends CommandProcessor> cpc)
-			throws Exception
-	{
-		CommandProcessor cp = null;
-
-		Constructor<? extends CommandProcessor> noArgsCtor = null;
-		try {
-			noArgsCtor = cpc.getConstructor();
-		} catch (NoSuchMethodException ex) {
-			throw new RuntimeException(cpc.getCanonicalName()
-					+ " is not a valid CommandProcessor; "
-					+ "No-args constructor is missing.", ex);
-		}
-		try {
-			cp = noArgsCtor.newInstance();
-		} catch (Exception ex) {
-			throw new RuntimeException("Failed to instantiate "
-					+ cpc.getCanonicalName(), ex);
-		}
-
-		return cp;
-	}
-
-	/**
-	 * Adds a command processor.
-	 * @param cp to be added
-	 * @throws Exception if name extraction fails
-	 */
-	private void add(CommandProcessor cp) throws Exception {
-
-		String cmdName = null;
-		try {
-			cmdName = CommandProcessors.extractCommandName(cp.getClass());
-		} catch (Exception ex) {
-			throw new RuntimeException("Failed extracting command name", ex);
-		}
-
-		cp.receiveContext(getSpringContext());
-
-		Dictionary dict = new Hashtable();
-		dict.put(CommandProcessor.NAME_PROPERTY, cmdName);
-		context.registerService(CommandProcessor.class.getName(), cp, dict);
-	}
-
-	private Context getSpringContext() {
-		return (Context) context.getService(context.getServiceReference(Context.class.getName()));
 	}
 
 	private static Collection<Class<? extends CommandProcessor>> getCommandProcessorClasses() {
@@ -182,9 +126,6 @@ public class Activator implements BundleActivator {
 		commandProcessorClasses.add(UnmuteCommandProcessor.class);
 		commandProcessorClasses.add(MuteListCommandProcessor.class);
 		commandProcessorClasses.add(ChannelMessageCommandProcessor.class);
-		commandProcessorClasses.add(Ip2CountryCommandProcessor.class);
-		commandProcessorClasses.add(ReInitializeIp2CountryCommandProcessor.class);
-		commandProcessorClasses.add(UpdateIp2CountryCommandProcessor.class);
 		commandProcessorClasses.add(ChangeCharsetCommandProcessor.class);
 		commandProcessorClasses.add(GetLobbyVersionCommandProcessor.class);
 		commandProcessorClasses.add(UpdateStatisticsCommandProcessor.class);

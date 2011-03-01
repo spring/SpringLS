@@ -46,10 +46,6 @@ public class CommandProcessorTracker extends ServiceTracker {
         super(context, CommandProcessor.class.getName(), null);
     }
 
-	private Context getSpringContext() {
-		return (Context) context.getService(context.getServiceReference(Context.class.getName()));
-	}
-
     /**
      * Overrides the <tt>ServiceTracker</tt> functionality to inform
      * the application object about the added service.
@@ -61,7 +57,7 @@ public class CommandProcessorTracker extends ServiceTracker {
 
 		String commandName = (String) ref.getProperty(CommandProcessor.NAME_PROPERTY);
 		CommandProcessor commandProcessor = (CommandProcessor) context.getService(ref);
-        getSpringContext().getCommandProcessors().add(commandName, commandProcessor);
+        Context.getService(context, Context.class).getCommandProcessors().add(commandName, commandProcessor);
         return commandProcessor;
     }
 
@@ -86,6 +82,6 @@ public class CommandProcessorTracker extends ServiceTracker {
     public void removedService(ServiceReference ref, Object svc) {
 
 		String commandName = (String) ref.getProperty(CommandProcessor.NAME_PROPERTY);
-        getSpringContext().getCommandProcessors().remove(commandName);
+        Context.getService(context, Context.class).getCommandProcessors().remove(commandName);
     }
 }
