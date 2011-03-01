@@ -18,6 +18,7 @@
 package com.springrts.springls;
 
 
+import com.springrts.springls.floodprotection.FloodProtection;
 import com.springrts.springls.accounts.AccountsService;
 import com.springrts.springls.bans.BanService;
 import com.springrts.springls.commands.CommandProcessors;

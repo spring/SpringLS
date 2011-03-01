@@ -15,7 +15,11 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.springrts.springls;
+package com.springrts.springls.floodprotection;
+
+
+import com.springrts.springls.Account;
+import com.springrts.springls.Client;
 
 /**
  *

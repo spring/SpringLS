@@ -97,7 +97,6 @@ public class Activator implements BundleActivator {
 		commandProcessorClasses.add(RegisterCommandProcessor.class);
 		commandProcessorClasses.add(KickUserCommandProcessor.class);
 		commandProcessorClasses.add(UpTimeCommandProcessor.class);
-		commandProcessorClasses.add(FloodLevelCommandProcessor.class);
 		commandProcessorClasses.add(KillCommandProcessor.class);
 		commandProcessorClasses.add(KillIpCommandProcessor.class);
 		commandProcessorClasses.add(EnableLoginCommandProcessor.class);
