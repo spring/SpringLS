@@ -121,7 +121,7 @@ public class CommandProcessors implements ContextReceiver {
 	 * Returns the command processor responsible for handling the given command.
 	 * @param commandName the name of the command to search a processor for
 	 * @return the command processor responsible for handling the given command,
-	 *         or <code>null</code>, if no suitable one was found
+	 *   or <code>null</code>, if no suitable one was found
 	 */
 	public CommandProcessor get(String commandName) {
 		return cmdNameToProcessor.get(commandName);
@@ -171,8 +171,8 @@ public class CommandProcessors implements ContextReceiver {
 
 		cp.receiveContext(Context.getService(bundleContext, Context.class));
 
-        Dictionary dict = new Hashtable();
-        dict.put(CommandProcessor.NAME_PROPERTY, cmdName);
-        bundleContext.registerService(CommandProcessor.class.getName(), cp, dict);
+		Dictionary dict = new Hashtable();
+		dict.put(CommandProcessor.NAME_PROPERTY, cmdName);
+		bundleContext.registerService(CommandProcessor.class.getName(), cp, dict);
 	}
 }

@@ -134,7 +134,7 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 		}
 
 		// NOTE even if the login attempt fails later on, the compatibility
-		//      flags will have an effect
+		//   flags will have an effect
 		if (args2.size() > 2) {
 			// prepare the compatibility flags (space separated)
 			String compatFlagsStr = Misc.makeSentence(args2, 2);

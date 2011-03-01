@@ -484,7 +484,7 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 	public void closeServerAndExit() {
 
 		// FIXME these things do not get called on normal exit yet!
-		//       see (end of) method run()
+		//   see (end of) method run()
 
 		//getContext().stopping();
 

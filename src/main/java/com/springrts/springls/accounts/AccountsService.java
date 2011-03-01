@@ -65,10 +65,9 @@ public interface AccountsService extends ContextReceiver, LiveStateListener,
 
 	/**
 	 * Saves accounts to permanent storage.
-	 * @param block if false, this method will spawn a new thread,
-	 *              so this method can return immediately (non-blocking mode).
-	 *              If true, it will not return until the accounts have been
-	 *              saved.
+	 * @param block if false, this method will spawn a new thread, so this
+	 *   method can return immediately (non-blocking mode). If true, it will not
+	 *   return until the accounts have been saved.
 	 */
 	public void saveAccounts(boolean block);
 
@@ -111,7 +110,7 @@ public interface AccountsService extends ContextReceiver, LiveStateListener,
 	 * Save changes to an account to permanent storage.
 	 * @param account the account which got changed
 	 * @param oldName the old value of the name attribute of the account
-	 *                is only used by the 'FSAccountsService'
+	 *   is only used by the 'FSAccountsService'
 	 * @return 'true' if changes were saved successfully
 	 */
 	public boolean mergeAccountChanges(Account account, String oldName);
@@ -141,7 +140,7 @@ public interface AccountsService extends ContextReceiver, LiveStateListener,
 	 * @param username
 	 * @param password
 	 * @return the account that fits to the login credentials,
-	 *         or <code>null</code>, in case they are not valid
+	 *   or <code>null</code>, in case they are not valid
 	 */
 	public Account verifyLogin(String username, String password);
 }

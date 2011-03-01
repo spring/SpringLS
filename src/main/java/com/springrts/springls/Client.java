@@ -283,7 +283,7 @@ public class Client extends TeamController implements ContextReceiver {
 
 	/**
 	 * @param msgId overrides any previously set message ID,
-	 *        use NO_MSG_ID for none.
+	 *   use NO_MSG_ID for none.
 	 * @see #setSendMsgId(int msgId)
 	 */
 	private boolean sendLine(String text, int msgId) {

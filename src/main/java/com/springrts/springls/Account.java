@@ -464,7 +464,7 @@ public class Account implements Serializable, Cloneable {
 	 */
 	public static String isOldUsernameValid(String userName) {
 
-		if        (userName.length() > 20) {
+		if (userName.length() > 20) {
 			return "Username too long";
 		} else if (userName.length() < 2) {
 			return "Username too short";
@@ -486,7 +486,7 @@ public class Account implements Serializable, Cloneable {
 	 */
 	public static String isNicknameValid(String nickName, String baseUserName) {
 
-		if        (nickName.length() > 20) {
+		if (nickName.length() > 20) {
 			return "Nickname too long";
 		} else if (nickName.length() < 2) {
 			return "Nickname too short";

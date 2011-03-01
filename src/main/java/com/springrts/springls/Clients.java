@@ -155,7 +155,7 @@ public class Clients implements ContextReceiver, Updateable {
 	 * Checks if the time-out check period has passed already,
 	 * and if so, resets the last-check-time.
 	 * @return true if the time-out check period has passed since
-	 *         the last successful call to this method
+	 *   the last successful call to this method
 	 */
 	public Collection<Client> getTimedOutClients() {
 

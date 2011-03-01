@@ -76,7 +76,7 @@ public class Activator implements BundleActivator {
 	 * @param cpcs classes of the command processors to be load
 	 * @return true, if the command was valid and successfully executed
 	 * @throws Exception if loading of any of the command processors failed,
-	 *                   for whatever reason
+	 *   for whatever reason
 	 */
 	private void load(Collection<Class<? extends CommandProcessor>> cpcs)
 			throws Exception

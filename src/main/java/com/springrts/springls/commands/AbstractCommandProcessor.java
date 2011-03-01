@@ -132,7 +132,7 @@ public abstract class AbstractCommandProcessor implements CommandProcessor {
 	/**
 	 * Returns the minimum access right required to execute the command.
 	 * @return minimum access right required to execute, or <code>null</code>.
-	 *         if no check should be performed.
+	 *   if no check should be performed.
 	 */
 	public Account.Access getAccessMin() {
 		return this.accessMin;

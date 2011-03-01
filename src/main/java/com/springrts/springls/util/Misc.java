@@ -178,7 +178,7 @@ public final class Misc {
 	 * this related code snipped</a>.
 	 * @param oldArray  the old array, to be reallocated.
 	 * @param newSize   the new array size.
-	 * @return          A new array with the same contents.
+	 * @return A new array with the same contents.
 	 */
 	public static Object[] resizeArray(Object[] oldArray, int newSize) {
 
@@ -208,8 +208,8 @@ public final class Misc {
 	 * Downloads a file from the given URL and saves it to disk to specified
 	 * file.
 	 * @param downloadLimit is specified in bytes per second
-	 *        (use 0 for unlimited). This is the maximum rate at which this
-	 *        method will attempt to download the file.
+	 *   (use 0 for unlimited). This is the maximum rate at which this
+	 *   method will attempt to download the file.
 	 * Returns number of bytes written if it succeeds.
 	 * Original code copied from
 	 * <a href="http://schmidt.devlib.org/java/file-download.html#source">here

@@ -49,9 +49,9 @@ public class KillIpCommandProcessor extends AbstractCommandProcessor {
 		}
 
 		// NOTE In the past, this command allowed to specify a range of IPs,
-		//      by specifying a radix like "192.168.*.*".
-		//      Support for this has been removed.
-		//      You now have to explicitly specify the IP.
+		//   by specifying a radix like "192.168.*.*".
+		//   Support for this has been removed.
+		//   You now have to explicitly specify the IP.
 		String ip = args.get(0);
 
 		InetAddress addr = Misc.parseIp(ip);

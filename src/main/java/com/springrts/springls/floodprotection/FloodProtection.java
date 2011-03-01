@@ -151,7 +151,7 @@ public class FloodProtection {
 	 * Checks if the the flood-protection time period has passed already,
 	 * and if so, resets the last-check-time.
 	 * @return true if the flood-protection time period has passed since
-	 *         the last successful call to this method
+	 *   the last successful call to this method
 	 */
 	public boolean hasFloodCheckPeriodPassed() {
 

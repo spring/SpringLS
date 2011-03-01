@@ -126,7 +126,7 @@ public class Statistics implements ContextReceiver {
 	/**
 	 * Saves Statistics to permanent storage.
 	 * @return -1 on error; otherwise: time (in milliseconds) it took
-	 *         to save the statistics file
+	 *   to save the statistics file
 	 */
 	public int saveStatisticsToDisk() {
 
@@ -546,7 +546,7 @@ public class Statistics implements ContextReceiver {
 		int numMods = Math.min(5, modBattles.size()); // return 5 or less mods
 		result.append(numMods);
 		// Note: do not cut the array by numMods,
-		//       or sorting will not have any effect!
+		//   or sorting will not have any effect!
 		Collections.sort(modBattles, ModBattles.BATTLES_COMPARATOR);
 		for (ModBattles mod : modBattles) {
 			result.append("\t").append(mod.getName());

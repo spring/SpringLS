@@ -77,7 +77,7 @@ public abstract class AbstractAccountsService implements AccountsService {
 	@Override
 	public boolean addAccountWithCheck(Account acc) {
 
-		if        (Account.isUsernameValid(acc.getName()) != null) {
+		if (Account.isUsernameValid(acc.getName()) != null) {
 			return false;
 		} else if (Account.isPasswordValid(acc.getPassword()) != null) {
 			return false;
