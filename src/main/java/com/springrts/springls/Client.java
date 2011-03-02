@@ -46,9 +46,8 @@ import org.slf4j.LoggerFactory;
  * @author Betalord
  * @author hoijui
  */
-public class Client extends TeamController implements ContextReceiver,
-		Updateable
-{
+public class Client extends TeamController implements ContextReceiver {
+
 	private static final Logger LOG = LoggerFactory.getLogger(Client.class);
 
 	/**
@@ -153,11 +152,6 @@ public class Client extends TeamController implements ContextReceiver,
 	 */
 	private long receivedSinceLogin = 0;
 	/**
-	 * How many bytes did this client send to us during the last/current server
-	 * update cycle.
-	 */
-	private long receivedSinceUpdate = 0;
-	/**
 	 * Time (in milli-seconds) when we last heard from client
 	 * (last data received).
 	 * @see java.lang.System#currentTimeMillis()
@@ -236,11 +230,6 @@ public class Client extends TeamController implements ContextReceiver,
 		if (ip2CountryService != null) {
 			setLocale(ip2CountryService.getLocale(ip));
 		}
-	}
-
-	@Override
-	public void update() {
-		resetReceivedSinceUpdate();
 	}
 
 	@Override
@@ -1039,21 +1028,12 @@ public class Client extends TeamController implements ContextReceiver,
 	}
 
 	/**
-	 * How many bytes did this client send over the last recvRecordPeriod
-	 * seconds. This is used with anti-flood protection.
-	 * @return the dataOverLastTimePeriod
+	 * How much data did this client send to us since he logged in.
+	 * This is used with anti-flood protection.
+	 * @return the number of bytes received from this client since login.
 	 */
-	public long getReceivedSinceUpdate() {
-		return receivedSinceUpdate;
-	}
-
-	/**
-	 * Reset the amount of bytes received from this client in the current update
-	 * cycle.
-	 * This will be called on each client at the start of each update cycle.
-	 */
-	public void resetReceivedSinceUpdate() {
-		receivedSinceUpdate = 0;
+	public long getReceivedSinceLogin() {
+		return receivedSinceLogin;
 	}
 
 	/**
@@ -1063,6 +1043,5 @@ public class Client extends TeamController implements ContextReceiver,
 	public void addReceived(long nBytes) {
 
 		receivedSinceLogin += nBytes;
-		receivedSinceUpdate += nBytes;
 	}
 }

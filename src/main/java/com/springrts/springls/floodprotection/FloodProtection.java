@@ -20,6 +20,7 @@ package com.springrts.springls.floodprotection;
 
 import com.springrts.springls.Account;
 import com.springrts.springls.Client;
+import com.springrts.springls.Clients;
 import com.springrts.springls.Context;
 import com.springrts.springls.ContextReceiver;
 import com.springrts.springls.ServerNotification;
@@ -64,12 +65,12 @@ public class FloodProtection implements FloodProtectionService, Updateable,
 	private long lastFloodCheckedTime;
 
 	/**
-	 * How many bytes did this client send over the last
-	 * {@link #receivedRecordPeriod} seconds.
+	 * How many bytes did this client to us since login until the last
+	 * {@link #receivedRecordPeriod} seconds interval has passed.
 	 * XXX if lookups on this get too expensive, add it to a property list in
 	 *   Client its self: <tt>client.properties[receivedOverPeriodIndex]</tt>
 	 */
-	private Map<Client, Long> receivedOverLastTimePeriod;
+	private Map<Client, Long> receivedTillLastCheck;
 
 	private Context context = null;
 
@@ -79,7 +80,7 @@ public class FloodProtection implements FloodProtectionService, Updateable,
 		this.maxBytesAlert = 20000;
 		this.maxBytesAlertForBot = 50000;
 		this.lastFloodCheckedTime = System.currentTimeMillis();
-		this.receivedOverLastTimePeriod = new HashMap<Client, Long>();
+		this.receivedTillLastCheck = new HashMap<Client, Long>();
 	}
 
 
@@ -90,8 +91,7 @@ public class FloodProtection implements FloodProtectionService, Updateable,
 	@Override
 	public void update() {
 
-		updateReceivedBytes();
-		resetReceivedBytes();
+		memorizeReceivedBytes();
 	}
 
 	@Override
@@ -102,24 +102,16 @@ public class FloodProtection implements FloodProtectionService, Updateable,
 		return context;
 	}
 
-	private void resetReceivedBytes() {
+	private void memorizeReceivedBytes() {
 
 		if (hasFloodCheckPeriodPassed()) {
-			for (Map.Entry<Client, Long> received
-					: receivedOverLastTimePeriod.entrySet())
-			{
-				received.setValue(0L);
+			receivedTillLastCheck.clear();
+			Clients clients = getContext().getClients();
+			for (int c = 0; c < clients.getClientsSize(); c++) {
+				Client client = clients.getClient(c);
+				receivedTillLastCheck.put(client,
+						client.getReceivedSinceLogin());
 			}
-		}
-	}
-
-	private void updateReceivedBytes() {
-
-		for (Map.Entry<Client, Long> received
-					: receivedOverLastTimePeriod.entrySet())
-		{
-			received.setValue(received.getValue()
-					+ received.getKey().getReceivedSinceUpdate());
 		}
 	}
 
@@ -190,6 +182,18 @@ public class FloodProtection implements FloodProtectionService, Updateable,
 		return lastFloodCheckedTime;
 	}
 
+	private long getReceivedSinceLastCheck(Client client) {
+
+		long receivedSinceLastCheck = 0L;
+
+		if (receivedTillLastCheck.containsKey(client)) {
+			receivedSinceLastCheck = client.getReceivedSinceLogin()
+					- receivedTillLastCheck.get(client);
+		}
+
+		return receivedSinceLastCheck;
+	}
+
 	private boolean checkFlooding(Client client) {
 
 		boolean flooding = false;
@@ -198,9 +202,8 @@ public class FloodProtection implements FloodProtectionService, Updateable,
 			int maxBytes = client.getAccount().isBot()
 					? getMaxBytesAlertForBot()
 					: getMaxBytesAlert();
-			long receivedBytes = receivedOverLastTimePeriod.get(client)
-					+ client.getReceivedSinceUpdate();
-			flooding = (receivedBytes > maxBytes);
+			long receivedSinceLastCheck = getReceivedSinceLastCheck(client);
+			flooding = (receivedSinceLastCheck > maxBytes);
 		}
 
 		return flooding;

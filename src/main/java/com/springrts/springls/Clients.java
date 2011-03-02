@@ -120,18 +120,9 @@ public class Clients implements ContextReceiver, Updateable {
 
 		flushData();
 
-		updateClients();
-
 		checkForTimeouts();
 
 		processKillList();
-	}
-
-	private void updateClients() {
-
-		for (Client client : clients) {
-			client.update();
-		}
 	}
 
 	private void checkForTimeouts() {

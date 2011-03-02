@@ -54,6 +54,8 @@ public final class TASServer {
 
 		framework.getBundleContext().registerService(Context.class.getName(), context, null);
 
+		new com.springrts.springls.floodprotection.Activator().start(context.getFramework().getBundleContext());
+
 		new com.springrts.springls.accounts.Activator().start(context.getFramework().getBundleContext());
 
 		new com.springrts.springls.bans.Activator().start(context.getFramework().getBundleContext());

@@ -210,10 +210,6 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 	/** Check for incoming messages */
 	private void readIncomingMessages() {
 
-		for (int c = 0; c < getContext().getClients().getClientsSize(); c++) {
-			getContext().getClients().getClient(c).resetReceivedSinceUpdate();
-		}
-
 		Client client = null;
 		try {
 			// non-blocking select, returns immediately regardless of
