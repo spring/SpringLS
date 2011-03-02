@@ -37,18 +37,18 @@ public class Context implements LiveStateListener {
 	private final List<LiveStateListener> liveStateListeners;
 
 	private Framework framework;
-	private AccountsService accountsService = null;
-	private BanService banService = null;
-	private Battles battles = null;
-	private Channels channels = null;
-	private Clients clients = null;
-	private Engine engine = null;
-	private Server server = null;
-	private ServerNotifications serverNotifications = null;
-	private Statistics statistics = null;
-	private NatHelpServer natHelpServer = null;
-	private CommandProcessors commandProcessors = null;
-	private ServerThread serverThread = null;
+	private AccountsService accountsService;
+	private BanService banService;
+	private Battles battles;
+	private Channels channels;
+	private Clients clients;
+	private Engine engine;
+	private Server server;
+	private ServerNotifications serverNotifications;
+	private Statistics statistics;
+	private NatHelpServer natHelpServer;
+	private CommandProcessors commandProcessors;
+	private ServerThread serverThread;
 
 
 	public Context() {
