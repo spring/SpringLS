@@ -120,19 +120,17 @@ public class Clients implements ContextReceiver, Updateable {
 
 		flushData();
 
-		resetReceivedBytesCounts();
+		updateClients();
 
 		checkForTimeouts();
 
 		processKillList();
 	}
 
-	private void resetReceivedBytesCounts() {
+	private void updateClients() {
 
-		if (getContext().getFloodProtection().hasFloodCheckPeriodPassed()) {
-			for (int i = 0; i < getClientsSize(); i++) {
-				getClient(i).resetDataOverLastTimePeriod();
-			}
+		for (Client client : clients) {
+			client.update();
 		}
 	}
 

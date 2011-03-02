@@ -40,9 +40,12 @@ public class Activator implements BundleActivator {
 		Context springLsContext = Context.getService(context, Context.class);
 
 		FloodProtection floodProtection = new FloodProtection();
+		floodProtection.receiveContext(springLsContext);
 
-		springLsContext.setFloodProtection(floodProtection);
-		context.registerService(FloodProtection.class.getName(), floodProtection, null);
+		context.registerService(FloodProtectionService.class.getName(),
+				floodProtection, null);
+		context.registerService(FloodProtection.class.getName(),
+				floodProtection, null);
 
 		try {
 			CommandProcessors.add(context, CommandProcessors.load(

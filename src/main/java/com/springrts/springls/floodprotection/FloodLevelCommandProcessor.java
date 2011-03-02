@@ -46,24 +46,31 @@ public class FloodLevelCommandProcessor extends AbstractCommandProcessor {
 
 		String type = args.get(0).toUpperCase();
 
-		if (type.equals("PERIOD")) {
-			int seconds = Integer.parseInt(args.get(1));
-			getContext().getFloodProtection().setReceivedRecordPeriod(seconds);
-			client.sendLine(String.format(
-					"SERVERMSG The antiflood period is now %d seconds.",
-					seconds));
-		} else if (type.equals("USER")) {
-			int bytes = Integer.parseInt(args.get(1));
-			getContext().getFloodProtection().setMaxBytesAlert(bytes);
-			client.sendLine(String.format(
-					"SERVERMSG The antiflood amount for a normal user is now %d"
-					+ " bytes.", bytes));
-		} else if (type.equals("BOT")) {
-			int bytes = Integer.parseInt(args.get(1));
-			getContext().getFloodProtection().setMaxBytesAlertForBot(bytes);
-			client.sendLine(String.format(
-					"SERVERMSG The antiflood amount for a bot is now %d bytes.",
-					bytes));
+		FloodProtection floodProtection
+				= getContext().getService(FloodProtection.class);
+		if (floodProtection == null) {
+			client.sendLine("SERVERMSG The anti-flood service is not running.");
+		} else {
+			if (type.equals("PERIOD")) {
+				int seconds = Integer.parseInt(args.get(1));
+				floodProtection.setReceivedRecordPeriod(seconds);
+				client.sendLine(String.format(
+						"SERVERMSG The anti-flood period is now %d seconds.",
+						seconds));
+			} else if (type.equals("USER")) {
+				int bytes = Integer.parseInt(args.get(1));
+				floodProtection.setMaxBytesAlert(bytes);
+				client.sendLine(String.format(
+						"SERVERMSG The anti-flood amount for a normal user is"
+						+ " now %d bytes.", bytes));
+			} else if (type.equals("BOT")) {
+				int bytes = Integer.parseInt(args.get(1));
+				floodProtection.setMaxBytesAlertForBot(bytes);
+				client.sendLine(String.format(
+						"SERVERMSG The anti-flood amount for a bot is now %d"
+						+ " bytes.",
+						bytes));
+			}
 		}
 
 		return true;

@@ -22,6 +22,8 @@ import com.springrts.springls.accounts.AccountsService;
 import com.springrts.springls.util.Misc;
 import com.springrts.springls.commands.CommandProcessingException;
 import com.springrts.springls.commands.CommandProcessor;
+import com.springrts.springls.floodprotection.FloodProtection;
+import com.springrts.springls.floodprotection.FloodProtectionService;
 import com.springrts.springls.util.ProtocolUtil;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -207,8 +209,12 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 
 	/** Check for incoming messages */
 	private void readIncomingMessages() {
-		Client client = null;
 
+		for (int c = 0; c < getContext().getClients().getClientsSize(); c++) {
+			getContext().getClients().getClient(c).resetReceivedSinceUpdate();
+		}
+
+		Client client = null;
 		try {
 			// non-blocking select, returns immediately regardless of
 			// how many keys are ready
@@ -232,33 +238,14 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 
 				// read from the channel into our buffer
 				long nBytes = channel.read(readBuffer);
-				client.addToDataOverLastTimePeriod(nBytes);
+				client.addReceived(nBytes);
 
-				// basic anti-flood protection:
-				if (getContext().getFloodProtection().isFlooding(client)) {
-					LOG.warn("Flooding detected from {} ({})",
-							client.getIp().getHostAddress(),
-							client.getAccount().getName());
-					getContext().getClients().sendToAllAdministrators(
-							String.format(
-							"SERVERMSG [broadcast to all admins]:"
-							+ " Flooding has been detected from %s <%s>."
-							+ " User has been kicked.",
-							client.getIp().getHostAddress(),
-							client.getAccount().getName()));
-					getContext().getClients().killClient(client,
-							"Disconnected due to excessive flooding");
-
-					// add server notification:
-					ServerNotification sn = new ServerNotification(
-							"Flooding detected");
-					sn.addLine(String.format(
-							"Flooding detected from %s (%s).",
-							client.getIp().getHostAddress(),
-							client.getAccount().getName()));
-					sn.addLine("User has been kicked from the server.");
-					getContext().getServerNotifications().addNotification(sn);
-
+				// basic anti-flood protection
+				FloodProtectionService floodProtection
+						= getContext().getService(FloodProtectionService.class);
+				if ((floodProtection != null)
+						&& floodProtection.isFlooding(client))
+				{
 					continue;
 				}
 
@@ -276,6 +263,7 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 					readBuffer.clear();
 					client.appendToRecvBuf(str);
 
+					// TODO move this to Client#appendToRecvBuf(String)
 					// check for a full line
 					String line = client.readLine();
 					while (line != null) {
@@ -404,6 +392,12 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 			getContext().getServerThread().update();
 
 			getContext().getClients().update();
+
+			FloodProtection floodProtection
+					= getContext().getService(FloodProtection.class);
+			if (floodProtection != null) {
+				floodProtection.update();
+			}
 
 			getContext().getStatistics().update();
 

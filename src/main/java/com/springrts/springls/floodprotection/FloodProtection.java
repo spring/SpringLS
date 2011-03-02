@@ -20,12 +20,25 @@ package com.springrts.springls.floodprotection;
 
 import com.springrts.springls.Account;
 import com.springrts.springls.Client;
+import com.springrts.springls.Context;
+import com.springrts.springls.ContextReceiver;
+import com.springrts.springls.ServerNotification;
+import com.springrts.springls.Updateable;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author hoijui
  */
-public class FloodProtection {
+public class FloodProtection implements FloodProtectionService, Updateable,
+		ContextReceiver
+{
+	private static final Logger LOG
+			= LoggerFactory.getLogger(FloodProtection.class);
 
 	/**
 	 * Length of time period for which we keep record of bytes received from
@@ -50,12 +63,64 @@ public class FloodProtection {
 	 */
 	private long lastFloodCheckedTime;
 
+	/**
+	 * How many bytes did this client send over the last
+	 * {@link #receivedRecordPeriod} seconds.
+	 * XXX if lookups on this get too expensive, add it to a property list in
+	 *   Client its self: <tt>client.properties[receivedOverPeriodIndex]</tt>
+	 */
+	private Map<Client, Long> receivedOverLastTimePeriod;
+
+	private Context context = null;
+
 	public FloodProtection() {
 
 		this.receivedRecordPeriod = 10;
 		this.maxBytesAlert = 20000;
 		this.maxBytesAlertForBot = 50000;
 		this.lastFloodCheckedTime = System.currentTimeMillis();
+		this.receivedOverLastTimePeriod = new HashMap<Client, Long>();
+	}
+
+
+	/**
+	 * {@inheritDoc}
+	 * This has to be called after
+	 */
+	@Override
+	public void update() {
+
+		updateReceivedBytes();
+		resetReceivedBytes();
+	}
+
+	@Override
+	public void receiveContext(Context context) {
+		this.context = context;
+	}
+	protected Context getContext() {
+		return context;
+	}
+
+	private void resetReceivedBytes() {
+
+		if (hasFloodCheckPeriodPassed()) {
+			for (Map.Entry<Client, Long> received
+					: receivedOverLastTimePeriod.entrySet())
+			{
+				received.setValue(0L);
+			}
+		}
+	}
+
+	private void updateReceivedBytes() {
+
+		for (Map.Entry<Client, Long> received
+					: receivedOverLastTimePeriod.entrySet())
+		{
+			received.setValue(received.getValue()
+					+ received.getKey().getReceivedSinceUpdate());
+		}
 	}
 
 	/**
@@ -125,26 +190,54 @@ public class FloodProtection {
 		return lastFloodCheckedTime;
 	}
 
-	/**
-	 * Time when we last updated the flood-check.
-	 * @see java.lang.System#currentTimeMillis()
-	 * @param lastFloodCheckedTime the lastFloodCheckedTime to set
-	 */
-//	public void setLastFloodCheckedTime(long lastFloodCheckedTime) {
-//		this.lastFloodCheckedTime = lastFloodCheckedTime;
-//	}
+	private boolean checkFlooding(Client client) {
 
-	/**
-	 * Returns true if the supplied client is flooding
-	 * @param client the client to check for flooding
-	 * @return true if the supplied client is flooding
-	 */
+		boolean flooding = false;
+
+		if (client.getAccount().getAccess().isLessThen(Account.Access.ADMIN)) {
+			int maxBytes = client.getAccount().isBot()
+					? getMaxBytesAlertForBot()
+					: getMaxBytesAlert();
+			long receivedBytes = receivedOverLastTimePeriod.get(client)
+					+ client.getReceivedSinceUpdate();
+			flooding = (receivedBytes > maxBytes);
+		}
+
+		return flooding;
+	}
+
+	@Override
 	public boolean isFlooding(Client client) {
 
-		int maxBytes = client.getAccount().isBot() ? getMaxBytesAlertForBot()
-				: getMaxBytesAlert();
-		return client.getAccount().getAccess().isLessThen(Account.Access.ADMIN)
-				&& (client.getDataOverLastTimePeriod() > maxBytes);
+		boolean flooding = checkFlooding(client);
+
+		// basic anti-flood protection:
+		if (flooding) {
+			LOG.warn("Flooding detected from {} ({})",
+					client.getIp().getHostAddress(),
+					client.getAccount().getName());
+			getContext().getClients().sendToAllAdministrators(
+					String.format(
+					"SERVERMSG [broadcast to all admins]:"
+					+ " Flooding has been detected from %s <%s>."
+					+ " User has been kicked.",
+					client.getIp().getHostAddress(),
+					client.getAccount().getName()));
+			getContext().getClients().killClient(client,
+					"Disconnected due to excessive flooding");
+
+			// add server notification:
+			ServerNotification sn = new ServerNotification(
+					"Flooding detected");
+			sn.addLine(String.format(
+					"Flooding detected from %s (%s).",
+					client.getIp().getHostAddress(),
+					client.getAccount().getName()));
+			sn.addLine("User has been kicked from the server.");
+			getContext().getServerNotifications().addNotification(sn);
+		}
+
+		return flooding;
 	}
 
 	/**
@@ -153,7 +246,7 @@ public class FloodProtection {
 	 * @return true if the flood-protection time period has passed since
 	 *   the last successful call to this method
 	 */
-	public boolean hasFloodCheckPeriodPassed() {
+	private boolean hasFloodCheckPeriodPassed() {
 
 		boolean passed = (System.currentTimeMillis()
 				- getLastFloodCheckedTime())

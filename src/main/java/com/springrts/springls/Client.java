@@ -46,8 +46,9 @@ import org.slf4j.LoggerFactory;
  * @author Betalord
  * @author hoijui
  */
-public class Client extends TeamController implements ContextReceiver {
-
+public class Client extends TeamController implements ContextReceiver,
+		Updateable
+{
 	private static final Logger LOG = LoggerFactory.getLogger(Client.class);
 
 	/**
@@ -148,10 +149,14 @@ public class Client extends TeamController implements ContextReceiver {
 	 */
 	private String lobbyVersion;
 	/**
-	 * How many bytes did this client send over the last recvRecordPeriod
-	 * seconds. This is used with anti-flood protection.
+	 * How many bytes did this client send to us since he logged in.
 	 */
-	private long dataOverLastTimePeriod = 0;
+	private long receivedSinceLogin = 0;
+	/**
+	 * How many bytes did this client send to us during the last/current server
+	 * update cycle.
+	 */
+	private long receivedSinceUpdate = 0;
 	/**
 	 * Time (in milli-seconds) when we last heard from client
 	 * (last data received).
@@ -231,6 +236,11 @@ public class Client extends TeamController implements ContextReceiver {
 		if (ip2CountryService != null) {
 			setLocale(ip2CountryService.getLocale(ip));
 		}
+	}
+
+	@Override
+	public void update() {
+		resetReceivedSinceUpdate();
 	}
 
 	@Override
@@ -1033,21 +1043,26 @@ public class Client extends TeamController implements ContextReceiver {
 	 * seconds. This is used with anti-flood protection.
 	 * @return the dataOverLastTimePeriod
 	 */
-	public long getDataOverLastTimePeriod() {
-		return dataOverLastTimePeriod;
+	public long getReceivedSinceUpdate() {
+		return receivedSinceUpdate;
 	}
 
 	/**
-	 * Reset the amount of bytes this client sent.
+	 * Reset the amount of bytes received from this client in the current update
+	 * cycle.
+	 * This will be called on each client at the start of each update cycle.
 	 */
-	public void resetDataOverLastTimePeriod() {
-		this.dataOverLastTimePeriod = 0;
+	public void resetReceivedSinceUpdate() {
+		receivedSinceUpdate = 0;
 	}
 
 	/**
+	 * Adds to the number of bytes received from this client.
 	 * @param nBytes to add number of bytes
 	 */
-	public void addToDataOverLastTimePeriod(long nBytes) {
-		this.dataOverLastTimePeriod += nBytes;
+	public void addReceived(long nBytes) {
+
+		receivedSinceLogin += nBytes;
+		receivedSinceUpdate += nBytes;
 	}
 }

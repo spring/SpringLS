@@ -18,7 +18,6 @@
 package com.springrts.springls;
 
 
-import com.springrts.springls.floodprotection.FloodProtection;
 import com.springrts.springls.accounts.AccountsService;
 import com.springrts.springls.bans.BanService;
 import com.springrts.springls.commands.CommandProcessors;
@@ -50,7 +49,6 @@ public class Context implements LiveStateListener {
 	private NatHelpServer natHelpServer = null;
 	private CommandProcessors commandProcessors = null;
 	private ServerThread serverThread = null;
-	private FloodProtection floodProtection = null;
 
 
 	public Context() {
@@ -59,8 +57,6 @@ public class Context implements LiveStateListener {
 		this.liveStateListeners = new LinkedList<LiveStateListener>();
 
 		this.framework = null;
-		this.accountsService = null;
-		this.banService = null;
 		this.accountsService = null;
 		this.banService = null;
 		this.battles = null;
@@ -73,7 +69,6 @@ public class Context implements LiveStateListener {
 		this.natHelpServer = null;
 		this.commandProcessors = null;
 		this.serverThread = null;
-		this.floodProtection = null;
 	}
 
 	public void init() {
@@ -90,7 +85,6 @@ public class Context implements LiveStateListener {
 		setNatHelpServer(new NatHelpServer());
 		setCommandProcessors(new CommandProcessors());
 		setServerThread(new ServerThread());
-		setFloodProtection(new FloodProtection());
 	}
 
 
@@ -292,17 +286,5 @@ public class Context implements LiveStateListener {
 		this.serverThread = serverThread;
 		addContextReceiver(serverThread);
 		addLiveStateListener(serverThread);
-	}
-
-	/**
-	 * Returns the flood-protection system.
-	 */
-	public FloodProtection getFloodProtection() {
-		return floodProtection;
-	}
-
-	public void setFloodProtection(FloodProtection floodProtection) {
-
-		this.floodProtection = floodProtection;
 	}
 }
