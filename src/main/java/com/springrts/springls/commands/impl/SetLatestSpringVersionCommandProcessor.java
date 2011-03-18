@@ -20,7 +20,7 @@ package com.springrts.springls.commands.impl;
 
 import com.springrts.springls.Account;
 import com.springrts.springls.Client;
-import com.springrts.springls.Engine;
+import com.springrts.springls.ServerConfiguration;
 import com.springrts.springls.commands.AbstractCommandProcessor;
 import com.springrts.springls.commands.CommandProcessingException;
 import com.springrts.springls.commands.InvalidNumberOfArgumentsCommandProcessingException;
@@ -56,10 +56,11 @@ public class SetLatestSpringVersionCommandProcessor extends AbstractCommandProce
 
 		String engineVersion = args.get(0);
 
-		getContext().setEngine(new Engine(engineVersion));
+		getConfiguration().setProperty(ServerConfiguration.ENGINE_VERSION,
+				engineVersion);
 
 		client.sendLine("SERVERMSG Latest spring version has been set to "
-				+ getContext().getEngine().getVersion());
+				+ engineVersion);
 
 		return true;
 	}

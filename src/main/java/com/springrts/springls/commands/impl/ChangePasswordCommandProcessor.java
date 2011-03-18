@@ -20,6 +20,7 @@ package com.springrts.springls.commands.impl;
 
 import com.springrts.springls.Account;
 import com.springrts.springls.Client;
+import com.springrts.springls.ServerConfiguration;
 import com.springrts.springls.commands.AbstractCommandProcessor;
 import com.springrts.springls.commands.CommandProcessingException;
 import com.springrts.springls.commands.InvalidNumberOfArgumentsCommandProcessingException;
@@ -58,7 +59,7 @@ public class ChangePasswordCommandProcessor extends AbstractCommandProcessor {
 		String oldPassword = args.get(0);
 		String newPassword = args.get(1);
 
-		if (getContext().getServer().isLanMode()) {
+		if (getConfiguration().getBoolean(ServerConfiguration.LAN_MODE)) {
 			client.sendLine(String.format(
 					"SERVERMSG %s failed: You can not change your password"
 					+ " while the server is running in LAN mode!",

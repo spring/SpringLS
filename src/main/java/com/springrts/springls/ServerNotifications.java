@@ -27,6 +27,7 @@ import java.io.Writer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import org.apache.commons.configuration.Configuration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,7 +106,8 @@ public class ServerNotifications implements ContextReceiver {
 	 */
 	public boolean addNotification(ServerNotification sn) {
 
-		if (context.getServer().isLanMode()) {
+		Configuration conf = context.getService(Configuration.class);
+		if (conf.getBoolean(ServerConfiguration.LAN_MODE)) {
 			// ignore notifications if server is running in LAN mode!
 			return false;
 		}

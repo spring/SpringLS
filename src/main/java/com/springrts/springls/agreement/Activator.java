@@ -19,6 +19,8 @@ package com.springrts.springls.agreement;
 
 
 import com.springrts.springls.Context;
+import com.springrts.springls.ServerConfiguration;
+import org.apache.commons.configuration.Configuration;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -42,8 +44,9 @@ public class Activator implements BundleActivator {
 		Agreement agreement = new Agreement();
 		boolean contentAvailable = false;
 
+		Configuration conf = springLsContext.getService(Configuration.class);
 		// TODO needs adjusting due to new LAN mode accounts service
-		if (!springLsContext.getServer().isLanMode()) {
+		if (!conf.getBoolean(ServerConfiguration.LAN_MODE)) {
 			contentAvailable = agreement.read();
 		} else {
 			log.info("Terms of use agreement not used because we are running in"

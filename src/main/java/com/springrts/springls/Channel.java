@@ -29,6 +29,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import org.apache.commons.configuration.Configuration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -130,7 +131,12 @@ public class Channel implements ContextReceiver, LiveStateListener {
 	public void stopped() {}
 
 	private void actualiseToConfiguration() {
-		setLogging(name.matches(context.getChannels().getChannelsToLogRegex()));
+
+		Configuration configuration =
+				context.getService(Configuration.class);
+		String channelsToLogRegex =
+				configuration.getString(ServerConfiguration.CHANNELS_LOG_REGEX);
+		setLogging(name.matches(channelsToLogRegex));
 	}
 
 	public String getTopic() {

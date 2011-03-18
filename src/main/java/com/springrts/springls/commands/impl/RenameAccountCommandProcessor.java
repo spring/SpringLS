@@ -20,6 +20,7 @@ package com.springrts.springls.commands.impl;
 
 import com.springrts.springls.Account;
 import com.springrts.springls.Client;
+import com.springrts.springls.ServerConfiguration;
 import com.springrts.springls.util.Misc;
 import com.springrts.springls.ServerNotification;
 import com.springrts.springls.commands.AbstractCommandProcessor;
@@ -58,7 +59,7 @@ public class RenameAccountCommandProcessor extends AbstractCommandProcessor {
 
 		String newUsername = Misc.makeSentence(args, 0);
 
-		if (getContext().getServer().isLanMode()) {
+		if (getConfiguration().getBoolean(ServerConfiguration.LAN_MODE)) {
 			client.sendLine(String.format(
 					"SERVERMSG %s failed: You cannot rename your account while"
 					+ " the server is running in LAN mode, since you have no"

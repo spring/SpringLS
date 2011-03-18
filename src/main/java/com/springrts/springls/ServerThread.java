@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.PatternSyntaxException;
+import org.apache.commons.configuration.Configuration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -432,7 +433,9 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 
 		context.starting();
 
-		int port = context.getServer().getPort();
+		Configuration configuration =
+				getContext().getService(Configuration.class);
+		int port = configuration.getInt(ServerConfiguration.PORT);
 
 		try {
 			context.getServer().setCharset("ISO-8859-1");
@@ -510,11 +513,13 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 
 		// add server notification
 		ServerNotification sn = new ServerNotification("Server started");
+		Configuration conf = getContext().getService(Configuration.class);
+		int port = conf.getInt(ServerConfiguration.PORT);
 		sn.addLine(String.format(
 				"Server has been started on port %d."
 				+ " There are %d accounts. "
 				+ "See server log for more info.",
-				context.getServer().getPort(),
+				port,
 				context.getAccountsService().getAccountsSize()));
 		context.getServerNotifications().addNotification(sn);
 
@@ -527,11 +532,15 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 	 */
 	private void createAdminIfNoUsers() {
 
-		if (!context.getServer().isLanMode()) {
+		Configuration conf = context.getService(Configuration.class);
+		if (!conf.getBoolean(ServerConfiguration.LAN_MODE)) {
 			AccountsService accountsService = context.getAccountsService();
 			if (accountsService.getAccountsSize() == 0) {
-				String username = Server.DEFAULT_ADMIN_USERNAME;
-				String password = Server.DEFAULT_ADMIN_PASSWORD;
+				Configuration defaults = ServerConfiguration.getDefaults();
+				String username = defaults.getString(
+						ServerConfiguration.LAN_ADMIN_USERNAME);
+				String password = defaults.getString(
+						ServerConfiguration.LAN_ADMIN_PASSWORD);
 				LOG.info("As there are no accounts yet, we are creating an"
 						+ " admin account: username=\"{}\", password=\"{}\"",
 						username, password);

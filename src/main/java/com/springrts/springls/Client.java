@@ -34,6 +34,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Queue;
+import org.apache.commons.configuration.Configuration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -360,13 +361,17 @@ public class Client extends TeamController implements ContextReceiver {
 
 	public void sendWelcomeMessage() {
 
+		Configuration conf = context.getService(Configuration.class);
+		boolean recording =
+				conf.getBoolean(ServerConfiguration.STATISTICS_STORE);
+
 		// the welcome messages command-name is hardcoded to TASSERVER
 		// XXX maybe change TASSERVER to WELCOME or the like -> protocol change
 		sendLine(String.format("TASSERVER %s %s %d %d",
 				Misc.getAppVersionNonNull(),
-				context.getEngine().getVersion(),
-				context.getNatHelpServer().getPort(),
-				context.getServer().isLanMode() ? 1 : 0));
+				conf.getString(ServerConfiguration.ENGINE_VERSION),
+				conf.getInt(ServerConfiguration.NAT_PORT),
+				conf.getBoolean(ServerConfiguration.LAN_MODE) ? 1 : 0));
 	}
 
 	/** Should only be called by Clients.killClient() method! */

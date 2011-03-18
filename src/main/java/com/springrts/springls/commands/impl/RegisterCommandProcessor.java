@@ -20,6 +20,7 @@ package com.springrts.springls.commands.impl;
 
 import com.springrts.springls.Account;
 import com.springrts.springls.Client;
+import com.springrts.springls.ServerConfiguration;
 import com.springrts.springls.commands.AbstractCommandProcessor;
 import com.springrts.springls.commands.CommandProcessingException;
 import com.springrts.springls.commands.InvalidNumberOfArgumentsCommandProcessingException;
@@ -64,7 +65,7 @@ public class RegisterCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		if (getContext().getServer().isLanMode()) {
+		if (getConfiguration().getBoolean(ServerConfiguration.LAN_MODE)) {
 			// no need to register an account in LAN mode, since it accepts any
 			// userName
 			client.sendLine("REGISTRATIONDENIED Can not register in LAN-mode."

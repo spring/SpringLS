@@ -18,12 +18,12 @@
 package com.springrts.springls;
 
 
-import com.springrts.springls.util.ProtocolUtil;
 import java.net.InetAddress;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CodingErrorAction;
+import org.apache.commons.configuration.Configuration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,53 +40,10 @@ public class Server implements ContextReceiver {
 	private Context context = null;
 
 	/**
-	 * If true, no password authentication is used.
-	 */
-	private boolean lanMode;
-
-	/**
 	 * When the server instance was started.
 	 * @see java.lang.System#currentTimeMillis()
 	 */
 	private long startTime;
-
-	/**
-	 * Default administrator user name for LAN mode and if no account is found
-	 * in the backing storage.
-	 * Can be overwritten with -LANADMIN switch.
-	 * Used only when server is running in LAN mode!
-	 * @see #DEFAULT_ADMIN_PASSWORD
-	 */
-	public static final String DEFAULT_ADMIN_USERNAME = "admin";
-	/**
-	 * LAN mode administrator user-name.
-	 * Only relevant if {@link getLanMode()} is <code>true</code>.
-	 */
-	private String lanAdminUsername;
-
-	/**
-	 * Default administrator password for LAN mode and if no account is found in
-	 * the backing storage.
-	 * @see #DEFAULT_ADMIN_USERNAME
-	 */
-	public static final String DEFAULT_ADMIN_PASSWORD = "admin";
-	/**
-	 * LAN mode administrator password.
-	 * Only relevant if {@link getLanMode()} is <code>true</code>.
-	 */
-	private String lanAdminPassword;
-
-	/** Default TCP server port. */
-	public static final int DEFAULT_PORT = 8200;
-	/**
-	 * Main TCP port to run the server on.
-	 */
-	private int port;
-
-	/**
-	 * If true, we will use a DB instead of flat files for user management.
-	 */
-	private boolean useUserDB;
 
 	private CharsetDecoder asciiDecoder;
  	private CharsetEncoder asciiEncoder;
@@ -106,12 +63,7 @@ public class Server implements ContextReceiver {
 
 	public Server() {
 
-		lanMode = false;
 		startTime = System.currentTimeMillis();
-		lanAdminUsername = DEFAULT_ADMIN_USERNAME;
-		lanAdminPassword = ProtocolUtil.encodePassword(DEFAULT_ADMIN_PASSWORD);
-		port = DEFAULT_PORT;
-		useUserDB = false;
 		loginEnabled = true;
 		timeoutLength = 50000;
 		redirectAddress = null;
@@ -179,22 +131,6 @@ public class Server implements ContextReceiver {
 	}
 
 	/**
-	 * If true, no password authentication is used.
-	 * @return the lanMode
-	 */
-	public boolean isLanMode() {
-		return lanMode;
-	}
-
-	/**
-	 * If true, no password authentication is used.
-	 * @param lanMode the lanMode to set
-	 */
-	public void setLanMode(boolean lanMode) {
-		this.lanMode = lanMode;
-	}
-
-	/**
 	 * When the server instance was started.
 	 * @see java.lang.System#currentTimeMillis()
 	 * @return the startTime
@@ -210,74 +146,6 @@ public class Server implements ContextReceiver {
 	 */
 	public void setStartTime(long startTime) {
 		this.startTime = startTime;
-	}
-
-	/**
-	 * LAN mode administrator user-name.
-	 * Only relevant if {@link #isLanMode()} is <code>true</code>.
-	 * @return the lanAdminUsername
-	 */
-	public String getLanAdminUsername() {
-		return lanAdminUsername;
-	}
-
-	/**
-	 * LAN mode administrator user-name.
-	 * Only relevant if {@link #isLanMode()} is <code>true</code>.
-	 * @param lanAdminUsername the lanAdminUsername to set
-	 */
-	public void setLanAdminUsername(String lanAdminUsername) {
-		this.lanAdminUsername = lanAdminUsername;
-	}
-
-	/**
-	 * LAN mode administrator password.
-	 * Only relevant if {@link #isLanMode()} is <code>true</code>.
-	 * @return the lanAdminPassword
-	 */
-	public String getLanAdminPassword() {
-		return lanAdminPassword;
-	}
-
-	/**
-	 * LAN mode administrator password.
-	 * Only relevant if {@link #isLanMode()} is <code>true</code>.
-	 * @param lanAdminPassword the lanAdminPassword to set
-	 */
-	public void setLanAdminPassword(String lanAdminPassword) {
-		this.lanAdminPassword = lanAdminPassword;
-	}
-
-	/**
-	 * Main port to run the server on.
-	 * @return the serverPort
-	 */
-	public int getPort() {
-		return port;
-	}
-
-	/**
-	 * Main port to run the server on.
-	 * @param port the server port to set
-	 */
-	public void setPort(int port) {
-		this.port = port;
-	}
-
-	/**
-	 * If true, we will use a DB instead of flat files for user management.
-	 * @return the useUserDB
-	 */
-	public boolean isUseUserDB() {
-		return useUserDB;
-	}
-
-	/**
-	 * If true, we will use a DB instead of flat files for user management.
-	 * @param useUserDB the useUserDB to set
-	 */
-	public void setUseUserDB(boolean useUserDB) {
-		this.useUserDB = useUserDB;
 	}
 
 	public boolean isLoginEnabled() {

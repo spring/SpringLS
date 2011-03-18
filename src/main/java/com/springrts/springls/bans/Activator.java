@@ -19,6 +19,8 @@ package com.springrts.springls.bans;
 
 
 import com.springrts.springls.Context;
+import com.springrts.springls.ServerConfiguration;
+import org.apache.commons.configuration.Configuration;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -38,15 +40,17 @@ public class Activator implements BundleActivator {
 	public void start(BundleContext context) {
 
 		Context springLsContext = Context.getService(context, Context.class);
-		boolean lanMode = springLsContext.getServer().isLanMode();
-		BanService banService = createBanService(lanMode);
+		BanService banService = createBanService(springLsContext);
 		springLsContext.setBanService(banService);
 		context.registerService(BanService.class.getName(), banService, null);
 	}
 
-	private BanService createBanService(boolean lanMode) {
+	private BanService createBanService(Context context) {
 
 		BanService banService = null;
+
+		Configuration conf = context.getService(Configuration.class);
+		boolean lanMode = conf.getBoolean(ServerConfiguration.LAN_MODE);
 
 		if (!lanMode) {
 			try {

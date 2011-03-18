@@ -23,6 +23,7 @@ import com.springrts.springls.Battle;
 import com.springrts.springls.Client;
 import com.springrts.springls.Context;
 import java.util.List;
+import org.apache.commons.configuration.Configuration;
 import org.osgi.framework.BundleContext;
 
 /**
@@ -89,6 +90,9 @@ public abstract class AbstractCommandProcessor implements CommandProcessor {
 	}
 	protected Context getContext() {
 		return context;
+	}
+	protected Configuration getConfiguration() {
+		return context.getService(Configuration.class);
 	}
 	protected BundleContext getBundleContext() {
 		return context.getFramework().getBundleContext();

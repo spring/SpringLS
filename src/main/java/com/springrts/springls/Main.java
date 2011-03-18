@@ -34,6 +34,8 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.DataConfiguration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,15 +55,18 @@ public final class Main {
 	private Main() {}
 
 	private static Options createOptions() {
+		
+		Configuration defaults = ServerConfiguration.getDefaults();
 
 		Options options = new Options();
 
-		Option help = new Option("h", "help", false, "Print this help message.");
+		Option help = new Option("h", "help", false,
+				"Print this help message.");
 		options.addOption(help);
 
 		Option port = new Option("p", "port", true,
-				"The main (TCP) port number to host on [1, 65535]."
-				+ " The default is " + Server.DEFAULT_PORT + ".");
+				"The main (TCP) port number to host on [1, 65535].  The default"
+				+ " is " + defaults.getInt(ServerConfiguration.PORT) + ".");
 		// possible types:
 		// * File.class
 		// * Number.class
@@ -87,7 +92,8 @@ public final class Main {
 				"The (UDP) port number to host the NAT traversal techniques"
 				+ " help service on [1, 65535], which lets clients detect thier"
 				+ " source port, for example when using \"hole punching\"."
-				+ " The default is " + NatHelpServer.DEFAULT_PORT + ".");
+				+ " The default is "
+				+ defaults.getInt(ServerConfiguration.NAT_PORT) + ".");
 		port.setType(Number.class);
 		natPort.setArgName("NAT-port-number");
 		options.addOption(natPort);
@@ -100,8 +106,10 @@ public final class Main {
 		Option lanAdmin = new Option("a", "lan-admin", true,
 				"The LAN mode admin account. Use this account to administer"
 				+ " your LAN server. The default is \""
-				+ Server.DEFAULT_ADMIN_USERNAME + "\", with password \""
-				+ Server.DEFAULT_ADMIN_PASSWORD + "\".");
+				+ defaults.getString(ServerConfiguration.LAN_ADMIN_USERNAME)
+				+ "\", with password \""
+				+ defaults.getString(ServerConfiguration.LAN_ADMIN_PASSWORD)
+				+ "\".");
 		lanAdmin.setArgName("username");
 		options.addOption(lanAdmin);
 
@@ -140,8 +148,9 @@ public final class Main {
 	 * Raises an exception in case of errors.
 	 * @return whether to exit the application after this method
 	 */
-	public static boolean apply(Context context, CommandLineParser parser,
-			Options options, String[] args) throws ParseException
+	public static boolean apply(Configuration configuration,
+			CommandLineParser parser, Options options, String[] args)
+			throws ParseException
 	{
 		CommandLine cmd = parser.parse(options, args);
 
@@ -158,13 +167,13 @@ public final class Main {
 				throw new ParseException("Invalid port specified: "
 						+ portStr);
 			}
-			context.getServer().setPort(port);
+			configuration.setProperty(ServerConfiguration.PORT, port);
 		}
 		if (cmd.hasOption("lan")) {
-			context.getServer().setLanMode(true);
+			configuration.setProperty(ServerConfiguration.LAN_MODE, true);
 		}
 		if (cmd.hasOption("statistics")) {
-			context.getStatistics().setRecording(true);
+			configuration.setProperty(ServerConfiguration.STATISTICS_STORE, true);
 		}
 		if (cmd.hasOption("nat-port")) {
 			String portStr = cmd.getOptionValue("port");
@@ -173,10 +182,10 @@ public final class Main {
 				throw new ParseException("Invalid NAT traversal port"
 						+ " specified: " + portStr);
 			}
-			context.getNatHelpServer().setPort(port);
+			configuration.setProperty(ServerConfiguration.NAT_PORT, port);
 		}
 		if (cmd.hasOption("log-main")) {
-			context.getChannels().setChannelsToLogRegex("^main$");
+			configuration.setProperty(ServerConfiguration.CHANNELS_LOG_REGEX, "^main$");
 		}
 		if (cmd.hasOption("lan-admin")) {
 			String[] usernamePassword = cmd.getOptionValues("lan-admin");
@@ -188,7 +197,8 @@ public final class Main {
 			String username = usernamePassword[0];
 			String password = (usernamePassword.length > 1)
 					? usernamePassword[0]
-					: Server.DEFAULT_ADMIN_PASSWORD;
+					: ServerConfiguration.getDefaults().getString(
+							ServerConfiguration.LAN_ADMIN_PASSWORD);
 
 			String error = Account.isOldUsernameValid(username);
 			if (error != null) {
@@ -200,8 +210,8 @@ public final class Main {
 				throw new ParseException("LAN admin password is not"
 						+ " valid: " + error);
 			}
-			context.getServer().setLanAdminUsername(username);
-			context.getServer().setLanAdminPassword(password);
+			configuration.setProperty(ServerConfiguration.LAN_ADMIN_USERNAME, username);
+			configuration.setProperty(ServerConfiguration.LAN_ADMIN_PASSWORD, password);
 		}
 		if (cmd.hasOption("load-args")) {
 			File argsFile = new File(cmd.getOptionValue("load-args"));
@@ -218,7 +228,7 @@ public final class Main {
 						argsList.addAll(Arrays.asList(argsLine));
 					}
 					String[] args2 = argsList.toArray(new String[argsList.size()]);
-					apply(context, parser, options, args2);
+					apply(configuration, parser, options, args2);
 				} finally {
 					if (in != null) {
 						in.close();
@@ -233,10 +243,10 @@ public final class Main {
 		}
 		if (cmd.hasOption("spring-version")) {
 			String version = cmd.getOptionValue("spring-version");
-			context.setEngine(new Engine(version));
+			configuration.setProperty(ServerConfiguration.ENGINE_VERSION, version);
 		}
 		if (cmd.hasOption("database")) {
-			context.getServer().setUseUserDB(true);
+			configuration.setProperty(ServerConfiguration.USE_DATABASE, true);
 		}
 
 		return false;
@@ -247,12 +257,11 @@ public final class Main {
 		Options options = createOptions();
 		CommandLineParser parser = new GnuParser();
 
-		Context context = new Context();
-		context.init();
+		DataConfiguration configuration = new DataConfiguration(ServerConfiguration.getDefaults());
 
 		boolean exit;
 		try {
-			exit = apply(context, parser, options, args);
+			exit = apply(configuration, parser, options, args);
 		} catch (ParseException ex) {
 			LOG.warn("Bad command line arguments", ex);
 			HelpFormatter formatter = new HelpFormatter();
@@ -261,7 +270,7 @@ public final class Main {
 		}
 
 		if (!exit) {
-			TASServer.startServerInstance(context);
+			TASServer.startServerInstance(configuration);
 		}
 	}
 }

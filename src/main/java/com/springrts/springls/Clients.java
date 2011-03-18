@@ -27,6 +27,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import org.apache.commons.configuration.Configuration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -456,7 +457,8 @@ public class Clients implements ContextReceiver, Updateable {
 			LOG.debug("Unregistered user killed");
 		}
 
-		if (context.getServer().isLanMode()) {
+		Configuration conf = context.getService(Configuration.class);
+		if (conf.getBoolean(ServerConfiguration.LAN_MODE)) {
 			context.getAccountsService().removeAccount(client.getAccount());
 		}
 

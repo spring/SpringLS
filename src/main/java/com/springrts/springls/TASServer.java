@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.ServiceLoader;
+import org.apache.commons.configuration.Configuration;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.launch.Framework;
 import org.osgi.framework.launch.FrameworkFactory;
@@ -38,13 +39,12 @@ public final class TASServer {
 
 	private TASServer() {}
 
-	public static void startServerInstance(Context context) {
-
+	public static void startServerInstance(Configuration configuration) {
+		
 		Framework framework = createFramework();
 		if (framework == null) {
 			return;
 		}
-		context.setFramework(framework);
 		try {
 			framework.start();
 		} catch (BundleException ex) {
@@ -52,6 +52,11 @@ public final class TASServer {
 			return;
 		}
 
+		framework.getBundleContext().registerService(Configuration.class.getName(), configuration, null);
+		
+		Context context = new Context();
+		context.setFramework(framework);
+		context.init();
 		framework.getBundleContext().registerService(Context.class.getName(), context, null);
 
 		new com.springrts.springls.floodprotection.Activator().start(context.getFramework().getBundleContext());
@@ -67,7 +72,7 @@ public final class TASServer {
 		context.push();
 
 		// TODO needs adjusting due to new LAN mode accounts service
-		if (context.getServer().isLanMode()) {
+		if (configuration.getBoolean(ServerConfiguration.LAN_MODE)) {
 			LOG.info("LAN mode enabled");
 		}
 

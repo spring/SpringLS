@@ -27,11 +27,8 @@ import java.util.List;
  */
 public class Channels implements ContextReceiver, LiveStateListener, Updateable
 {
-	private static final String MATCH_NO_CHANNEL = "^%%%%%%%$";
-
 	private List<Channel> channels;
 	private Context context;
-	private String channelsToLogRegex;
 
 	/**
 	 * In this interval, all channel mute lists will be checked
@@ -49,7 +46,6 @@ public class Channels implements ContextReceiver, LiveStateListener, Updateable
 
 		channels = new ArrayList<Channel>();
 		context = null;
-		channelsToLogRegex = MATCH_NO_CHANNEL;
 	}
 
 
@@ -71,14 +67,6 @@ public class Channels implements ContextReceiver, LiveStateListener, Updateable
 				channel.getMuteList().clearExpiredOnes();
 			}
 		}
-	}
-
-	public String getChannelsToLogRegex() {
-		return channelsToLogRegex;
-	}
-
-	public void setChannelsToLogRegex(String channelsToLogRegex) {
-		this.channelsToLogRegex = channelsToLogRegex;
 	}
 
 	@Override

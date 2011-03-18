@@ -26,6 +26,7 @@ import java.net.InetAddress;
 import java.util.Collections;
 import java.util.List;
 import java.util.LinkedList;
+import org.apache.commons.configuration.Configuration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,15 +45,6 @@ public class NatHelpServer implements Runnable, ContextReceiver,
 			= LoggerFactory.getLogger(NatHelpServer.class);
 	private static final int RECEIVE_BUFFER_SIZE = 256;
 
-	/**
-	 * Default UDP port used with some NAT traversal technique.
-	 */
-	public static final int DEFAULT_PORT = 8201;
-	/**
-	 * Server UDP port used with some NAT traversal technique.
-	 * If this port is not forwarded, the hole punching technique will not work.
-	 */
-	private int port;
 	/** Has to be thread-safe */
 	private List<DatagramPacket> msgList;
 	private DatagramSocket socket;
@@ -62,7 +54,6 @@ public class NatHelpServer implements Runnable, ContextReceiver,
 
 	public NatHelpServer() {
 
-		this.port = DEFAULT_PORT;
 		this.msgList = Collections.synchronizedList(
 				new LinkedList<DatagramPacket>());
 		this.socket = null;
@@ -121,25 +112,12 @@ public class NatHelpServer implements Runnable, ContextReceiver,
 	@Override
 	public void stopped() {}
 
-	/**
-	 * Nat traversal port the server runs on.
-	 * @return the natTraversalPort
-	 */
-	public int getPort() {
-		return port;
-	}
-
-	/**
-	 * Nat traversal port the server runs on.
-	 * @param port the NAT traversal port to set
-	 */
-	public void setPort(int port) {
-		this.port = port;
-	}
-
 	@Override
 	public void run() {
 
+		Configuration configuration =
+				getContext().getService(Configuration.class);
+		int port = configuration.getInt(ServerConfiguration.NAT_PORT);
 		try {
 			socket = new DatagramSocket(port);
 		} catch (Exception ex) {

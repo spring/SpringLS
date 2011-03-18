@@ -35,6 +35,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import org.apache.commons.configuration.Configuration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,16 +79,10 @@ public class Statistics implements ContextReceiver {
 
 	private Context context = null;
 
-	/**
-	 * Whether statistics are recorded to disc on regular intervals or not.
-	 */
-	private boolean recording;
-
 
 	public Statistics() {
 
 		lastStatisticsUpdate = System.currentTimeMillis();
-		recording = false;
 	}
 
 
@@ -102,6 +97,9 @@ public class Statistics implements ContextReceiver {
 	 */
 	public void update() {
 
+		Configuration conf = context.getService(Configuration.class);
+		boolean recording =
+				conf.getBoolean(ServerConfiguration.STATISTICS_STORE);
 		if (recording && ((System.currentTimeMillis() - lastStatisticsUpdate)
 				> saveStatisticsInterval))
 		{
@@ -601,21 +599,5 @@ public class Statistics implements ContextReceiver {
 		}
 
 		return today;
-	}
-
-	/**
-	 * Whether statistics are recorded or not.
-	 * @return the recording
-	 */
-	public boolean isRecording() {
-		return recording;
-	}
-
-	/**
-	 * Whether statistics are recorded or not.
-	 * @param recording the recording to set
-	 */
-	public void setRecording(boolean recording) {
-		this.recording = recording;
 	}
 }

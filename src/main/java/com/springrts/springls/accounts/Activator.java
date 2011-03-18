@@ -19,6 +19,8 @@ package com.springrts.springls.accounts;
 
 
 import com.springrts.springls.Context;
+import com.springrts.springls.ServerConfiguration;
+import org.apache.commons.configuration.Configuration;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -43,9 +45,10 @@ public class Activator implements BundleActivator {
 
 		// switch to LAN mode if user accounts information is not present
 		if (!accounts.isReadyToOperate()) {
-			assert(springLsContext.getServer().isLanMode());
-			log.warn("Accounts service not ready, switching to \"LAN mode\" ...");
-			springLsContext.getServer().setLanMode(true);
+			Configuration conf = springLsContext.getService(Configuration.class);
+			assert(conf.getBoolean(ServerConfiguration.LAN_MODE));
+			log.warn("Accounts service is not ready, switching to \"LAN mode\" ...");
+			conf.setProperty(ServerConfiguration.LAN_MODE, true);
 		}
 
 		accounts.receiveContext(springLsContext);
@@ -60,9 +63,13 @@ public class Activator implements BundleActivator {
 
 		AccountsService accountsService = null;
 
-		if (context.getServer().isLanMode()) {
+		Configuration conf = context.getService(Configuration.class);
+		boolean lanMode = conf.getBoolean(ServerConfiguration.LAN_MODE);
+		boolean useDatabase = conf.getBoolean(ServerConfiguration.USE_DATABASE);
+
+		if (lanMode) {
 			accountsService = new LanAccountsService();
-		} else if(context.getServer().isUseUserDB()) {
+		} else if (useDatabase) {
 			accountsService = new JPAAccountsService();
 		} else {
 			accountsService = new FSAccountsService();

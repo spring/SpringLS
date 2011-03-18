@@ -22,6 +22,7 @@ import com.springrts.springls.Account;
 import com.springrts.springls.bans.BanEntry;
 import com.springrts.springls.Client;
 import com.springrts.springls.FailedLoginAttempt;
+import com.springrts.springls.ServerConfiguration;
 import com.springrts.springls.util.Misc;
 import com.springrts.springls.ServerNotification;
 import com.springrts.springls.agreement.Agreement;
@@ -30,6 +31,7 @@ import com.springrts.springls.commands.CommandProcessingException;
 import com.springrts.springls.commands.InvalidNumberOfArgumentsCommandProcessingException;
 import com.springrts.springls.commands.SupportedCommand;
 import com.springrts.springls.motd.MessageOfTheDay;
+import com.springrts.springls.util.ProtocolUtil;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -233,8 +235,9 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 	private boolean validateAccount(Client client, int userId, String username,
 			String password)
 	{
-		// FIXME here an int other places: use a method like AccountService.isPersistent()
-		if (!getContext().getServer().isLanMode()) { // "normal", non-LAN mode
+		// FIXME here and in other places: use a method like AccountService.isPersistent()
+		if (!getConfiguration().getBoolean(ServerConfiguration.LAN_MODE)) {
+			// "normal", non-LAN mode
 			// protection from brute-forcing the account:
 			FailedLoginAttempt attempt = findFailedLoginAttempt(username);
 			if ((attempt != null) && (attempt.getFailedAttempts() >= 3)) {
@@ -324,11 +327,16 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 				return false;
 			}
 			Account.Access accessLvl = Account.Access.NORMAL;
-			if (username.equals(getContext().getServer().getLanAdminUsername())
-					&& password.equals(getContext().getServer()
-					.getLanAdminPassword()))
-			{
-				accessLvl = Account.Access.ADMIN;
+			String adminUsername = getConfiguration().getString(
+					ServerConfiguration.LAN_ADMIN_USERNAME);
+			if (username.equals(adminUsername)) {
+				String adminPassword = getConfiguration().getString(
+						ServerConfiguration.LAN_ADMIN_PASSWORD);
+				String adminPasswordEncoded =
+						ProtocolUtil.encodePassword(adminPassword);
+				if (password.equals(adminPasswordEncoded)) {
+					accessLvl = Account.Access.ADMIN;
+				}
 			}
 			acc = new Account(username, password);
 			acc.setAccess(accessLvl);
