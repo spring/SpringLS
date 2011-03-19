@@ -84,6 +84,8 @@ public final class TASServer {
 
 		new com.springrts.springls.nat.Activator().start(context.getFramework().getBundleContext());
 
+		new com.springrts.springls.statistics.Activator().start(context.getFramework().getBundleContext());
+
 		// start server:
 		if (!context.getServerThread().startServer()) {
 			context.getServerThread().closeServerAndExit();

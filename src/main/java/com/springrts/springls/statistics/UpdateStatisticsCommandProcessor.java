@@ -15,7 +15,7 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.springrts.springls.commands.impl;
+package com.springrts.springls.statistics;
 
 
 import com.springrts.springls.Account;
@@ -45,7 +45,8 @@ public class UpdateStatisticsCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		int taken = getContext().getStatistics().saveStatisticsToDisk();
+		Statistics statistics = getService(Statistics.class);
+		int taken = statistics.saveStatisticsToDisk();
 		if (taken == -1) {
 			client.sendLine("SERVERMSG Unable to update statistics!");
 		} else {

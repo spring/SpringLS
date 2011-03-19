@@ -45,7 +45,6 @@ public class Context implements LiveStateListener {
 	private Engine engine;
 	private Server server;
 	private ServerNotifications serverNotifications;
-	private Statistics statistics;
 	private CommandProcessors commandProcessors;
 	private ServerThread serverThread;
 
@@ -64,7 +63,6 @@ public class Context implements LiveStateListener {
 		this.engine = null;
 		this.server = null;
 		this.serverNotifications = null;
-		this.statistics = null;
 		this.commandProcessors = null;
 		this.serverThread = null;
 	}
@@ -79,7 +77,6 @@ public class Context implements LiveStateListener {
 		setEngine(new Engine());
 		setServer(new Server());
 		setServerNotifications(new ServerNotifications());
-		setStatistics(new Statistics());
 		setCommandProcessors(new CommandProcessors());
 		setServerThread(new ServerThread());
 	}
@@ -231,16 +228,6 @@ public class Context implements LiveStateListener {
 	{
 		this.serverNotifications = serverNotifications;
 		addContextReceiver(serverNotifications);
-	}
-
-	public Statistics getStatistics() {
-		return statistics;
-	}
-
-	public void setStatistics(Statistics statistics) {
-
-		this.statistics = statistics;
-		addContextReceiver(statistics);
 	}
 
 	public Server getServer() {

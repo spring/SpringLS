@@ -15,9 +15,15 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.springrts.springls;
+package com.springrts.springls.statistics;
 
 
+import com.springrts.springls.Battle;
+import com.springrts.springls.Clients;
+import com.springrts.springls.Context;
+import com.springrts.springls.ContextReceiver;
+import com.springrts.springls.ServerConfiguration;
+import com.springrts.springls.Updateable;
 import com.springrts.springls.accounts.AccountsService;
 import com.springrts.springls.util.Misc;
 import java.io.BufferedReader;

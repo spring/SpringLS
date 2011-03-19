@@ -177,7 +177,6 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 
 		addUpdateable(getContext().getServerThread());
 		addUpdateable(getContext().getClients());
-		addUpdateable(getContext().getStatistics());
 		addUpdateable(getContext().getChannels());
 	}
 
