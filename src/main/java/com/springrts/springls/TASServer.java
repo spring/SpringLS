@@ -82,8 +82,7 @@ public final class TASServer {
 
 		new com.springrts.springls.ip2country.Activator().start(context.getFramework().getBundleContext());
 
-		// start "help UDP" server:
-		context.getNatHelpServer().startServer();
+		new com.springrts.springls.nat.Activator().start(context.getFramework().getBundleContext());
 
 		// start server:
 		if (!context.getServerThread().startServer()) {

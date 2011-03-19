@@ -46,7 +46,6 @@ public class Context implements LiveStateListener {
 	private Server server;
 	private ServerNotifications serverNotifications;
 	private Statistics statistics;
-	private NatHelpServer natHelpServer;
 	private CommandProcessors commandProcessors;
 	private ServerThread serverThread;
 
@@ -66,7 +65,6 @@ public class Context implements LiveStateListener {
 		this.server = null;
 		this.serverNotifications = null;
 		this.statistics = null;
-		this.natHelpServer = null;
 		this.commandProcessors = null;
 		this.serverThread = null;
 	}
@@ -82,7 +80,6 @@ public class Context implements LiveStateListener {
 		setServer(new Server());
 		setServerNotifications(new ServerNotifications());
 		setStatistics(new Statistics());
-		setNatHelpServer(new NatHelpServer());
 		setCommandProcessors(new CommandProcessors());
 		setServerThread(new ServerThread());
 	}
@@ -254,17 +251,6 @@ public class Context implements LiveStateListener {
 
 		this.server = server;
 		addContextReceiver(server);
-	}
-
-	public NatHelpServer getNatHelpServer() {
-		return natHelpServer;
-	}
-
-	public void setNatHelpServer(NatHelpServer natHelpServer) {
-
-		this.natHelpServer = natHelpServer;
-		addContextReceiver(natHelpServer);
-		addLiveStateListener(natHelpServer);
 	}
 
 	public CommandProcessors getCommandProcessors() {

@@ -15,9 +15,15 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.springrts.springls;
+package com.springrts.springls.nat;
 
 
+import com.springrts.springls.Client;
+import com.springrts.springls.Context;
+import com.springrts.springls.ContextReceiver;
+import com.springrts.springls.LiveStateListener;
+import com.springrts.springls.ServerConfiguration;
+import com.springrts.springls.Updateable;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.DatagramPacket;
@@ -115,9 +121,8 @@ public class NatHelpServer implements Runnable, ContextReceiver,
 	@Override
 	public void run() {
 
-		Configuration configuration =
-				getContext().getService(Configuration.class);
-		int port = configuration.getInt(ServerConfiguration.NAT_PORT);
+		Configuration conf = getContext().getService(Configuration.class);
+		int port = conf.getInt(ServerConfiguration.NAT_PORT);
 		try {
 			socket = new DatagramSocket(port);
 		} catch (Exception ex) {
