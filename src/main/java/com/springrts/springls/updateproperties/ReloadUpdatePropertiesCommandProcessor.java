@@ -53,8 +53,7 @@ public class ReloadUpdatePropertiesCommandProcessor extends AbstractCommandProce
 		}
 
 		UpdateProperties updateProperties = getService(UpdateProperties.class);
-		if (updateProperties.read(UpdateProperties.DEFAULT_FILENAME))
-		{
+		if (updateProperties.read(UpdateProperties.DEFAULT_FILENAME)) {
 			LOG.info("\"Update properties\" read from {}",
 					UpdateProperties.DEFAULT_FILENAME);
 			client.sendLine(String.format(

@@ -22,7 +22,6 @@ import com.springrts.springls.util.Processor;
 import com.springrts.springls.util.ProtocolUtil;
 import java.net.InetAddress;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;

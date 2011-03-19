@@ -362,8 +362,6 @@ public class Client extends TeamController implements ContextReceiver {
 	public void sendWelcomeMessage() {
 
 		Configuration conf = context.getService(Configuration.class);
-		boolean recording =
-				conf.getBoolean(ServerConfiguration.STATISTICS_STORE);
 
 		// the welcome messages command-name is hardcoded to TASSERVER
 		// XXX maybe change TASSERVER to WELCOME or the like -> protocol change

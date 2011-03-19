@@ -55,7 +55,7 @@ public final class Main {
 	private Main() {}
 
 	private static Options createOptions() {
-		
+
 		Configuration defaults = ServerConfiguration.getDefaults();
 
 		Options options = new Options();

@@ -23,21 +23,12 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CodingErrorAction;
-import org.apache.commons.configuration.Configuration;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Contains settings specific for one version of the engine.
  * @author hoijui
  */
-public class Server implements ContextReceiver {
-
-	private static final Logger LOG = LoggerFactory.getLogger(Server.class);
-
-
-	private Context context = null;
+public class Server {
 
 	/**
 	 * When the server instance was started.
@@ -71,11 +62,6 @@ public class Server implements ContextReceiver {
 
 	public static String getApplicationName() {
 		return "SpringLS";
-	}
-
-	@Override
-	public void receiveContext(Context context) {
-		this.context = context;
 	}
 
 	/**

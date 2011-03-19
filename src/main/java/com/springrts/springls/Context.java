@@ -224,7 +224,6 @@ public class Context implements LiveStateListener {
 	public void setServer(Server server) {
 
 		this.server = server;
-		addContextReceiver(server);
 	}
 
 	public CommandProcessors getCommandProcessors() {

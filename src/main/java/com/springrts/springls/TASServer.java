@@ -40,7 +40,7 @@ public final class TASServer {
 	private TASServer() {}
 
 	public static void startServerInstance(Configuration configuration) {
-		
+
 		Framework framework = createFramework();
 		if (framework == null) {
 			return;
@@ -53,7 +53,7 @@ public final class TASServer {
 		}
 
 		framework.getBundleContext().registerService(Configuration.class.getName(), configuration, null);
-		
+
 		Context context = new Context();
 		context.setFramework(framework);
 		context.init();

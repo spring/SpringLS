@@ -42,8 +42,11 @@ public class Activator implements BundleActivator {
 			log.info("<{}> loaded in {} ms.",
 					IP2CountryService.class.getSimpleName(), tempTime);
 		}
-		context.registerService(IP2Country.class.getName(), ip2Country, null);
-		context.registerService(IP2CountryService.class.getName(), ip2Country, null);
+		context.registerService(new String[] {
+				IP2CountryService.class.getName(),
+				IP2Country.class.getName()
+				},
+				ip2Country, null);
 		try {
 			CommandProcessors.add(context, CommandProcessors.load(ReInitializeIp2CountryCommandProcessor.class));
 			CommandProcessors.add(context, CommandProcessors.load(Ip2CountryCommandProcessor.class));

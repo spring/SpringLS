@@ -22,7 +22,6 @@ import com.springrts.springls.accounts.AccountsService;
 import com.springrts.springls.util.Misc;
 import com.springrts.springls.commands.CommandProcessingException;
 import com.springrts.springls.commands.CommandProcessor;
-import com.springrts.springls.floodprotection.FloodProtection;
 import com.springrts.springls.floodprotection.FloodProtectionService;
 import com.springrts.springls.nat.NatHelpServer;
 import com.springrts.springls.util.ProtocolUtil;
