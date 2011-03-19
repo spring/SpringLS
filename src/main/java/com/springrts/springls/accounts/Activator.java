@@ -20,6 +20,7 @@ package com.springrts.springls.accounts;
 
 import com.springrts.springls.Context;
 import com.springrts.springls.ServerConfiguration;
+import com.springrts.springls.Updateable;
 import org.apache.commons.configuration.Configuration;
 
 import org.osgi.framework.BundleActivator;
@@ -55,8 +56,11 @@ public class Activator implements BundleActivator {
 		accounts.loadAccounts();
 
 		springLsContext.setAccountsService(accounts);
-		context.registerService(AccountsService.class.getName(), accounts,
-				null);
+		context.registerService(new String[] {
+				AccountsService.class.getName(),
+				Updateable.class.getName()
+				},
+				accounts, null);
 	}
 
 	private static AccountsService createAccountsService(Context context) {

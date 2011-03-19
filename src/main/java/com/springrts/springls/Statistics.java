@@ -58,7 +58,7 @@ import org.slf4j.LoggerFactory;
  * @author Betalord
  * @author hoijui
  */
-public class Statistics implements ContextReceiver {
+public class Statistics implements ContextReceiver, Updateable {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Statistics.class);
 
@@ -91,10 +91,7 @@ public class Statistics implements ContextReceiver {
 		this.context = context;
 	}
 
-
-	/**
-	 * This is called from the main game loop.
-	 */
+	@Override
 	public void update() {
 
 		Configuration conf = context.getService(Configuration.class);

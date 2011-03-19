@@ -79,8 +79,6 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 		}
 	}
 
-	private Context context;
-
 	/**
 	 * Contains a list of deprecated commands, for example:
 	 * "WHITELIST" -> "deprecated feature: white-listing"
@@ -99,6 +97,8 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 	 */
 	private static final int SEND_BUFFER_SIZE = 8192 * 2;
 	private static final long MAIN_LOOP_SLEEP = 10L;
+
+	private Context context;
 	private ServerSocketChannel sSockChan;
 	private Selector readSelector;
 	private boolean running;
@@ -110,15 +110,20 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 	 * by the author of the <code>java.nio</code> chat example (see links) upon
 	 * which this code is built on.
 	 */
-	private ByteBuffer readBuffer = ByteBuffer.allocateDirect(READ_BUFFER_SIZE);
+	private ByteBuffer readBuffer;
+	private List<Updateable> updateables;
+	private UpdateableTracker updateableTracker;
 
 
 	public ServerThread() {
 
 		this.context = null;
+		this.readBuffer = ByteBuffer.allocateDirect(READ_BUFFER_SIZE);
+		this.updateables = new ArrayList<Updateable>();
 		initDeprecatedCommands();
 	}
 
+	// TODO make all this stuff non-static
 	private static void add(Map<String, DeprecatedCommand> deprecatedCommands,
 			DeprecatedCommand command)
 	{
@@ -150,9 +155,30 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 		}
 	}
 
+	public void addUpdateable(Updateable updateable) {
+		updateables.add(updateable);
+	}
+
+	public void removeUpdateable(Updateable updateable) {
+		updateables.remove(updateable);
+	}
+
 	@Override
 	public void receiveContext(Context context) {
+
 		this.context = context;
+
+		// TODO move this into a BundleActivator.start() method
+		updateableTracker = new UpdateableTracker(context.getFramework().getBundleContext());
+		updateableTracker.open();
+		// TODO move this into a BundleActivator.stop() method
+//		updateableTracker.close();
+
+		addUpdateable(getContext().getServerThread());
+		addUpdateable(getContext().getClients());
+		addUpdateable(getContext().getStatistics());
+		addUpdateable(getContext().getNatHelpServer());
+		addUpdateable(getContext().getChannels());
 	}
 
 	private Context getContext() {
@@ -386,23 +412,9 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 		running = true;
 		while (running) { // main loop
 
-			getContext().getServerThread().update();
-
-			getContext().getClients().update();
-
-			FloodProtection floodProtection
-					= getContext().getService(FloodProtection.class);
-			if (floodProtection != null) {
-				floodProtection.update();
+			for (Updateable updateable : updateables) {
+				updateable.update();
 			}
-
-			getContext().getStatistics().update();
-
-			getContext().getNatHelpServer().update();
-
-			getContext().getAccountsService().update();
-
-			getContext().getChannels().update();
 
 			// sleep a bit
 			try {

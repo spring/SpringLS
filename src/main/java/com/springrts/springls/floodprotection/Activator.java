@@ -19,6 +19,7 @@ package com.springrts.springls.floodprotection;
 
 
 import com.springrts.springls.Context;
+import com.springrts.springls.Updateable;
 import com.springrts.springls.commands.CommandProcessors;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -42,9 +43,11 @@ public class Activator implements BundleActivator {
 		FloodProtection floodProtection = new FloodProtection();
 		floodProtection.receiveContext(springLsContext);
 
-		context.registerService(FloodProtectionService.class.getName(),
-				floodProtection, null);
-		context.registerService(FloodProtection.class.getName(),
+		context.registerService(new String[] {
+				FloodProtectionService.class.getName(),
+				FloodProtection.class.getName(),
+				Updateable.class.getName()
+				},
 				floodProtection, null);
 
 		try {
