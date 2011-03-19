@@ -41,7 +41,6 @@ public class Activator implements BundleActivator {
 
 		Context springLsContext = Context.getService(context, Context.class);
 		BanService banService = createBanService(springLsContext);
-		springLsContext.setBanService(banService);
 		context.registerService(BanService.class.getName(), banService, null);
 	}
 

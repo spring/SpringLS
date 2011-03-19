@@ -26,6 +26,7 @@ import com.springrts.springls.ServerConfiguration;
 import com.springrts.springls.util.Misc;
 import com.springrts.springls.ServerNotification;
 import com.springrts.springls.agreement.Agreement;
+import com.springrts.springls.bans.BanService;
 import com.springrts.springls.commands.AbstractCommandProcessor;
 import com.springrts.springls.commands.CommandProcessingException;
 import com.springrts.springls.commands.InvalidNumberOfArgumentsCommandProcessingException;
@@ -275,15 +276,19 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 				client.sendLine("DENIED Already logged in");
 				return false;
 			}
-			BanEntry ban = getContext().getBanService().getBanEntry(username,
-					client.getIp(), userId);
-			if ((ban != null) && ban.isActive()) {
-				client.sendLine(String.format(
-						"DENIED You are banned from this server! (Reason: %s)."
-						+ " Please contact a server administrator.",
-						ban.getPublicReason()));
-				recordFailedLoginAttempt(username);
-				return false;
+			BanService banService = getContext().getService(BanService.class);
+			if (banService != null) {
+				BanEntry ban = banService.getBanEntry(username, client.getIp(),
+						userId);
+				if ((ban != null) && ban.isActive()) {
+					client.sendLine(String.format(
+							"DENIED You are banned from this server!"
+							+ " (Reason: %s)."
+							+ " Please contact a server administrator.",
+							ban.getPublicReason()));
+					recordFailedLoginAttempt(username);
+					return false;
+				}
 			}
 			if (!acc.isAgreementAccepted()
 					&& !client.getAccount().isAgreementAccepted())

@@ -19,7 +19,6 @@ package com.springrts.springls;
 
 
 import com.springrts.springls.accounts.AccountsService;
-import com.springrts.springls.bans.BanService;
 import com.springrts.springls.commands.CommandProcessors;
 import java.util.LinkedList;
 import java.util.List;
@@ -38,7 +37,6 @@ public class Context implements LiveStateListener {
 
 	private Framework framework;
 	private AccountsService accountsService;
-	private BanService banService;
 	private Battles battles;
 	private Channels channels;
 	private Clients clients;
@@ -56,7 +54,6 @@ public class Context implements LiveStateListener {
 
 		this.framework = null;
 		this.accountsService = null;
-		this.banService = null;
 		this.battles = null;
 		this.channels = null;
 		this.clients = null;
@@ -70,7 +67,6 @@ public class Context implements LiveStateListener {
 	public void init() {
 
 		this.accountsService = null;
-		this.banService = null;
 		setBattles(new Battles());
 		setChannels(new Channels());
 		setClients(new Clients());
@@ -168,15 +164,6 @@ public class Context implements LiveStateListener {
 		this.accountsService = accountsService;
 		addContextReceiver(accountsService);
 		addLiveStateListener(accountsService);
-	}
-
-	public BanService getBanService() {
-		return banService;
-	}
-
-	public void setBanService(BanService banService) {
-
-		this.banService = banService;
 	}
 
 	public Battles getBattles() {
