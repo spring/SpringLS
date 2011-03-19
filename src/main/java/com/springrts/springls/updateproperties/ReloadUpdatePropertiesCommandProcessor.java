@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Reloads the locally stored list of Spring versions and server responses to
  * them.
- * @see com.springrts.springls.UpdateProperties
+ * @see UpdateProperties
  * @author hoijui
  */
 @SupportedCommand("RELOADUPDATEPROPERTIES")

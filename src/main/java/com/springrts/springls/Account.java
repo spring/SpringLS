@@ -199,7 +199,7 @@ public class Account implements Serializable, Cloneable {
 	 * Resolved country code for this name's IP when he last logged on.
 	 * If country could not be resolved, "XX" is used for country code,
 	 * otherwise a 2-char country code is used.
-	 * @see IP2Country#getCountryCode(InetAddress)
+	 * @see com.springrts.springls.ip2country.IP2CountryService#getCountryCode(InetAddress)
 	 */
 	private String lastCountry;
 
@@ -786,7 +786,7 @@ public class Account implements Serializable, Cloneable {
 	 * Resolved country code for this name's IP when he last logged on.
 	 * If country could not be resolved, "XX" is used for country code,
 	 * otherwise a 2-char country code is used.
-	 * @see IP2Country#getCountryCode(InetAddress)
+	 * @see com.springrts.springls.ip2country.IP2CountryService#getCountryCode(InetAddress)
 	 * @return the lastCountry
 	 */
 	@Column(
@@ -805,7 +805,7 @@ public class Account implements Serializable, Cloneable {
 	 * Resolved country code for this name's IP when he last logged on.
 	 * If country could not be resolved, "XX" is used for country code,
 	 * otherwise a 2-char country code is used.
-	 * @see IP2Country#getCountryCode(InetAddress)
+	 * @see com.springrts.springls.ip2country.IP2CountryService#getCountryCode(InetAddress)
 	 * @param lastCountry the lastCountry to set
 	 */
 	public void setLastCountry(String lastCountry) {

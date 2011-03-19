@@ -129,7 +129,6 @@ public class CommandProcessors implements ContextReceiver {
 
 	/**
 	 * Instantiates a single CommandProcessor.
-	 * @param cmdName_processor where to store it
 	 * @param cpc the class to instantiate
 	 * @throws Exception if loading failed, for whatever reason
 	 */
