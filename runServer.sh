@@ -28,6 +28,9 @@
 #   http://docs.jboss.org/hibernate/stable/entitymanager/reference/en/html/configuration.html
 #
 
+# move to the dir containing this script
+cd $(dirname $0)
+
 #MY_JAR_BARE=$(ls target/original-springls*)
 MY_JAR_BASE=$(ls target/springls*)
 MY_DEPENDENCY_CP="target/dependency/*"
