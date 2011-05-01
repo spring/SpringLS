@@ -12,8 +12,14 @@
 # * start server (debug mode):
 #   > DBG_PORT=7333 FULL_CP=1 ./runServer.sh
 #
+# * start server (daemon mode):
+#   > ./runServer.sh --daemon
+#
 # * stop server:
 #   press [Ctrl]+[C]
+#
+# * stop server (daemon mode):
+#   > kill $(cat server.pid)
 #
 # * configure logging:
 #   > cp src/main/resources/logback.xml conf
@@ -27,6 +33,8 @@
 #   Info about the default persistence provider for SpringLS (Hibernate):
 #   http://docs.jboss.org/hibernate/stable/entitymanager/reference/en/html/configuration.html
 #
+
+PID_FILE=server.pid
 
 # move to the dir containing this script
 cd $(dirname $0)
@@ -57,5 +65,18 @@ else
 fi
 MY_OPTIONAL_OPTS="${MY_OPTIONAL_OPTS} ${MY_DEBUG_OPTS}"
 
-java -cp "${MY_FINAL_CP}" ${MY_OPTIONAL_OPTS} ${MY_MAIN_CLASS} $@
+USERS_ARGS=$@
+# remove "--daemon", if it is present
+USERS_ARGS=$(echo "${USERS_ARGS}" | sed -e "s/\\([ \t]\\|^\\)--daemon\\([ \t]\\|$\\)/ /")
+
+if [[ "$@" == "${USERS_ARGS}" ]]; then
+	# run normal (not as daemon) if --daemon switch was not given
+	java -cp "${MY_FINAL_CP}" ${MY_OPTIONAL_OPTS} ${MY_MAIN_CLASS} ${USERS_ARGS}
+else
+	echo "Run as daemon..."
+	nohup java -cp "${MY_FINAL_CP}" ${MY_OPTIONAL_OPTS} ${MY_MAIN_CLASS} ${USERS_ARGS} > /dev/null &
+	# output the PID to file ${PID_FILE}
+	echo $! > ${PID_FILE}
+	# Note: The PID file is not deleted on process end
+fi
 
