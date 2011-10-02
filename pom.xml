@@ -125,6 +125,13 @@
 				<role>patch writer</role>
 			</roles>
 		</contributor>
+		<contributor>
+			<name>koshi</name>
+			<email>koshi@springlobby.info</email>
+			<roles>
+				<role>provides testing server and web-space</role>
+			</roles>
+		</contributor>
 	</contributors>
 
 	<scm>
