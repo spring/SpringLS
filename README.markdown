@@ -54,19 +54,19 @@ In case you already have it installed, skip this paragraph.
 
 		> mvn --version
 
-2.	compile and package TASServer:
+2.	compile and package:
 
 		> mvn package
 
 	This may take quite some time, if you are running Maven for the first time,
 	as it has to download all the dependencies for the different build steps,
-	plus the dependencies of TASServer.
+	plus our own dependencies.
 
 If everything went smoothly, this was it already!
 
 All the output of the build process is under the `target` sub-dir.
 This is also where you find the final jar file:
-`target/tasserver*.jar`
+`target/springls*.jar`
 
 
 ## Running
@@ -103,7 +103,7 @@ The latest version can be found
 
 Example of usage:
 
-	> java -jar tasserver-*.jar --port 8200 --nat-port 8201 --log-main
+	> java -jar springls-*.jar --port 8200 --nat-port 8201 --log-main
 
 Arguments are case sensitive.
 For the full list of arguments, use `--help`.
@@ -130,7 +130,7 @@ _Windows:_
 	> # edit the configuration
 	> notepad conf\META-INF\persistence.xml
 
-Info about the default persistence provider for TASServer:
+Info about the default persistence provider:
 [Hibernate configuration](http://docs.jboss.org/hibernate/stable/entitymanager/reference/en/html/configuration.html)
 
 When you are using MySQL, and you are experiencing problems to authenticate on
