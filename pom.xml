@@ -425,13 +425,13 @@
 		<dependency>
 			<groupId>javax.persistence</groupId>
 			<artifactId>persistence-api</artifactId>
-			<version>1.0</version>
+			<version>1.0.2</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>javax.transaction</groupId>
 			<artifactId>jta</artifactId>
-			<version>1.0.1B</version>
+			<version>1.1</version>
 			<scope>compile</scope>
 		</dependency>
 
@@ -521,17 +521,6 @@
 			</dependencies>
 		</profile>
 	</profiles>
-
-
-	<repositories>
-		<repository>
-			<!-- For javax.transaction.jta -->
-			<id>maven2-repository.dev.java.net</id>
-			<name>Java.net Repository for Maven</name>
-			<url>http://download.java.net/maven/2/</url>
-			<layout>default</layout>
-		</repository>
-	</repositories>
 
 </project>
 
