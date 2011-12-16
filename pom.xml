@@ -25,7 +25,7 @@
 	</organization>
 	<name>SpringLS</name>
 	<description>A Spring RTS lobby server, written in Java</description>
-	<!--<url>http://github.com/spring/SpringLS</url>-->
+	<url>https://github.com/spring/SpringLS</url>
 	<prerequisites>
 		<maven>2.1</maven>
 	</prerequisites>
