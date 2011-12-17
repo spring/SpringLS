@@ -11,6 +11,8 @@
 		<project.build.encoding>UTF-8</project.build.encoding>
 		<project.build.sourceEncoding>${project.build.encoding}</project.build.sourceEncoding>
 		<project.build.resourceEncoding>${project.build.encoding}</project.build.resourceEncoding>
+
+		<project.mainClass>com.springrts.springls.Main</project.mainClass>
 	</properties>
 
 	<groupId>com.springrts.springls</groupId>
@@ -241,7 +243,7 @@
 							<addClasspath>true</addClasspath>
 							<classpathPrefix>dependency</classpathPrefix>
 							<packageName>com.springrts.springls</packageName>
-							<mainClass>com.springrts.springls.Main</mainClass>
+							<mainClass>${project.mainClass}</mainClass>
 						</manifest>
 					</archive>
 				</configuration>
