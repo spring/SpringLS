@@ -17,6 +17,13 @@
 	<artifactId>springls</artifactId>
 	<version>0.36-SNAPSHOT</version>
 
+	<!-- This is a requirement to be able to sync to Maven central -->
+	<parent>
+		<groupId>org.sonatype.oss</groupId>
+		<artifactId>oss-parent</artifactId>
+		<version>7</version>
+	</parent>
+
 	<packaging>jar</packaging>
 
 	<organization>
