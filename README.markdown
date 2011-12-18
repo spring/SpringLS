@@ -138,6 +138,9 @@ the DB, have a look [here](http://queuemetrics.com/faq.jsp#faq-009).
 Instead of `localhost.localdomain`, you may face the same problem
 with `127.0.0.1`.
 
+You have to use the `--database` switch on the command-line,
+because otherwise the server will run in LAN-mode, and not use the DB.
+
 
 ## Notes
 

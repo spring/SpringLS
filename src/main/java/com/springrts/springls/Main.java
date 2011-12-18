@@ -77,12 +77,6 @@ public final class Main {
 		port.setArgName("port-number");
 		options.addOption(port);
 
-		Option lanMode = new Option("l", "lan", false,
-			"The Server will run in \"LAN mode\", meaning any user can login as"
-			+ " long as he uses a unique username. The password is ignored."
-			+ " Note: You may login from outside the local network too.");
-		options.addOption(lanMode);
-
 		Option statistics = new Option("s", "statistics", false,
 				"Whether to create and save statistics to disc on predefined"
 				+ " intervals.");
@@ -130,15 +124,20 @@ public final class Main {
 		springVersion.setArgName("version");
 		options.addOption(springVersion);
 
-		Option useDb = new Option("d", "database", false,
-				"Instead of accounts.txt, use the DB. This may only be used"
-				+ " in \"normal mode\", not in \"LAN mode\".");
-		options.addOption(useDb);
+		Option useStorageDb = new Option("d", "database", false,
+				"Use a DB for user accounts and ban entries."
+				+ " This disables \"LAN mode\".");
+		options.addOption(useStorageDb);
 
-		OptionGroup lanDbOG = new OptionGroup();
-		lanDbOG.addOption(lanMode);
-		lanDbOG.addOption(useDb);
-		options.addOptionGroup(lanDbOG);
+		Option useStorageFile = new Option(null, "file-storage", false,
+				"Use the (deprecated) accounts.txt for user accounts."
+				+ " This disables \"LAN mode\".");
+		options.addOption(useStorageFile);
+
+		OptionGroup storageOG = new OptionGroup();
+		storageOG.addOption(useStorageDb);
+		storageOG.addOption(useStorageFile);
+		options.addOptionGroup(storageOG);
 
 		return options;
 	}
@@ -169,7 +168,11 @@ public final class Main {
 			}
 			configuration.setProperty(ServerConfiguration.PORT, port);
 		}
-		if (cmd.hasOption("lan")) {
+		if (cmd.hasOption("database")) {
+			configuration.setProperty(ServerConfiguration.USE_DATABASE, true);
+		} else if (cmd.hasOption("file-storage")) {
+			configuration.setProperty(ServerConfiguration.USE_DATABASE, false);
+		} else {
 			configuration.setProperty(ServerConfiguration.LAN_MODE, true);
 		}
 		if (cmd.hasOption("statistics")) {
@@ -244,9 +247,6 @@ public final class Main {
 		if (cmd.hasOption("spring-version")) {
 			String version = cmd.getOptionValue("spring-version");
 			configuration.setProperty(ServerConfiguration.ENGINE_VERSION, version);
-		}
-		if (cmd.hasOption("database")) {
-			configuration.setProperty(ServerConfiguration.USE_DATABASE, true);
 		}
 
 		return false;
