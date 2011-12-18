@@ -60,7 +60,7 @@ public final class Main {
 
 		Options options = new Options();
 
-		Option help = new Option("h", "help", false,
+		Option help = new Option(null, "help", false,
 				"Print this help message.");
 		options.addOption(help);
 
@@ -77,7 +77,7 @@ public final class Main {
 		port.setArgName("port-number");
 		options.addOption(port);
 
-		Option statistics = new Option("s", "statistics", false,
+		Option statistics = new Option(null, "statistics", false,
 				"Whether to create and save statistics to disc on predefined"
 				+ " intervals.");
 		options.addOption(statistics);
@@ -92,12 +92,12 @@ public final class Main {
 		natPort.setArgName("NAT-port-number");
 		options.addOption(natPort);
 
-		Option logMain = new Option("m", "log-main", false,
+		Option logMain = new Option(null, "log-main", false,
 				"Whether to log all conversations from channel #main to"
 				+ " MainChanLog.log");
 		options.addOption(logMain);
 
-		Option lanAdmin = new Option("a", "lan-admin", true,
+		Option lanAdmin = new Option(null, "lan-admin", true,
 				"The LAN mode admin account. Use this account to administer"
 				+ " your LAN server. The default is \""
 				+ defaults.getString(ServerConfiguration.LAN_ADMIN_USERNAME)
@@ -124,7 +124,7 @@ public final class Main {
 		springVersion.setArgName("version");
 		options.addOption(springVersion);
 
-		Option useStorageDb = new Option("d", "database", false,
+		Option useStorageDb = new Option(null, "database", false,
 				"Use a DB for user accounts and ban entries."
 				+ " This disables \"LAN mode\".");
 		options.addOption(useStorageDb);
