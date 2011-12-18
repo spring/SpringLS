@@ -8,3 +8,5 @@
 /log
 /felix-cache
 /server.pid
+/release.properties
+/pom.xml.*
