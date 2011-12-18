@@ -65,7 +65,7 @@ In case you already have it installed, skip this paragraph.
 If everything went smoothly, this was it already!
 
 All the output of the build process is under the `target` sub-dir.
-This is also where you find the final jar file:
+This is also where you find the final jar files:
 `target/springls*.jar`
 
 
@@ -148,7 +148,7 @@ with `127.0.0.1`.
 * Lines sent and received may be of any length. It has been tested with 600 KB
   long strings and it worked in both directions. Nevertheless, commands like
   "CLIENTS" still try to divide data into several lines, just to make sure the
-  client will receive them. Since the delphi lobby client(TASClient) now
+  client will receive them. Since the Delphi lobby client (TASClient) now
   supports lines of any length, dividing data into several lines is not needed
   anymore. Though, we keep it just in case, to be compatible with other clients
   which may emerge in the future. I do not divide data when sending info on
@@ -173,7 +173,7 @@ with `127.0.0.1`.
 
 * Whenever you use `killClient()` within a for loop, do not forget to decrease
   loop counter as you will skip next client in the list otherwise. This was the
-  cause for some of the "ambigious data" errors. Or better, use the
+  cause for some of the "ambiguous data" errors. Or better, use the
   `killClientDelayed()` method.
 
 * Note that access to long's is not guaranteed to be atomic, but you should use
@@ -201,7 +201,7 @@ How to redirect program's output by duplicating handles in windows' command
 prompt:
 http://www.microsoft.com/resources/documentation/windows/xp/all/proddocs/en-us/redirection.mspx
 
-How to get local ip address (like "192.168.1.1" and not "127.0.0.1"):
+How to get local IP address (like "192.168.1.1" and not "127.0.0.1"):
 http://forum.java.sun.com/thread.jspa?threadID=619056&messageID=3477258
 
 ip-to-country databases:
@@ -242,7 +242,7 @@ Short introduction to generics in JDK 1.5.0:
 http://java.sun.com/j2se/1.5.0/docs/guide/language/generics.html
 
 
-## NAT-Traveersal
+## NAT-Traversal
 
 The primary NAT traversal technique that this lobby server implements is
 _hole punching_. See these links for more info:
