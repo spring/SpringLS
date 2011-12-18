@@ -66,10 +66,16 @@ fi
 MY_OPTIONAL_OPTS="${MY_OPTIONAL_OPTS} ${MY_DEBUG_OPTS}"
 
 USERS_ARGS=$@
+# check if the user supplied args contain "--daemon"
+# NOTE This is quite hacky, but non-bash shells freak out
+#   if we try to supply something like "-p 8200" to the test program
+DAEMON_ARG_GIVEN=$(echo "${USERS_ARGS}" | sed -e "s/.*\\([ \t]\\|^\\)--daemon\\([ \t]\\|$\\).*/ZZZZZZZZZZZZZZZ/")
+DAEMON_ARG_GIVEN=$(echo "${DAEMON_ARG_GIVEN}" | sed -e "s/.*[^Z].*//g")
 # remove "--daemon", if it is present
 USERS_ARGS=$(echo "${USERS_ARGS}" | sed -e "s/\\([ \t]\\|^\\)--daemon\\([ \t]\\|$\\)/ /")
 
-if [[ "$@" == "${USERS_ARGS}" ]]; then
+if [ -z "${DAEMON_ARG_GIVEN}" ]; then
+	echo "Run in-shell..."
 	# run normal (not as daemon) if --daemon switch was not given
 	java -cp "${MY_FINAL_CP}" ${MY_OPTIONAL_OPTS} ${MY_MAIN_CLASS} ${USERS_ARGS}
 else
