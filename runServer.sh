@@ -40,7 +40,7 @@ PID_FILE=server.pid
 cd $(dirname $0)
 
 #MY_JAR_BARE=$(ls target/original-springls*)
-MY_JAR_BASE=$(ls target/springls*)
+MY_JAR_BASE=$(ls target/springls*stand-alone.jar)
 MY_DEPENDENCY_CP="target/dependency/*"
 # use this line for old JDKs
 #MY_DEPENDENCY_CP=$(ls -1 target/dependency/*.jar | awk 'BEGIN { cp="" } { if (cp != "") {cp = cp ":"} cp = cp $1 } END { print(cp) }')
