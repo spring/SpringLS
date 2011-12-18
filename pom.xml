@@ -271,8 +271,7 @@
 			</plugin>
 
 			<!--
-				This includes the dependencies in the generated jar
-				during the package phase
+				This includes the dependencies in additionally generated jars.
 			-->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -280,17 +279,20 @@
 				<version>1.5</version>
 				<executions>
 					<execution>
+						<id>stand-alone</id>
 						<phase>package</phase>
 						<goals>
 							<goal>shade</goal>
 						</goals>
 						<configuration>
+							<shadedArtifactAttached>true</shadedArtifactAttached>
+							<shadedClassifierName>stand-alone</shadedClassifierName>
 							<artifactSet>
 								<!--
 									Include only the ones that are always needed,
 									like logging. Additional ones, like those required
-									for DB access for example, which is not used
-									in LAN mode, have to be added to the classpath
+									for DB access for example (not used in LAN mode),
+									have to be added to the classpath
 									when executing the server.
 								-->
 								<includes>
@@ -300,6 +302,18 @@
 									<include>net.iharder:base64</include>
 								</includes>
 							</artifactSet>
+						</configuration>
+					</execution>
+
+					<execution>
+						<id>stand-alone-full</id>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<shadedArtifactAttached>true</shadedArtifactAttached>
+							<shadedClassifierName>stand-alone-full</shadedClassifierName>
 						</configuration>
 					</execution>
 				</executions>
