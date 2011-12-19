@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pmd-cpd>
+<duplication lines="49" tokens="211">
+<file line="50" path="/home/robin/Projects/SpringLS/repos/master/src/main/java/com/springrts/springls/accounts/JPAAccountsService.java"/>
+<file line="47" path="/home/robin/Projects/SpringLS/repos/master/src/main/java/com/springrts/springls/bans/JPABanService.java"/>
+<codefragment>
+<![CDATA[
+	public JPABanService() {
+		emf = Persistence.createEntityManagerFactory("springls");
+	}
+
+	private EntityManager open() {
+
+		EntityManager em = emf.createEntityManager();
+		return em;
+	}
+	private void begin(EntityManager em) {
+		em.getTransaction().begin();
+	}
+	private void commit(EntityManager em) {
+		em.getTransaction().commit();
+	}
+	private void rollback(EntityManager em) {
+
+		if (em == null) {
+			LOG.error("Failed to create an entity manager");
+		} else {
+			try {
+				if (em.isOpen() && em.getTransaction().isActive()) {
+					em.getTransaction().rollback();
+				} else {
+					LOG.error("Failed to rollback a transaction: no active"
+							+ " connection or transaction");
+				}
+			} catch (PersistenceException ex) {
+				LOG.error("Failed to rollback a transaction", ex);
+			}
+		}
+	}
+	private void close(EntityManager em) {
+
+		if (em == null) {
+			LOG.error("Failed to create an entity manager");
+		} else {
+			try {
+				if (em.isOpen()) {
+					em.close();
+				}
+			} catch (IllegalStateException ex) {
+				LOG.error("Failed to close an entity manager", ex);
+			}
+		}
+	}
+
+	@Override
+	public int getBansSize() {
+]]>
+</codefragment>
+</duplication>
+<duplication lines="46" tokens="191">
+<file line="267" path="/home/robin/Projects/SpringLS/repos/master/src/main/java/com/springrts/springls/accounts/FSAccountsService.java"/>
+<file line="98" path="/home/robin/Projects/SpringLS/repos/master/src/main/java/com/springrts/springls/accounts/LanAccountsService.java"/>
+<codefragment>
+<![CDATA[
+	public void saveAccountsIfNeeded() {}
+
+	@Override
+	public void addAccount(Account acc) {
+
+		if (acc.getId() == Account.NEW_ACCOUNT_ID) {
+			acc.setId(++biggestAccountId);
+		} else if (acc.getId() > biggestAccountId) {
+			biggestAccountId = acc.getId();
+		}
+		accounts.add(acc);
+		map.put(acc.getName(), acc);
+		mapNoCase.put(acc.getName(), acc);
+	}
+
+	@Override
+	public void addAccounts(Iterable<Account> accs) {
+
+		for (Account acc : accs) {
+			addAccount(acc);
+		}
+	}
+
+	@Override
+	public boolean removeAccount(Account acc) {
+
+		boolean result = accounts.remove(acc);
+
+		map.remove(acc.getName());
+		mapNoCase.remove(acc.getName());
+
+		return result;
+	}
+
+	/** Returns null if account is not found */
+	@Override
+	public Account getAccount(String username) {
+		return map.get(username);
+	}
+
+	/** Returns 'null' if index is out of bounds */
+	public Account getAccount(int index) {
+
+		try {
+			return accounts.get(index);
+		} catch (IndexOutOfBoundsException ex) {
+]]>
+</codefragment>
+</duplication>
+<duplication lines="25" tokens="113">
+<file line="39" path="/home/robin/Projects/SpringLS/repos/master/src/main/java/com/springrts/springls/commands/impl/ForceSpectatorModeCommandProcessor.java"/>
+<file line="42" path="/home/robin/Projects/SpringLS/repos/master/src/main/java/com/springrts/springls/commands/impl/KickFromBattleCommandProcessor.java"/>
+<codefragment>
+<![CDATA[
+	public KickFromBattleCommandProcessor() {
+		// only the founder can kick other clients
+		super(1, 1, Account.Access.NORMAL, true, true);
+	}
+
+	@Override
+	public boolean process(Client client, List<String> args)
+			throws CommandProcessingException
+	{
+		boolean checksOk = super.process(client, args);
+		if (!checksOk) {
+			return false;
+		}
+
+		Battle battle = getBattle(client);
+
+		String username = args.get(0);
+
+		Client target = getContext().getClients().getClient(username);
+		if (target == null) {
+			return false;
+		}
+		if (!battle.isClientInBattle(target)) {
+			return false;
+		}
+]]>
+</codefragment>
+</duplication>
+<duplication lines="24" tokens="111">
+<file line="37" path="/home/robin/Projects/SpringLS/repos/master/src/main/java/com/springrts/springls/commands/impl/RemoveScriptTagsCommandProcessor.java"/>
+<file line="49" path="/home/robin/Projects/SpringLS/repos/master/src/main/java/com/springrts/springls/commands/impl/SetScriptTagsCommandProcessor.java"/>
+<codefragment>
+<![CDATA[
+	public SetScriptTagsCommandProcessor() {
+		super(1, ARGS_MAX_NOCHECK, Account.Access.NORMAL, true, true);
+	}
+
+	@Override
+	public boolean process(Client client, List<String> args)
+			throws CommandProcessingException
+	{
+		boolean checksOk = false;
+		try {
+			checksOk = super.process(client, args);
+		} catch (InvalidNumberOfArgumentsCommandProcessingException ex) {
+			// kill client since it is not using this command correctly
+			client.sendLine(String.format(
+					"SERVERMSG Serious error: inconsistent data (%s command)."
+					+ " You will now be disconnected ...", getCommandName()));
+			getContext().getClients().killClient(client, "Quit: inconsistent data");
+			return false;
+		}
+		if (!checksOk) {
+			return false;
+		}
+
+		Battle battle = getBattle(client);
+]]>
+</codefragment>
+</duplication>
+<duplication lines="23" tokens="109">
+<file line="34" path="/home/robin/Projects/SpringLS/repos/master/src/main/java/com/springrts/springls/commands/impl/GetAccountAccessCommandProcessor.java"/>
+<file line="37" path="/home/robin/Projects/SpringLS/repos/master/src/main/java/com/springrts/springls/commands/impl/GetUserIdCommandProcessor.java"/>
+<codefragment>
+<![CDATA[
+	public GetUserIdCommandProcessor() {
+		super(1, 1, Account.Access.ADMIN);
+	}
+
+	@Override
+	public boolean process(Client client, List<String> args)
+			throws CommandProcessingException
+	{
+		boolean checksOk = super.process(client, args);
+		if (!checksOk) {
+			return false;
+		}
+
+		String username = args.get(0);
+
+		Account acc = getContext().getAccountsService().getAccount(username);
+		if (acc == null) {
+			client.sendLine(String.format("SERVERMSG User <%s> not found!",
+					username));
+			return false;
+		}
+
+		client.sendLine(String.format("SERVERMSG Last user ID for <%s> was %d",
+]]>
+</codefragment>
+</duplication>
+<duplication lines="24" tokens="108">
+<file line="37" path="/home/robin/Projects/SpringLS/repos/master/src/main/java/com/springrts/springls/commands/impl/MuteCommandProcessor.java"/>
+<file line="36" path="/home/robin/Projects/SpringLS/repos/master/src/main/java/com/springrts/springls/commands/impl/UnmuteCommandProcessor.java"/>
+<codefragment>
+<![CDATA[
+		super(2, 2, Account.Access.PRIVILEGED);
+	}
+
+	@Override
+	public boolean process(Client client, List<String> args)
+			throws CommandProcessingException
+	{
+		boolean checksOk = super.process(client, args);
+		if (!checksOk) {
+			return false;
+		}
+
+		String chanelName = args.get(0);
+		String username = args.get(1);
+
+		Channel chan = getContext().getChannels().getChannel(chanelName);
+		if (chan == null) {
+			client.sendLine(String.format(
+					"SERVERMSG %s failed: Channel #%s does not exist!",
+					getCommandName(), chanelName));
+			return false;
+		}
+
+		if (!chan.getMuteList().isMuted(username)) {
+]]>
+</codefragment>
+</duplication>
+<duplication lines="20" tokens="102">
+<file line="66" path="/home/robin/Projects/SpringLS/repos/master/src/main/java/com/springrts/springls/accounts/FSAccountsService.java"/>
+<file line="42" path="/home/robin/Projects/SpringLS/repos/master/src/main/java/com/springrts/springls/accounts/LanAccountsService.java"/>
+<codefragment>
+<![CDATA[
+	private static TreeMap<String, Account> map = new TreeMap<String, Account>(
+			new java.util.Comparator<String>() {
+
+				public int compare(String s1, String s2) {
+					return s1.compareTo(s2);
+				}
+			});
+
+	/**
+	 * Same as 'map', only that this ignores case.
+	 * @see map
+	 */
+	private static TreeMap<String, Account> mapNoCase
+			= new TreeMap<String, Account>(
+			new java.util.Comparator<String>() {
+
+				public int compare(String s1, String s2) {
+					return s1.compareToIgnoreCase(s2);
+				}
+			});
+]]>
+</codefragment>
+</duplication>
+<duplication lines="29" tokens="100">
+<file line="331" path="/home/robin/Projects/SpringLS/repos/master/src/main/java/com/springrts/springls/accounts/FSAccountsService.java"/>
+<file line="156" path="/home/robin/Projects/SpringLS/repos/master/src/main/java/com/springrts/springls/accounts/LanAccountsService.java"/>
+<codefragment>
+<![CDATA[
+	}
+
+	@Override
+	public boolean mergeAccountChanges(Account account, String oldName) {
+
+		// persistent here only means, that someone is currently logged in with
+		// this name
+		final boolean isPersistentAccount = map.containsKey(oldName);
+		if (!isPersistentAccount) {
+			return false;
+		}
+
+		final String newName = account.getName();
+		if (!newName.equals(oldName)) {
+			// the account was renamed
+			map.remove(oldName);
+			mapNoCase.remove(oldName);
+			map.put(newName, account);
+			mapNoCase.put(newName, account);
+		}
+
+		return true;
+	}
+
+	@Override
+	public List<Account> fetchAllAccounts() {
+		return accounts;
+	}
+}
+]]>
+</codefragment>
+</duplication>
+</pmd-cpd>

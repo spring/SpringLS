@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pmd version="4.2.5" timestamp="2011-12-19T02:06:19.650">
+<file name="/home/robin/Projects/SpringLS/repos/master/src/main/java/com/springrts/springls/Client.java">
+<violation beginline="110" endline="110" begincolumn="30" endcolumn="35" rule="UnusedPrivateField" ruleset="Unused Code Rules" package="com.springrts.springls" class="Client" variable="selKey" externalInfoUrl="http://pmd.sourceforge.net/rules/unusedcode.html#UnusedPrivateField" priority="3">
+Avoid unused private fields such as 'selKey'.
+</violation>
+</file>
+<file name="/home/robin/Projects/SpringLS/repos/master/src/main/java/com/springrts/springls/commands/CommandProcessors.java">
+<violation beginline="40" endline="40" begincolumn="30" endcolumn="32" rule="UnusedPrivateField" ruleset="Unused Code Rules" package="com.springrts.springls.commands" class="CommandProcessors" variable="log" externalInfoUrl="http://pmd.sourceforge.net/rules/unusedcode.html#UnusedPrivateField" priority="3">
+Avoid unused private fields such as 'log'.
+</violation>
+</file>
+<file name="/home/robin/Projects/SpringLS/repos/master/src/main/java/com/springrts/springls/ip2country/IP2Country.java">
+<violation beginline="292" endline="299" begincolumn="83" endcolumn="25" rule="EmptyIfStmt" ruleset="Basic Rules" package="com.springrts.springls.ip2country" class="IP2Country" method="hasDuplicate" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyIfStmt" priority="3">
+Avoid empty if statements
+</violation>
+<violation beginline="329" endline="336" begincolumn="83" endcolumn="25" rule="EmptyIfStmt" ruleset="Basic Rules" package="com.springrts.springls.ip2country" class="IP2Country" method="hasDuplicate" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyIfStmt" priority="3">
+Avoid empty if statements
+</violation>
+</file>
+<file name="/home/robin/Projects/SpringLS/repos/master/src/main/java/com/springrts/springls/ip2country/IP2CountryService.java">
+<violation beginline="21" endline="21" begincolumn="1" endcolumn="48" rule="UnusedImports" ruleset="Import Statement Rules" package="com.springrts.springls.ip2country" externalInfoUrl="http://pmd.sourceforge.net/rules/imports.html#UnusedImports" priority="4">
+Avoid unused imports such as 'com.springrts.springls.util.ProtocolUtil'
+</violation>
+<violation beginline="22" endline="22" begincolumn="1" endcolumn="30" rule="UnusedImports" ruleset="Import Statement Rules" package="com.springrts.springls.ip2country" externalInfoUrl="http://pmd.sourceforge.net/rules/imports.html#UnusedImports" priority="4">
+Avoid unused imports such as 'java.io.BufferedReader'
+</violation>
+<violation beginline="23" endline="23" begincolumn="1" endcolumn="30" rule="UnusedImports" ruleset="Import Statement Rules" package="com.springrts.springls.ip2country" externalInfoUrl="http://pmd.sourceforge.net/rules/imports.html#UnusedImports" priority="4">
+Avoid unused imports such as 'java.io.BufferedWriter'
+</violation>
+<violation beginline="24" endline="24" begincolumn="1" endcolumn="20" rule="UnusedImports" ruleset="Import Statement Rules" package="com.springrts.springls.ip2country" externalInfoUrl="http://pmd.sourceforge.net/rules/imports.html#UnusedImports" priority="4">
+Avoid unused imports such as 'java.io.File'
+</violation>
+<violation beginline="25" endline="25" begincolumn="1" endcolumn="26" rule="UnusedImports" ruleset="Import Statement Rules" package="com.springrts.springls.ip2country" externalInfoUrl="http://pmd.sourceforge.net/rules/imports.html#UnusedImports" priority="4">
+Avoid unused imports such as 'java.io.FileReader'
+</violation>
+<violation beginline="26" endline="26" begincolumn="1" endcolumn="26" rule="UnusedImports" ruleset="Import Statement Rules" package="com.springrts.springls.ip2country" externalInfoUrl="http://pmd.sourceforge.net/rules/imports.html#UnusedImports" priority="4">
+Avoid unused imports such as 'java.io.FileWriter'
+</violation>
+<violation beginline="27" endline="27" begincolumn="1" endcolumn="27" rule="UnusedImports" ruleset="Import Statement Rules" package="com.springrts.springls.ip2country" externalInfoUrl="http://pmd.sourceforge.net/rules/imports.html#UnusedImports" priority="4">
+Avoid unused imports such as 'java.io.IOException'
+</violation>
+<violation beginline="28" endline="28" begincolumn="1" endcolumn="27" rule="UnusedImports" ruleset="Import Statement Rules" package="com.springrts.springls.ip2country" externalInfoUrl="http://pmd.sourceforge.net/rules/imports.html#UnusedImports" priority="4">
+Avoid unused imports such as 'java.io.PrintWriter'
+</violation>
+<violation beginline="29" endline="29" begincolumn="1" endcolumn="22" rule="UnusedImports" ruleset="Import Statement Rules" package="com.springrts.springls.ip2country" externalInfoUrl="http://pmd.sourceforge.net/rules/imports.html#UnusedImports" priority="4">
+Avoid unused imports such as 'java.io.Reader'
+</violation>
+<violation beginline="32" endline="32" begincolumn="1" endcolumn="40" rule="UnusedImports" ruleset="Import Statement Rules" package="com.springrts.springls.ip2country" externalInfoUrl="http://pmd.sourceforge.net/rules/imports.html#UnusedImports" priority="4">
+Avoid unused imports such as 'java.util.NoSuchElementException'
+</violation>
+<violation beginline="33" endline="33" begincolumn="1" endcolumn="25" rule="UnusedImports" ruleset="Import Statement Rules" package="com.springrts.springls.ip2country" externalInfoUrl="http://pmd.sourceforge.net/rules/imports.html#UnusedImports" priority="4">
+Avoid unused imports such as 'java.util.TreeMap'
+</violation>
+<violation beginline="34" endline="34" begincolumn="1" endcolumn="25" rule="UnusedImports" ruleset="Import Statement Rules" package="com.springrts.springls.ip2country" externalInfoUrl="http://pmd.sourceforge.net/rules/imports.html#UnusedImports" priority="4">
+Avoid unused imports such as 'java.util.TreeSet'
+</violation>
+<violation beginline="36" endline="36" begincolumn="1" endcolumn="24" rule="UnusedImports" ruleset="Import Statement Rules" package="com.springrts.springls.ip2country" externalInfoUrl="http://pmd.sourceforge.net/rules/imports.html#UnusedImports" priority="4">
+Avoid unused imports such as 'org.slf4j.Logger'
+</violation>
+<violation beginline="37" endline="37" begincolumn="1" endcolumn="31" rule="UnusedImports" ruleset="Import Statement Rules" package="com.springrts.springls.ip2country" externalInfoUrl="http://pmd.sourceforge.net/rules/imports.html#UnusedImports" priority="4">
+Avoid unused imports such as 'org.slf4j.LoggerFactory'
+</violation>
+</file>
+</pmd>
