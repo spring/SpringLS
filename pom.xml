@@ -143,7 +143,7 @@
 
 	<scm>
 		<connection>scm:git:git://github.com/spring/SpringLS</connection>
-		<developerConnection>scm:git:ssh://git@github.com:spring/SpringLS</developerConnection>
+		<developerConnection>scm:git:git@github.com:spring/SpringLS.git</developerConnection>
 		<url>http://github.com/spring/SpringLS</url>
 	</scm>
 
