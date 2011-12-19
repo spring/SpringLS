@@ -53,16 +53,16 @@ public class ReloadUpdatePropertiesCommandProcessor extends AbstractCommandProce
 		}
 
 		UpdateProperties updateProperties = getService(UpdateProperties.class);
-		if (updateProperties.read(UpdateProperties.DEFAULT_FILENAME)) {
-			LOG.info("\"Update properties\" read from {}",
-					UpdateProperties.DEFAULT_FILENAME);
+		String updatePropsFile = UpdateProperties.DEFAULT_FILENAME;
+		if (updateProperties.read(updatePropsFile)) {
+			LOG.info("\"Update properties\" read from {}", updatePropsFile);
 			client.sendLine(String.format(
 					"SERVERMSG \"Update properties\" have been successfully loaded from %s",
-					UpdateProperties.DEFAULT_FILENAME));
+					updatePropsFile));
 		} else {
 			client.sendLine(String.format(
 					"SERVERMSG Unable to load \"Update properties\" from %s!",
-					UpdateProperties.DEFAULT_FILENAME));
+					updatePropsFile));
 		}
 
 		return true;
