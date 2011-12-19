@@ -142,6 +142,56 @@ You have to use the `--database` switch on the command-line,
 because otherwise the server will run in LAN-mode, and not use the DB.
 
 
+## Release (devs only)
+
+### Prepare "target/" for the release process
+
+	mvn release:clean
+
+### Prepare the release
+* asks for the version to use
+* packages
+* signs with GPG
+* commits
+* tags
+* pushes to origin
+
+		mvn release:prepare
+
+### Perform the release (main part)
+* checks-out the release tag
+* builds
+* deploy into sonatype staging repository
+* uploads artifacts to the github download section
+
+		mvn release:perform
+
+### Release the site
+* generates the site, and pushes it to the github gh-pages branch,
+  visible under http://spring.github.com/SpringLS/
+
+		git checkout <release-tag>
+		mvn site
+		git checkout master
+
+### Promote it on Maven
+Moves it from the sonatype staging to the main sonatype repo
+
+1. using the Nexus staging plugin:
+
+		mvn nexus:staging-close
+		mvn nexus:staging-release
+
+2. ... alternatively, using the web-interface:
+	* firefox https://oss.sonatype.org
+	* login
+	* got to the "Staging Repositories" tab
+	* select "com.springrts..."
+	* "Close" it
+	* select "com.springrts..." again
+	* "Release" it
+
+
 ## Notes
 
 * A Client may participate in only one battle at the same time. If he is hosting
