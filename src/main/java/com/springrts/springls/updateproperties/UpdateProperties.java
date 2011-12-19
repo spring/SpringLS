@@ -20,10 +20,13 @@ package com.springrts.springls.updateproperties;
 
 import com.springrts.springls.Context;
 import com.springrts.springls.ContextReceiver;
+import com.springrts.springls.ServerConfiguration;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
 
+import org.apache.commons.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,21 +77,33 @@ public class UpdateProperties implements ContextReceiver {
 
 		updateProperties = new Properties();
 
-		FileInputStream fStream = null;
-		try {
-			fStream = new FileInputStream(fileName);
-			updateProperties.loadFromXML(fStream);
-			success = true;
-		} catch (IOException ex) {
-			LOG.warn("Could not find or read from file '" + fileName + "'.",
-					ex);
-		} finally {
-			if (fStream != null) {
-				try {
-					fStream.close();
-				} catch (IOException ex) {
-					LOG.debug("unimportant", ex);
+		File updatePropsFile = new File(fileName);
+		if (updatePropsFile.exists()) {
+			FileInputStream fStream = null;
+			try {
+				fStream = new FileInputStream(updatePropsFile);
+				updateProperties.loadFromXML(fStream);
+				success = true;
+			} catch (IOException ex) {
+				LOG.warn("Could not read from file '" + fileName + "'.", ex);
+			} finally {
+				if (fStream != null) {
+					try {
+						fStream.close();
+					} catch (IOException ex) {
+						LOG.debug("unimportant", ex);
+					}
 				}
+			}
+		} else {
+			Configuration conf = getContext().getService(Configuration.class);
+			String engineVersion = conf.getString(ServerConfiguration.ENGINE_VERSION);
+			// Not having update properties is only possibly a problem
+			// when we try to enforce a certain engine version.
+			if (!engineVersion.equals("*")) {
+				LOG.warn("Could not find file '{}';"
+						+ " not using any update properties.",
+						fileName.toString());
 			}
 		}
 
