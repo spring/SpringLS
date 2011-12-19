@@ -84,7 +84,7 @@ public final class Main {
 
 		Option natPort = new Option("n", "nat-port", true,
 				"The (UDP) port number to host the NAT traversal techniques"
-				+ " help service on [1, 65535], which lets clients detect thier"
+				+ " help service on [1, 65535], which lets clients detect their"
 				+ " source port, for example when using \"hole punching\"."
 				+ " The default is "
 				+ defaults.getInt(ServerConfiguration.NAT_PORT) + ".");
