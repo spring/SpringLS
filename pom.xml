@@ -15,7 +15,7 @@
 
 	<groupId>com.springrts.springls</groupId>
 	<artifactId>springls</artifactId>
-	<version>0.36-SNAPSHOT</version>
+	<version>0.36</version>
 
 	<!-- This is a requirement to be able to sync to Maven central -->
 	<parent>
