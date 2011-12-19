@@ -18,6 +18,7 @@
 package com.springrts.springls.updateproperties;
 
 
+import com.springrts.springls.Context;
 import com.springrts.springls.commands.CommandProcessors;
 
 import org.osgi.framework.BundleActivator;
@@ -37,7 +38,10 @@ public class Activator implements BundleActivator {
 	@Override
 	public void start(BundleContext context) {
 
+		Context springLsContext = Context.getService(context, Context.class);
+
 		UpdateProperties updateProperties = new UpdateProperties();
+		updateProperties.receiveContext(springLsContext);
 		String updatePropsFile = UpdateProperties.DEFAULT_FILENAME;
 		if (updateProperties.read(updatePropsFile)) {
 			log.info("\"Update properties\" read from {}", updatePropsFile);
