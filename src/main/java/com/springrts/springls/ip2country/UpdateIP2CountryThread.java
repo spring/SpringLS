@@ -198,7 +198,7 @@ public class UpdateIP2CountryThread implements Runnable, ContextReceiver {
 				String inLine;
 				while ((inLine = sourceRawIn.readLine()) != null) {
 					inLine = inLine.trim();
-					if (inLine.equals("") || inLine.charAt(0) == '#') {
+					if (inLine.isEmpty() || inLine.charAt(0) == '#') {
 						continue;
 					}
 

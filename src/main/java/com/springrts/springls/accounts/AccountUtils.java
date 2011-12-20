@@ -109,7 +109,7 @@ public final class AccountUtils {
 	public static void main(String[] args) {
 
 		String toDo = (args.length > 0 ? args[0] : "");
-		if (toDo.equals("")) {
+		if (toDo.isEmpty()) {
 			BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
 			try {
 				toDo = console.readLine();

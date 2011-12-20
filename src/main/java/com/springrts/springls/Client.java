@@ -549,7 +549,7 @@ public class Client extends TeamController implements ContextReceiver {
 
 		String data = fastWrite.toString();
 		fastWrite = null;
-		if (data.equals("")) {
+		if (data.isEmpty()) {
 			return;
 		}
 		sendLine(data);
