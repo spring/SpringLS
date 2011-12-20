@@ -113,6 +113,10 @@ public final class AccountUtils {
 			BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
 			try {
 				toDo = console.readLine();
+				if (toDo == null) {
+					// makes FindBugs happy, even though we will never get here
+					toDo = "";
+				}
 			} catch (IOException ex) {
 				System.err.println("Failed reading from the command-line");
 			}
