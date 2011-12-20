@@ -293,12 +293,16 @@
 									have to be added to the classpath
 									when executing the server.
 								-->
-								<includes>
-									<include>org.slf4j:slf4j-api</include>
-									<include>ch.qos.logback:logback-classic</include>
-									<include>javax.persistence:persistence-api</include>
-									<include>net.iharder:base64</include>
-								</includes>
+								<excludes>
+									<exclude>commons-pool:commons-pool</exclude>
+									<exclude>commons-dbcp:commons-dbcp</exclude>
+									<exclude>javax.persistence:persistence-api</exclude>
+									<exclude>javax.transaction:jta</exclude>
+									<exclude>org.hibernate:*</exclude>
+									<exclude>org.apache.openjpa:*</exclude>
+									<exclude>mysql:*</exclude>
+									<exclude>postgresql:*</exclude>
+								</excludes>
 							</artifactSet>
 						</configuration>
 					</execution>
