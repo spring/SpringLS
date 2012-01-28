@@ -366,7 +366,7 @@ public class Client extends TeamController implements ContextReceiver {
 		// the welcome messages command-name is hardcoded to TASSERVER
 		// XXX maybe change TASSERVER to WELCOME or the like -> protocol change
 		sendLine(String.format("TASSERVER %s %s %d %d",
-				Misc.getAppVersionNonNull(),
+				conf.getString(ServerConfiguration.LOBBY_PROTOCOL_VERSION),
 				conf.getString(ServerConfiguration.ENGINE_VERSION),
 				conf.getInt(ServerConfiguration.NAT_PORT),
 				conf.getBoolean(ServerConfiguration.LAN_MODE) ? 1 : 0));

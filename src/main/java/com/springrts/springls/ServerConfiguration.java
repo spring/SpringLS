@@ -60,10 +60,21 @@ public final class ServerConfiguration {
 	 */
 	public static final String CHANNELS_LOG_REGEX = "log.main";
 	/**
+	 * The property name for the engine version that clients should use to
+	 * host games on this server.
 	 * This is sent via the welcome message whenever a client connects to the
 	 * server.
 	 */
 	public static final String ENGINE_VERSION = "engine.version";
+	/**
+	 * The property name for the lobby protocol version used by this lobby
+	 * server.
+	 * This is sent via the welcome message whenever a client connects to the
+	 * server.
+	 * It is stored in hte configuration, because it may change depending on
+	 * which OSGi modules are installed.
+	 */
+	public static final String LOBBY_PROTOCOL_VERSION = "lobby.protocol.version";
 	/**
 	 * If this is <code>true</code>, we will use a DB instead of flat files for
 	 * user management.
@@ -92,6 +103,7 @@ public final class ServerConfiguration {
 		configuration.setProperty(LAN_ADMIN_PASSWORD, "admin");
 		configuration.setProperty(CHANNELS_LOG_REGEX, "^%%%%%%%$"); // match no channel
 		configuration.setProperty(ENGINE_VERSION, "*"); // all versions
+		configuration.setProperty(LOBBY_PROTOCOL_VERSION, "0.35");
 		configuration.setProperty(USE_DATABASE, false);
 
 		return configuration;
