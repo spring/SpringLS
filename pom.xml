@@ -361,9 +361,6 @@
 						</goals>
 					</execution>
 				</executions>
-				<goals>
-					<goal>java</goal>
-				</goals>
 				<configuration>
 					<mainClass>${project.mainClass}</mainClass>
 				</configuration>
