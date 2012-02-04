@@ -795,7 +795,7 @@ public class Client extends TeamController implements ContextReceiver {
 	private static void deleteLeadingWhiteSpace(StringBuilder str) {
 
 		int wsPos = 0;
-		while (isWhiteSpace(str.charAt(wsPos))) {
+		while ((wsPos < str.length()) && isWhiteSpace(str.charAt(wsPos))) {
 			wsPos++;
 		}
 		str.delete(0, wsPos);
@@ -833,9 +833,8 @@ public class Client extends TeamController implements ContextReceiver {
 
 		String line = null;
 
+		deleteLeadingWhiteSpace(recvBuf);
 		if (recvBuf.length() > 0) {
-			deleteLeadingWhiteSpace(recvBuf);
-
 			int nPos = recvBuf.indexOf("\n");
 			if (nPos != -1) {
 				int deleted = deleteCarriageReturnChars(recvBuf, nPos);
