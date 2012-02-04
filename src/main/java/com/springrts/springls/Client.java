@@ -840,7 +840,7 @@ public class Client extends TeamController implements ContextReceiver {
 				int deleted = deleteCarriageReturnChars(recvBuf, nPos);
 
 				line = recvBuf.substring(0, nPos - deleted);
-				recvBuf.delete(0, nPos + 1);
+				recvBuf.delete(0, nPos - deleted);
 			}
 		}
 
