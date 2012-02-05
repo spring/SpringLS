@@ -280,7 +280,7 @@ public class JPAAccountsService extends AbstractAccountsService {
 			fetchByLastIpQuery.setParameter("ip", ip.getHostAddress());
 			act = (Account) fetchByLastIpQuery.getSingleResult();
 		} catch (Exception ex) {
-			LOG.trace("Failed fetching an account by last ip", ex);
+			LOG.trace("Failed fetching an account by last IP", ex);
 		} finally {
 			close(em);
 			em = null;

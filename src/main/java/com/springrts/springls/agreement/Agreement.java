@@ -62,9 +62,9 @@ public class Agreement {
 						DEFAULT_FILE_NAME);
 			}
 		} catch (IOException ex) {
-			LOG.warn("Could not find or read from file '{}'."
-					+ " Using no agreement.", DEFAULT_FILE_NAME);
-			LOG.debug("... reason:", ex);
+			LOG.warn("Could not find or read from file '{}'; reason: {}."
+					+ " -> Using no agreement.",
+					DEFAULT_FILE_NAME, ex.getMessage());
 		}
 
 		return success;

@@ -63,9 +63,9 @@ public interface IP2CountryService {
 //			LOG.info("Using IP2Country info from file '{}'.",
 //					dataFile.getAbsolutePath());
 //		} catch (IOException ex) {
-//			LOG.warn("Could not find or read from file '{}'. Not using any"
-//					+ " IP2Country info.", dataFile.getAbsolutePath());
-//			LOG.debug("... reason:", ex);
+//			LOG.warn("Could not find or read from file '{}'; reason: {}."
+//					+ " -> Not using any IP2Country info.",
+//					dataFile.getAbsolutePath(), ex.getMessage());
 //			return false;
 //		}
 //

@@ -79,9 +79,8 @@ public class MessageOfTheDay implements ContextReceiver {
 			success = true;
 			LOG.info("Using MOTD from file '{}'.", fileName);
 		} catch (IOException ex) {
-			LOG.warn("Could not find or read from file '{}'."
-					+ " Using the default MOTD.", fileName);
-			LOG.debug("... reason:", ex);
+			LOG.warn("Could not find or read from file '{}'; reason: {}."
+					+ " -> Using the default MOTD.", fileName, ex.getMessage());
 			success = false;
 		}
 

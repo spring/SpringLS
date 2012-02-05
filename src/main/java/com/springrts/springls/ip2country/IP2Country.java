@@ -122,9 +122,9 @@ final class IP2Country implements IP2CountryService {
 			LOG.info("Using IP2Country info from file '{}'.",
 					dataFile.getAbsolutePath());
 		} catch (IOException ex) {
-			LOG.warn("Could not find or read from file '{}'. Not using any"
-					+ " IP2Country info.", dataFile.getAbsolutePath());
-			LOG.debug("... reason:", ex);
+			LOG.warn("Could not find or read from file '{}'; reason: {}."
+					+ " -> Not using any IP2Country info.",
+					dataFile.getAbsolutePath(), ex.getMessage());
 			return false;
 		}
 
@@ -230,24 +230,23 @@ final class IP2Country implements IP2CountryService {
 
 		boolean hasDuplicate = false;
 
-		IPRange prev = null;
-		IPRange next = null;
-		try {
-			// +1 because headMap() returns keys that are strictly less
-			// than given key, but we want equals as well
-			prev = resolveTable.headMap(new IPRange(ip.getFromIP() + 1,
-					ip.getToIP() + 1, ProtocolUtil.COUNTRY_UNKNOWN)).lastKey();
+		// +1 because headMap() returns keys that are strictly less
+		// than given key, but we want equals as well
+		SortedMap<IPRange, IPRange> head
+				= resolveTable.headMap(new IPRange(ip.getFromIP() + 1,
+				ip.getToIP() + 1, ProtocolUtil.COUNTRY_UNKNOWN));
+		IPRange prev = head.isEmpty() ? null : head.lastKey();
 
-			// +1 because tailMap() returns keys that are bigger or
-			// equal to given key, but we want strictly bigger ones
-			next = resolveTable.tailMap(new IPRange(ip.getFromIP() + 1,
-					ip.getToIP() + 1, ProtocolUtil.COUNTRY_UNKNOWN)).firstKey();
-		} catch (NoSuchElementException ex) {
-			LOG.debug("Failed to check if IP range overlaps with any other: "
-					+ ip, ex);
-		}
+		// +1 because tailMap() returns keys that are bigger or
+		// equal to given key, but we want strictly bigger ones
+		SortedMap<IPRange, IPRange> tail
+				= resolveTable.tailMap(new IPRange(ip.getFromIP() + 1,
+				ip.getToIP() + 1, ProtocolUtil.COUNTRY_UNKNOWN));
+		IPRange next = tail.isEmpty() ? null : tail.firstKey();
 
-		if (next == null) {
+		if ((prev == null) || (next == null)) {
+			LOG.debug("Failed to check if IP range overlaps with any other: {}",
+					ip);
 			// if either previous or next could not be fetched, assume there is
 			// no dupicate
 			hasDuplicate = false;

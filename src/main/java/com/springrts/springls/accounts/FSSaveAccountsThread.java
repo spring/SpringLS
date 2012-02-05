@@ -123,8 +123,9 @@ public class FSSaveAccountsThread extends Thread implements ContextReceiver {
 					outF.close();
 				}
 			} catch (IOException ex) {
-				LOG.trace("Failed closing file writer to accounts file: "
-						+ saveFile.getAbsolutePath(), ex);
+				LOG.trace("Failed closing file writer to accounts file '{}';"
+						+ " reason: {}."
+						, saveFile.getAbsolutePath(), ex.getMessage());
 			}
 		}
 
