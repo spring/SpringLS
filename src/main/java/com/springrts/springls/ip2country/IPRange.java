@@ -111,14 +111,16 @@ public class IPRange implements Comparable<IPRange> {
 	/**
 	 * 2 character ISO country code, "XX" means unspecified
 	 * @return the countryCode2
-	 */ public String getCountryCode2() {
+	 */
+	public String getCountryCode2() {
 		return countryCode2;
 	}
 
 	/**
 	 * 2 character ISO country code, "XX" means unspecified
 	 * @param countryCode2 the countryCode2 to set
-	 */ public void setCountryCode2(String countryCode2) {
+	 */
+	public void setCountryCode2(String countryCode2) {
 		this.countryCode2 = countryCode2;
 	}
 }
