@@ -109,6 +109,15 @@ public class IPRange implements Comparable<IPRange> {
 	}
 
 	/**
+	 * Checks whether a given IP is within our range (boundaries inclusive).
+	 * @param ip to be checked whether it is in our range
+	 * @return true if the supplied IP is in our range, false otherwise.
+	 */
+	public boolean contains(long ip) {
+		return ((ip >= getFromIP()) && (ip <= getToIP()));
+	}
+
+	/**
 	 * 2 character ISO country code, "XX" means unspecified
 	 * @return the countryCode2
 	 */

@@ -30,6 +30,7 @@ import java.io.Reader;
 import java.net.InetAddress;
 import java.util.Locale;
 import java.util.NoSuchElementException;
+import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -388,19 +389,22 @@ final class IP2Country implements IP2CountryService {
 
 		String result = ProtocolUtil.COUNTRY_UNKNOWN;
 
-		try {
-			long longIp = ProtocolUtil.ip2Long(ip);
-			// +1 because headMap() returns keys that are strictly less than the
-			// given key
-			long longIpPlus = longIp + 1;
-			IPRange x = resolveTable.headMap(new IPRange(longIpPlus, longIpPlus,
-					ProtocolUtil.COUNTRY_UNKNOWN)).lastKey();
-			if ((x.getFromIP() <= longIp) && (x.getToIP() >= longIp)) {
-				result = x.getCountryCode2();
-			}
-		} catch (NoSuchElementException ex) {
-			LOG.debug("Failed to evaluate country code for IP: "
-					+ ip.getHostAddress(), ex);
+		long longIp = ProtocolUtil.ip2Long(ip);
+		// +1 because headMap() returns keys that are strictly less than the
+		// given key
+		long longIpPlus = longIp + 1;
+		SortedMap<IPRange, IPRange> possiblyFittingEntries
+				= resolveTable.headMap(new IPRange(longIpPlus, longIpPlus,
+				ProtocolUtil.COUNTRY_UNKNOWN));
+		IPRange rng = null; // a range that might fit
+		if (!possiblyFittingEntries.isEmpty()) {
+			rng = possiblyFittingEntries.lastKey();
+		}
+		if ((rng != null) && rng.contains(longIp)) {
+			result = rng.getCountryCode2();
+		} else {
+			LOG.debug("Failed to evaluate country code for IP: {}",
+					ip.getHostAddress());
 		}
 
 		// quick fix for some non-standard country codes:
