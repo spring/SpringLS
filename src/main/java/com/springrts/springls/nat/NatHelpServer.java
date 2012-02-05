@@ -91,7 +91,7 @@ public class NatHelpServer implements Runnable, ContextReceiver,
 			int clientPort = packet.getPort();
 			String data = new String(packet.getData(), packet.getOffset(),
 					packet.getLength());
-			LOG.debug("*** UDP packet received from {} from port {}",
+			LOG.trace("*** UDP packet received from {} from port {}",
 					address.getHostAddress(), clientPort);
 			Client client = getContext().getClients().getClient(data);
 			if (client == null) {

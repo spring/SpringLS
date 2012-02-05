@@ -333,8 +333,8 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 			return false;
 		}
 
-		if (LOG.isDebugEnabled()) {
-			LOG.debug("[<-{}] \"{}\"",
+		if (LOG.isTraceEnabled()) {
+			LOG.trace("[<-{}] \"{}\"",
 					(client.getAccount().getAccess() != Account.Access.NONE)
 						? client.getAccount().getName()
 						: client.getIp().getHostAddress(),

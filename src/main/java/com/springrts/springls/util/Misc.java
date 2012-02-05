@@ -457,7 +457,7 @@ public final class Misc {
 					inF.close();
 				}
 			} catch (IOException ex) {
-				LOG.debug("Failed to close file reader: "
+				LOG.trace("Failed to close file reader: "
 						+ file.getAbsolutePath(), ex);
 			}
 		}

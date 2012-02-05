@@ -91,7 +91,8 @@ public class UpdateProperties implements ContextReceiver {
 					try {
 						fStream.close();
 					} catch (IOException ex) {
-						LOG.debug("unimportant", ex);
+						LOG.trace("Failed to close file input stream: "
+								+ fileName, ex);
 					}
 				}
 			}

@@ -308,11 +308,11 @@ public class Client extends TeamController implements ContextReceiver {
 			return true;
 		}
 
-		if (LOG.isDebugEnabled()) {
+		if (LOG.isTraceEnabled()) {
 			String nameOrIp = (account.getAccess() != Account.Access.NONE)
 						? account.getName()
 						: ip.getHostAddress();
-			LOG.debug("[->{}] \"{}\"", nameOrIp, data);
+			LOG.trace("[->{}] \"{}\"", nameOrIp, data);
 		}
 
 		try {
