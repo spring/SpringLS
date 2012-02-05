@@ -27,8 +27,9 @@ Maven needs to know about the project, in order to:
 * Pack the class files together with all the dependencies into a single,
   executable jar file
 
-### Installing Maven 2
+### Installing Maven
 
+You need Maven version 2 or later.
 In case you already have it installed, skip this paragraph.
 
 * _Windows_
@@ -49,7 +50,7 @@ In case you already have it installed, skip this paragraph.
 
 ### Building the software
 
-1.	Make sure you have Maven 2 installed.
+1.	Make sure you have Maven 2 or later installed.
 	You can check that with the following command:
 
 		> mvn --version
@@ -75,10 +76,10 @@ Use `runServer.sh` or `runServer.bat` to start the server, if you built it
 with Maven.
 You should also see the documentation in these files, for further info.
 
-When server is up and running, people from the local network will be able to 
-join it as well as people from the internet, although those from the internet 
-will not be able to join games hosted by local clients, still local clients will 
-be able to join games hosted by outside players. You do not need to create any 
+When server is up and running, people from the local network will be able to
+join it as well as people from the internet, although those from the internet
+will not be able to join games hosted by local clients, still local clients will
+be able to join games hosted by outside players. You do not need to create any
 accounts when joining a LAN server, it will accept any user-name/password.
 
 If you experience problems using server in LAN mode (like other clients
@@ -91,7 +92,7 @@ the connection attempt will fail.
 The server should replace this IP with a local one (`192.168.x.y`) automatically,
 but if it fails for any reason, you should use the method described above.
 
-To be able to accept connections from outside the LAN, you will have to forward 
+To be able to accept connections from outside the LAN, you will have to forward
 ports 8200 (TCP) and 8201 (UDP) to the machine running the lobby.
 
 You will also need the Java run-time environment (JRE) 6 or later.
@@ -103,7 +104,7 @@ The latest version can be found
 
 Example of usage:
 
-	> java -jar springls-*.jar --port 8200 --nat-port 8201 --log-main
+	> java -jar springls-*.jar --port 8200 --nat-port 8201
 
 Arguments are case sensitive.
 For the full list of arguments, use `--help`.
