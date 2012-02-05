@@ -143,6 +143,13 @@ You have to use the `--database` switch on the command-line,
 because otherwise the server will run in LAN-mode, and not use the DB.
 
 
+## Release a SNAPSHOT (devs only)
+
+To release an development version to the Sonatype snapshot repository only:
+
+		mvn clean deploy -Dgithub.downloads.dryRun=true
+
+
 ## Release (devs only)
 
 ### Prepare "target/" for the release process
