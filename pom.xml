@@ -34,7 +34,7 @@
 	<description>A Spring RTS lobby server, written in Java</description>
 	<url>https://github.com/spring/SpringLS</url>
 	<prerequisites>
-		<maven>2.1</maven>
+		<maven>2.2.1</maven>
 	</prerequisites>
 	<inceptionYear>2005</inceptionYear>
 
