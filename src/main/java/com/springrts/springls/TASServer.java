@@ -112,11 +112,11 @@ public final class TASServer {
 		return framework;
 	}
 
-	private static Map<String, Object> createFrameworkConfig() {
+	private static Map<String, String> createFrameworkConfig() {
 
-		Map<String, Object> config = null;
+		Map<String, String> config = null;
 
-		config = new HashMap<String, Object>();
+		config = new HashMap<String, String>();
 		// TODO add some params to config ...
 
 		return config;
