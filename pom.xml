@@ -158,6 +158,7 @@
 					<sourceEncoding>${project.build.sourceEncoding}</sourceEncoding>
 					<linkXref>true</linkXref>
 					<configLocation>${project.build.resources[0].directory}/checkstyle.xml</configLocation>
+					<aggregate>true</aggregate>
 				</configuration>
 			</plugin>
 
