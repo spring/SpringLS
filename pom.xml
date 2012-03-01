@@ -1,15 +1,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<properties>
-		<!--
-			This may get better support in Maven 3, see:
-			http://docs.codehaus.org/display/MAVENUSER/POM+Element+for+Source+File+Encoding
-		-->
-		<project.build.encoding>UTF-8</project.build.encoding>
-		<project.build.sourceEncoding>${project.build.encoding}</project.build.sourceEncoding>
-		<project.build.resourceEncoding>${project.build.encoding}</project.build.resourceEncoding>
+	<parent>
+		<groupId>com.springrts</groupId>
+		<artifactId>parent</artifactId>
+		<version>1.1</version>
+	</parent>
 
+	<properties>
 		<project.mainClass>com.springrts.springls.Main</project.mainClass>
 	</properties>
 
@@ -17,25 +15,11 @@
 	<artifactId>springls</artifactId>
 	<version>0.38-SNAPSHOT</version>
 
-	<!-- This is a requirement to be able to sync to Maven central -->
-	<parent>
-		<groupId>org.sonatype.oss</groupId>
-		<artifactId>oss-parent</artifactId>
-		<version>7</version>
-	</parent>
-
 	<packaging>jar</packaging>
 
-	<organization>
-		<name>Spring RTS Community</name>
-		<url>http://springrts.com</url>
-	</organization>
 	<name>SpringLS</name>
 	<description>A Spring RTS lobby server, written in Java</description>
 	<url>https://github.com/spring/SpringLS</url>
-	<prerequisites>
-		<maven>2.2.1</maven>
-	</prerequisites>
 	<inceptionYear>2005</inceptionYear>
 
 	<licenses>
@@ -45,11 +29,6 @@
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
-
-	<issueManagement>
-		<system>Mantis</system>
-		<url>http://springrts.com/mantis/</url>
-	</issueManagement>
 
 	<developers>
 		<developer>
@@ -147,87 +126,9 @@
 		<url>http://github.com/spring/SpringLS</url>
 	</scm>
 
-	<reporting>
-		<plugins>
-
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-checkstyle-plugin</artifactId>
-				<version>2.8</version>
-				<configuration>
-					<sourceEncoding>${project.build.sourceEncoding}</sourceEncoding>
-					<linkXref>true</linkXref>
-					<configLocation>${project.build.resources[0].directory}/checkstyle.xml</configLocation>
-					<aggregate>true</aggregate>
-				</configuration>
-			</plugin>
-
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-pmd-plugin</artifactId>
-				<version>2.6</version>
-				<configuration>
-					<linkXref>true</linkXref>
-					<sourceEncoding>${project.build.sourceEncoding}</sourceEncoding>
-					<targetJdk>1.5</targetJdk>
-				</configuration>
-			</plugin>
-
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>findbugs-maven-plugin</artifactId>
-				<version>2.3.3</version>
-			</plugin>
-
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-changelog-plugin</artifactId>
-				<version>2.2</version>
-			</plugin>
-
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-report-plugin</artifactId>
-				<version>2.11</version>
-			</plugin>
-
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>jdepend-maven-plugin</artifactId>
-				<version>2.0-beta-2</version>
-			</plugin>
-
-		</plugins>
-	</reporting>
 
 	<build>
-		<defaultGoal>package</defaultGoal>
-
 		<plugins>
-			<!--
-				Set source compatibility to 1.5, so Annotations are supported.
-			-->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.3.2</version>
-				<configuration>
-					<source>1.5</source>
-					<target>1.5</target>
-					<encoding>${project.build.sourceEncoding}</encoding>
-					<showDeprecation>true</showDeprecation>
-				</configuration>
-			</plugin>
-
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-resources-plugin</artifactId>
-				<version>2.5</version>
-				<configuration>
-					<encoding>${project.build.resourceEncoding}</encoding>
-				</configuration>
-			</plugin>
-
 			<!--
 				Modifies the jars manifest file,
 				eg. adds the Main-Class attribute
@@ -364,31 +265,6 @@
 				</executions>
 				<configuration>
 					<mainClass>${project.mainClass}</mainClass>
-				</configuration>
-			</plugin>
-
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-site-plugin</artifactId>
-				<version>3.0</version>
-			</plugin>
-
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-project-info-reports-plugin</artifactId>
-				<version>2.4</version>
-			</plugin>
-
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-release-plugin</artifactId>
-				<version>2.2.1</version>
-				<configuration>
-					<!--
-						Workaround to prevent the gpg plugin from hanging, see:
-						http://jira.codehaus.org/browse/MGPG-9
-					-->
-					<mavenExecutorId>forked-path</mavenExecutorId>
 				</configuration>
 			</plugin>
 
@@ -616,85 +492,6 @@
 					<optional>true</optional>
 				</dependency>
 			</dependencies>
-		</profile>
-
-		<profile>
-			<id>Extensive-Reports</id>
-			<!--
-				This profile adds additional reports to the site phase.
-				The reports in here create a lot of output (in MB).
-				Thus we do not want to use them to generate the default site,
-				which is uploaded on the web (for potentially many versions).
-			-->
-			<reporting>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-jxr-plugin</artifactId>
-						<version>2.3</version>
-						<configuration>
-							<sourceEncoding>${project.build.sourceEncoding}</sourceEncoding>
-						</configuration>
-					</plugin>
-
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-javadoc-plugin</artifactId>
-						<version>2.8</version>
-						<configuration>
-							<charset>${project.build.sourceEncoding}</charset>
-							<encoding>${project.build.sourceEncoding}</encoding>
-						</configuration>
-					</plugin>
-
-					<plugin>
-						<groupId>org.codehaus.mojo</groupId>
-						<artifactId>cobertura-maven-plugin</artifactId>
-						<version>2.5.1</version>
-					</plugin>
-
-					<!--<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-linkcheck-plugin</artifactId>
-						<version>1.1</version>
-					</plugin>-->
-
-					<!--<plugin>
-						<groupId>org.apache.rat</groupId>
-						<artifactId>apache-rat-plugin</artifactId>
-						<version>0.8</version>
-					</plugin>-->
-
-				</plugins>
-			</reporting>
-		</profile>
-
-		<profile>
-			<id>release-sign-artifacts</id>
-			<activation>
-				<property>
-					<name>performRelease</name>
-					<value>true</value>
-				</property>
-			</activation>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-gpg-plugin</artifactId>
-						<version>1.4</version>
-						<executions>
-							<execution>
-								<id>sign-artifacts</id>
-								<phase>verify</phase>
-								<goals>
-									<goal>sign</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
 		</profile>
 
 	</profiles>
