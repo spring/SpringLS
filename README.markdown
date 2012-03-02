@@ -200,37 +200,10 @@ Moves it from the sonatype staging to the main sonatype repo
 	* "Release" it
 
 
-## Notes
-
-* A Client may participate in only one battle at the same time. If he is hosting
-  a battle, he may not participate in other battles at the same time. The server
-  checks for that automatically.
-
-* Lines sent and received may be of any length. It has been tested with 600 KB
-  long strings and it worked in both directions. Nevertheless, commands like
-  "CLIENTS" still try to divide data into several lines, just to make sure the
-  client will receive them. Since the Delphi lobby client (TASClient) now
-  supports lines of any length, dividing data into several lines is not needed
-  anymore. Though, we keep it just in case, to be compatible with other clients
-  which may emerge in the future. I do not divide data when sending info on
-  battles and clients in battles. This lines may get long, but not longer than a
-  couple of hundred bytes (they should always be under 1 KB in length).
-
-* Sentences must be separated by TAB characters. This also means there should be
-  no TABs present in your sentences, since TABs are delimiters. That is why you
-  should always replace any TABs with spaces (2 or 8 usually).
-
-* Syncing works by clients comparing host's hash code with their own. If the two
-  codes match, client should update his battle status and this way telling other
-  clients in the battle that he is synced (or unsynced otherwise). The hash code
-  comes from hashing the mod's file and probably all the dependences too. See
-  unitsync documentation for details.
+## Dev Notes
 
 * Try not to edit the account file manually! If you do, do not forget that
   access numbers must be in binary form!
-
-* Team colors are currently set by players, perhaps it would be better if only
-  the host would be able to change them?
 
 * Whenever you use `killClient()` within a for loop, do not forget to decrease
   loop counter as you will skip next client in the list otherwise. This was the
@@ -241,7 +214,7 @@ Moves it from the sonatype staging to the main sonatype repo
   synchronization anyway, if you use multiple threads.
 
 
-## Dev-Links
+## Dev Links
 
 Great article on how to handle network timeouts in Java:
 http://www.javacoffeebreak.com/articles/network_timeouts/
