@@ -37,10 +37,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * ---- NOTES ----
- * - Each account is uniquely identified by its username. I also used the ID in
- *   previous versions, but since all usernames must be unique, we do not need
- *   another unique identifier.
+ * An account is the server-side representation of a human that may login.
+ *
+ * Each account is uniquely identified by its username.
+ * Previously, the ID was used for that purpose,
+ * but since all usernames must be unique,
+ * we do not need another unique identifier anymore.
  *
  * @author Betalord
  */

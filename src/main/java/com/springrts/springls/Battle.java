@@ -73,7 +73,11 @@ public class Battle implements ContextReceiver {
 	private String password;
 	/** IP port number this battle will be hosted on (default is 8452). */
 	private int port;
-	/** see notes for description */
+	/**
+	 * This is a checksum over all the content required to participate in
+	 * the to be played game.
+	 * See "Syncing" in the lobby protocol specs for more details.
+	 */
 	private int hashCode;
 	/**
 	 * If 0, no rank limit is set.
@@ -673,8 +677,10 @@ public class Battle implements ContextReceiver {
 	}
 
 	/**
-	 * see notes for description
-	 * @return the hashCode
+	 * This is a checksum over all the content required to participate in
+	 * the to be played game.
+	 * See "Syncing" in the lobby protocol specs for more details.
+	 * @return the content checksum
 	 */
 	public int getHashCode() {
 		return hashCode;
