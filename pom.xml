@@ -118,6 +118,13 @@
 				<role>provides testing server and web-space</role>
 			</roles>
 		</contributor>
+		<contributor>
+			<name>cheesecan</name>
+			<email>jahziah.wagner@gmail.com</email>
+			<roles>
+				<role>patch writer</role>
+			</roles>
+		</contributor>
 	</contributors>
 
 	<scm>
