@@ -50,7 +50,7 @@ public class ForceJoinBattleCommandProcessor extends AbstractCommandProcessor {
 		int battleID = client.getBattleID();
 		Battle battle = getContext().getBattles().getBattleByID(battleID);
 		if (!battle.getFounder().equals(client)
-				&& !client.getAccount().getAccess().equals(Account.Access.PRIVILEGED))
+				&& !client.getAccount().getAccess().isAtLeast(Account.Access.PRIVILEGED))
 		{
 			client.sendLine("FORCEJOINBATTLE Failed, source client must be battle host or lobby moderator.");
 			return false;
