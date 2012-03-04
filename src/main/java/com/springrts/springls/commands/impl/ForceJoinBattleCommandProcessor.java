@@ -83,12 +83,17 @@ public class ForceJoinBattleCommandProcessor extends AbstractCommandProcessor {
 			battlePassword = args.get(2);
 		}
 
-		String successResponseMessage = (battlePassword == null)
-				? String.format("FORCEJOINBATTLE %i", destinationBattleId)
-				: String.format("FORCEJOINBATTLE %i %s", destinationBattleId, battlePassword);
+		boolean clientSupportsCmd = client.getCompatFlags().contains("m");
+		if (clientSupportsCmd) {
+			String successResponseMessage = (battlePassword == null)
+					? String.format("FORCEJOINBATTLE %i", destinationBattleId)
+					: String.format("FORCEJOINBATTLE %i %s", destinationBattleId, battlePassword);
 
-		// Issue response command to notify affected client
-		affectedClient.sendLine(successResponseMessage);
+			// Issue response command to notify affected client
+			affectedClient.sendLine(successResponseMessage);
+		} else {
+			// FIXME do something with this client anyway!
+		}
 
 		return true;
 	}
