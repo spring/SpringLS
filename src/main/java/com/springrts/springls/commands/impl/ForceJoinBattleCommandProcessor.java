@@ -24,6 +24,7 @@ import com.springrts.springls.Client;
 import com.springrts.springls.commands.AbstractCommandProcessor;
 import com.springrts.springls.commands.CommandProcessingException;
 import com.springrts.springls.commands.SupportedCommand;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -92,7 +93,15 @@ public class ForceJoinBattleCommandProcessor extends AbstractCommandProcessor {
 			// Issue response command to notify affected client
 			affectedClient.sendLine(successResponseMessage);
 		} else {
-			// FIXME do something with this client anyway!
+			// Leave the current battle.
+			getContext().getBattles().leaveBattle(client, battle);
+
+			// Join the destination battle.
+			// We fake a JOINBATTLE command, as if it was sent
+			// by the affected client
+			List<String> joinBattleArgs = new ArrayList<String>(1);
+			joinBattleArgs.add(destinationBattleIdStr);
+			getContext().getCommandProcessors().get("JOINBATTLE").process(affectedClient, joinBattleArgs);
 		}
 
 		return true;
