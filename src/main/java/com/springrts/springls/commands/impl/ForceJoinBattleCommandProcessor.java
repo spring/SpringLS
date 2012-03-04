@@ -47,26 +47,34 @@ public class ForceJoinBattleCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		int battleID = client.getBattleID();
-		Battle battle = getContext().getBattles().getBattleByID(battleID);
-		if (!battle.getFounder().equals(client)
-				&& !client.getAccount().getAccess().isAtLeast(Account.Access.PRIVILEGED))
-		{
-			client.sendLine("FORCEJOINBATTLE Failed, source client must be battle host or lobby moderator.");
-			return false;
-		}
-
-		String username = args.get(0);
-		Client affectedClient = getContext().getClients().getClient(username);
+		String userName = args.get(0);
+		Client affectedClient = getContext().getClients().getClient(userName);
 		if (affectedClient == null) {
 			client.sendLine("FORCEJOINBATTLE Failed, must specify valid user.");
 			return false;
 		}
 
-		String battleId = args.get(1);
-		Battle destinationBattle = getContext().getBattles().getBattleByID(battleID);
+		int battleId = client.getBattleID();
+		Battle battle = getContext().getBattles().getBattleByID(battleId);
+		if (!(battle.getFounder().equals(client) && battle.isClientInBattle(affectedClient))
+				&& !client.getAccount().getAccess().isAtLeast(Account.Access.PRIVILEGED))
+		{
+			client.sendLine("FORCEJOINBATTLE Failed, source client must be lobby moderator or host of the affected client's current battle.");
+			return false;
+		}
+
+		int destinationBattleId;
+		String destinationBattleIdStr = args.get(1);
+		try {
+			destinationBattleId = Integer.parseInt(destinationBattleIdStr);
+		} catch (NumberFormatException ex) {
+			client.sendLine("FORCEJOINBATTLE Failed, invalid destination battle ID (needs to be an integer): " + destinationBattleIdStr);
+			return false;
+		}
+
+		Battle destinationBattle = getContext().getBattles().getBattleByID(battleId);
 		if (destinationBattle == null) {
-			client.sendLine("FORCEJOINBATTLE Failed, must specify valid battle.");
+			client.sendLine("FORCEJOINBATTLE Failed, invalid destination battle ID (battle does not exist): " + destinationBattleIdStr);
 			return false;
 		}
 
@@ -76,8 +84,8 @@ public class ForceJoinBattleCommandProcessor extends AbstractCommandProcessor {
 		}
 
 		String successResponseMessage = (battlePassword == null)
-				? String.format("FORCEJOINBATTLE %s", battleId)
-				: String.format("FORCEJOINBATTLE %s %s", battleId, battlePassword);
+				? String.format("FORCEJOINBATTLE %i", destinationBattleId)
+				: String.format("FORCEJOINBATTLE %i %s", destinationBattleId, battlePassword);
 
 		// Issue response command to notify affected client
 		affectedClient.sendLine(successResponseMessage);
