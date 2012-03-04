@@ -38,7 +38,7 @@ import java.util.List;
 public class SayBattleExCommandProcessor extends AbstractSayCommandProcessor {
 
 	public SayBattleExCommandProcessor() {
-		super(1, ARGS_MAX_NOCHECK, Account.Access.ADMIN, true);
+		super(1, ARGS_MAX_NOCHECK, Account.Access.NORMAL, true);
 	}
 
 	@Override

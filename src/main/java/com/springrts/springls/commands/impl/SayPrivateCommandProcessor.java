@@ -35,7 +35,7 @@ import java.util.List;
 public class SayPrivateCommandProcessor extends AbstractSayCommandProcessor {
 
 	public SayPrivateCommandProcessor() {
-		super(2, ARGS_MAX_NOCHECK, Account.Access.ADMIN);
+		super(2, ARGS_MAX_NOCHECK, Account.Access.NORMAL);
 	}
 
 	@Override

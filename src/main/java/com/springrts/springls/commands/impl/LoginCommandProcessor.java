@@ -125,22 +125,26 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 		String username = args1.get(0);
 		String lobbyVersion = args2.get(0);
 
+		int compFlagsIndex = 2;
+
 		int userId = Account.NO_USER_ID;
 		if (args2.size() > 1) {
 			try {
 				// we transform unsigned 32 bit integer to a signed one
 				userId = (int) Long.parseLong(args2.get(1), 16);
+				compFlagsIndex++;
 			} catch (NumberFormatException ex) {
-				client.sendLine("DENIED <userID> field should be an integer");
-				return false;
+				// We assume that the userID field was left out,
+				// as it is optional, and consider compFlags to be at index 1.
+				compFlagsIndex = 1;
 			}
 		}
 
 		// NOTE even if the login attempt fails later on, the compatibility
 		//   flags will have an effect
-		if (args2.size() > 2) {
+		if (args2.size() > compFlagsIndex) {
 			// prepare the compatibility flags (space separated)
-			String compatFlagsStr = Misc.makeSentence(args2, 2);
+			String compatFlagsStr = Misc.makeSentence(args2, compFlagsIndex);
 			String[] compatFlagsSplit = compatFlagsStr.split(" ");
 			List<String> compatFlags
 					= new ArrayList<String>(compatFlagsSplit.length + 1);
