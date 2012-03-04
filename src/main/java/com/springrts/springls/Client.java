@@ -30,6 +30,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.CharacterCodingException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -183,6 +184,20 @@ public class Client extends TeamController implements ContextReceiver {
 	 */
 	private boolean scriptPasswordSupported;
 
+	/**
+	 * A list of compatibility-flags, each representing a certain minor change
+	 * in protocol since the last protocol version number release.
+	 * These features all have to be implemented in a backwards compatible way,
+	 * so lobby clients not supporting them are still able to function normally.
+	 * This is comparable to IRC user/channel flags.
+	 * By default, all the optional functionalities are considered
+	 * as not supported by the client.
+	 *
+	 * See the "Recent Changes" section or the LOGIN command
+	 * in the lobby protocol documentation for a list of the current flags.
+	 */
+	private List<String> compatFlags;
+
 
 	public Client(SocketChannel sockChan) {
 
@@ -216,6 +231,7 @@ public class Client extends TeamController implements ContextReceiver {
 		cpu = 0;
 		scriptPassword = NO_SCRIPT_PASSWORD;
 		scriptPasswordSupported = false;
+		compatFlags = new ArrayList<String>(0);
 
 		timeOfLastReceive = System.currentTimeMillis();
 	}
@@ -992,7 +1008,7 @@ public class Client extends TeamController implements ContextReceiver {
 	 * Does the client accept accountIDs in ADDUSER command?
 	 * @param acceptAccountIDs the acceptAccountIDs to set
 	 */
-	public void setAcceptAccountIDs(boolean acceptAccountIDs) {
+	private void setAcceptAccountIDs(boolean acceptAccountIDs) {
 		this.acceptAccountIDs = acceptAccountIDs;
 	}
 
@@ -1007,7 +1023,7 @@ public class Client extends TeamController implements ContextReceiver {
 	/**
 	 * Does the client accept JOINBATTLEREQUEST command?
 	 */
-	public void setHandleBattleJoinAuthorization(
+	private void setHandleBattleJoinAuthorization(
 			boolean handleBattleJoinAuthorization)
 	{
 		this.handleBattleJoinAuthorization = handleBattleJoinAuthorization;
@@ -1025,7 +1041,7 @@ public class Client extends TeamController implements ContextReceiver {
 	 * Does the client accept the scriptPassord argument to the
 	 * JOINEDBATTLE command?
 	 */
-	public void setScriptPassordSupported(boolean supported) {
+	private void setScriptPassordSupported(boolean supported) {
 		scriptPasswordSupported = supported;
 	}
 
@@ -1045,5 +1061,38 @@ public class Client extends TeamController implements ContextReceiver {
 	public void addReceived(long nBytes) {
 
 		receivedSinceLogin += nBytes;
+	}
+
+	/**
+	 * A list of compatibility-flags, each representing a certain minor change
+	 * in protocol since the last protocol version number release.
+	 * These features all have to be implemented in a backwards compatible way,
+	 * so lobby clients not supporting them are still able to function normally.
+	 * This is comparable to IRC user/channel flags.
+	 * By default, all the optional functionalities are considered
+	 * as not supported by the client.
+	 *
+	 * See the "Recent Changes" section or the LOGIN command
+	 * in the lobby protocol documentation for a list of the current flags.
+	 * @return the compatFlags
+	 */
+	public List<String> getCompatFlags() {
+		return compatFlags;
+	}
+
+	/**
+	 * A list of compatibility-flags, each representing a certain minor change
+	 * in protocol since the last protocol version number release.
+	 * @see #getCompatFlags
+	 * @param compatFlags the compatFlags to set
+	 */
+	public void setCompatFlags(List<String> compatFlags) {
+
+		this.compatFlags = Collections.unmodifiableList(compatFlags);
+
+		// protocol version 0.37-SNAPSHOT (after 0.36) compat-flags:
+		setAcceptAccountIDs(compatFlags.contains("a"));
+		setHandleBattleJoinAuthorization(compatFlags.contains("b"));
+		setScriptPassordSupported(compatFlags.contains("sp"));
 	}
 }

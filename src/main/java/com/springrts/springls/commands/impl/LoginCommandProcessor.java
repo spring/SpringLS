@@ -142,20 +142,20 @@ public class LoginCommandProcessor extends AbstractCommandProcessor {
 			// prepare the compatibility flags (space separated)
 			String compatFlagsStr = Misc.makeSentence(args2, 2);
 			String[] compatFlagsSplit = compatFlagsStr.split(" ");
-			ArrayList<String> compatFlags
+			List<String> compatFlags
 					= new ArrayList<String>(compatFlagsSplit.length + 1);
 			compatFlags.addAll(Arrays.asList(compatFlagsSplit));
-			// split old flags for backwards compatibility,
-			// as there were no spaces in the past
+			// We split old flags for backwards compatibility,
+			// as there were no spaces in the past.
+			// The only compat-flags that existed before we added spaces,
+			// were 'a' and 'b' (protocol version 0.37-SNAPSHOT).
 			if (compatFlags.remove("ab") || compatFlags.remove("ba")) {
 				compatFlags.add("a");
 				compatFlags.add("b");
 			}
 
-			// handle flags ...
-			client.setAcceptAccountIDs(compatFlags.contains("a"));
-			client.setHandleBattleJoinAuthorization(compatFlags.contains("b"));
-			client.setScriptPassordSupported(compatFlags.contains("sp"));
+			// handle the flags ...
+			client.setCompatFlags(compatFlags);
 		}
 
 		String password = args1.get(1);
