@@ -114,8 +114,8 @@ public class ForceJoinBattleCommandProcessor extends AbstractCommandProcessor {
 		boolean clientSupportsCmd = affectedClient.getCompatFlags().contains("m");
 		if (clientSupportsCmd) {
 			String successResponseMessage = (battlePassword == null)
-					? String.format("FORCEJOINBATTLE %i", destinationBattleId)
-					: String.format("FORCEJOINBATTLE %i %s", destinationBattleId, battlePassword);
+					? String.format("FORCEJOINBATTLE %d", destinationBattleId)
+					: String.format("FORCEJOINBATTLE %d %s", destinationBattleId, battlePassword);
 
 			// Issue response command to notify affected client
 			affectedClient.sendLine(successResponseMessage);
