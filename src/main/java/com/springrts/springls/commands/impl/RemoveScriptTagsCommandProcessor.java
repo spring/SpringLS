@@ -60,15 +60,15 @@ public class RemoveScriptTagsCommandProcessor extends AbstractCommandProcessor {
 
 		Battle battle = getBattle(client);
 
-		StringBuilder loweyKeyCommand = new StringBuilder("REMOVESCRIPTTAGS");
+		StringBuilder lowerKeyCommand = new StringBuilder("REMOVESCRIPTTAGS");
 		for (String key : args) {
 			String lowerKey = key.toLowerCase();
-			loweyKeyCommand.append(" ").append(lowerKey);
+			lowerKeyCommand.append(" ").append(lowerKey);
 			battle.getScriptTags().remove(lowerKey);
 		}
 
 		// relay the command
-		battle.sendToAllClients(loweyKeyCommand.toString());
+		battle.sendToAllClients(lowerKeyCommand.toString());
 
 		return true;
 	}
