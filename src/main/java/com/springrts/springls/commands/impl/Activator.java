@@ -189,6 +189,7 @@ public class Activator implements BundleActivator {
 		commandProcessorClasses.add(ForgeReverseMessageCommandProcessor.class);
 		commandProcessorClasses.add(KickFromBattleCommandProcessor.class);
 		commandProcessorClasses.add(StopServerCommandProcessor.class);
+		commandProcessorClasses.add(ListCompFlagsCommandProcessor.class);
 
 		return commandProcessorClasses;
 	}
