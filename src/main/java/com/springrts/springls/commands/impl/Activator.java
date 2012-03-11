@@ -191,6 +191,7 @@ public class Activator implements BundleActivator {
 		commandProcessorClasses.add(StopServerCommandProcessor.class);
 		commandProcessorClasses.add(ForceJoinBattleCommandProcessor.class);
 		commandProcessorClasses.add(ListCompFlagsCommandProcessor.class);
+		commandProcessorClasses.add(ConnectUserCommandProcessor.class);
 
 		return commandProcessorClasses;
 	}
