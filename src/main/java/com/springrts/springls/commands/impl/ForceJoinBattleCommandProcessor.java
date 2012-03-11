@@ -51,7 +51,9 @@ public class ForceJoinBattleCommandProcessor extends AbstractCommandProcessor {
 		String userName = args.get(0);
 		Client affectedClient = getContext().getClients().getClient(userName);
 		if (affectedClient == null) {
-			client.sendLine("FORCEJOINBATTLE Failed, must specify valid user.");
+			client.sendLine(String.format(
+					"FORCEJOINBATTLEFAILED %s %s", userName,
+					"Invalid user name was specified"));
 			return false;
 		}
 
@@ -60,7 +62,9 @@ public class ForceJoinBattleCommandProcessor extends AbstractCommandProcessor {
 		if (!(battle.getFounder().equals(client) && battle.isClientInBattle(affectedClient))
 				&& !client.getAccount().getAccess().isAtLeast(Account.Access.PRIVILEGED))
 		{
-			client.sendLine("FORCEJOINBATTLE Failed, source client must be lobby moderator or host of the affected client's current battle.");
+			client.sendLine(String.format(
+					"FORCEJOINBATTLEFAILED %s %s", userName,
+					"The source client must be a lobby moderator or the host of the affected client's current battle"));
 			return false;
 		}
 
@@ -69,21 +73,29 @@ public class ForceJoinBattleCommandProcessor extends AbstractCommandProcessor {
 		try {
 			destinationBattleId = Integer.parseInt(destinationBattleIdStr);
 		} catch (NumberFormatException ex) {
-			client.sendLine("FORCEJOINBATTLE Failed, invalid destination battle ID (needs to be an integer): " + destinationBattleIdStr);
+			client.sendLine(String.format(
+					"FORCEJOINBATTLEFAILED %s %s", userName,
+					"Invalid destination battle ID (needs to be an integer): " + destinationBattleIdStr));
 			return false;
 		}
 
 		Battle destinationBattle = getContext().getBattles().getBattleByID(destinationBattleId);
 		if (destinationBattle == null) {
-			client.sendLine("FORCEJOINBATTLE Failed, invalid destination battle ID (battle does not exist): " + destinationBattleIdStr);
+			client.sendLine(String.format(
+					"FORCEJOINBATTLEFAILED %s %s", userName,
+					"Invalid destination battle ID (battle does not exist): " + destinationBattleIdStr));
 			return false;
 		}
 		if (destinationBattle.restricted()) {
-			client.sendLine("FORCEJOINBATTLE Failed, the destination battle is password-protected, so we can not move to it");
+			client.sendLine(String.format(
+					"FORCEJOINBATTLEFAILED %s %s", userName,
+					"The destination battle is password-protected, so we can not move to it"));
 			return false;
 		}
 		if (destinationBattle.isLocked()) {
-			client.sendLine("FORCEJOINBATTLE Failed, the destination battle is locked, so we can not move to it");
+			client.sendLine(String.format(
+					"FORCEJOINBATTLEFAILED %s %s", userName,
+					"The destination battle is locked, so we can not move to it"));
 			return false;
 		}
 
