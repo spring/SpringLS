@@ -59,7 +59,14 @@ public class ForceJoinBattleCommandProcessor extends AbstractCommandProcessor {
 
 		int battleId = affectedClient.getBattleID();
 		Battle battle = getContext().getBattles().getBattleByID(battleId);
-		if (!(battle.getFounder().equals(client) && battle.isClientInBattle(affectedClient))
+		if (battle == null) {
+			client.sendLine(String.format(
+					"FORCEJOINBATTLEFAILED %s %s", userName,
+					"The user to be moved is not currently in any battle"));
+			return false;
+		}
+
+		if (!battle.getFounder().equals(client)
 				&& !client.getAccount().getAccess().isAtLeast(Account.Access.PRIVILEGED))
 		{
 			client.sendLine(String.format(
