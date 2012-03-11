@@ -23,6 +23,9 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CodingErrorAction;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Contains settings specific for one version of the engine.
@@ -52,12 +55,19 @@ public class Server {
 	 */
 	private InetAddress redirectAddress;
 
+	/**
+	 * The list of compatibility flags (see command LOGIN) supported
+	 * by this server.
+	 */
+	private Set<String> supportedCompFlags;
+
 	public Server() {
 
 		startTime = System.currentTimeMillis();
 		loginEnabled = true;
 		timeoutLength = 50000;
 		redirectAddress = null;
+		supportedCompFlags = new HashSet<String>();
 	}
 
 	public static String getApplicationName() {
@@ -189,5 +199,14 @@ public class Server {
 	 */
 	public void setRedirectAddress(InetAddress redirectAddress) {
 		this.redirectAddress = redirectAddress;
+	}
+
+	/**
+	 * The list of compatibility flags (see command LOGIN) supported
+	 * by this server.
+	 * @return the server supported compatibility flags
+	 */
+	public Set<String> getSupportedCompFlags() {
+		return supportedCompFlags;
 	}
 }

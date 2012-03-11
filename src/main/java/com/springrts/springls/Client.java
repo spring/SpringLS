@@ -35,6 +35,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Queue;
+import java.util.Set;
 import org.apache.commons.configuration.Configuration;
 
 import org.slf4j.Logger;
@@ -247,6 +248,11 @@ public class Client extends TeamController implements ContextReceiver {
 		if (ip2CountryService != null) {
 			setLocale(ip2CountryService.getLocale(ip));
 		}
+
+		Set<String> supportedCompFlags = context.getServer().getSupportedCompFlags();
+		supportedCompFlags.add("a");
+		supportedCompFlags.add("b");
+		supportedCompFlags.add("sp");
 	}
 
 	@Override

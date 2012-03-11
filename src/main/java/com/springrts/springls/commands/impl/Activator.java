@@ -56,6 +56,9 @@ public class Activator implements BundleActivator {
 
 		try {
 			load(getCommandProcessorClasses());
+			// FIXME This should probably be done in the ForceJoinBattleCommandProcessor directly.
+			//   That would first need some start(bundle) and stop(bundle) equivalent there, though.
+			Context.getService(context, Context.class).getServer().getSupportedCompFlags().add("m");
 		} catch (Exception ex) {
 			log.error("Failed to load Command Processors", ex);
 			Context.getService(context, Context.class).getServerThread().closeServerAndExit();
@@ -69,6 +72,7 @@ public class Activator implements BundleActivator {
 	 */
 	@Override
 	public void stop(BundleContext context) {
+		Context.getService(context, Context.class).getServer().getSupportedCompFlags().remove("m");
 	}
 
 	/**
