@@ -78,6 +78,14 @@ public class ForceJoinBattleCommandProcessor extends AbstractCommandProcessor {
 			client.sendLine("FORCEJOINBATTLE Failed, invalid destination battle ID (battle does not exist): " + destinationBattleIdStr);
 			return false;
 		}
+		if (destinationBattle.restricted()) {
+			client.sendLine("FORCEJOINBATTLE Failed, the destination battle is password-protected, so we can not move to it");
+			return false;
+		}
+		if (destinationBattle.isLocked()) {
+			client.sendLine("FORCEJOINBATTLE Failed, the destination battle is locked, so we can not move to it");
+			return false;
+		}
 
 		String battlePassword = null;
 		if (args.size() > 2) { // if optional battlePassword was set
