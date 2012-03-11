@@ -36,7 +36,7 @@ import java.util.List;
 public class ForceJoinBattleCommandProcessor extends AbstractCommandProcessor {
 
 	public ForceJoinBattleCommandProcessor() {
-		super(2, 3, Account.Access.NORMAL, true);
+		super(2, 3, Account.Access.NORMAL);
 	}
 
 	@Override
