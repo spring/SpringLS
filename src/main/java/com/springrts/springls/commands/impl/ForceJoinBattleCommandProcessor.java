@@ -55,7 +55,7 @@ public class ForceJoinBattleCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		int battleId = client.getBattleID();
+		int battleId = affectedClient.getBattleID();
 		Battle battle = getContext().getBattles().getBattleByID(battleId);
 		if (!(battle.getFounder().equals(client) && battle.isClientInBattle(affectedClient))
 				&& !client.getAccount().getAccess().isAtLeast(Account.Access.PRIVILEGED))
@@ -73,7 +73,7 @@ public class ForceJoinBattleCommandProcessor extends AbstractCommandProcessor {
 			return false;
 		}
 
-		Battle destinationBattle = getContext().getBattles().getBattleByID(battleId);
+		Battle destinationBattle = getContext().getBattles().getBattleByID(destinationBattleId);
 		if (destinationBattle == null) {
 			client.sendLine("FORCEJOINBATTLE Failed, invalid destination battle ID (battle does not exist): " + destinationBattleIdStr);
 			return false;
@@ -94,7 +94,7 @@ public class ForceJoinBattleCommandProcessor extends AbstractCommandProcessor {
 			affectedClient.sendLine(successResponseMessage);
 		} else {
 			// Leave the current battle.
-			getContext().getBattles().leaveBattle(client, battle);
+			getContext().getBattles().leaveBattle(affectedClient, battle);
 
 			// Join the destination battle.
 			// We fake a JOINBATTLE command, as if it was sent
