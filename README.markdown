@@ -72,22 +72,28 @@ This is also where you find the final jar files:
 
 ## Running
 
-Use `runServer.sh` or `runServer.bat` to start the server, if you built it
-with Maven.
+The minimum requirement is the Java run-time environment (JRE) 6 or later.
+The latest version can be found
+[here](http://java.sun.com/j2se/1.6.0/download.jsp).
+
+Use `runServer.sh` (Unix, Linux, BSD, OS X) or `runServer.bat` (Windows)
+to start the server if you built it with Maven.
 You should also see the documentation in these files, for further info.
 
-When server is up and running, people from the local network will be able to
-join it as well as people from the internet, although those from the internet
-will not be able to join games hosted by local clients, still local clients will
-be able to join games hosted by outside players. You do not need to create any
-accounts when joining a LAN server, it will accept any user-name/password.
+### LAN mode
+When the server is up and running, people from the local network will be able to
+join it as well as people from the internet. Although those from the internet
+will not be able to join games hosted by local clients, local clients in turn
+will be able to join games hosted by outside players.
+You do not need to create any accounts when joining a LAN server,
+it will accept any user-name/password.
 
-If you experience problems using server in LAN mode (like other clients
+If you experience problems using the server in LAN mode (like other clients
 being timed-out when connecting to your game), you should try this:
 Let the player who is NOT running the server host. This is important
 when the server assigns a player (who is using the same computer as the server)
 the `localhost` IP (`127.0.0.1`). In this case, other players on the LAN would
-receive this IP and when they try to connect to the game host at `127.0.0.1`,
+receive this IP, and when they try to connect to the game host at `127.0.0.1`,
 the connection attempt will fail.
 The server should replace this IP with a local one (`192.168.x.y`) automatically,
 but if it fails for any reason, you should use the method described above.
@@ -95,9 +101,45 @@ but if it fails for any reason, you should use the method described above.
 To be able to accept connections from outside the LAN, you will have to forward
 ports 8200 (TCP) and 8201 (UDP) to the machine running the lobby.
 
-You will also need the Java run-time environment (JRE) 6 or later.
-The latest version can be found
-[here](http://java.sun.com/j2se/1.6.0/download.jsp).
+### Logging
+To configure logging details, for example using a higher verbosity level,
+you have to create a custom config file.
+If you are using the `runServer.*` script,
+this is done most easily using the following steps:
+
+_Unix, Linux, BSD, OS X_
+
+	cp src/main/resources/logback.xml conf
+	${EDITOR} conf/logback.xml
+
+_Windows_
+
+	copy src\main\resources\logback.xml conf
+	notepad conf\logback.xml
+
+For documentation about logback configuration,
+see [this link](http://logback.qos.ch/manual/configuration.html).
+
+### Configuring the DB
+In additiona to the `--database` command line parameter,
+you need to tell the server which database connection to use
+for storing account- and other info,
+by configuring JPA (Java Persistence API) details.
+If you are using the `runServer.*` script,
+this is done most easily using the following steps:
+
+_Unix, Linux, BSD, OS X_
+
+	cp conf/META-INF/persistence.xml.template conf/META-INF/persistence.xml
+	${EDITOR} conf/META-INF/persistence.xml
+
+_Windows_
+
+	copy conf\META-INF\persistence.xml.template conf\META-INF\persistence.xml
+	notepad conf\META-INF\persistence.xml
+
+Info about the default persistence provider (Hibernate)
+can be found [here](http://docs.jboss.org/hibernate/stable/entitymanager/reference/en/html/configuration.html).
 
 
 ## Command line arguments

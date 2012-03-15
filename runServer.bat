@@ -6,7 +6,7 @@ REM
 REM * start server (LAN mode):
 REM   > runServer.bat
 REM
-REM * start server (using a database for storing user accounts):
+REM * start server (normal mode, using a database):
 REM   > runServer.bat --database
 REM
 REM * start server (debug mode):
@@ -15,18 +15,6 @@ REM   > runServer.bat
 REM
 REM * stop server:
 REM   press [Ctrl]+[C]
-REM
-REM * configure logging:
-REM   > copy src\main\resources\logback.xml conf
-REM   > edit conf\logback.xml
-REM   For documentation about logback configuration, see:
-REM   http://logback.qos.ch/manual/configuration.html
-REM
-REM * configure the DB:
-REM * > copy conf\META-INF\persistence.xml.template conf\META-INF\persistence.xml
-REM   > notepad conf\META-INF\persistence.xml
-REM   Info about the default persistence provider for SpringLS (Hibernate):
-REM   http://docs.jboss.org/hibernate/stable/entitymanager/reference/en/html/configuration.html
 REM
 
 SET MY_MAIN_CLASS_main=com.springrts.springls.Main

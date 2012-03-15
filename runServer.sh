@@ -6,8 +6,8 @@
 # * start server (LAN mode):
 #   > ./runServer.sh
 #
-# * start server (normal mode):
-#   > FULL_CP=1 ./runServer.sh
+# * start server (normal mode, using a database):
+#   > FULL_CP=1 ./runServer.sh --database
 #
 # * start server (debug mode):
 #   > DBG_PORT=7333 FULL_CP=1 ./runServer.sh
@@ -20,18 +20,6 @@
 #
 # * stop server (daemon mode):
 #   > kill $(cat server.pid)
-#
-# * configure logging:
-#   > cp src/main/resources/logback.xml conf
-#   > ${EDITOR} conf/logback.xml
-#   For documentation about logback configuration, see:
-#   http://logback.qos.ch/manual/configuration.html
-#
-# * configure the DB:
-#   > cp conf/META-INF/persistence.xml.template conf/META-INF/persistence.xml
-#   > ${EDITOR} conf/META-INF/persistence.xml
-#   Info about the default persistence provider for SpringLS (Hibernate):
-#   http://docs.jboss.org/hibernate/stable/entitymanager/reference/en/html/configuration.html
 #
 
 PID_FILE=server.pid
