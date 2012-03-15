@@ -48,8 +48,8 @@ public class Activator implements BundleActivator {
 		if (!accounts.isReadyToOperate()) {
 			Configuration conf = springLsContext.getService(Configuration.class);
 			assert(conf.getBoolean(ServerConfiguration.LAN_MODE));
-			log.warn("Accounts service is not ready, switching to \"LAN mode\" ...");
-			conf.setProperty(ServerConfiguration.LAN_MODE, true);
+			log.error("Accounts service is not ready, shutting down the server");
+			springLsContext.getServerThread().closeServerAndExit();
 		}
 
 		accounts.receiveContext(springLsContext);
