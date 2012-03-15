@@ -49,7 +49,11 @@ public class JPAAccountsService extends AbstractAccountsService {
 
 	public JPAAccountsService() {
 
-		emf = Persistence.createEntityManagerFactory("springls");
+		try {
+			emf = Persistence.createEntityManagerFactory("springls");
+		} catch (PersistenceException ex) {
+			LOG.error("Failed to initialize database storage", ex);
+		}
 	}
 
 	private EntityManager open() {
@@ -98,7 +102,7 @@ public class JPAAccountsService extends AbstractAccountsService {
 
 	@Override
 	public boolean isReadyToOperate() {
-		return true;
+		return (emf != null);
 	}
 
 	@Override
