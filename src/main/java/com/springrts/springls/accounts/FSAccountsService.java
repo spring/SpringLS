@@ -88,7 +88,7 @@ public class FSAccountsService extends AbstractAccountsService {
 	public boolean isReadyToOperate() {
 
 		if (!(new File(ACCOUNTS_INFO_FILEPATH)).exists()) {
-			LOG.warn("Accounts info file not found");
+			LOG.warn("Accounts info file \"{}\" not found", ACCOUNTS_INFO_FILEPATH);
 			return false;
 		}
 
