@@ -502,7 +502,7 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 		}
 
 		//getContext().stopped();
-		LOG.warn("Server stopped forcefully");
+		LOG.warn("Server stopped forcefully, please see the log for details");
 
 		System.exit(127);
 	}
