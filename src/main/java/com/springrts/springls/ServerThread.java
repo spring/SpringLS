@@ -492,10 +492,14 @@ public class ServerThread implements ContextReceiver, LiveStateListener, Updatea
 
 		//getContext().stopping();
 
-		// add server notification:
-		ServerNotification sn = new ServerNotification("Server stopped");
-		sn.addLine("Server has just been stopped. See server log for more info.");
-		getContext().getServerNotifications().addNotification(sn);
+		// add server notification
+		if ((getContext() != null)
+				&& (getContext().getServerNotifications() != null))
+		{
+			ServerNotification sn = new ServerNotification("Server stopped");
+			sn.addLine("Server has just been stopped. See server log for more info.");
+			getContext().getServerNotifications().addNotification(sn);
+		}
 
 		//getContext().stopped();
 		LOG.warn("Server stopped forcefully");
