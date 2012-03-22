@@ -93,8 +93,8 @@ public final class Main {
 		options.addOption(natPort);
 
 		Option logMain = new Option(null, "log-main", false,
-				"Whether to log all conversations from channel #main to"
-				+ " MainChanLog.log");
+				"Whether to log all conversations from channel #main to "
+				+ Channel.createDefaultActivityLogFilePath("main").getPath());
 		options.addOption(logMain);
 
 		Option lanAdmin = new Option(null, "lan-admin", true,
