@@ -51,7 +51,7 @@ public final class Main {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Main.class);
 
-	/** Make clear that this is an utility class */
+	/** Make clear that this is a utility class */
 	private Main() {}
 
 	private static Options createOptions() {
@@ -194,8 +194,8 @@ public final class Main {
 			String[] usernamePassword = cmd.getOptionValues("lan-admin");
 
 			if (usernamePassword.length < 1) {
-				throw new MissingArgumentException("LAN admin user name is"
-						+ " missing");
+				throw new MissingArgumentException(
+						"LAN admin user name is missing");
 			}
 			String username = usernamePassword[0];
 			String password = (usernamePassword.length > 1)
@@ -205,13 +205,13 @@ public final class Main {
 
 			String error = Account.isOldUsernameValid(username);
 			if (error != null) {
-				throw new ParseException("LAN admin user name is not"
-						+ " valid: " + error);
+				throw new ParseException(
+						"LAN admin user name is not valid: " + error);
 			}
 			error = Account.isPasswordValid(password);
 			if (error != null) {
-				throw new ParseException("LAN admin password is not"
-						+ " valid: " + error);
+				throw new ParseException(
+						"LAN admin password is not valid: " + error);
 			}
 			configuration.setProperty(ServerConfiguration.LAN_ADMIN_USERNAME, username);
 			configuration.setProperty(ServerConfiguration.LAN_ADMIN_PASSWORD, password);
