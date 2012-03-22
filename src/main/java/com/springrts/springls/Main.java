@@ -65,8 +65,10 @@ public final class Main {
 		options.addOption(help);
 
 		Option port = new Option("p", "port", true,
-				"The main (TCP) port number to host on [1, 65535].  The default"
-				+ " is " + defaults.getInt(ServerConfiguration.PORT) + ".");
+				String.format(
+				"The main (TCP) port number to host on [1, 65535]."
+				+ " The default is %d.",
+				defaults.getInt(ServerConfiguration.PORT)));
 		// possible types:
 		// * File.class
 		// * Number.class
@@ -83,27 +85,28 @@ public final class Main {
 		options.addOption(statistics);
 
 		Option natPort = new Option("n", "nat-port", true,
+				String.format(
 				"The (UDP) port number to host the NAT traversal techniques"
 				+ " help service on [1, 65535], which lets clients detect their"
 				+ " source port, for example when using \"hole punching\"."
-				+ " The default is "
-				+ defaults.getInt(ServerConfiguration.NAT_PORT) + ".");
+				+ " The default is %d.",
+				defaults.getInt(ServerConfiguration.NAT_PORT)));
 		port.setType(Number.class);
 		natPort.setArgName("NAT-port-number");
 		options.addOption(natPort);
 
 		Option logMain = new Option(null, "log-main", false,
-				"Whether to log all conversations from channel #main to "
-				+ Channel.createDefaultActivityLogFilePath("main").getPath());
+				String.format(
+				"Whether to log all conversations from channel #main to \"%s\"",
+				Channel.createDefaultActivityLogFilePath("main").getPath()));
 		options.addOption(logMain);
 
 		Option lanAdmin = new Option(null, "lan-admin", true,
+				String.format(
 				"The LAN mode admin account. Use this account to administer"
-				+ " your LAN server. The default is \""
-				+ defaults.getString(ServerConfiguration.LAN_ADMIN_USERNAME)
-				+ "\", with password \""
-				+ defaults.getString(ServerConfiguration.LAN_ADMIN_PASSWORD)
-				+ "\".");
+				+ " your LAN server. The default is \"%s\", with password \"%s\".",
+				defaults.getString(ServerConfiguration.LAN_ADMIN_USERNAME),
+				defaults.getString(ServerConfiguration.LAN_ADMIN_PASSWORD)));
 		lanAdmin.setArgName("username");
 		options.addOption(lanAdmin);
 
