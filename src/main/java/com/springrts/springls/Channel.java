@@ -93,18 +93,28 @@ public class Channel implements ContextReceiver, LiveStateListener {
 	private Context context = null;
 
 
-	public Channel(String channelName) {
+	public Channel(String name) {
 
-		name = channelName;
+		this.name = name;
 		topic = TOPIC_NONE;
 		topicAuthor = "";
 		key = KEY_NONE;
 		clients = new ArrayList<Client>();
-		logFile = new File(LOG_FILES_DIR, "channel_" + name + ".log");
+		logFile = createDefaultActivityLogFilePath(name);
 		logging = false;
 		fileLog = null;
 	}
 
+
+	/**
+	 * Creates the path to the log file of a channel,
+	 * where its activity may be logged.
+	 * @param channelName the name of the channel to query the log file for
+	 * @return local file-system path to a channels activity log file
+	 */
+	public static File createDefaultActivityLogFilePath(String channelName) {
+		return new File(LOG_FILES_DIR, "channel_" + channelName + ".log");
+	}
 
 	public static boolean isTopicNone(String topic) {
 		return (topic.equals(TOPIC_NONE) || topic.equals(TOPIC_NONE_2));
