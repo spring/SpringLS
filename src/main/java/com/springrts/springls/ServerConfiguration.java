@@ -58,7 +58,7 @@ public final class ServerConfiguration {
 	/**
 	 * Channels whichs name matches this regex will be logged.
 	 */
-	public static final String CHANNELS_LOG_REGEX = "log.main";
+	public static final String CHANNELS_LOG_REGEX = "channels.log.regex";
 	/**
 	 * The property name for the engine version that clients should use to
 	 * host games on this server.
